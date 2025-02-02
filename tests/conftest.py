@@ -43,3 +43,8 @@ def docx_document() -> Path:
 @pytest.fixture(scope="session")
 def markdown_document() -> Path:
     return Path(__file__).parent / "source" / "markdown.md"
+
+
+@pytest.fixture(scope="session")
+def pptx_document() -> Path:
+    return Path(__file__).parent / "source" / "pitch-deck-presentation.pptx"

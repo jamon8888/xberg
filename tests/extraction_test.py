@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from kreuzberg._mime_types import MARKDOWN_MIME_TYPE, PDF_MIME_TYPE, PLAIN_TEXT_MIME_TYPE
+from kreuzberg._mime_types import MARKDOWN_MIME_TYPE, PDF_MIME_TYPE, PLAIN_TEXT_MIME_TYPE, POWER_POINT_MIME_TYPE
 from kreuzberg.exceptions import ValidationError
 from kreuzberg.extraction import extract_bytes, extract_file
 
@@ -53,6 +53,14 @@ async def test_extract_bytes_plain_text() -> None:
     assert result.content.strip() == "This is a plain text file."
 
 
+async def test_extract_bytes_pptx(pptx_document: Path) -> None:
+    content = pptx_document.read_bytes()
+    result = await extract_bytes(content, POWER_POINT_MIME_TYPE)
+    assert result.mime_type == MARKDOWN_MIME_TYPE
+    assert isinstance(result.content, str)
+    assert result.content.strip()
+
+
 async def test_extract_bytes_markdown(markdown_document: Path) -> None:
     content = markdown_document.read_bytes()
     result = await extract_bytes(content, MARKDOWN_MIME_TYPE)
@@ -75,7 +83,7 @@ async def test_extract_file_pdf(pdf_document: Path) -> None:
 
 
 async def test_extract_file_force_ocr_pdf(non_ascii_pdf: Path) -> None:
-    result = await extract_file(non_ascii_pdf, PDF_MIME_TYPE)
+    result = await extract_file(non_ascii_pdf, PDF_MIME_TYPE, True)
     assert result.mime_type == PLAIN_TEXT_MIME_TYPE
     assert result.content.startswith("AMTSBLATT")
     assert isinstance(result.content, str)
@@ -109,6 +117,13 @@ async def test_extract_file_plain_text(tmp_path: Path) -> None:
 
 async def test_extract_file_markdown(markdown_document: Path) -> None:
     result = await extract_file(markdown_document, MARKDOWN_MIME_TYPE)
+    assert result.mime_type == MARKDOWN_MIME_TYPE
+    assert isinstance(result.content, str)
+    assert result.content.strip()
+
+
+async def test_extract_file_pptx(pptx_document: Path) -> None:
+    result = await extract_file(pptx_document, POWER_POINT_MIME_TYPE)
     assert result.mime_type == MARKDOWN_MIME_TYPE
     assert isinstance(result.content, str)
     assert result.content.strip()

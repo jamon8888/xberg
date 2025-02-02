@@ -43,10 +43,13 @@ classifiers = [
 
 dependencies = [
   "anyio>=4.8.0",
+  "beautifulsoup4>=4.12.3",
   "charset-normalizer>=3.4.1",
+  "lxml>=5.3.0",
   "pypandoc>=1.15",
   "pypdfium2>=4.30.1",
   "pytesseract>=0.3.13",
+  "python-pptx>=1.0.2",
   "typing-extensions>=4.12.2",
 ]
 

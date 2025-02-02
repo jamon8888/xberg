@@ -33,6 +33,28 @@ Hence, this library.
 - [pandoc](https://pandoc.org/installing.html) (non-pdf text extraction, GPL v2.0 licensed but used via CLI only)
 - [tesseract-ocr](https://tesseract-ocr.github.io/) (for image/PDF OCR, Apache License)
 
+## Dependencies and Philosophy
+
+This library is built to be minimalist and simple. It also aims to utilize OSS tools for the job. Its fundamentally a
+high order async abstraction on top of other tools, think of it like the library you would bake in your code base, but
+polished and well maintained.
+
+### Dependencies
+
+- PDFs are processed using pdfium2 for searchable PDFs + Tesseract OCR for scanned documents
+- Images are processed using Tesseract OCR
+- Office documents and other formats are processed using Pandoc, or python-pptx for PPTX files
+- Plain text files are read directly with appropriate encoding detection
+
+### Roadmap
+
+[] - extra install groups (to make dependencies optional and offer alternatives)
+[] - html file text extraction
+[] - better PDF table extraction
+[] - metadata extraction
+
+Feel free to open a discussion in GitHub or an issue if you have any feature requests, but keep the philosophy part in mind
+
 ## Supported File Types
 
 Kreuzberg supports a wide range of file formats:
@@ -40,7 +62,8 @@ Kreuzberg supports a wide range of file formats:
 ### Document Formats
 
 - PDF (`.pdf`) - both searchable and scanned documents
-- Word Documents (`.docx`)
+- Word Documents (`.docx`, `.doc`)
+- Power Point Presentations (`.pptx`)
 - OpenDocument Text (`.odt`)
 - Rich Text Format (`.rtf`)
 
@@ -70,21 +93,12 @@ Kreuzberg supports a wide range of file formats:
 - Comma-Separated Values (`.csv`)
 - Tab-Separated Values (`.tsv`)
 
-All formats support text extraction, with different processing methods:
-
-- PDFs are processed using pdfium2 for searchable PDFs and Tesseract OCR for scanned documents
-- Images are processed using Tesseract OCR
-- Office documents and other formats are processed using Pandoc
-- Plain text files are read directly with appropriate encoding detection
-
 ## Usage
 
 Kreuzberg exports two async functions:
 
 - Extract text from a file (string path or `pathlib.Path`) using `extract_file()`
 - Extract text from a byte-string using `extract_bytes()`
-
-Note - both of these functions are async and therefore should be used in an async context.
 
 ### Extract from File
 
