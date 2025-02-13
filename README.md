@@ -135,23 +135,19 @@ However, we also provide sync methods for simpler use cases or when working in s
 
 ```python
 from pathlib import Path
-from kreuzberg import extract_file, Config
+from kreuzberg import extract_file
 from kreuzberg.extraction import ExtractionResult
-
-# Configure OCR settings (optional)
-config = Config(max_concurrent_tesseract=2)
 
 
 # Basic file extraction
 async def extract_document():
     # Extract from a PDF file
-    pdf_result: ExtractionResult = await extract_file("document.pdf", config=config)
+    pdf_result: ExtractionResult = await extract_file("document.pdf")
     print(f"Content: {pdf_result.content}")
-    print(f"MIME type: {pdf_result.mime_type}")
-    print(f"Metadata: {pdf_result.metadata}")
+
 
     # Extract from an image
-    img_result = await extract_file("scan.png", config=config)
+    img_result = await extract_file("scan.png")
     print(f"Image text: {img_result.content}")
 
     # Extract from Word document with metadata
@@ -161,17 +157,19 @@ async def extract_document():
         print(f"Author: {docx_result.metadata.get('author')}")
 ```
 
-### Processing Uploaded Files
+### Extracting Bytes
 
 ```python
-from kreuzberg import extract_bytes, Config
+from kreuzberg import extract_bytes
 from kreuzberg.extraction import ExtractionResult
 
 
 async def process_upload(file_content: bytes, mime_type: str) -> ExtractionResult:
     """Process uploaded file content with known MIME type."""
-    config = Config(max_concurrent_tesseract=2)
-    return await extract_bytes(file_content, mime_type=mime_type, config=config)
+    return await extract_bytes(
+        file_content,
+        mime_type=mime_type,
+    )
 
 
 # Example usage with different file types
@@ -214,29 +212,29 @@ This approach ensures optimal text quality while minimizing unnecessary OCR proc
 
 #### PDF Processing Options
 
-You can control PDF processing behavior using the `Config` class:
+You can control PDF processing behavior using optional parameters:
 
 ```python
-from kreuzberg import extract_file, Config
+from kreuzberg import extract_file
 
 
 async def process_pdf():
     # Default behavior: auto-detect and use OCR if needed
+    # By default, max_tesseract_concurrency=1 for safe operation
     result = await extract_file("document.pdf")
     print(result.content)
 
     # Force OCR even for searchable PDFs
-    config = Config(force_ocr=True)
-    result = await extract_file("document.pdf", config=config)
+    result = await extract_file("document.pdf", force_ocr=True)
     print(result.content)
 
     # Control OCR concurrency for large documents
-    config = Config(max_concurrent_tesseract=4)
-    result = await extract_file("large_document.pdf", config=config)
-    print(result.content)
-
-    # Force OCR for PDFs with embedded images or scanned content
-    result = await extract_file("document.pdf", force_ocr=True)
+    # Warning: High concurrency values can cause system resource exhaustion
+    # Start with a low value and increase based on your system's capabilities
+    result = await extract_file(
+        "large_document.pdf",
+        max_tesseract_concurrency=4  # Process up to 4 pages concurrently
+    )
     print(result.content)
 
     # Process a scanned PDF (automatically uses OCR)
