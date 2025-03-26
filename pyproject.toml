@@ -1,6 +1,6 @@
 [project]
 name = "kreuzberg"
-version = "3.0.0"
+version = "3.0.1"
 description = "A text extraction library supporting PDFs, images, office documents and more"
 readme = "README.md"
 keywords = [
@@ -91,9 +91,6 @@ doc = [
   "mkdocs-minify-plugin>=0.8.0",
   "mkdocstrings[python]>=0.29.0",
 ]
-
-[tool.setuptools.packages.find]
-include = [ "kreuzberg" ]
 
 [tool.setuptools.package-data]
 kreuzberg = [ "py.typed" ]
