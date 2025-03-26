@@ -98,7 +98,7 @@ Kreuzberg supports multiple OCR engines:
 - **EasyOCR**: Good for many languages, pure Python, but downloads models on first use
 - **PaddleOCR**: Excellent for Asian languages, pure Python, but downloads models on first use
 
-For comparison and selection guidance, see the [OCR Backends](https://example.com/ocr-backends) documentation.
+For comparison and selection guidance, see the [OCR Backends](https://goldziher.github.io/kreuzberg/user-guide/ocr-backends/) documentation.
 
 ## Contribution
 
