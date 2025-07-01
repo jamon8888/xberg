@@ -51,7 +51,7 @@ jobs:
           # Sync all workspace packages with all extras
           uv sync --all-packages --all-extras
           # Verify benchmarks CLI is available
-          uv run --directory benchmarks kreuzberg-bench --help
+          uv run python -m kreuzberg_benchmarks --help
 
       - name: Verify test files exist
         run: |
@@ -61,20 +61,20 @@ jobs:
       - name: Run benchmarks
         run: |
           # Run comparison benchmarks (sync vs async)
-          uv run --directory benchmarks kreuzberg-bench run \
+          uv run python -m kreuzberg_benchmarks run \
             --comparison-only \
-            --test-files-dir ../tests/test_source_files \
-            --output-dir results \
+            --test-files-dir tests/test_source_files \
+            --output-dir benchmarks/results \
             --suite-name "ci_sync_vs_async" \
             ${{ github.event.inputs.flame_graphs == 'true' && '--flame' || '' }}
 
       - name: Run stress tests (if requested)
         if: github.event.inputs.include_stress_tests == 'true' || github.event_name == 'schedule'
         run: |
-          uv run --directory benchmarks kreuzberg-bench run \
+          uv run python -m kreuzberg_benchmarks run \
             --stress \
-            --test-files-dir ../tests/test_source_files \
-            --output-dir results \
+            --test-files-dir tests/test_source_files \
+            --output-dir benchmarks/results \
             --suite-name "ci_stress_tests"
 
       - name: Archive benchmark results
@@ -170,7 +170,7 @@ jobs:
           # Download baseline for comparison if it exists
           echo "Checking for performance regression against baseline..."
           if [ -f ".github/benchmarks/baseline.json" ]; then
-            uv run --directory . python scripts/compare_benchmarks.py \
+            uv run python scripts/compare_benchmarks.py \
               --baseline .github/benchmarks/baseline.json \
               --current benchmarks/results/latest.json \
               --threshold 0.2
