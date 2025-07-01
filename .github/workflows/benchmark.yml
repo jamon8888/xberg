@@ -48,8 +48,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install main package first
-          uv pip install -e . --all-extras
+          # Install main package with extras
+          uv pip install -e ".[all]"
           # Install benchmarks package
           uv pip install -e ./benchmarks
 
