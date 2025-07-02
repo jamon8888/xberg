@@ -28,7 +28,7 @@ async def run_end_to_end_benchmark(trials: int = 20) -> dict[str, Any]:
         chunk_content=True
     )
     
-    print(f"🎯 END-TO-END CACHE BENCHMARK")
+    print("🎯 END-TO-END CACHE BENCHMARK")
     print(f"File: {single_file.name}")
     print(f"Warm cache trials: {trials}")
     print("=" * 60)
@@ -119,10 +119,10 @@ async def run_end_to_end_benchmark(trials: int = 20) -> dict[str, Any]:
     # Coefficient of variation (measure of consistency)
     cv = (warm_clean_stdev / warm_clean_mean) * 100 if warm_clean_mean > 0 else 0
     
-    print(f"\n📊 STATISTICAL RESULTS")
+    print("\n📊 STATISTICAL RESULTS")
     print("=" * 60)
     
-    print(f"\n🔥 COLD PERFORMANCE:")
+    print("\n🔥 COLD PERFORMANCE:")
     print(f"  Duration: {cold_duration:.3f}s")
     print(f"  Content:  {len(cold_result.content):,} chars")
     print(f"  Tables:   {len(cold_result.tables)}")
@@ -134,17 +134,17 @@ async def run_end_to_end_benchmark(trials: int = 20) -> dict[str, Any]:
     print(f"  95% CI:   {ci_lower*1000:.3f}ms - {ci_upper*1000:.3f}ms")
     print(f"  CV:       {cv:.1f}% ({'excellent' if cv < 5 else 'good' if cv < 10 else 'variable'})")
     
-    print(f"\n🚀 PERFORMANCE GAIN:")
+    print("\n🚀 PERFORMANCE GAIN:")
     print(f"  Speedup (mean):        {speedup_mean:,.0f}x")
     print(f"  Speedup (conservative): {speedup_conservative:,.0f}x")
     print(f"  Time saved:            {cold_duration - warm_clean_mean:.3f}s ({((cold_duration - warm_clean_mean)/cold_duration)*100:.1f}%)")
     
-    print(f"\n✅ VALIDATION:")
+    print("\n✅ VALIDATION:")
     print(f"  Content accuracy:  {'✅ PASS' if content_match else '❌ FAIL'}")
     print(f"  Tables consistency: {'✅ PASS' if tables_match else '❌ FAIL'}")
     print(f"  Performance stable: {'✅ YES' if cv < 10 else '⚠️ VARIABLE'}")
     
-    print(f"\n💾 CACHE EFFICIENCY:")
+    print("\n💾 CACHE EFFICIENCY:")
     for name, cache in caches.items():
         stats = cache.get_stats()
         if stats['cached_results'] > 0:
@@ -217,7 +217,7 @@ if __name__ == "__main__":
         print(f"\n💾 Results saved to {results_file}")
         
         # Executive summary
-        print(f"\n🎯 EXECUTIVE SUMMARY")
+        print("\n🎯 EXECUTIVE SUMMARY")
         print("=" * 60)
         print(f"🚀 Performance:   {results['speedup_mean']:,.0f}x speedup ({results['coefficient_of_variation']:.1f}% CV)")
         print(f"💾 Cache size:    {results['cache_size_mb']:.1f}MB ({results['cache_items']} items)")
@@ -225,9 +225,9 @@ if __name__ == "__main__":
         print(f"✅ Accuracy:     {'✅ Perfect' if results['content_accuracy'] and results['tables_consistency'] else '❌ Issues detected'}")
         
         if results['performance_stable'] and results['content_accuracy']:
-            print(f"\n🏆 VERDICT: MSGPACK IMPLEMENTATION IS PRODUCTION READY")
+            print("\n🏆 VERDICT: MSGPACK IMPLEMENTATION IS PRODUCTION READY")
         else:
-            print(f"\n⚠️ VERDICT: NEEDS INVESTIGATION")
+            print("\n⚠️ VERDICT: NEEDS INVESTIGATION")
             
     except Exception as e:
         print(f"❌ Benchmark failed: {e}")

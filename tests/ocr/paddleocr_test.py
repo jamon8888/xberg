@@ -111,7 +111,10 @@ def mock_find_spec_missing(mocker: MockerFixture) -> Mock:
 @pytest.fixture
 def mock_image() -> Mock:
     img = Mock(spec=Image.Image)
-    img.size = (100, 100)
+    # Ensure size is a proper tuple, not a Mock object
+    img.configure_mock(size=(100, 100), width=100, height=100)
+    # Make convert() return self
+    img.convert.return_value = img
 
     array_interface = {
         "shape": (100, 100, 3),
@@ -465,7 +468,7 @@ async def test_process_file_error(backend: PaddleBackend, ocr_image: Path) -> No
 @pytest.mark.anyio
 async def test_process_paddle_result_empty() -> None:
     image = Mock(spec=Image.Image)
-    image.size = (100, 100)
+    image.configure_mock(size=(100, 100), width=100, height=100)
 
     result = PaddleBackend._process_paddle_result([], image)
 
@@ -480,7 +483,7 @@ async def test_process_paddle_result_empty() -> None:
 @pytest.mark.anyio
 async def test_process_paddle_result_empty_page() -> None:
     image = Mock(spec=Image.Image)
-    image.size = (100, 100)
+    image.configure_mock(size=(100, 100), width=100, height=100)
 
     result = PaddleBackend._process_paddle_result([[]], image)
 
@@ -493,7 +496,7 @@ async def test_process_paddle_result_empty_page() -> None:
 @pytest.mark.anyio
 async def test_process_paddle_result_complex() -> None:
     image = Mock(spec=Image.Image)
-    image.size = (200, 200)
+    image.configure_mock(size=(200, 200), width=200, height=200)
 
     paddle_result = [
         [
@@ -535,7 +538,7 @@ async def test_process_paddle_result_complex() -> None:
 @pytest.mark.anyio
 async def test_process_paddle_result_with_empty_text() -> None:
     image = Mock(spec=Image.Image)
-    image.size = (100, 100)
+    image.configure_mock(size=(100, 100), width=100, height=100)
 
     paddle_result = [
         [
@@ -599,14 +602,11 @@ async def test_integration_process_file(backend: PaddleBackend, ocr_image: Path)
     import platform
 
     if platform.system() == "Darwin" and platform.machine() == "arm64":
-        pytest.skip("Test not applicable on Mac M1/ARM architecture")
+        pytest.skip("PaddleOCR not fully compatible with Mac M1/ARM architecture")
 
-    try:
-        result = await backend.process_file(ocr_image)
-        assert isinstance(result, ExtractionResult)
-        assert result.content.strip()
-    except (MissingDependencyError, OCRError):
-        pytest.skip("PaddleOCR not properly installed or configured")
+    result = await backend.process_file(ocr_image)
+    assert isinstance(result, ExtractionResult)
+    assert result.content.strip()
 
 
 @pytest.mark.anyio
@@ -619,16 +619,13 @@ async def test_integration_process_image(backend: PaddleBackend, ocr_image: Path
     import platform
 
     if platform.system() == "Darwin" and platform.machine() == "arm64":
-        pytest.skip("Test not applicable on Mac M1/ARM architecture")
+        pytest.skip("PaddleOCR not fully compatible with Mac M1/ARM architecture")
 
-    try:
-        image = Image.open(ocr_image)
-        with image:
-            result = await backend.process_image(image)
-            assert isinstance(result, ExtractionResult)
-            assert result.content.strip()
-    except (MissingDependencyError, OCRError):
-        pytest.skip("PaddleOCR not properly installed or configured")
+    image = Image.open(ocr_image)
+    with image:
+        result = await backend.process_image(image)
+        assert isinstance(result, ExtractionResult)
+        assert result.content.strip()
 
 
 @pytest.mark.parametrize(

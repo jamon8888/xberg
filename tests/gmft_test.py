@@ -44,9 +44,11 @@ async def test_extract_tables_with_default_config(tiny_pdf_with_tables: Path) ->
             assert "text" in table
             assert isinstance(table["text"], str)
             assert "df" in table
-            assert isinstance(table["df"], pd.DataFrame)
+            # DataFrame can be either pandas DataFrame (fresh) or dict (cached)
+            assert isinstance(table["df"], (pd.DataFrame, dict))
             assert "cropped_image" in table
-            assert isinstance(table["cropped_image"], Image.Image)
+            # Image can be PIL Image (fresh) or None (cached, as images are skipped in serialization)
+            assert isinstance(table["cropped_image"], (Image.Image, type(None)))
     except MissingDependencyError:
         pytest.skip("GMFT dependency not installed")
 

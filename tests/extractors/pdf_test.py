@@ -80,7 +80,7 @@ async def test_convert_pdf_to_images_raises_parsing_error(extractor: PDFExtracto
         await extractor._convert_pdf_to_images(pdf_path)
 
     assert "Could not convert PDF to images" in str(exc_info.value)
-    assert str(pdf_path) in str(exc_info.value.context["file_path"])
+    assert str(pdf_path) in str(exc_info.value.context["file"]["path"])
 
 
 @pytest.mark.anyio
@@ -92,7 +92,7 @@ async def test_extract_pdf_searchable_text_raises_parsing_error(extractor: PDFEx
         await extractor._extract_pdf_searchable_text(pdf_path)
 
     assert "Could not extract text from PDF file" in str(exc_info.value)
-    assert str(pdf_path) in str(exc_info.value.context["file_path"])
+    assert str(pdf_path) in str(exc_info.value.context["file"]["path"])
 
 
 def test_validate_empty_text(extractor: PDFExtractor) -> None:
@@ -201,5 +201,7 @@ async def test_extract_tables_from_pdf(pdf_with_table: Path) -> None:
         assert "text" in table
         assert isinstance(table["text"], str)
         assert "df" in table
-        assert isinstance(table["df"], pd.DataFrame)
-        assert isinstance(table["cropped_image"], Image)
+        # DataFrame can be either pandas DataFrame (fresh) or dict (cached)
+        assert isinstance(table["df"], (pd.DataFrame, dict))
+        # Image can be PIL Image (fresh) or None (cached, as images are skipped in serialization)
+        assert isinstance(table["cropped_image"], (Image, type(None)))

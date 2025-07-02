@@ -133,7 +133,9 @@ async def test_process_file_with_options(backend: TesseractBackend, mock_run_pro
 
 
 @pytest.mark.anyio
-async def test_process_file_error(backend: TesseractBackend, mock_run_process: Mock, ocr_image: Path) -> None:
+async def test_process_file_error(
+    backend: TesseractBackend, mock_run_process: Mock, ocr_image: Path, fresh_cache: None
+) -> None:
     async def error_side_effect(*args: Any, **kwargs: Any) -> Mock:
         if args and isinstance(args[0], list) and "--version" in args[0]:
             result = Mock()
@@ -158,7 +160,9 @@ async def test_process_file_error(backend: TesseractBackend, mock_run_process: M
 
 
 @pytest.mark.anyio
-async def test_process_file_runtime_error(backend: TesseractBackend, mock_run_process: Mock, ocr_image: Path) -> None:
+async def test_process_file_runtime_error(
+    backend: TesseractBackend, mock_run_process: Mock, ocr_image: Path, fresh_cache: None
+) -> None:
     call_count = 0
 
     async def runtime_error_side_effect(*args: Any, **kwargs: Any) -> Mock:
@@ -269,7 +273,7 @@ async def test_integration_process_image(backend: TesseractBackend, ocr_image: P
 
 
 @pytest.mark.anyio
-async def test_process_file_linux(backend: TesseractBackend, mocker: MockerFixture) -> None:
+async def test_process_file_linux(backend: TesseractBackend, mocker: MockerFixture, fresh_cache: None) -> None:
     mocker.patch("sys.platform", "linux")
 
     async def linux_mock_run(*args: Any, **kwargs: Any) -> Mock:

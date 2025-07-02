@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import sys
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 from kreuzberg._utils._device import (
     DeviceInfo,
@@ -170,17 +175,24 @@ def test_is_cuda_available_false() -> None:
         assert _is_cuda_available() is False
 
 
-def test_is_cuda_available_no_torch() -> None:
-    # Test the actual implementation when torch is not available
-    try:
-        import torch  # noqa: F401
+def test_is_cuda_available_no_torch(mocker: MockerFixture) -> None:
+    # Mock torch import to simulate it not being available
+    original_import = __builtins__["__import__"]
 
-        # If torch is available, skip this test
-        pytest.skip("PyTorch is available, cannot test ImportError case")
-    except ImportError:
-        from kreuzberg._utils._device import _is_cuda_available
+    def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "torch":
+            raise ImportError("No module named 'torch'")
+        return original_import(name, *args, **kwargs)
 
-        assert _is_cuda_available() is False
+    mocker.patch("builtins.__import__", side_effect=mock_import)
+
+    # Clear any existing torch import from sys.modules
+    if "torch" in sys.modules:
+        mocker.patch.dict("sys.modules", {"torch": None})
+
+    from kreuzberg._utils._device import _is_cuda_available
+
+    assert _is_cuda_available() is False
 
 
 def test_get_cuda_devices() -> None:
@@ -216,17 +228,24 @@ def test_is_mps_available_false() -> None:
         assert _is_mps_available() is False
 
 
-def test_is_mps_available_no_torch() -> None:
-    # Test the actual implementation when torch is not available
-    try:
-        import torch  # noqa: F401
+def test_is_mps_available_no_torch(mocker: MockerFixture) -> None:
+    # Mock torch import to simulate it not being available
+    original_import = __builtins__["__import__"]
 
-        # If torch is available, skip this test
-        pytest.skip("PyTorch is available, cannot test ImportError case")
-    except ImportError:
-        from kreuzberg._utils._device import _is_mps_available
+    def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "torch":
+            raise ImportError("No module named 'torch'")
+        return original_import(name, *args, **kwargs)
 
-        assert _is_mps_available() is False
+    mocker.patch("builtins.__import__", side_effect=mock_import)
+
+    # Clear any existing torch import from sys.modules
+    if "torch" in sys.modules:
+        mocker.patch.dict("sys.modules", {"torch": None})
+
+    from kreuzberg._utils._device import _is_mps_available
+
+    assert _is_mps_available() is False
 
 
 def test_get_mps_device() -> None:

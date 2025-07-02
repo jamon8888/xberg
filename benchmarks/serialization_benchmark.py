@@ -99,7 +99,7 @@ def benchmark_serialization() -> dict:
             'max': max_val
         }
     
-    print(f"\n📊 RESULTS")
+    print("\n📊 RESULTS")
     print("=" * 60)
     
     msgpack_serialize = analyze_times(msgpack_serialize_times, "Msgpack Serialize")
@@ -116,7 +116,7 @@ def benchmark_serialization() -> dict:
     
     size_ratio = json_size / msgpack_size
     
-    print(f"\n🏁 COMPARISON")
+    print("\n🏁 COMPARISON")
     print("=" * 60)
     print(f"Serialize speedup:   Msgpack is {serialize_speedup:.1f}x faster")
     print(f"Deserialize speedup: Msgpack is {deserialize_speedup:.1f}x faster") 

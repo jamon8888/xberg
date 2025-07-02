@@ -27,9 +27,9 @@ async def run_statistical_benchmark() -> dict[str, Any]:
         chunk_content=True
     )
     
-    print(f"📊 STATISTICAL BENCHMARK")
+    print("📊 STATISTICAL BENCHMARK")
     print(f"File: {single_file.name}")
-    print(f"Trials: Cold=5, Warm=50")
+    print("Trials: Cold=5, Warm=50")
     print("=" * 60)
     
     # Phase 1: Cold start measurements (5 trials)
@@ -105,7 +105,7 @@ async def run_statistical_benchmark() -> dict[str, Any]:
     cold_ci = confidence_interval(cold_times)
     warm_ci = confidence_interval(warm_filtered)
     
-    print(f"\n📈 STATISTICAL ANALYSIS")
+    print("\n📈 STATISTICAL ANALYSIS")
     print("=" * 60)
     
     print(f"\n🔥 COLD START (n={len(cold_times)}):")
@@ -120,7 +120,7 @@ async def run_statistical_benchmark() -> dict[str, Any]:
     print(f"  Range:  {min(warm_filtered)*1000:.3f}ms - {max(warm_filtered)*1000:.3f}ms")
     print(f"  95% CI: {warm_ci[0]*1000:.3f}ms - {warm_ci[1]*1000:.3f}ms")
     
-    print(f"\n🚀 PERFORMANCE:")
+    print("\n🚀 PERFORMANCE:")
     print(f"  Speedup (mean):        {speedup_mean:,.0f}x")
     print(f"  Speedup (conservative): {speedup_conservative:,.0f}x")
     print(f"  Coefficient of variation: {(warm_clean_stdev/warm_clean_mean)*100:.1f}%")
@@ -128,7 +128,7 @@ async def run_statistical_benchmark() -> dict[str, Any]:
     # Data validation
     content_match = result.content == cached_result.content
     
-    print(f"\n✅ VALIDATION:")
+    print("\n✅ VALIDATION:")
     print(f"  Content accuracy: {'✅ PASS' if content_match else '❌ FAIL'}")
     print(f"  Cache consistency: {'✅ STABLE' if warm_clean_stdev/warm_clean_mean < 0.1 else '⚠️ VARIABLE'}")
     
@@ -145,7 +145,7 @@ async def run_statistical_benchmark() -> dict[str, Any]:
     total_size = 0
     total_items = 0
     
-    print(f"\n💾 CACHE ANALYSIS:")
+    print("\n💾 CACHE ANALYSIS:")
     for name, cache in caches.items():
         stats = cache.get_stats()
         total_size += stats['total_cache_size_mb']
@@ -205,7 +205,7 @@ if __name__ == "__main__":
         print(f"\n💾 Results saved to {results_file}")
         
         # Summary
-        print(f"\n🎯 SUMMARY:")
+        print("\n🎯 SUMMARY:")
         print(f"  Speedup: {results['speedup_mean']:,.0f}x (±{results['coefficient_of_variation']:.1f}%)")
         print(f"  Cache size: {results['cache_size_mb']:.1f}MB ({results['cache_items']} items)")
         print(f"  Reliability: {'✅ EXCELLENT' if results['cache_stable'] else '⚠️ VARIABLE'}")
