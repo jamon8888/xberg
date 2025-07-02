@@ -156,12 +156,13 @@ def test_extract_pdf_text_worker_error() -> None:
 def test_extract_pdf_text_worker_with_mock() -> None:
     """Test PDF text extraction worker with mocked pypdfium2."""
     with patch("pypdfium2.PdfDocument") as mock_pdf_class:
-        mock_pdf = Mock(spec=["__iter__", "close"])
+        mock_pdf = Mock()
         mock_page = Mock()
         mock_text_page = Mock()
 
+        # Configure the mock to be iterable
+        mock_pdf.__iter__ = Mock(return_value=iter([mock_page]))
         mock_pdf_class.return_value = mock_pdf
-        mock_pdf.__iter__.return_value = iter([mock_page])
         mock_page.get_textpage.return_value = mock_text_page
         mock_text_page.get_text_range.return_value = "Test text"
 
@@ -201,19 +202,20 @@ def test_extract_pdf_images_worker_error() -> None:
 def test_extract_pdf_images_worker_with_mock() -> None:
     """Test PDF image extraction worker with mocked pypdfium2."""
     with patch("pypdfium2.PdfDocument") as mock_pdf_class:
-        mock_pdf = Mock(spec=["__iter__", "close"])
+        mock_pdf = Mock()
         mock_page = Mock()
         mock_bitmap = Mock()
         mock_pil_image = Mock(spec=Image.Image)
 
+        # Configure the mock to be iterable
+        mock_pdf.__iter__ = Mock(return_value=iter([mock_page]))
         mock_pdf_class.return_value = mock_pdf
-        mock_pdf.__iter__.return_value = iter([mock_page])
         mock_page.render.return_value = mock_bitmap
         mock_bitmap.to_pil.return_value = mock_pil_image
 
         saved_bytes = b"fake png data"
 
-        def mock_save(buffer: Any, fmt: Any = None) -> None:
+        def mock_save(buffer: Any, format: Any = None, **kwargs: Any) -> None:  # noqa: A002
             buffer.write(saved_bytes)
 
         mock_pil_image.save = mock_save
@@ -225,7 +227,6 @@ def test_extract_pdf_images_worker_with_mock() -> None:
         assert result[1][0] == saved_bytes
 
         mock_page.render.assert_called_once_with(scale=3.0)
-
         mock_bitmap.close.assert_called_once()
         mock_page.close.assert_called_once()
         mock_pdf.close.assert_called_once()
