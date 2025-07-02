@@ -34,7 +34,7 @@ jobs:
             echo "Removing existing .venv directory on Windows"
             rm -rf .venv
           fi
-          uv sync --all-extras --dev
+          uv sync --all-packages --all-extras --dev
 
       - name: Load Cached Pre-Commit Dependencies
         id: cached-pre-commit-dependencies
@@ -86,7 +86,7 @@ jobs:
             echo "Removing existing .venv directory on Windows"
             rm -rf .venv
           fi
-          uv sync --all-extras --dev
+          uv sync --all-packages --all-extras --dev
 
       - name: Cache Test Artifacts
         uses: actions/cache@v4
