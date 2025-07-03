@@ -8,7 +8,7 @@ import pytest
 
 from kreuzberg._extractors._image import ImageExtractor
 from kreuzberg._types import ExtractionConfig, ExtractionResult
-from kreuzberg.exceptions import ValidationError
+from kreuzberg.exceptions import OCRError, ValidationError
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -228,13 +228,30 @@ def test_extract_path_sync_empty_results() -> None:
 
 
 def test_extract_path_sync_non_tesseract_backend() -> None:
-    """Test sync path extraction with non-tesseract backend raises NotImplementedError."""
+    """Test sync path extraction with non-tesseract backend works now."""
     config = ExtractionConfig(ocr_backend="easyocr")
     extractor = ImageExtractor(mime_type="image/png", config=config)
 
     image_path = Path("test.png")
 
-    with pytest.raises(NotImplementedError) as excinfo:
+    # This should now work but will fail because test.png doesn't exist
+    # So we expect an OCRError related to file not found
+    with pytest.raises(OCRError) as excinfo:
         extractor.extract_path_sync(image_path)
 
-    assert "Sync OCR not implemented for easyocr" in str(excinfo.value)
+    assert "EasyOCR processing failed" in str(excinfo.value)
+
+
+def test_extract_path_sync_paddleocr_backend() -> None:
+    """Test sync path extraction with PaddleOCR backend works now."""
+    config = ExtractionConfig(ocr_backend="paddleocr")
+    extractor = ImageExtractor(mime_type="image/png", config=config)
+
+    image_path = Path("test.png")
+
+    # This should now work but will fail because test.png doesn't exist
+    # So we expect an OCRError related to file not found
+    with pytest.raises(OCRError) as excinfo:
+        extractor.extract_path_sync(image_path)
+
+    assert "PaddleOCR processing failed" in str(excinfo.value)
