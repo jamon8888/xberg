@@ -27,7 +27,7 @@ jobs:
             extras: ""  # API is included by default in Docker
             tag_suffix: "-api"
           - name: tesseract
-            extras: "tesseract"
+            extras: ""  # Tesseract is included in base dependencies
             tag_suffix: "-tesseract"
           - name: paddle
             extras: "paddleocr"
