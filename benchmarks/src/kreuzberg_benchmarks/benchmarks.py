@@ -28,7 +28,7 @@ class KreuzbergBenchmarks:
 
         extensions = [
             ".pdf",
-            ".docx",
+            ".docx", 
             ".xlsx",
             ".pptx",
             ".html",
@@ -36,6 +36,11 @@ class KreuzbergBenchmarks:
             ".png",
             ".jpg",
             ".jpeg",
+            ".eml",
+            ".json",
+            ".yaml",
+            ".yml", 
+            ".toml",
         ]
         test_files: list[Path] = []
 

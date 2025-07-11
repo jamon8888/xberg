@@ -60,8 +60,12 @@ dependencies = [
   "typing-extensions>=4.14.0; python_version<'3.12'",
 ]
 
+optional-dependencies.additional-extensions = [ 
+  "mailparse>=1.0.15", 
+  "tomli>=2.0.0; python_version<'3.11'" 
+]
 optional-dependencies.all = [
-  "kreuzberg[api,chunking,cli,easyocr,entity-extraction,gmft,langdetect,paddleocr]",
+  "kreuzberg[additional-extensions,api,chunking,cli,easyocr,entity-extraction,gmft,langdetect,paddleocr]",
 ]
 optional-dependencies.api = [
   "litestar[standard,structlog,opentelemetry]>=2.16.0",
