@@ -625,7 +625,9 @@ def test_process_batch_images_threaded_default_workers(mock_easyocr: Mock) -> No
 
         # Patch multiprocessing.cpu_count inside the function
         with patch("multiprocessing.cpu_count", return_value=8):
-            results = process_batch_images_threaded(cast("list[str | Path]", image_paths), None, max_workers=None)
+            results = process_batch_images_threaded(
+                cast("list[str | Path]", image_paths), None, backend="easyocr", max_workers=None
+            )
 
             assert len(results) == 2
             # Should use min(len(image_paths), cpu_count()) = min(2, 8) = 2
