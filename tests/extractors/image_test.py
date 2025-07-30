@@ -224,11 +224,11 @@ def test_extract_path_sync_no_ocr_backend() -> None:
 
 def test_extract_bytes_with_different_mime_types() -> None:
     """Test extract_bytes_sync with different image MIME types."""
-    config = ExtractionConfig(ocr_backend="tesseract") 
-    
+    config = ExtractionConfig(ocr_backend="tesseract")
+
     # Test different MIME types
     mime_types = ["image/png", "image/jpeg", "image/tiff", "image/webp"]
-    
+
     for mime_type in mime_types:
         extractor = ImageExtractor(mime_type=mime_type, config=config)
         assert extractor.mime_type == mime_type
@@ -238,23 +238,23 @@ def test_extract_bytes_with_different_mime_types() -> None:
 def test_extract_bytes_sync_with_ocr_config() -> None:
     """Test extract_bytes_sync with specific OCR configuration."""
     from kreuzberg._ocr._tesseract import TesseractConfig, PSMMode
-    
+
     tesseract_config = TesseractConfig(
         language="fra",
         psm=PSMMode.SINGLE_BLOCK,
     )
     config = ExtractionConfig(ocr_backend="tesseract", ocr_config=tesseract_config)
     extractor = ImageExtractor(mime_type="image/png", config=config)
-    
+
     with patch("tempfile.mkstemp") as mock_mkstemp:
         mock_fd = 42
         mock_temp_path = "/tmp/test_image.png"
         mock_mkstemp.return_value = (mock_fd, mock_temp_path)
-        
+
         with patch("os.fdopen") as mock_fdopen:
             mock_file = MagicMock()
             mock_fdopen.return_value.__enter__.return_value = mock_file
-            
+
             with patch.object(extractor, "extract_path_sync") as mock_extract:
                 expected_result = ExtractionResult(
                     content="extracted French text",
@@ -262,9 +262,9 @@ def test_extract_bytes_sync_with_ocr_config() -> None:
                     metadata={"language": "fra"},
                 )
                 mock_extract.return_value = expected_result
-                
+
                 result = extractor.extract_bytes_sync(b"fake image data")
-                
+
                 assert result.content == "extracted French text"
                 mock_file.write.assert_called_once_with(b"fake image data")
 
@@ -273,16 +273,16 @@ def test_extract_bytes_sync_temp_file_creation() -> None:
     """Test that temporary files are created and cleaned up properly."""
     config = ExtractionConfig(ocr_backend="tesseract")
     extractor = ImageExtractor(mime_type="image/png", config=config)
-    
+
     with patch("tempfile.mkstemp") as mock_mkstemp:
         mock_fd = 42
         mock_temp_path = "/tmp/test_image.png"
         mock_mkstemp.return_value = (mock_fd, mock_temp_path)
-        
+
         with patch("os.fdopen") as mock_fdopen:
             mock_file = MagicMock()
             mock_fdopen.return_value.__enter__.return_value = mock_file
-            
+
             with patch.object(extractor, "extract_path_sync") as mock_extract:
                 expected_result = ExtractionResult(
                     content="extracted text",
@@ -290,10 +290,10 @@ def test_extract_bytes_sync_temp_file_creation() -> None:
                     metadata={},
                 )
                 mock_extract.return_value = expected_result
-                
+
                 with patch("pathlib.Path.unlink") as mock_unlink:
                     result = extractor.extract_bytes_sync(b"fake image data")
-                    
+
                     assert result.content == "extracted text"
                     # Verify temp file was created with correct suffix
                     mock_mkstemp.assert_called_once_with(suffix=".png")
@@ -308,29 +308,29 @@ async def test_extract_bytes_async_delegation() -> None:
     """Test that async extraction properly delegates to sync method."""
     config = ExtractionConfig(ocr_backend="tesseract")
     extractor = ImageExtractor(mime_type="image/png", config=config)
-    
+
     with patch.object(extractor, "extract_bytes_sync") as mock_sync:
         expected_result = ExtractionResult(
             content="async extracted text",
-            mime_type="text/plain", 
+            mime_type="text/plain",
             metadata={},
         )
         mock_sync.return_value = expected_result
-        
+
         result = await extractor.extract_bytes_async(b"fake image data")
-        
+
         assert result.content == "async extracted text"
         mock_sync.assert_called_once_with(b"fake image data")
 
 
-@pytest.mark.anyio  
+@pytest.mark.anyio
 async def test_extract_path_async_delegation() -> None:
     """Test that async path extraction properly delegates to sync method."""
     config = ExtractionConfig(ocr_backend="tesseract")
     extractor = ImageExtractor(mime_type="image/png", config=config)
-    
+
     test_path = Path("test_image.png")
-    
+
     with patch.object(extractor, "extract_path_sync") as mock_sync:
         expected_result = ExtractionResult(
             content="async path extracted text",
@@ -338,9 +338,9 @@ async def test_extract_path_async_delegation() -> None:
             metadata={},
         )
         mock_sync.return_value = expected_result
-        
+
         result = await extractor.extract_path_async(test_path)
-        
+
         assert result.content == "async path extracted text"
         mock_sync.assert_called_once_with(test_path)
 
