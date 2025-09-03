@@ -1,5 +1,3 @@
-"""Integration tests for Tesseract TSV output and table extraction."""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,7 +11,6 @@ from kreuzberg._ocr._tesseract import TesseractBackend
 
 @pytest.fixture
 def table_image_path() -> Path:
-    """Path to table test image."""
     path = Path("tests/test_source_files/tables/simple_table.png")
     if not path.exists():
         pytest.skip(f"Test image not found: {path}")
@@ -22,7 +19,6 @@ def table_image_path() -> Path:
 
 @pytest.fixture
 def science_table_image() -> Path:
-    """Path to science table test image."""
     path = Path("tests/test_source_files/tables/complex_document.png")
     if not path.exists():
         pytest.skip(f"Test image not found: {path}")
@@ -31,7 +27,6 @@ def science_table_image() -> Path:
 
 @pytest.mark.anyio
 async def test_tesseract_tsv_output_integration(table_image_path: Path) -> None:
-    """Test end-to-end TSV output with REAL Tesseract and real image."""
     backend = TesseractBackend()
 
     result = await backend.process_file(table_image_path, output_format="tsv", enable_table_detection=False)
@@ -43,7 +38,6 @@ async def test_tesseract_tsv_output_integration(table_image_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_tesseract_process_image_with_table_detection(table_image_path: Path) -> None:
-    """Test REAL table detection using process_image with PIL.Image."""
     backend = TesseractBackend()
 
     with Image.open(table_image_path) as img:
@@ -64,7 +58,6 @@ async def test_tesseract_process_image_with_table_detection(table_image_path: Pa
 
 @pytest.mark.anyio
 async def test_table_detection_enabled(table_image_path: Path) -> None:
-    """Test REAL table detection from TSV output using actual Tesseract."""
     backend = TesseractBackend()
 
     result = await backend.process_file(
@@ -84,7 +77,6 @@ async def test_table_detection_enabled(table_image_path: Path) -> None:
 
 
 def test_table_extractor_with_real_tsv() -> None:
-    """Test table extractor with realistic TSV data."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 1\t1\t0\t0\t0\t0\t0\t0\t800\t600\t-1\t
 5\t1\t1\t1\t1\t1\t100\t100\t80\t30\t95.0\tProduct
@@ -125,7 +117,6 @@ def test_table_extractor_with_real_tsv() -> None:
 
 
 def test_extract_table_from_tsv_convenience() -> None:
-    """Test convenience function for table extraction."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 5\t1\t1\t1\t1\t1\t50\t50\t40\t20\t95.0\tA
 5\t1\t1\t1\t1\t2\t150\t50\t40\t20\t94.0\tB
@@ -140,7 +131,6 @@ def test_extract_table_from_tsv_convenience() -> None:
 
 
 def test_table_extraction_with_empty_cells() -> None:
-    """Test handling of tables with missing cells."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 5\t1\t1\t1\t1\t1\t50\t50\t60\t30\t95.0\tHeader1
 5\t1\t1\t1\t1\t2\t200\t50\t60\t30\t94.0\tHeader2
@@ -160,7 +150,6 @@ def test_table_extraction_with_empty_cells() -> None:
 
 
 def test_table_extraction_confidence_threshold() -> None:
-    """Test that low confidence words are filtered."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 5\t1\t1\t1\t1\t1\t50\t50\t60\t30\t95.0\tGood
 5\t1\t1\t1\t1\t2\t150\t50\t60\t30\t20.0\tBad
@@ -183,7 +172,6 @@ def test_table_extraction_confidence_threshold() -> None:
     ],
 )
 def test_column_clustering_thresholds(column_threshold: int, expected_cols: int) -> None:
-    """Test different column clustering thresholds."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 5\t1\t1\t1\t1\t1\t50\t50\t40\t30\t95.0\tA
 5\t1\t1\t1\t1\t2\t80\t50\t40\t30\t94.0\tB

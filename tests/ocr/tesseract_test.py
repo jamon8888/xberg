@@ -130,7 +130,6 @@ async def test_validate_tesseract_version_missing(
 
 @pytest.mark.anyio
 async def test_process_file(backend: TesseractBackend, ocr_image: Path) -> None:
-    """Test processing a real image file with Tesseract OCR."""
     result = await backend.process_file(ocr_image, language="eng", psm=PSMMode.AUTO)
     assert isinstance(result, ExtractionResult)
     assert result.mime_type == "text/markdown"
@@ -140,7 +139,6 @@ async def test_process_file(backend: TesseractBackend, ocr_image: Path) -> None:
 
 @pytest.mark.anyio
 async def test_process_file_with_options(backend: TesseractBackend, ocr_image: Path) -> None:
-    """Test processing with various OCR options."""
     result = await backend.process_file(ocr_image, language="eng", psm=PSMMode.SINGLE_BLOCK)
     assert isinstance(result, ExtractionResult)
     assert result.mime_type == "text/markdown"
@@ -150,7 +148,6 @@ async def test_process_file_with_options(backend: TesseractBackend, ocr_image: P
 
 @pytest.mark.anyio
 async def test_process_file_error(backend: TesseractBackend, fresh_cache: None) -> None:
-    """Test OCR error handling with non-existent file."""
     nonexistent_file = Path("/nonexistent/path/file.png")
 
     with pytest.raises(OCRError, match="Failed to OCR using tesseract"):
@@ -159,7 +156,6 @@ async def test_process_file_error(backend: TesseractBackend, fresh_cache: None) 
 
 @pytest.mark.anyio
 async def test_process_file_runtime_error(backend: TesseractBackend, fresh_cache: None) -> None:
-    """Test runtime error handling with corrupted file."""
     import tempfile
 
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
@@ -175,7 +171,6 @@ async def test_process_file_runtime_error(backend: TesseractBackend, fresh_cache
 
 @pytest.mark.anyio
 async def test_process_image(backend: TesseractBackend) -> None:
-    """Test processing a real image with text content."""
     from PIL import ImageDraw
 
     image = Image.new("RGB", (400, 100), "white")
@@ -191,7 +186,6 @@ async def test_process_image(backend: TesseractBackend) -> None:
 
 @pytest.mark.anyio
 async def test_process_image_with_tesseract_pillow(backend: TesseractBackend) -> None:
-    """Test processing PIL image with default settings."""
     from PIL import ImageDraw
 
     image = Image.new("RGB", (400, 100), "white")
@@ -214,7 +208,6 @@ async def test_integration_process_file(backend: TesseractBackend, ocr_image: Pa
 
 @pytest.mark.anyio
 async def test_process_file_with_invalid_language(backend: TesseractBackend, ocr_image: Path) -> None:
-    """Test that invalid language raises ValidationError without using mocks."""
     with pytest.raises(ValidationError, match="not supported by Tesseract"):
         await backend.process_file(ocr_image, language="invalid", psm=PSMMode.AUTO)
 
@@ -427,7 +420,6 @@ async def test_process_file_validation_error(backend: TesseractBackend, tmp_path
 
 
 def test_process_image_sync(backend: TesseractBackend) -> None:
-    """Test synchronous image processing with real Tesseract."""
     from PIL import ImageDraw
 
     image = Image.new("RGB", (200, 100), "white")
@@ -443,7 +435,6 @@ def test_process_image_sync(backend: TesseractBackend) -> None:
 
 
 def test_process_file_sync(backend: TesseractBackend, ocr_image: Path) -> None:
-    """Test synchronous file processing with real Tesseract."""
     result = backend.process_file_sync(ocr_image, language="eng")
 
     assert isinstance(result, ExtractionResult)
@@ -927,7 +918,6 @@ async def test_tesseract_error_handling_process_image_invalid_format(backend: Te
 
 
 def test_tesseract_error_handling_sync_process_image_temp_file_error(backend: TesseractBackend) -> None:
-    """Test processing a very small image without mocks."""
     image = Image.new("RGB", (1, 1), "white")
 
     result = backend.process_image_sync(image, language="eng")
@@ -938,7 +928,6 @@ def test_tesseract_error_handling_sync_process_image_temp_file_error(backend: Te
 
 
 def test_tesseract_error_handling_sync_process_file_read_error(backend: TesseractBackend, tmp_path: Path) -> None:
-    """Test error handling with invalid file data."""
     test_file = tmp_path / "invalid.png"
     test_file.write_bytes(b"not a valid image")
 
@@ -1006,7 +995,6 @@ def test_tesseract_config_edge_cases_unicode_language_combinations() -> None:
 async def test_markdown_extraction_diverse_documents(
     backend: TesseractBackend, test_image_path: str, expected_content_keywords: list[str], description: str
 ) -> None:
-    """Test markdown extraction with diverse document types."""
     image_path = Path(test_image_path)
 
     if not image_path.exists():
@@ -1052,7 +1040,6 @@ async def test_markdown_extraction_diverse_documents(
 async def test_markdown_extraction_with_table_detection(
     backend: TesseractBackend, test_image_path: str, description: str
 ) -> None:
-    """Test markdown extraction with table detection enabled."""
     image_path = Path(test_image_path)
 
     if not image_path.exists():

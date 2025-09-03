@@ -514,7 +514,6 @@ def test_cli_ocr_backend_none(tmp_path: Path) -> None:
 
 
 def test_cli_unicode_character_handling(tmp_path: Path) -> None:
-    """Test that CLI correctly handles Unicode characters including the problematic U+2015."""
     txt_file = tmp_path / "unicode_test.txt"
     unicode_content = "Test with Unicode: — (em dash) ― (horizontal bar U+2015) • (bullet) € (euro) 中文 (Chinese)"
     txt_file.write_text(unicode_content, encoding="utf-8")

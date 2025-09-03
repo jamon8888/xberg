@@ -1,5 +1,3 @@
-"""Tests for Tesseract TSV output and table extraction."""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -15,13 +13,11 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def tesseract_backend() -> TesseractBackend:
-    """Create a TesseractBackend instance for testing."""
     return TesseractBackend()
 
 
 @pytest.fixture
 def mock_tsv_output() -> str:
-    """Mock TSV output from Tesseract."""
     return """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 1\t1\t0\t0\t0\t0\t0\t0\t770\t342\t-1\t
 5\t1\t1\t1\t1\t1\t56\t24\t57\t43\t95.0\tCell
@@ -37,7 +33,6 @@ def mock_tsv_output() -> str:
 
 @pytest.fixture
 def simple_table_image(tmp_path: Path) -> Path:
-    """Create a simple test image with table-like content."""
     from PIL import Image, ImageDraw
 
     img = Image.new("RGB", (800, 400), color="white")
@@ -56,7 +51,6 @@ def simple_table_image(tmp_path: Path) -> Path:
 
 @pytest.mark.anyio
 async def test_tsv_output_format(tesseract_backend: TesseractBackend, simple_table_image: Path) -> None:
-    """Test that we can get TSV output from Tesseract."""
     with patch("kreuzberg._ocr._tesseract.TesseractBackend._version_checked", True):
         with patch("kreuzberg._ocr._tesseract.run_process") as mock_run:
             mock_result = MagicMock()
@@ -71,7 +65,6 @@ async def test_tsv_output_format(tesseract_backend: TesseractBackend, simple_tab
 
 
 def test_parse_tsv_output(mock_tsv_output: str) -> None:
-    """Test parsing TSV output into structured data."""
     lines = mock_tsv_output.strip().split("\n")
     headers = lines[0].split("\t")
 
@@ -95,7 +88,6 @@ def test_parse_tsv_output(mock_tsv_output: str) -> None:
 
 
 def test_extract_word_positions(mock_tsv_output: str) -> None:
-    """Test extracting word positions from TSV."""
     lines = mock_tsv_output.strip().split("\n")
     headers = lines[0].split("\t")
 
@@ -124,7 +116,6 @@ def test_extract_word_positions(mock_tsv_output: str) -> None:
 
 
 def test_group_words_by_row(mock_tsv_output: str) -> None:
-    """Test grouping words into rows based on Y position."""
     lines = mock_tsv_output.strip().split("\n")
     headers = lines[0].split("\t")
 
@@ -162,7 +153,6 @@ def test_group_words_by_row(mock_tsv_output: str) -> None:
 
 
 def test_group_words_by_column(mock_tsv_output: str) -> None:
-    """Test grouping words into columns based on X position."""
     lines = mock_tsv_output.strip().split("\n")
     headers = lines[0].split("\t")
 
@@ -203,7 +193,6 @@ def test_group_words_by_column(mock_tsv_output: str) -> None:
 
 
 def test_simple_table_reconstruction(mock_tsv_output: str) -> None:
-    """Test reconstructing a simple table from TSV data."""
     lines = mock_tsv_output.strip().split("\n")
     headers = lines[0].split("\t")
 
@@ -245,7 +234,6 @@ def test_simple_table_reconstruction(mock_tsv_output: str) -> None:
 
 
 def test_markdown_table_generation() -> None:
-    """Test generating markdown table from reconstructed data."""
     table = [["Cell", "Format", "Formula"], ["B4", "Percentage", "None"], ["C4", "General", "None"]]
 
     lines = []
@@ -268,7 +256,6 @@ def test_markdown_table_generation() -> None:
 
 @pytest.mark.anyio
 async def test_config_with_tsv_output() -> None:
-    """Test that TesseractConfig can be extended for TSV output."""
     config = TesseractConfig(language="eng", psm=PSMMode.AUTO)
 
     assert config.language == "eng"
@@ -277,7 +264,6 @@ async def test_config_with_tsv_output() -> None:
 
 @pytest.mark.anyio
 async def test_psm_mode_for_tables() -> None:
-    """Test using appropriate PSM mode for table extraction."""
     config_block = TesseractConfig(psm=PSMMode.SINGLE_BLOCK)
     assert config_block.psm.value == 6
 
@@ -289,7 +275,6 @@ async def test_psm_mode_for_tables() -> None:
 
 
 def test_handle_empty_cells_in_table() -> None:
-    """Test handling tables with empty cells."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 5\t1\t1\t1\t1\t1\t50\t50\t100\t30\t95.0\tName
 5\t1\t1\t1\t1\t2\t200\t50\t100\t30\t95.0\tAge
@@ -339,7 +324,6 @@ def test_handle_empty_cells_in_table() -> None:
 
 
 def test_handle_multi_word_cells() -> None:
-    """Test handling cells with multiple words."""
     tsv_data = """level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext
 5\t1\t1\t1\t1\t1\t50\t50\t50\t30\t95.0\tFirst
 5\t1\t1\t1\t1\t2\t105\t50\t50\t30\t95.0\tName
