@@ -115,7 +115,7 @@ class TestTesseractSyncFormats:
         assert results["markdown"].mime_type == "text/markdown"
 
         base_text = "Nasdaq"
-        for fmt, result in results.items():
+        for result in results.values():
             assert base_text in result.content or base_text.lower() in result.content.lower()
 
     def test_sync_format_via_extract_file_sync(self, test_image_path: Path):
