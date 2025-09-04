@@ -229,7 +229,7 @@ def test_extract_bytes_with_different_mime_types() -> None:
 
 
 def test_extract_bytes_sync_with_ocr_config() -> None:
-    from kreuzberg._ocr._tesseract import PSMMode, TesseractConfig
+    from kreuzberg._types import PSMMode, TesseractConfig
 
     tesseract_config = TesseractConfig(
         language="fra",
@@ -332,7 +332,7 @@ async def test_extract_path_async_delegation(mock_ocr_backend: MagicMock) -> Non
 
 
 def test_extract_path_sync_with_tesseract_config(mock_ocr_backend: MagicMock) -> None:
-    from kreuzberg._ocr._tesseract import TesseractConfig
+    from kreuzberg._types import TesseractConfig
 
     tesseract_config = TesseractConfig()
     config = ExtractionConfig(ocr_backend="tesseract", ocr_config=tesseract_config)
@@ -352,7 +352,7 @@ def test_extract_path_sync_with_tesseract_config(mock_ocr_backend: MagicMock) ->
 
 
 def test_extract_path_sync_with_paddleocr_config(mock_ocr_backend: MagicMock) -> None:
-    from kreuzberg._ocr._paddleocr import PaddleOCRConfig
+    from kreuzberg._types import PaddleOCRConfig
 
     paddle_config = PaddleOCRConfig()
     config = ExtractionConfig(ocr_backend="paddleocr", ocr_config=paddle_config)
@@ -372,7 +372,7 @@ def test_extract_path_sync_with_paddleocr_config(mock_ocr_backend: MagicMock) ->
 
 
 def test_extract_path_sync_with_easyocr_config(mock_ocr_backend: MagicMock) -> None:
-    from kreuzberg._ocr._easyocr import EasyOCRConfig
+    from kreuzberg._types import EasyOCRConfig
 
     easy_config = EasyOCRConfig()
     config = ExtractionConfig(ocr_backend="easyocr", ocr_config=easy_config)
@@ -529,7 +529,7 @@ def test_image_sync_path_extraction_default_easyocr(mock_ocr_backend: MagicMock)
 
 
 def test_image_sync_path_extraction_custom_configs(mock_ocr_backend: MagicMock) -> None:
-    from kreuzberg._ocr._tesseract import PSMMode, TesseractConfig
+    from kreuzberg._types import PSMMode, TesseractConfig
 
     tesseract_config = TesseractConfig(
         language="deu+fra",
@@ -672,7 +672,7 @@ def test_image_edge_cases_quality_processing_applied(mock_ocr_backend: MagicMock
 
 @pytest.mark.anyio
 async def test_image_edge_cases_async_path_delegation_preserves_config(mock_ocr_backend: MagicMock) -> None:
-    from kreuzberg._ocr._tesseract import PSMMode, TesseractConfig
+    from kreuzberg._types import PSMMode, TesseractConfig
 
     tesseract_config = TesseractConfig(language="jpn", psm=PSMMode.SINGLE_WORD, textord_space_size_is_variable=True)
     config = ExtractionConfig(ocr_backend="tesseract", ocr_config=tesseract_config, enable_quality_processing=True)

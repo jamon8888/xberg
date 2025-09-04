@@ -14,7 +14,7 @@ from kreuzberg._config import (
     merge_configs,
     parse_ocr_backend_config,
 )
-from kreuzberg._ocr._tesseract import TesseractConfig
+from kreuzberg._types import TesseractConfig
 from kreuzberg.exceptions import ValidationError
 
 if TYPE_CHECKING:

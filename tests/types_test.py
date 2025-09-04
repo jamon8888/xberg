@@ -4,10 +4,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from kreuzberg._ocr._easyocr import EasyOCRConfig
-from kreuzberg._ocr._paddleocr import PaddleOCRConfig
-from kreuzberg._ocr._tesseract import TesseractConfig
-from kreuzberg._types import Entity, ExtractionConfig, ExtractionResult, normalize_metadata
+from kreuzberg._types import (
+    EasyOCRConfig,
+    Entity,
+    ExtractionConfig,
+    ExtractionResult,
+    PaddleOCRConfig,
+    TesseractConfig,
+    normalize_metadata,
+)
 from kreuzberg.exceptions import ValidationError
 
 

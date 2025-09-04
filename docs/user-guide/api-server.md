@@ -109,20 +109,30 @@ The `/extract` endpoint supports runtime configuration via query parameters and 
 
 Configure extraction options directly via URL query parameters:
 
+Enable chunking with custom settings:
+
 ```bash
-# Enable chunking with custom settings
 curl -X POST "http://localhost:8000/extract?chunk_content=true&max_chars=500&max_overlap=50" \
   -F "data=@document.pdf"
+```
 
-# Extract entities and keywords
+Extract entities and keywords:
+
+```bash
 curl -X POST "http://localhost:8000/extract?extract_entities=true&extract_keywords=true&keyword_count=5" \
   -F "data=@document.pdf"
+```
 
-# Force OCR with specific backend
+Force OCR with specific backend:
+
+```bash
 curl -X POST "http://localhost:8000/extract?force_ocr=true&ocr_backend=tesseract" \
   -F "data=@image.jpg"
+```
 
-# Enable language detection
+Enable language detection:
+
+```bash
 curl -X POST "http://localhost:8000/extract?auto_detect_language=true" \
   -F "data=@multilingual_document.pdf"
 ```
@@ -154,13 +164,17 @@ Query parameters accept flexible boolean values:
 
 For complex nested configurations, use the `X-Extraction-Config` header with JSON format:
 
+Basic header configuration:
+
 ```bash
-# Basic header configuration
 curl -X POST http://localhost:8000/extract \
   -H "X-Extraction-Config: {\"chunk_content\": true, \"max_chars\": 300, \"extract_keywords\": true}" \
   -F "data=@document.pdf"
+```
 
-# Advanced OCR configuration
+Advanced OCR configuration:
+
+```bash
 curl -X POST http://localhost:8000/extract \
   -H "X-Extraction-Config: {
     \"force_ocr\": true,
@@ -172,8 +186,11 @@ curl -X POST http://localhost:8000/extract \
     }
   }" \
   -F "data=@multilingual_document.pdf"
+```
 
-# Table extraction with GMFT configuration
+Table extraction with GMFT configuration:
+
+```bash
 curl -X POST http://localhost:8000/extract \
   -H "X-Extraction-Config: {
     \"extract_tables\": true,
@@ -195,13 +212,15 @@ When multiple configuration sources are present, they are merged with the follow
 1. **Static config** - `kreuzberg.toml` or `pyproject.toml` files
 1. **Defaults** (lowest priority) - Built-in default values
 
+Header overrides query parameters:
+
 ```bash
-# Header overrides query parameters
 curl -X POST "http://localhost:8000/extract?max_chars=1000" \
   -H "X-Extraction-Config: {\"max_chars\": 500}" \
   -F "data=@document.pdf"
-# Result: max_chars will be 500 (from header)
 ```
+
+Result: max_chars will be 500 (from header)
 
 #### Error Handling
 

@@ -163,16 +163,23 @@ When using the [Kreuzberg API Server](api-server.md), you can configure extracti
 
 Configure extraction options directly via URL query parameters when making requests to the `/extract` endpoint:
 
+Enable chunking with custom settings:
+
 ```bash
-# Enable chunking with custom settings
 curl -X POST "http://localhost:8000/extract?chunk_content=true&max_chars=500&max_overlap=50" \
   -F "data=@document.pdf"
+```
 
-# Extract entities and keywords
+Extract entities and keywords:
+
+```bash
 curl -X POST "http://localhost:8000/extract?extract_entities=true&extract_keywords=true&keyword_count=5" \
   -F "data=@document.pdf"
+```
 
-# Force OCR with specific backend
+Force OCR with specific backend:
+
+```bash
 curl -X POST "http://localhost:8000/extract?force_ocr=true&ocr_backend=tesseract" \
   -F "data=@image.jpg"
 ```
@@ -195,8 +202,9 @@ curl -X POST "http://localhost:8000/extract?force_ocr=true&ocr_backend=tesseract
 
 For complex nested configurations (like OCR-specific settings), use the `X-Extraction-Config` header with JSON format:
 
+Advanced OCR configuration:
+
 ```bash
-# Advanced OCR configuration
 curl -X POST http://localhost:8000/extract \
   -H "X-Extraction-Config: {
     \"force_ocr\": true,
@@ -208,8 +216,11 @@ curl -X POST http://localhost:8000/extract \
     }
   }" \
   -F "data=@multilingual_document.pdf"
+```
 
-# Table extraction with GMFT configuration
+Table extraction with GMFT configuration:
+
+```bash
 curl -X POST http://localhost:8000/extract \
   -H "X-Extraction-Config: {
     \"extract_tables\": true,

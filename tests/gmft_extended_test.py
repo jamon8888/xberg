@@ -6,10 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from kreuzberg._gmft import (
-    GMFTConfig,
-    extract_tables_sync,
-)
+from kreuzberg._gmft import extract_tables_sync
+from kreuzberg._types import GMFTConfig
 from kreuzberg.exceptions import MissingDependencyError
 
 if TYPE_CHECKING:

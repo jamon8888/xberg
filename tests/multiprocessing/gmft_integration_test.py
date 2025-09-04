@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 from pytest import MonkeyPatch
 
-from kreuzberg._gmft import GMFTConfig, extract_tables, extract_tables_sync
+from kreuzberg._gmft import extract_tables, extract_tables_sync
+from kreuzberg._types import GMFTConfig
 from kreuzberg.exceptions import ParsingError
 
 

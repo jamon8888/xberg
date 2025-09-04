@@ -444,7 +444,7 @@ def test_process_file_sync(backend: TesseractBackend, ocr_image: Path) -> None:
 
 
 def test_tesseract_config_validation_tesseract_config_all_parameters() -> None:
-    from kreuzberg._ocr._tesseract import TesseractConfig
+    from kreuzberg._types import TesseractConfig
 
     config = TesseractConfig(
         language="eng+deu",
@@ -474,7 +474,7 @@ def test_tesseract_config_validation_tesseract_config_all_parameters() -> None:
 
 
 def test_tesseract_config_validation_tesseract_config_default_values() -> None:
-    from kreuzberg._ocr._tesseract import TesseractConfig
+    from kreuzberg._types import TesseractConfig
 
     config = TesseractConfig()
 
@@ -508,7 +508,7 @@ def test_tesseract_config_validation_tesseract_config_default_values() -> None:
     ],
 )
 def test_tesseract_config_validation_psm_mode_values(psm_mode: PSMMode) -> None:
-    from kreuzberg._ocr._tesseract import TesseractConfig
+    from kreuzberg._types import TesseractConfig
 
     config = TesseractConfig(psm=psm_mode)
     assert config.psm == psm_mode
@@ -936,14 +936,14 @@ def test_tesseract_error_handling_sync_process_file_read_error(backend: Tesserac
 
 
 def test_tesseract_config_edge_cases_empty_whitelist() -> None:
-    from kreuzberg._ocr._tesseract import TesseractConfig
+    from kreuzberg._types import TesseractConfig
 
     config = TesseractConfig(tessedit_char_whitelist="")
     assert config.tessedit_char_whitelist == ""
 
 
 def test_tesseract_config_edge_cases_very_long_whitelist() -> None:
-    from kreuzberg._ocr._tesseract import TesseractConfig
+    from kreuzberg._types import TesseractConfig
 
     long_whitelist = "".join(chr(i) for i in range(32, 127))
 

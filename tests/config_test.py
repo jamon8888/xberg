@@ -25,11 +25,15 @@ from kreuzberg._config import (
     parse_ocr_backend_config,
     try_discover_config,
 )
-from kreuzberg._gmft import GMFTConfig
-from kreuzberg._ocr._easyocr import EasyOCRConfig
-from kreuzberg._ocr._paddleocr import PaddleOCRConfig
-from kreuzberg._ocr._tesseract import PSMMode, TesseractConfig
-from kreuzberg._types import ExtractionConfig, HTMLToMarkdownConfig
+from kreuzberg._types import (
+    EasyOCRConfig,
+    ExtractionConfig,
+    GMFTConfig,
+    HTMLToMarkdownConfig,
+    PaddleOCRConfig,
+    PSMMode,
+    TesseractConfig,
+)
 from kreuzberg.exceptions import ValidationError
 
 
