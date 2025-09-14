@@ -150,9 +150,7 @@ time.sleep({self.config.duration_seconds})
 
 
 @contextmanager
-def profile_benchmark(
-    flame_config: FlameGraphConfig | None = None,  # noqa: ARG001
-) -> Generator[PerformanceProfiler, None, PerformanceMetrics]:
+def profile_benchmark() -> Generator[PerformanceProfiler, None, PerformanceMetrics]:
     profiler = PerformanceProfiler()
     profiler.start_monitoring()
 
