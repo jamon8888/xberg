@@ -23,7 +23,6 @@ async def test_batch_extract_file_empty_list() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Batch file operations may be unstable in CI environment")
 async def test_batch_extract_file_single_file(tmp_path: Path) -> None:
     test_file = tmp_path / "test.txt"
     test_file.write_text("Test content")
@@ -36,7 +35,6 @@ async def test_batch_extract_file_single_file(tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Batch file operations may be unstable in CI environment")
 async def test_batch_extract_file_multiple_files(tmp_path: Path) -> None:
     file1 = tmp_path / "test1.txt"
     file2 = tmp_path / "test2.txt"

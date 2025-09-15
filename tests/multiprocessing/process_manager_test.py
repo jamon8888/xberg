@@ -105,7 +105,6 @@ def test_process_pool_manager_ensure_executor_recreation() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Multiprocessing tests may be unstable in CI environment")
 async def test_process_pool_manager_submit_task_success() -> None:
     manager = ProcessPoolManager(max_processes=2)
 
@@ -116,7 +115,6 @@ async def test_process_pool_manager_submit_task_success() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Multiprocessing tests may be unstable in CI environment")
 async def test_process_pool_manager_submit_task_with_memory_constraint() -> None:
     manager = ProcessPoolManager(max_processes=8, memory_limit_gb=1.0)
 
@@ -137,7 +135,6 @@ async def test_process_pool_manager_submit_task_tracks_active_tasks() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Multiprocessing tests may be unstable in CI environment")
 async def test_process_pool_manager_submit_batch_success() -> None:
     manager = ProcessPoolManager(max_processes=2)
 

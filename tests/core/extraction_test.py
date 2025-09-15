@@ -90,7 +90,6 @@ def test_extract_file_sync_nonexistent_file() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Cache-related tests may fail in CI due to filesystem differences")
 async def test_extract_file_with_cache_disabled(tmp_path: Path) -> None:
     test_file = tmp_path / "test.txt"
     test_file.write_text("Test content")
@@ -102,7 +101,6 @@ async def test_extract_file_with_cache_disabled(tmp_path: Path) -> None:
     assert result.mime_type == "text/plain"
 
 
-@pytest.mark.xfail(reason="Cache-related tests may fail in CI due to filesystem differences")
 def test_extract_file_sync_with_cache_disabled(tmp_path: Path) -> None:
     test_file = tmp_path / "test.txt"
     test_file.write_text("Test content")
@@ -115,7 +113,6 @@ def test_extract_file_sync_with_cache_disabled(tmp_path: Path) -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="File operations may behave differently in CI environment")
 async def test_extract_file_with_unknown_mime_type(tmp_path: Path) -> None:
     test_file = tmp_path / "test.unknown"
     test_file.write_text("Unknown file type content")
@@ -127,7 +124,6 @@ async def test_extract_file_with_unknown_mime_type(tmp_path: Path) -> None:
     assert result.mime_type == "application/unknown"
 
 
-@pytest.mark.xfail(reason="File operations may behave differently in CI environment")
 def test_extract_file_sync_with_unknown_mime_type(tmp_path: Path) -> None:
     test_file = tmp_path / "test.unknown"
     test_file.write_text("Unknown file type content")
@@ -154,7 +150,6 @@ def test_handle_chunk_content() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Chunking tests may have memory or timing issues in CI")
 async def test_extract_bytes_with_chunking() -> None:
     content = b"This is a long text that should be chunked into smaller pieces for processing."
     mime_type = "text/plain"
@@ -166,7 +161,6 @@ async def test_extract_bytes_with_chunking() -> None:
     assert len(result.chunks) > 1
 
 
-@pytest.mark.xfail(reason="Chunking tests may have memory or timing issues in CI")
 def test_extract_bytes_sync_with_chunking() -> None:
     content = b"This is a long text that should be chunked into smaller pieces for processing."
     mime_type = "text/plain"
@@ -179,7 +173,6 @@ def test_extract_bytes_sync_with_chunking() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Language detection tests may fail in CI due to missing dependencies")
 async def test_extract_bytes_with_language_detection() -> None:
     content = b"This is some English text for language detection."
     mime_type = "text/plain"
@@ -193,7 +186,6 @@ async def test_extract_bytes_with_language_detection() -> None:
     mock_detect.assert_called_once()
 
 
-@pytest.mark.xfail(reason="Language detection tests may fail in CI due to missing dependencies")
 def test_extract_bytes_sync_with_language_detection() -> None:
     content = b"This is some English text for language detection."
     mime_type = "text/plain"
@@ -208,7 +200,6 @@ def test_extract_bytes_sync_with_language_detection() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Entity extraction tests may fail due to ML dependencies in CI")
 async def test_extract_bytes_with_entity_extraction_success() -> None:
     content = b"John works at Apple Inc. in California."
     mime_type = "text/plain"
@@ -251,7 +242,6 @@ def test_extract_bytes_sync_with_entity_extraction_runtime_error() -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.xfail(reason="Keyword extraction tests may fail due to ML dependencies in CI")
 async def test_extract_bytes_with_keyword_extraction_success() -> None:
     content = b"Machine learning and artificial intelligence are important technologies."
     mime_type = "text/plain"
