@@ -71,6 +71,7 @@ dependencies = [
   "pypdfium2==4.30.0",                                # pinned due to bug in 4.30.1, until v5 is stable
   "python-calamine>=0.5.3",
   "python-pptx>=1.0.2",
+  "transformers>=4.30.0",
   "typing-extensions>=4.15.0; python_version<'3.12'",
 ]
 
@@ -94,7 +95,7 @@ optional-dependencies.crypto = [ "playa-pdf[crypto]>=0.7.0" ]
 optional-dependencies.document-classification = [ "deep-translator>=1.11.4" ]
 optional-dependencies.easyocr = [ "easyocr>=1.7.2" ]
 optional-dependencies.entity-extraction = [ "keybert>=0.9.0", "spacy>=3.8.7" ]
-optional-dependencies.gmft = [ "gmft>=0.4.2" ]
+optional-dependencies.gmft = [ "gmft>=0.4.2", "transformers>=4.25.0" ]
 optional-dependencies.langdetect = [ "fast-langdetect>=1.0.0" ]
 optional-dependencies.paddleocr = [
   "paddleocr>=3.2.0",
