@@ -280,6 +280,11 @@ module = [
 ]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "scripts.*"
+ignore_missing_imports = true
+disallow_untyped_calls = false
+
 [tool.uv.workspace]
 members = [ ".", "benchmarks" ]
 
