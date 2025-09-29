@@ -306,6 +306,13 @@ def test_perform_extraction_from_stdin() -> None:
     mock_config = Mock()
     mock_result = ExtractionResult(content="Extracted", mime_type="text/plain")
 
+    # Force magic import to fail by ensuring it's not in sys.modules
+    import sys
+
+    original_modules = sys.modules.copy()
+    if "magic" in sys.modules:
+        del sys.modules["magic"]
+
     with (
         patch("sys.stdin.buffer.read") as mock_stdin,
         patch("kreuzberg.cli.extract_bytes_sync") as mock_extract,
@@ -313,17 +320,26 @@ def test_perform_extraction_from_stdin() -> None:
         mock_stdin.return_value = b"Test input"
         mock_extract.return_value = mock_result
 
-        # Mock magic import to prevent Windows access violations
-        with patch.dict("sys.modules", {"magic": Mock()}):
+        try:
             result = _perform_extraction(None, mock_config, verbose=True)
-
-        assert result == mock_result
-        mock_extract.assert_called_once()
+            assert result == mock_result
+            mock_extract.assert_called_once_with(b"Test input", "text/plain", config=mock_config)
+        finally:
+            # Restore original modules
+            sys.modules.clear()
+            sys.modules.update(original_modules)
 
 
 def test_perform_extraction_from_stdin_text_fallback() -> None:
     mock_config = Mock()
     mock_result = ExtractionResult(content="Extracted", mime_type="text/plain")
+
+    # Force magic import to fail by ensuring it's not in sys.modules
+    import sys
+
+    original_modules = sys.modules.copy()
+    if "magic" in sys.modules:
+        del sys.modules["magic"]
 
     with (
         patch("sys.stdin") as mock_stdin,
@@ -333,17 +349,26 @@ def test_perform_extraction_from_stdin_text_fallback() -> None:
         mock_stdin.read.return_value = "Test input"
         mock_extract.return_value = mock_result
 
-        # Mock magic import to prevent Windows access violations
-        with patch.dict("sys.modules", {"magic": Mock()}):
+        try:
             result = _perform_extraction(None, mock_config, verbose=False)
-
-        assert result == mock_result
-        mock_extract.assert_called_once_with(b"Test input", "text/plain", config=mock_config)
+            assert result == mock_result
+            mock_extract.assert_called_once_with(b"Test input", "text/plain", config=mock_config)
+        finally:
+            # Restore original modules
+            sys.modules.clear()
+            sys.modules.update(original_modules)
 
 
 def test_perform_extraction_stdin_detect_html() -> None:
     mock_config = Mock()
     mock_result = ExtractionResult(content="Extracted", mime_type="text/html")
+
+    # Force magic import to fail by ensuring it's not in sys.modules
+    import sys
+
+    original_modules = sys.modules.copy()
+    if "magic" in sys.modules:
+        del sys.modules["magic"]
 
     with (
         patch("sys.stdin.buffer.read") as mock_stdin,
@@ -352,12 +377,14 @@ def test_perform_extraction_stdin_detect_html() -> None:
         mock_stdin.return_value = b"<html><body>Test</body></html>"
         mock_extract.return_value = mock_result
 
-        # Mock magic import to prevent Windows access violations
-        with patch.dict("sys.modules", {"magic": Mock()}):
+        try:
             result = _perform_extraction(Path("-"), mock_config, verbose=False)
-
-        assert result == mock_result
-        mock_extract.assert_called_once_with(b"<html><body>Test</body></html>", "text/html", config=mock_config)
+            assert result == mock_result
+            mock_extract.assert_called_once_with(b"<html><body>Test</body></html>", "text/html", config=mock_config)
+        finally:
+            # Restore original modules
+            sys.modules.clear()
+            sys.modules.update(original_modules)
 
 
 def test_write_output_to_file(tmp_path: Path) -> None:
