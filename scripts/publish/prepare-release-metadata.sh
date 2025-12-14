@@ -8,6 +8,7 @@ echo "$metadata" >release-metadata.json
 {
 	echo "tag=$(echo "$metadata" | jq -r '.tag')"
 	echo "version=$(echo "$metadata" | jq -r '.version')"
+	echo "npm_tag=$(echo "$metadata" | jq -r '.npm_tag')"
 	echo "ref=$(echo "$metadata" | jq -r '.ref')"
 	echo "dry_run=$(echo "$metadata" | jq -r '.dry_run')"
 	echo "checkout_ref=$(echo "$metadata" | jq -r '.checkout_ref')"

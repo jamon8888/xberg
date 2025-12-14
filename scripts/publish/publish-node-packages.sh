@@ -4,43 +4,44 @@
 #
 # Publishes all packed npm packages (*.tgz files) from the npm directory.
 # Includes idempotent handling for already-published versions.
+# CRITICAL: Respects npm dist-tag to prevent pre-release versions from being tagged 'latest'
+#
+# Arguments:
+#   $1: Directory containing npm packages (default: crates/kreuzberg-node/npm)
+#   $2: npm dist-tag (default: latest)
 #
 # Environment Variables:
-#   - NPM_PACKAGES_DIR: Directory containing packed npm packages (default: crates/kreuzberg-node/npm)
+#   - NPM_TAG: Override npm dist-tag (optional)
 
 set -euo pipefail
 
+# Locate this script and its library directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
+
 npm_dir="${1:-crates/kreuzberg-node/npm}"
+npm_tag="${2:-${NPM_TAG:-latest}}"
 
-if [ ! -d "$npm_dir" ]; then
-	echo "Error: npm directory not found: $npm_dir" >&2
-	exit 1
-fi
+# Validate npm directory exists
+validate_directory "$npm_dir" "npm directory"
 
+# Find all .tgz packages
 shopt -s nullglob
 pkgs=("$npm_dir"/*.tgz)
 
 if [ ${#pkgs[@]} -eq 0 ]; then
-	echo "No npm packages found in $npm_dir" >&2
+	log_error "No npm packages found in $npm_dir"
 	exit 1
 fi
 
-for pkg in "${pkgs[@]}"; do
-	echo "Publishing $(basename "$pkg")"
-	publish_log=$(mktemp)
-	set +e
-	npm publish "$pkg" --access public --provenance --ignore-scripts 2>&1 | tee "$publish_log"
-	status=${PIPESTATUS[0]}
-	set -e
+log_info "Found ${#pkgs[@]} package(s) to publish with tag '$npm_tag'"
 
-	if [ "$status" -ne 0 ]; then
-		if grep -q "previously published versions" "$publish_log"; then
-			echo "::notice::Package $(basename "$pkg") already published; skipping."
-		else
-			exit "$status"
-		fi
+# Publish each package with idempotent error handling
+for pkg in "${pkgs[@]}"; do
+	if ! publish_npm_package "$pkg" "$npm_tag"; then
+		exit 1
 	fi
-	rm -f "$publish_log"
 done
 
-echo "Native binary packages published"
+log_success "Native binary packages published"

@@ -47,6 +47,7 @@ jobs:
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
       version: ${{ steps.meta.outputs.version }}
+      npm_tag: ${{ steps.meta.outputs.npm_tag }}
       ref: ${{ steps.meta.outputs.ref }}
       dry_run: ${{ steps.meta.outputs.dry_run }}
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
@@ -2110,7 +2111,7 @@ jobs:
 
       - name: Publish native binary packages
         if: ${{ needs.prepare.outputs.dry_run != 'true' }}
-        run: bash scripts/publish/publish-node-packages.sh crates/kreuzberg-node/npm
+        run: bash scripts/publish/publish-node-packages.sh crates/kreuzberg-node/npm "${{ needs.prepare.outputs.npm_tag }}"
 
       - name: Wait for npm indexing
         if: ${{ needs.prepare.outputs.dry_run != 'true' }}
@@ -2118,7 +2119,7 @@ jobs:
 
       - name: Publish main Node package
         if: ${{ needs.prepare.outputs.dry_run != 'true' }}
-        run: bash scripts/publish/publish-main-node-package.sh crates/kreuzberg-node
+        run: bash scripts/publish/publish-main-node-package.sh crates/kreuzberg-node "${{ needs.prepare.outputs.npm_tag }}"
 
   publish-wasm:
     name: Publish WASM package
@@ -2209,7 +2210,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: crates/kreuzberg-wasm
-        run: npm publish --access public --provenance --ignore-scripts
+        run: npm publish --access public --provenance --ignore-scripts --tag "${{ needs.prepare.outputs.npm_tag }}"
 
       - name: Wait for npm indexing
         if: ${{ steps.npm_check.outputs.exists != 'true' }}

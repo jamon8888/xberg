@@ -260,11 +260,25 @@ if [[ ${#enabled_targets[@]} -gt 0 ]]; then
 	release_any="true"
 fi
 
+# Determine npm dist-tag based on version
+# CRITICAL: Pre-release versions must NOT be tagged as 'latest'
+determine_npm_tag() {
+	local ver="$1"
+	if [[ "$ver" == *-rc* ]] || [[ "$ver" == *-alpha* ]] || [[ "$ver" == *-beta* ]] || [[ "$ver" == *-pre* ]]; then
+		echo "next"
+	else
+		echo "latest"
+	fi
+}
+
+npm_tag=$(determine_npm_tag "$version")
+
 # Output results
 cat <<JSON
 {
   "tag": "$tag",
   "version": "$version",
+  "npm_tag": "$npm_tag",
   "ref": "$ref",
   "checkout_ref": "$checkout_ref",
   "target_sha": "$target_sha",
