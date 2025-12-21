@@ -27,6 +27,9 @@ impl ExcelExtractor {
     ///
     /// Each sheet becomes a table with the first row as headers,
     /// remaining rows as data, and the sheet name as caption.
+    ///
+    /// Optimized to skip markdown parsing when not needed, directly
+    /// extracting table cells from markdown strings without triple iteration.
     fn sheets_to_tables(workbook: &crate::types::ExcelWorkbook) -> Vec<Table> {
         let mut tables = Vec::with_capacity(workbook.sheets.len());
 
@@ -35,21 +38,26 @@ impl ExcelExtractor {
                 continue;
             }
 
-            let lines: Vec<&str> = sheet.markdown.lines().collect();
-            let mut cells: Vec<Vec<String>> = Vec::new();
+            // Pre-allocate cells vector based on known dimensions
+            let mut cells: Vec<Vec<String>> = Vec::with_capacity(sheet.row_count);
 
-            let table_start = lines.iter().position(|line| line.starts_with("| "));
+            // Extract table rows using iterator instead of collecting all lines first
+            let mut found_table = false;
+            for line in sheet.markdown.lines() {
+                if line.starts_with("| ") {
+                    // Skip separator rows (contain ---)
+                    if line.contains("---") {
+                        found_table = true;
+                        continue;
+                    }
 
-            if let Some(start_idx) = table_start {
-                for line in lines.iter().skip(start_idx) {
-                    if line.starts_with("| ") && !line.contains("---") {
-                        let row: Vec<String> = line
-                            .trim_start_matches("| ")
-                            .trim_end_matches(" |")
-                            .split(" | ")
-                            .map(|cell| cell.replace("\\|", "|").replace("\\\\", "\\"))
-                            .collect();
-                        cells.push(row);
+                    if found_table || cells.is_empty() {
+                        // Parse row: strip "| " prefix and " |" suffix, then split by " | "
+                        if let Some(content) = line.strip_prefix("| ").and_then(|s| s.strip_suffix(" |")) {
+                            let row: Vec<String> = content.split(" | ").map(Self::unescape_cell_value).collect();
+                            cells.push(row);
+                            found_table = true;
+                        }
                     }
                 }
             }
@@ -64,6 +72,38 @@ impl ExcelExtractor {
         }
 
         tables
+    }
+
+    /// Unescape markdown pipe and backslash characters in cell values.
+    ///
+    /// Reverses the escaping done during markdown generation:
+    /// - `\\|` → `|`
+    /// - `\\\\` → `\`
+    #[inline]
+    fn unescape_cell_value(cell: &str) -> String {
+        let mut result = String::with_capacity(cell.len());
+        let mut chars = cell.chars();
+
+        while let Some(ch) = chars.next() {
+            if ch == '\\' {
+                if let Some(next_ch) = chars.next() {
+                    match next_ch {
+                        '|' => result.push('|'),
+                        '\\' => result.push('\\'),
+                        _ => {
+                            result.push('\\');
+                            result.push(next_ch);
+                        }
+                    }
+                } else {
+                    result.push('\\');
+                }
+            } else {
+                result.push(ch);
+            }
+        }
+
+        result
     }
 }
 
@@ -248,14 +288,9 @@ mod tests {
 
         let sheet = ExcelSheet {
             name: "TestSheet".to_string(),
-            markdown: r#"## TestSheet
-
-| Name | Age | City |
-| --- | --- | --- |
-| Alice | 30 | NYC |
-| Bob | 25 | LA |
-"#
-            .to_string(),
+            markdown:
+                "## TestSheet\n\n| Name | Age | City |\n| --- | --- | --- |\n| Alice | 30 | NYC |\n| Bob | 25 | LA |\n"
+                    .to_string(),
             row_count: 3,
             col_count: 3,
             cell_count: 9,
@@ -305,13 +340,7 @@ mod tests {
 
         let sheet1 = ExcelSheet {
             name: "Sheet1".to_string(),
-            markdown: r#"## Sheet1
-
-| Col1 | Col2 |
-| --- | --- |
-| A | B |
-"#
-            .to_string(),
+            markdown: "## Sheet1\n\n| Col1 | Col2 |\n| --- | --- |\n| A | B |\n".to_string(),
             row_count: 2,
             col_count: 2,
             cell_count: 4,
@@ -319,13 +348,7 @@ mod tests {
 
         let sheet2 = ExcelSheet {
             name: "Sheet2".to_string(),
-            markdown: r#"## Sheet2
-
-| X | Y |
-| --- | --- |
-| 1 | 2 |
-"#
-            .to_string(),
+            markdown: "## Sheet2\n\n| X | Y |\n| --- | --- |\n| 1 | 2 |\n".to_string(),
             row_count: 2,
             col_count: 2,
             cell_count: 4,
@@ -341,5 +364,56 @@ mod tests {
         assert_eq!(tables.len(), 2);
         assert_eq!(tables[0].page_number, 1);
         assert_eq!(tables[1].page_number, 2);
+    }
+
+    #[test]
+    fn test_unescape_cell_value_pipes() {
+        let result = ExcelExtractor::unescape_cell_value("value\\|with\\|pipes");
+        assert_eq!(result, "value|with|pipes");
+    }
+
+    #[test]
+    fn test_unescape_cell_value_backslashes() {
+        let result = ExcelExtractor::unescape_cell_value("path\\\\to\\\\file");
+        assert_eq!(result, "path\\to\\file");
+    }
+
+    #[test]
+    fn test_unescape_cell_value_mixed() {
+        let result = ExcelExtractor::unescape_cell_value("text\\|with\\|pipes\\\\and\\\\slashes");
+        assert_eq!(result, "text|with|pipes\\and\\slashes");
+    }
+
+    #[test]
+    fn test_unescape_cell_value_no_escapes() {
+        let result = ExcelExtractor::unescape_cell_value("plain text");
+        assert_eq!(result, "plain text");
+    }
+
+    #[test]
+    fn test_sheets_to_tables_with_escaped_cells() {
+        use crate::types::ExcelSheet;
+        use std::collections::HashMap;
+
+        let sheet = ExcelSheet {
+            name: "Escaped".to_string(),
+            markdown: "## Escaped\n\n| Name | Path |\n| --- | --- |\n| Test\\|A | C:\\\\Users\\\\test |\n".to_string(),
+            row_count: 2,
+            col_count: 2,
+            cell_count: 4,
+        };
+
+        let workbook = crate::types::ExcelWorkbook {
+            sheets: vec![sheet],
+            metadata: HashMap::new(),
+        };
+
+        let tables = ExcelExtractor::sheets_to_tables(&workbook);
+
+        assert_eq!(tables.len(), 1);
+        assert_eq!(tables[0].cells.len(), 2);
+        assert_eq!(tables[0].cells[0], vec!["Name", "Path"]);
+        assert_eq!(tables[0].cells[1][0], "Test|A");
+        assert_eq!(tables[0].cells[1][1], "C:\\Users\\test");
     }
 }
