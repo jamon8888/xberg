@@ -5,6 +5,16 @@ All notable changes to Kreuzberg will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0-rc.16] - 2025-12-21
+
+### Fixed
+
+- **Python type stub file packaging**: Fixed `.pyi` stub files not being included in wheel distributions
+  - Root cause: maturin `include` directive only specified `"wheel"` format instead of `["sdist", "wheel"]`
+  - This caused `_internal_bindings.pyi` and `py.typed` to be missing from installed packages
+  - Solution: Updated `pyproject.toml` to include stub files in both sdist and wheel formats
+  - Impact: IDEs can now properly inspect types from the binary `_internal_bindings` module
+
 ## [4.0.0-rc.15] - 2025-12-20
 
 ### Fixed

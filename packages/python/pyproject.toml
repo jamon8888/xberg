@@ -90,8 +90,8 @@ manifest-path = "../../crates/kreuzberg-py/Cargo.toml"
 # No separate library files needed - they are embedded during compilation
 include = [
   # Ensure IDE/type-checker discoverability for the extension module.
-  { path = "kreuzberg/_internal_bindings.pyi", format = "wheel" },
-  { path = "kreuzberg/py.typed", format = "wheel" },
+  { path = "kreuzberg/_internal_bindings.pyi", format = [ "sdist", "wheel" ] },
+  { path = "kreuzberg/py.typed", format = [ "sdist", "wheel" ] },
   # Include the CLI binary (must be built with --features all)
   { path = "kreuzberg/kreuzberg-cli", format = "wheel" },
   { path = "kreuzberg/kreuzberg-cli.exe", format = "wheel" },
