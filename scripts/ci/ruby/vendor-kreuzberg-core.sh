@@ -18,19 +18,22 @@ echo "=== Vendoring kreuzberg core crate ==="
 # Remove and recreate vendor directory
 rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg"
 rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg-tesseract"
+rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg-ffi"
 rm -rf "$REPO_ROOT/packages/ruby/vendor/rb-sys"
 mkdir -p "$REPO_ROOT/packages/ruby/vendor"
 
 # Copy core crate and rb-sys (patched for Windows compatibility)
-# Note: kreuzberg-ffi is not needed for Ruby bindings
+# Note: kreuzberg-ffi IS needed for linking
 cp -R "$REPO_ROOT/crates/kreuzberg" "$REPO_ROOT/packages/ruby/vendor/kreuzberg"
 cp -R "$REPO_ROOT/crates/kreuzberg-tesseract" "$REPO_ROOT/packages/ruby/vendor/kreuzberg-tesseract"
+cp -R "$REPO_ROOT/crates/kreuzberg-ffi" "$REPO_ROOT/packages/ruby/vendor/kreuzberg-ffi"
 cp -R "$REPO_ROOT/vendor/rb-sys" "$REPO_ROOT/packages/ruby/vendor/rb-sys"
 
 # Clean up build artifacts
 rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg/.fastembed_cache"
 rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg/target"
 rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg-tesseract/target"
+rm -rf "$REPO_ROOT/packages/ruby/vendor/kreuzberg-ffi/target"
 rm -rf "$REPO_ROOT/packages/ruby/vendor/rb-sys/target"
 find "$REPO_ROOT/packages/ruby/vendor/kreuzberg" -name '*.swp' -delete
 find "$REPO_ROOT/packages/ruby/vendor/kreuzberg" -name '*.bak' -delete
@@ -92,7 +95,7 @@ rm -f "$REPO_ROOT/packages/ruby/vendor/kreuzberg/Cargo.toml.bak"
 
 cat >"$REPO_ROOT/packages/ruby/vendor/Cargo.toml" <<'EOF'
 [workspace]
-members = ["kreuzberg", "kreuzberg-tesseract"]
+members = ["kreuzberg", "kreuzberg-tesseract", "kreuzberg-ffi"]
 
 [workspace.package]
 version = "__CORE_VERSION__"
