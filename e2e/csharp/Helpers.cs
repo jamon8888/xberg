@@ -98,7 +98,7 @@ public static class TestHelpers
         var ext = Path.GetExtension(relativePath).ToLowerInvariant();
         if (ext == ".ppt" || ext == ".doc" || ext == ".xls")
         {
-            throw new XunitException("Legacy Office formats are disabled (KREUZBERG_SKIP_LEGACY_OFFICE)");
+            throw new Xunit.SkipException("Legacy Office formats are disabled (KREUZBERG_SKIP_LEGACY_OFFICE)");
         }
     }
 
