@@ -44,6 +44,24 @@ public final class FontConfig {
     return map;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    FontConfig that = (FontConfig) o;
+    return enabled == that.enabled
+        && java.util.Objects.equals(customFontDirs, that.customFontDirs);
+  }
+
+  @Override
+  public int hashCode() {
+    return java.util.Objects.hash(enabled, customFontDirs);
+  }
+
   public static final class Builder {
     private boolean enabled = true;
     private List<String> customFontDirs;

@@ -1254,6 +1254,9 @@ enable_quality_processing = true
         let config1 = ExtractionConfig::from_toml_file(&config_path).unwrap();
         assert!(!config1.use_cache);
 
+        // Sleep to ensure mtime changes (some filesystems have 1-second granularity)
+        std::thread::sleep(std::time::Duration::from_secs(1));
+
         fs::write(
             &config_path,
             r#"

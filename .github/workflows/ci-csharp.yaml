@@ -140,6 +140,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable symlinks on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          git config core.symlinks true
+          git reset --hard HEAD
+
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
@@ -226,6 +233,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Enable symlinks on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          git config core.symlinks true
+          git reset --hard HEAD
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
