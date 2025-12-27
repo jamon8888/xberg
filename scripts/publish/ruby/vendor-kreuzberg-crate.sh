@@ -3,8 +3,10 @@
 set -euo pipefail
 
 echo "Copying kreuzberg core crate to vendor directory..."
-rm -rf packages/ruby/vendor/kreuzberg
+
+rm -rf packages/ruby/vendor
 mkdir -p packages/ruby/vendor
+
 cp -R crates/kreuzberg packages/ruby/vendor/kreuzberg
 
 rm -rf packages/ruby/vendor/kreuzberg/.fastembed_cache

@@ -56,6 +56,7 @@ env:
   CARGO_TARGET_DIR: target
   CARGO_LOG: cargo::core::compiler::fingerprint=info
   RUST_LOG: debug
+  BUILD_PROFILE: "ci"
 
 jobs:
   changes:
@@ -144,12 +145,23 @@ jobs:
           extensions: ffi
           tools: composer
 
+      - name: Export PHP build config
+        shell: bash
+        run: |
+          PHP_CONFIG_BIN="$(command -v php-config || true)"
+          if [ -z "$PHP_CONFIG_BIN" ]; then
+            echo "php-config not found in PATH" >&2
+            exit 1
+          fi
+          echo "PHP_CONFIG=$PHP_CONFIG_BIN" >> "$GITHUB_ENV"
+
       - name: Print PHP environment
         shell: bash
         run: |
           echo "=== PHP Environment ==="
           echo "PHP version: $(php --version)"
-          echo "PHP config: $(php --ini)"
+          echo "PHP config (php-config): $(php-config --version)"
+          echo "PHP ini: $(php --ini)"
           echo "Composer version: $(composer --version)"
 
       - name: Install Composer dependencies
@@ -177,6 +189,17 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Export macOS PHP linker flags
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          EXTRA_FLAGS="-C link-arg=-Wl,-undefined,dynamic_lookup"
+          if [ -n "${RUSTFLAGS:-}" ]; then
+            echo "RUSTFLAGS=${RUSTFLAGS} ${EXTRA_FLAGS}" >> "$GITHUB_ENV"
+          else
+            echo "RUSTFLAGS=${EXTRA_FLAGS}" >> "$GITHUB_ENV"
+          fi
+
       - name: Build Rust FFI for PHP
         uses: ./.github/actions/build-rust-ffi
         with:
@@ -184,9 +207,12 @@ jobs:
           build-profile: release
           verbose: true
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build PHP extension
         shell: bash
-        run: scripts/ci/php/build-extension.sh
+        run: task php:build:ci
 
       - name: Cleanup Rust cache
         if: always()
@@ -248,31 +274,29 @@ jobs:
           build-profile: release
           verbose: true
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build PHP extension
         shell: bash
-        run: scripts/ci/php/build-extension.sh
+        run: task php:build:ci
 
       - name: Run PHPStan
         shell: bash
-        working-directory: packages/php
-        run: composer exec -- phpstan analyse
+        run: task php:lint:check
 
       - name: Run PHP-CS-Fixer check
         shell: bash
-        working-directory: packages/php
-        run: composer exec -- php-cs-fixer fix --dry-run --diff
+        run: task php:format:check
 
       - name: Run PHP tests
         shell: bash
-        run: scripts/ci/php/run-tests.sh
+        run: task php:test:ci
 
       - name: Build kreuzberg CLI binary
         shell: bash
         run: cargo build --release --package kreuzberg-cli
 
-      - name: Install Task
-        uses: ./.github/actions/install-task
-
       - name: Run E2E tests
         shell: bash
-        run: task e2e:php:test
+        run: task php:e2e:test

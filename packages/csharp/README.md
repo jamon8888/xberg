@@ -43,7 +43,7 @@ Or add directly to your project file:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Kreuzberg" Version="4.0.0-rc.21" />
+    <PackageReference Include="Kreuzberg" Version="4.0.0-rc.22" />
 </ItemGroup>
 ```
 

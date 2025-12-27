@@ -2,4 +2,4 @@
 
 source 'https://rubygems.org'
 
-gem 'kreuzberg', '4.0.0.pre.rc.21'
+gem 'kreuzberg', '4.0.0.pre.rc.22'

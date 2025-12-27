@@ -6,7 +6,6 @@
  */
 
 // ============================================================================
-// Format-Specific Metadata Interfaces
 // ============================================================================
 
 export interface ExcelMetadata {
@@ -53,28 +52,54 @@ export interface TextMetadata {
 	codeBlocks?: [string, string][] | null;
 }
 
+export interface HeaderMetadata {
+	level: number;
+	text: string;
+	id?: string | null;
+	depth: number;
+	htmlOffset: number;
+}
+
+export interface LinkMetadata {
+	href: string;
+	text: string;
+	title?: string | null;
+	linkType: "anchor" | "internal" | "external" | "email" | "phone" | "other";
+	rel: string[];
+	attributes: Record<string, string>;
+}
+
+export interface ImageMetadata {
+	src: string;
+	alt?: string | null;
+	title?: string | null;
+	dimensions?: [number, number] | null;
+	imageType: "data_uri" | "inline_svg" | "external" | "relative";
+	attributes: Record<string, string>;
+}
+
+export interface StructuredData {
+	dataType: "json_ld" | "microdata" | "rdfa";
+	rawJson: string;
+	schemaType?: string | null;
+}
+
 export interface HtmlMetadata {
 	title?: string | null;
 	description?: string | null;
-	keywords?: string | null;
+	keywords: string[];
 	author?: string | null;
-	canonical?: string | null;
+	canonicalUrl?: string | null;
 	baseHref?: string | null;
-	ogTitle?: string | null;
-	ogDescription?: string | null;
-	ogImage?: string | null;
-	ogUrl?: string | null;
-	ogType?: string | null;
-	ogSiteName?: string | null;
-	twitterCard?: string | null;
-	twitterTitle?: string | null;
-	twitterDescription?: string | null;
-	twitterImage?: string | null;
-	twitterSite?: string | null;
-	twitterCreator?: string | null;
-	linkAuthor?: string | null;
-	linkLicense?: string | null;
-	linkAlternate?: string | null;
+	language?: string | null;
+	textDirection?: "ltr" | "rtl" | "auto" | null;
+	openGraph: Record<string, string>;
+	twitterCard: Record<string, string>;
+	metaTags: Record<string, string>;
+	htmlHeaders: HeaderMetadata[];
+	htmlLinks: LinkMetadata[];
+	htmlImages: ImageMetadata[];
+	structuredData: StructuredData[];
 }
 
 export interface PdfMetadata {
@@ -106,10 +131,6 @@ export interface OcrMetadata {
 	tableCols?: number | null;
 }
 
-// ============================================================================
-// Image Preprocessing Metadata
-// ============================================================================
-
 export interface ImagePreprocessingMetadata {
 	originalDimensions?: [number, number];
 	originalDpi?: [number, number];
@@ -125,18 +146,10 @@ export interface ImagePreprocessingMetadata {
 	resizeError?: string | null;
 }
 
-// ============================================================================
-// Error Metadata
-// ============================================================================
-
 export interface ErrorMetadata {
 	errorType?: string;
 	message?: string;
 }
-
-// ============================================================================
-// Unified Metadata Interface
-// ============================================================================
 
 /**
  * Extraction result metadata.
@@ -154,7 +167,6 @@ export interface Metadata {
 
 	format_type?: "pdf" | "excel" | "email" | "pptx" | "archive" | "image" | "xml" | "text" | "html" | "ocr";
 
-	// Common PDF/Document metadata
 	title?: string | null;
 	author?: string | null;
 	keywords?: string | null;
@@ -164,11 +176,9 @@ export interface Metadata {
 	modification_date?: string | null;
 	page_count?: number;
 
-	// Excel-specific metadata
 	sheet_count?: number;
 	sheet_names?: string[];
 
-	// Email-specific metadata
 	from_email?: string | null;
 	from_name?: string | null;
 	to_emails?: string[];
@@ -177,28 +187,23 @@ export interface Metadata {
 	message_id?: string | null;
 	attachments?: string[];
 
-	// PowerPoint-specific metadata
 	description?: string | null;
 	summary?: string | null;
 	fonts?: string[];
 
-	// Archive-specific metadata
 	format?: string;
 	file_count?: number;
 	file_list?: string[];
 	total_size?: number;
 	compressed_size?: number | null;
 
-	// Image-specific metadata
 	width?: number;
 	height?: number;
 	exif?: Record<string, string>;
 
-	// XML-specific metadata
 	element_count?: number;
 	unique_elements?: string[];
 
-	// Text-specific metadata
 	line_count?: number;
 	word_count?: number;
 	character_count?: number;
@@ -206,39 +211,28 @@ export interface Metadata {
 	links?: [string, string][] | null;
 	code_blocks?: [string, string][] | null;
 
-	// HTML-specific metadata
-	canonical?: string | null;
+	canonical_url?: string | null;
 	base_href?: string | null;
-	og_title?: string | null;
-	og_description?: string | null;
-	og_image?: string | null;
-	og_url?: string | null;
-	og_type?: string | null;
-	og_site_name?: string | null;
-	twitter_card?: string | null;
-	twitter_title?: string | null;
-	twitter_description?: string | null;
-	twitter_image?: string | null;
-	twitter_site?: string | null;
-	twitter_creator?: string | null;
-	link_author?: string | null;
-	link_license?: string | null;
-	link_alternate?: string | null;
+	open_graph?: Record<string, string>;
+	twitter_card?: Record<string, string>;
+	meta_tags?: Record<string, string>;
+	html_language?: string | null;
+	text_direction?: "ltr" | "rtl" | "auto" | null;
+	html_headers?: HeaderMetadata[];
+	html_links?: LinkMetadata[];
+	html_images?: ImageMetadata[];
+	structured_data?: StructuredData[];
 
-	// OCR-specific metadata
 	psm?: number;
 	output_format?: string;
 	table_count?: number;
 	table_rows?: number | null;
 	table_cols?: number | null;
 
-	// Image preprocessing metadata
 	image_preprocessing?: ImagePreprocessingMetadata | null;
 
-	// JSON schema
 	json_schema?: Record<string, unknown> | null;
 
-	// Error information
 	error?: ErrorMetadata | null;
 
 	// biome-ignore lint/suspicious/noExplicitAny: Postprocessors can add arbitrary metadata fields

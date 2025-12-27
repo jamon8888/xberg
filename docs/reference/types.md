@@ -992,7 +992,7 @@ type ImageMetadata struct {
 
 ### HTML Metadata
 
-Web page metadata including title, description, Open Graph tags, Twitter Card properties, and link relationships. Available when `format_type == "html"`.
+Rich web page metadata including SEO tags, Open Graph fields, Twitter Card properties, structured data, and complex resource links. Available when `format_type == "html"`. Structured fields like headers, links, and images are represented as complex typed objects, not simple arrays of strings.
 
 #### Rust
 
@@ -1000,25 +1000,19 @@ Web page metadata including title, description, Open Graph tags, Twitter Card pr
 pub struct HtmlMetadata {
     pub title: Option<String>,
     pub description: Option<String>,
-    pub keywords: Option<String>,
+    pub keywords: Vec<String>,
     pub author: Option<String>,
-    pub canonical: Option<String>,
+    pub canonical_url: Option<String>,
     pub base_href: Option<String>,
-    pub og_title: Option<String>,
-    pub og_description: Option<String>,
-    pub og_image: Option<String>,
-    pub og_url: Option<String>,
-    pub og_type: Option<String>,
-    pub og_site_name: Option<String>,
-    pub twitter_card: Option<String>,
-    pub twitter_title: Option<String>,
-    pub twitter_description: Option<String>,
-    pub twitter_image: Option<String>,
-    pub twitter_site: Option<String>,
-    pub twitter_creator: Option<String>,
-    pub link_author: Option<String>,
-    pub link_license: Option<String>,
-    pub link_alternate: Option<String>,
+    pub language: Option<String>,
+    pub text_direction: Option<TextDirection>,
+    pub open_graph: BTreeMap<String, String>,
+    pub twitter_card: BTreeMap<String, String>,
+    pub meta_tags: BTreeMap<String, String>,
+    pub headers: Vec<HeaderMetadata>,
+    pub links: Vec<LinkMetadata>,
+    pub images: Vec<ImageMetadataType>,
+    pub structured_data: Vec<StructuredData>,
 }
 ```
 
@@ -1028,25 +1022,19 @@ pub struct HtmlMetadata {
 class HtmlMetadata(TypedDict, total=False):
     title: str | None
     description: str | None
-    keywords: str | None
+    keywords: list[str]
     author: str | None
-    canonical: str | None
+    canonical_url: str | None
     base_href: str | None
-    og_title: str | None
-    og_description: str | None
-    og_image: str | None
-    og_url: str | None
-    og_type: str | None
-    og_site_name: str | None
-    twitter_card: str | None
-    twitter_title: str | None
-    twitter_description: str | None
-    twitter_image: str | None
-    twitter_site: str | None
-    twitter_creator: str | None
-    link_author: str | None
-    link_license: str | None
-    link_alternate: str | None
+    language: str | None
+    text_direction: str | None
+    open_graph: dict[str, str]
+    twitter_card: dict[str, str]
+    meta_tags: dict[str, str]
+    headers: list[HeaderMetadata]
+    links: list[LinkMetadata]
+    images: list[ImageMetadataType]
+    structured_data: list[StructuredData]
 ```
 
 #### TypeScript
@@ -1055,25 +1043,19 @@ class HtmlMetadata(TypedDict, total=False):
 export interface HtmlMetadata {
     title?: string | null;
     description?: string | null;
-    keywords?: string | null;
+    keywords: string[];
     author?: string | null;
-    canonical?: string | null;
+    canonicalUrl?: string | null;
     baseHref?: string | null;
-    ogTitle?: string | null;
-    ogDescription?: string | null;
-    ogImage?: string | null;
-    ogUrl?: string | null;
-    ogType?: string | null;
-    ogSiteName?: string | null;
-    twitterCard?: string | null;
-    twitterTitle?: string | null;
-    twitterDescription?: string | null;
-    twitterImage?: string | null;
-    twitterSite?: string | null;
-    twitterCreator?: string | null;
-    linkAuthor?: string | null;
-    linkLicense?: string | null;
-    linkAlternate?: string | null;
+    language?: string | null;
+    textDirection?: string | null;
+    openGraph: Record<string, string>;
+    twitterCard: Record<string, string>;
+    metaTags: Record<string, string>;
+    headers: HeaderMetadata[];
+    links: LinkMetadata[];
+    images: ImageMetadataType[];
+    structuredData: StructuredData[];
 }
 ```
 
@@ -1083,25 +1065,19 @@ export interface HtmlMetadata {
 public record HtmlMetadata(
     Optional<String> title,
     Optional<String> description,
-    Optional<String> keywords,
+    List<String> keywords,
     Optional<String> author,
-    Optional<String> canonical,
+    Optional<String> canonicalUrl,
     Optional<String> baseHref,
-    Optional<String> ogTitle,
-    Optional<String> ogDescription,
-    Optional<String> ogImage,
-    Optional<String> ogUrl,
-    Optional<String> ogType,
-    Optional<String> ogSiteName,
-    Optional<String> twitterCard,
-    Optional<String> twitterTitle,
-    Optional<String> twitterDescription,
-    Optional<String> twitterImage,
-    Optional<String> twitterSite,
-    Optional<String> twitterCreator,
-    Optional<String> linkAuthor,
-    Optional<String> linkLicense,
-    Optional<String> linkAlternate
+    Optional<String> language,
+    Optional<TextDirection> textDirection,
+    Map<String, String> openGraph,
+    Map<String, String> twitterCard,
+    Map<String, String> metaTags,
+    List<HeaderMetadata> headers,
+    List<LinkMetadata> links,
+    List<ImageMetadataType> images,
+    List<StructuredData> structuredData
 ) {}
 ```
 
@@ -1109,29 +1085,590 @@ public record HtmlMetadata(
 
 ```go title="html_metadata.go"
 type HtmlMetadata struct {
-    Title              *string `json:"title,omitempty"`
-    Description        *string `json:"description,omitempty"`
-    Keywords           *string `json:"keywords,omitempty"`
-    Author             *string `json:"author,omitempty"`
-    Canonical          *string `json:"canonical,omitempty"`
-    BaseHref           *string `json:"base_href,omitempty"`
-    OGTitle            *string `json:"og_title,omitempty"`
-    OGDescription      *string `json:"og_description,omitempty"`
-    OGImage            *string `json:"og_image,omitempty"`
-    OGURL              *string `json:"og_url,omitempty"`
-    OGType             *string `json:"og_type,omitempty"`
-    OGSiteName         *string `json:"og_site_name,omitempty"`
-    TwitterCard        *string `json:"twitter_card,omitempty"`
-    TwitterTitle       *string `json:"twitter_title,omitempty"`
-    TwitterDescription *string `json:"twitter_description,omitempty"`
-    TwitterImage       *string `json:"twitter_image,omitempty"`
-    TwitterSite        *string `json:"twitter_site,omitempty"`
-    TwitterCreator     *string `json:"twitter_creator,omitempty"`
-    LinkAuthor         *string `json:"link_author,omitempty"`
-    LinkLicense        *string `json:"link_license,omitempty"`
-    LinkAlternate      *string `json:"link_alternate,omitempty"`
+    Title           *string                `json:"title,omitempty"`
+    Description     *string                `json:"description,omitempty"`
+    Keywords        []string               `json:"keywords"`
+    Author          *string                `json:"author,omitempty"`
+    CanonicalURL    *string                `json:"canonical_url,omitempty"`
+    BaseHref        *string                `json:"base_href,omitempty"`
+    Language        *string                `json:"language,omitempty"`
+    TextDirection   *string                `json:"text_direction,omitempty"`
+    OpenGraph       map[string]string      `json:"open_graph"`
+    TwitterCard     map[string]string      `json:"twitter_card"`
+    MetaTags        map[string]string      `json:"meta_tags"`
+    Headers         []HeaderMetadata       `json:"headers"`
+    Links           []LinkMetadata         `json:"links"`
+    Images          []ImageMetadataType    `json:"images"`
+    StructuredData  []StructuredData       `json:"structured_data"`
 }
 ```
+
+#### C#
+
+```csharp title="HtmlMetadata.cs"
+public record HtmlMetadata
+{
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public List<string> Keywords { get; init; } = new();
+    public string? Author { get; init; }
+    public string? CanonicalUrl { get; init; }
+    public string? BaseHref { get; init; }
+    public string? Language { get; init; }
+    public string? TextDirection { get; init; }
+    public Dictionary<string, string> OpenGraph { get; init; } = new();
+    public Dictionary<string, string> TwitterCard { get; init; } = new();
+    public Dictionary<string, string> MetaTags { get; init; } = new();
+    public List<HeaderMetadata> Headers { get; init; } = new();
+    public List<LinkMetadata> Links { get; init; } = new();
+    public List<ImageMetadataType> Images { get; init; } = new();
+    public List<StructuredData> StructuredData { get; init; } = new();
+}
+```
+
+## HeaderMetadata
+
+Metadata for header elements (h1-h6) with hierarchy and positioning information.
+
+### Rust
+
+```rust title="header_metadata.rs"
+pub struct HeaderMetadata {
+    pub level: u8,
+    pub text: String,
+    pub id: Option<String>,
+    pub depth: usize,
+    pub html_offset: usize,
+}
+```
+
+### Python
+
+```python title="header_metadata.py"
+class HeaderMetadata(TypedDict, total=False):
+    level: int
+    text: str
+    id: str | None
+    depth: int
+    html_offset: int
+```
+
+### TypeScript
+
+```typescript title="header_metadata.ts"
+export interface HeaderMetadata {
+    level: number;
+    text: string;
+    id?: string | null;
+    depth: number;
+    htmlOffset: number;
+}
+```
+
+### Java
+
+```java title="HeaderMetadata.java"
+public record HeaderMetadata(
+    int level,
+    String text,
+    Optional<String> id,
+    int depth,
+    int htmlOffset
+) {}
+```
+
+### Go
+
+```go title="header_metadata.go"
+type HeaderMetadata struct {
+    Level      int    `json:"level"`
+    Text       string `json:"text"`
+    ID         *string `json:"id,omitempty"`
+    Depth      int    `json:"depth"`
+    HtmlOffset int    `json:"html_offset"`
+}
+```
+
+### C#
+
+```csharp title="HeaderMetadata.cs"
+public record HeaderMetadata
+{
+    public required int Level { get; init; }
+    public required string Text { get; init; }
+    public string? Id { get; init; }
+    public required int Depth { get; init; }
+    public required int HtmlOffset { get; init; }
+}
+```
+
+**Fields:**
+- `level`: Header level 1-6 (h1 through h6)
+- `text`: Normalized text content of the header
+- `id`: Optional HTML id attribute
+- `depth`: Document tree depth at the header element
+- `html_offset`: Byte offset in original HTML document
+
+## LinkMetadata
+
+Metadata for hyperlink elements with classification and relationship information.
+
+### Rust
+
+```rust title="link_metadata.rs"
+pub struct LinkMetadata {
+    pub href: String,
+    pub text: String,
+    pub title: Option<String>,
+    pub link_type: LinkType,
+    pub rel: Vec<String>,
+    pub attributes: HashMap<String, String>,
+}
+```
+
+### Python
+
+```python title="link_metadata.py"
+class LinkMetadata(TypedDict, total=False):
+    href: str
+    text: str
+    title: str | None
+    link_type: LinkType
+    rel: list[str]
+    attributes: dict[str, str]
+```
+
+### TypeScript
+
+```typescript title="link_metadata.ts"
+export interface LinkMetadata {
+    href: string;
+    text: string;
+    title?: string | null;
+    linkType: LinkType;
+    rel: string[];
+    attributes: Record<string, string>;
+}
+```
+
+### Java
+
+```java title="LinkMetadata.java"
+public record LinkMetadata(
+    String href,
+    String text,
+    Optional<String> title,
+    LinkType linkType,
+    List<String> rel,
+    Map<String, String> attributes
+) {}
+```
+
+### Go
+
+```go title="link_metadata.go"
+type LinkMetadata struct {
+    Href       string            `json:"href"`
+    Text       string            `json:"text"`
+    Title      *string           `json:"title,omitempty"`
+    LinkType   LinkType          `json:"link_type"`
+    Rel        []string          `json:"rel"`
+    Attributes map[string]string `json:"attributes"`
+}
+```
+
+### C#
+
+```csharp title="LinkMetadata.cs"
+public record LinkMetadata
+{
+    public required string Href { get; init; }
+    public required string Text { get; init; }
+    public string? Title { get; init; }
+    public required LinkType LinkType { get; init; }
+    public required List<string> Rel { get; init; }
+    public required Dictionary<string, string> Attributes { get; init; }
+}
+```
+
+**Fields:**
+- `href`: The href URL value
+- `text`: Link text content (normalized)
+- `title`: Optional title attribute
+- `link_type`: Classification of link type
+- `rel`: Values from rel attribute
+- `attributes`: Additional attributes as key-value pairs
+
+## LinkType
+
+Link type classification enum.
+
+### Rust
+
+```rust title="link_type.rs"
+pub enum LinkType {
+    Anchor,
+    Internal,
+    External,
+    Email,
+    Phone,
+    Other,
+}
+```
+
+### Python
+
+```python title="link_type.py"
+LinkType = Literal["anchor", "internal", "external", "email", "phone", "other"]
+```
+
+### TypeScript
+
+```typescript title="link_type.ts"
+export type LinkType = "anchor" | "internal" | "external" | "email" | "phone" | "other";
+```
+
+### Java
+
+```java title="LinkType.java"
+public enum LinkType {
+    ANCHOR,
+    INTERNAL,
+    EXTERNAL,
+    EMAIL,
+    PHONE,
+    OTHER
+}
+```
+
+### Go
+
+```go title="link_type.go"
+type LinkType string
+
+const (
+    LinkTypeAnchor   LinkType = "anchor"
+    LinkTypeInternal LinkType = "internal"
+    LinkTypeExternal LinkType = "external"
+    LinkTypeEmail    LinkType = "email"
+    LinkTypePhone    LinkType = "phone"
+    LinkTypeOther    LinkType = "other"
+)
+```
+
+### C#
+
+```csharp title="LinkType.cs"
+public enum LinkType
+{
+    Anchor,
+    Internal,
+    External,
+    Email,
+    Phone,
+    Other
+}
+```
+
+**Values:**
+- `Anchor`: Anchor link (#section)
+- `Internal`: Internal link (same domain)
+- `External`: External link (different domain)
+- `Email`: Email link (mailto:)
+- `Phone`: Phone link (tel:)
+- `Other`: Other link type
+
+## ImageMetadataType
+
+Metadata for image elements with source, dimensions, and type classification.
+
+### Rust
+
+```rust title="image_metadata_type.rs"
+pub struct ImageMetadataType {
+    pub src: String,
+    pub alt: Option<String>,
+    pub title: Option<String>,
+    pub dimensions: Option<(u32, u32)>,
+    pub image_type: ImageType,
+    pub attributes: HashMap<String, String>,
+}
+```
+
+### Python
+
+```python title="image_metadata_type.py"
+class ImageMetadataType(TypedDict, total=False):
+    src: str
+    alt: str | None
+    title: str | None
+    dimensions: tuple[int, int] | None
+    image_type: ImageType
+    attributes: dict[str, str]
+```
+
+### TypeScript
+
+```typescript title="image_metadata_type.ts"
+export interface ImageMetadataType {
+    src: string;
+    alt?: string | null;
+    title?: string | null;
+    dimensions?: [number, number] | null;
+    imageType: ImageType;
+    attributes: Record<string, string>;
+}
+```
+
+### Java
+
+```java title="ImageMetadataType.java"
+public record ImageMetadataType(
+    String src,
+    Optional<String> alt,
+    Optional<String> title,
+    Optional<int[]> dimensions,
+    ImageType imageType,
+    Map<String, String> attributes
+) {}
+```
+
+### Go
+
+```go title="image_metadata_type.go"
+type ImageMetadataType struct {
+    Src        string            `json:"src"`
+    Alt        *string           `json:"alt,omitempty"`
+    Title      *string           `json:"title,omitempty"`
+    Dimensions *[2]int           `json:"dimensions,omitempty"`
+    ImageType  ImageType         `json:"image_type"`
+    Attributes map[string]string `json:"attributes"`
+}
+```
+
+### C#
+
+```csharp title="ImageMetadataType.cs"
+public record ImageMetadataType
+{
+    public required string Src { get; init; }
+    public string? Alt { get; init; }
+    public string? Title { get; init; }
+    public (int Width, int Height)? Dimensions { get; init; }
+    public required ImageType ImageType { get; init; }
+    public required Dictionary<string, string> Attributes { get; init; }
+}
+```
+
+**Fields:**
+- `src`: Image source (URL, data URI, or SVG content)
+- `alt`: Alternative text from alt attribute
+- `title`: Title attribute
+- `dimensions`: Image dimensions as (width, height) if available
+- `image_type`: Classification of image source type
+- `attributes`: Additional attributes as key-value pairs
+
+## ImageType
+
+Image type classification enum.
+
+### Rust
+
+```rust title="image_type.rs"
+pub enum ImageType {
+    DataUri,
+    InlineSvg,
+    External,
+    Relative,
+}
+```
+
+### Python
+
+```python title="image_type.py"
+ImageType = Literal["data-uri", "inline-svg", "external", "relative"]
+```
+
+### TypeScript
+
+```typescript title="image_type.ts"
+export type ImageType = "data-uri" | "inline-svg" | "external" | "relative";
+```
+
+### Java
+
+```java title="ImageType.java"
+public enum ImageType {
+    DATA_URI,
+    INLINE_SVG,
+    EXTERNAL,
+    RELATIVE
+}
+```
+
+### Go
+
+```go title="image_type.go"
+type ImageType string
+
+const (
+    ImageTypeDataUri   ImageType = "data-uri"
+    ImageTypeInlineSvg ImageType = "inline-svg"
+    ImageTypeExternal  ImageType = "external"
+    ImageTypeRelative  ImageType = "relative"
+)
+```
+
+### C#
+
+```csharp title="ImageType.cs"
+public enum ImageType
+{
+    DataUri,
+    InlineSvg,
+    External,
+    Relative
+}
+```
+
+**Values:**
+- `DataUri`: Data URI image
+- `InlineSvg`: Inline SVG
+- `External`: External image URL
+- `Relative`: Relative path image
+
+## StructuredData
+
+Structured data block metadata (Schema.org, microdata, RDFa) with type classification.
+
+### Rust
+
+```rust title="structured_data.rs"
+pub struct StructuredData {
+    pub data_type: StructuredDataType,
+    pub raw_json: String,
+    pub schema_type: Option<String>,
+}
+```
+
+### Python
+
+```python title="structured_data.py"
+class StructuredData(TypedDict, total=False):
+    data_type: StructuredDataType
+    raw_json: str
+    schema_type: str | None
+```
+
+### TypeScript
+
+```typescript title="structured_data.ts"
+export interface StructuredData {
+    dataType: StructuredDataType;
+    rawJson: string;
+    schemaType?: string | null;
+}
+```
+
+### Java
+
+```java title="StructuredData.java"
+public record StructuredData(
+    StructuredDataType dataType,
+    String rawJson,
+    Optional<String> schemaType
+) {}
+```
+
+### Go
+
+```go title="structured_data.go"
+type StructuredData struct {
+    DataType   StructuredDataType `json:"data_type"`
+    RawJson    string             `json:"raw_json"`
+    SchemaType *string            `json:"schema_type,omitempty"`
+}
+```
+
+### C#
+
+```csharp title="StructuredData.cs"
+public record StructuredData
+{
+    public required StructuredDataType DataType { get; init; }
+    public required string RawJson { get; init; }
+    public string? SchemaType { get; init; }
+}
+```
+
+**Fields:**
+- `data_type`: Type of structured data (JSON-LD, Microdata, RDFa)
+- `raw_json`: Raw JSON string representation
+- `schema_type`: Schema type if detectable (e.g., "Article", "Event", "Product")
+
+## StructuredDataType
+
+Structured data type classification enum.
+
+### Rust
+
+```rust title="structured_data_type.rs"
+pub enum StructuredDataType {
+    JsonLd,
+    Microdata,
+    RDFa,
+}
+```
+
+### Python
+
+```python title="structured_data_type.py"
+StructuredDataType = Literal["json-ld", "microdata", "rdfa"]
+```
+
+### TypeScript
+
+```typescript title="structured_data_type.ts"
+export type StructuredDataType = "json-ld" | "microdata" | "rdfa";
+```
+
+### Java
+
+```java title="StructuredDataType.java"
+public enum StructuredDataType {
+    JSON_LD,
+    MICRODATA,
+    RDFA
+}
+```
+
+### Go
+
+```go title="structured_data_type.go"
+type StructuredDataType string
+
+const (
+    StructuredDataTypeJsonLd   StructuredDataType = "json-ld"
+    StructuredDataTypeMicrodata StructuredDataType = "microdata"
+    StructuredDataTypeRDFa     StructuredDataType = "rdfa"
+)
+```
+
+### C#
+
+```csharp title="StructuredDataType.cs"
+public enum StructuredDataType
+{
+    JsonLd,
+    Microdata,
+    RDFa
+}
+```
+
+**Values:**
+- `JsonLd`: JSON-LD structured data
+- `Microdata`: Microdata structured data
+- `RDFa`: RDFa structured data
 
 ### Text/Markdown Metadata
 

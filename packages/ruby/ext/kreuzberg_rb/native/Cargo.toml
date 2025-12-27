@@ -1,9 +1,8 @@
-# This crate is excluded from the workspace to use a vendored kreuzberg crate for gem packaging
 [workspace]
 
 [package]
 name = "kreuzberg-rb"
-version = "4.0.0-rc.21"
+version = "4.0.0-rc.22"
 edition = "2024"
 rust-version = "1.91"
 authors = ["Na'aman Hirschfeld <nhirschfeld@gmail.com>"]

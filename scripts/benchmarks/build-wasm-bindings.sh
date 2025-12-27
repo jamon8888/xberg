@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# Builds @kreuzberg/wasm and its WASM artifacts for Node.js benchmarks.
-#
-# This is a workspace package (pnpm-workspace.yaml includes crates/kreuzberg-wasm),
-# so we build it in-place and consume it directly from the workspace.
-#
-# No required environment variables.
 
 set -euo pipefail
 
@@ -16,7 +10,6 @@ source "$REPO_ROOT/scripts/lib/library-paths.sh"
 
 validate_repo_root "$REPO_ROOT" || exit 1
 
-# Setup library paths for Rust FFI (used by WASM indirect dependencies)
 setup_rust_ffi_paths "$REPO_ROOT"
 
 cd "$REPO_ROOT"
@@ -27,5 +20,12 @@ fi
 
 rustup target add wasm32-unknown-unknown
 
+saved_rustflags="${RUSTFLAGS:-}"
+unset RUSTFLAGS
+
 pnpm install
 pnpm -C crates/kreuzberg-wasm run build
+
+if [ -n "$saved_rustflags" ]; then
+	export RUSTFLAGS="$saved_rustflags"
+fi

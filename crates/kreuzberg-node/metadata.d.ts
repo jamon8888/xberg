@@ -192,28 +192,54 @@ export interface TextMetadata {
 	codeBlocks?: Array<[string, string]>;
 }
 
+export interface HeaderMetadata {
+	level: number;
+	text: string;
+	id?: string;
+	depth: number;
+	htmlOffset: number;
+}
+
+export interface LinkMetadata {
+	href: string;
+	text: string;
+	title?: string;
+	linkType: "anchor" | "internal" | "external" | "email" | "phone" | "other";
+	rel: string[];
+	attributes: Record<string, string>;
+}
+
+export interface HtmlImageMetadata {
+	src: string;
+	alt?: string;
+	title?: string;
+	dimensions?: [number, number];
+	imageType: "data_uri" | "inline_svg" | "external" | "relative";
+	attributes: Record<string, string>;
+}
+
+export interface StructuredData {
+	dataType: "json_ld" | "microdata" | "rdfa";
+	rawJson: string;
+	schemaType?: string;
+}
+
 export interface HtmlMetadata {
 	title?: string;
 	description?: string;
-	keywords?: string;
+	keywords: string[];
 	author?: string;
-	canonical?: string;
+	canonicalUrl?: string;
 	baseHref?: string;
-	ogTitle?: string;
-	ogDescription?: string;
-	ogImage?: string;
-	ogUrl?: string;
-	ogType?: string;
-	ogSiteName?: string;
-	twitterCard?: string;
-	twitterTitle?: string;
-	twitterDescription?: string;
-	twitterImage?: string;
-	twitterSite?: string;
-	twitterCreator?: string;
-	linkAuthor?: string;
-	linkLicense?: string;
-	linkAlternate?: string;
+	language?: string;
+	textDirection?: "ltr" | "rtl" | "auto";
+	openGraph: Record<string, string>;
+	twitterCard: Record<string, string>;
+	metaTags: Record<string, string>;
+	htmlHeaders: HeaderMetadata[];
+	htmlLinks: LinkMetadata[];
+	htmlImages: HtmlImageMetadata[];
+	structuredData: StructuredData[];
 }
 
 export interface OcrMetadata {
@@ -328,23 +354,17 @@ export interface BaseMetadata {
 	links?: Array<[string, string]>;
 	codeBlocks?: Array<[string, string]>;
 
-	canonical?: string;
+	canonicalUrl?: string;
 	baseHref?: string;
-	ogTitle?: string;
-	ogDescription?: string;
-	ogImage?: string;
-	ogUrl?: string;
-	ogType?: string;
-	ogSiteName?: string;
-	twitterCard?: string;
-	twitterTitle?: string;
-	twitterDescription?: string;
-	twitterImage?: string;
-	twitterSite?: string;
-	twitterCreator?: string;
-	linkAuthor?: string;
-	linkLicense?: string;
-	linkAlternate?: string;
+	openGraph?: Record<string, string>;
+	twitterCard?: Record<string, string>;
+	metaTags?: Record<string, string>;
+	htmlLanguage?: string;
+	textDirection?: "ltr" | "rtl" | "auto";
+	htmlHeaders?: HeaderMetadata[];
+	htmlLinks?: LinkMetadata[];
+	htmlImages?: HtmlImageMetadata[];
+	structuredData?: StructuredData[];
 
 	psm?: PSMMode;
 	outputFormat?: OcrOutputFormat;

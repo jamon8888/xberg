@@ -534,10 +534,10 @@ Style/YAMLFileRead:
   Enabled: true
 
 RSpec/ExampleLength:
-  Max: 35
+  Max: 50
 
 RSpec/MultipleExpectations:
-  Max: 15
+  Max: 25
 
 RSpec/NestedGroups:
   Max: 6

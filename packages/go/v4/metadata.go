@@ -26,10 +26,9 @@ var formatFieldSets = map[FormatType][]string{
 	FormatXML:     {"element_count", "unique_elements"},
 	FormatText:    {"line_count", "word_count", "character_count", "headers", "links", "code_blocks"},
 	FormatHTML: {
-		"title", "description", "keywords", "author", "canonical", "base_href",
-		"og_title", "og_description", "og_image", "og_url", "og_type", "og_site_name",
-		"twitter_card", "twitter_title", "twitter_description", "twitter_image", "twitter_site", "twitter_creator",
-		"link_author", "link_license", "link_alternate",
+		"title", "description", "keywords", "author", "canonical_url", "base_href",
+		"language", "text_direction", "open_graph", "twitter_card", "meta_tags",
+		"headers", "links", "images", "structured_data",
 	},
 	FormatOCR: {"language", "psm", "output_format", "table_count", "table_rows", "table_cols"},
 }

@@ -62,14 +62,14 @@ Without ONNX Runtime, embeddings will raise `MissingDependencyError` with instal
 <dependency>
     <groupId>dev.kreuzberg</groupId>
     <artifactId>kreuzberg</artifactId>
-    <version>4.0.0-rc.21</version>
+    <version>4.0.0-rc.22</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'dev.kreuzberg:kreuzberg:4.0.0-rc.21'
+implementation 'dev.kreuzberg:kreuzberg:4.0.0-rc.22'
 ```
 
 ## Usage

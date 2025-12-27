@@ -78,8 +78,11 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build workspace (native libs + harness)
-        run: scripts/benchmarks/build-native-libs.sh
+        run: task rust:build:release
 
       - name: Log disk space before artifact upload
         run: scripts/ci/validate/show-disk-space.sh "Disk space before artifact upload"
@@ -205,8 +208,11 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Python bindings
-        run: scripts/benchmarks/build-python-bindings.sh
+        run: task python:build:bindings
 
       - name: Run benchmark
         env:
@@ -274,8 +280,11 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Python bindings
-        run: scripts/benchmarks/build-python-bindings.sh
+        run: task python:build:bindings
 
       - name: Run benchmark
         env:
@@ -343,8 +352,11 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Python bindings
-        run: scripts/benchmarks/build-python-bindings.sh
+        run: task python:build:bindings
 
       - name: Run benchmark
         env:
@@ -412,10 +424,13 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Node bindings and install locally
         env:
           TARGET: x86_64-unknown-linux-gnu
-        run: scripts/benchmarks/build-node-bindings.sh
+        run: task node:build:bindings
 
       - name: Run benchmark
         env:
@@ -483,10 +498,13 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Node bindings and install locally
         env:
           TARGET: x86_64-unknown-linux-gnu
-        run: scripts/benchmarks/build-node-bindings.sh
+        run: task node:build:bindings
 
       - name: Run benchmark
         env:
@@ -546,8 +564,11 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/setup-node-workspace
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build WASM bindings
-        run: scripts/benchmarks/build-wasm-bindings.sh
+        run: task wasm:build:bindings
 
       - name: Run benchmark
         env:
@@ -607,8 +628,11 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/setup-node-workspace
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build WASM bindings
-        run: scripts/benchmarks/build-wasm-bindings.sh
+        run: task wasm:build:bindings
 
       - name: Run benchmark
         env:
@@ -678,10 +702,13 @@ jobs:
       - name: Vendor kreuzberg core for Ruby
         run: scripts/ci/ruby/vendor-kreuzberg-core.sh
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Ruby native gem
         env:
           PLATFORM: x86_64-linux
-        run: scripts/benchmarks/build-ruby-gem.sh
+        run: task ruby:build:bindings
 
       - name: Run benchmark
         env:
@@ -751,10 +778,13 @@ jobs:
       - name: Vendor kreuzberg core for Ruby
         run: scripts/ci/ruby/vendor-kreuzberg-core.sh
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Ruby native gem
         env:
           PLATFORM: x86_64-linux
-        run: scripts/benchmarks/build-ruby-gem.sh
+        run: task ruby:build:bindings
 
       - name: Run benchmark
         env:
@@ -826,8 +856,11 @@ jobs:
         working-directory: packages/go/v4
         run: go mod download
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Go bindings
-        run: scripts/benchmarks/build-go-bindings.sh
+        run: task go:build:bindings
 
       - name: Run benchmark
         env:
@@ -900,8 +933,11 @@ jobs:
         working-directory: packages/go/v4
         run: go mod download
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Go bindings
-        run: scripts/benchmarks/build-go-bindings.sh
+        run: task go:build:bindings
 
       - name: Run benchmark
         env:
@@ -970,8 +1006,11 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build Java bindings
-        run: scripts/benchmarks/build-java-package.sh
+        run: task java:build:bindings
 
       - name: Run benchmark
         env:
@@ -1038,8 +1077,11 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build C# bindings
-        run: scripts/benchmarks/build-csharp-benchmark.sh
+        run: task csharp:build:bindings
 
       - name: Run benchmark
         env:
@@ -1834,8 +1876,11 @@ jobs:
         with:
           cache-key-prefix: benchmarks-aggregate
 
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
       - name: Build benchmark harness
-        run: cargo build --release -p benchmark-harness
+        run: task rust:build:release
 
       - name: Generate HTML visualization
         run: scripts/ci/benchmarks/generate-html-visualization.sh

@@ -202,13 +202,12 @@ impl SyncExtractor for HtmlExtractor {
             .map(|s| s.to_string())
             .unwrap_or_else(|_| String::from_utf8_lossy(content).to_string());
 
-        // Convert HTML to markdown once, then reuse for both table extraction and metadata parsing
-        // This eliminates redundant conversion calls and improves performance by ~50%
-        let markdown = crate::extraction::html::convert_html_to_markdown(&html, config.html_options.clone())?;
+        let (markdown, html_metadata) =
+            crate::extraction::html::convert_html_to_markdown_with_metadata(&html, config.html_options.clone())?;
 
         let tables = extract_html_tables(&markdown)?;
 
-        let (html_metadata, content_without_frontmatter) = crate::extraction::html::parse_html_metadata(&markdown)?;
+        let content_without_frontmatter = markdown;
 
         Ok(ExtractionResult {
             content: content_without_frontmatter,

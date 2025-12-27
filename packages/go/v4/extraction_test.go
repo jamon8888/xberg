@@ -953,7 +953,7 @@ func TestHtmlMetadataExtraction(t *testing.T) {
 	htmlMeta := &HtmlMetadata{
 		Title:       StringPtr("Page Title"),
 		Description: StringPtr("Page description"),
-		Keywords:    StringPtr("key1, key2"),
+		Keywords:    []string{"key1", "key2"},
 	}
 
 	result := &ExtractionResult{

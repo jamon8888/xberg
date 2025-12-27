@@ -1,12 +1,11 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
 #[cfg(feature = "pdf")]
 use crate::pdf::metadata::PdfMetadata;
 
 // ============================================================================
-// Serde module for Arc<T> transparent serialization
 // ============================================================================
 
 /// Module providing transparent serde support for Arc<T>.
@@ -139,9 +138,6 @@ mod serde_vec_arc {
         Ok(vec.into_iter().map(Arc::new).collect())
     }
 }
-
-// ============================================================================
-// ============================================================================
 
 /// General extraction result used by the core extraction API.
 ///
@@ -504,73 +500,308 @@ pub struct TextMetadata {
     pub code_blocks: Option<Vec<(String, String)>>,
 }
 
+/// Text direction enumeration for HTML documents.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum TextDirection {
+    /// Left-to-right text direction
+    #[serde(rename = "ltr")]
+    LeftToRight,
+    /// Right-to-left text direction
+    #[serde(rename = "rtl")]
+    RightToLeft,
+    /// Automatic text direction detection
+    #[serde(rename = "auto")]
+    Auto,
+}
+
+/// Header/heading element metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeaderMetadata {
+    /// Header level: 1 (h1) through 6 (h6)
+    pub level: u8,
+    /// Normalized text content of the header
+    pub text: String,
+    /// HTML id attribute if present
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    /// Document tree depth at the header element
+    pub depth: usize,
+    /// Byte offset in original HTML document
+    pub html_offset: usize,
+}
+
+/// Link element metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkMetadata {
+    /// The href URL value
+    pub href: String,
+    /// Link text content (normalized)
+    pub text: String,
+    /// Optional title attribute
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    /// Link type classification
+    pub link_type: LinkType,
+    /// Rel attribute values
+    pub rel: Vec<String>,
+    /// Additional attributes as key-value pairs
+    pub attributes: HashMap<String, String>,
+}
+
+/// Link type classification.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum LinkType {
+    /// Anchor link (#section)
+    Anchor,
+    /// Internal link (same domain)
+    Internal,
+    /// External link (different domain)
+    External,
+    /// Email link (mailto:)
+    Email,
+    /// Phone link (tel:)
+    Phone,
+    /// Other link type
+    Other,
+}
+
+/// Image element metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageMetadataType {
+    /// Image source (URL, data URI, or SVG content)
+    pub src: String,
+    /// Alternative text from alt attribute
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alt: Option<String>,
+    /// Title attribute
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    /// Image dimensions as (width, height) if available
+    pub dimensions: Option<(u32, u32)>,
+    /// Image type classification
+    pub image_type: ImageType,
+    /// Additional attributes as key-value pairs
+    pub attributes: HashMap<String, String>,
+}
+
+/// Image type classification.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ImageType {
+    /// Data URI image
+    #[serde(rename = "data-uri")]
+    DataUri,
+    /// Inline SVG
+    #[serde(rename = "inline-svg")]
+    InlineSvg,
+    /// External image URL
+    External,
+    /// Relative path image
+    Relative,
+}
+
+/// Structured data (Schema.org, microdata, RDFa) block.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructuredData {
+    /// Type of structured data
+    pub data_type: StructuredDataType,
+    /// Raw JSON string representation
+    pub raw_json: String,
+    /// Schema type if detectable (e.g., "Article", "Event", "Product")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub schema_type: Option<String>,
+}
+
+/// Structured data type classification.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum StructuredDataType {
+    /// JSON-LD structured data
+    #[serde(rename = "json-ld")]
+    JsonLd,
+    /// Microdata
+    Microdata,
+    /// RDFa
+    #[serde(rename = "rdfa")]
+    RDFa,
+}
+
 /// HTML metadata extracted from HTML documents.
 ///
-/// Includes meta tags, Open Graph data, Twitter Card metadata, and link relations.
+/// Includes document-level metadata, Open Graph data, Twitter Card metadata,
+/// and extracted structural elements (headers, links, images, structured data).
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HtmlMetadata {
+    /// Document title from `<title>` tag
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
 
+    /// Document description from `<meta name="description">` tag
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub keywords: Option<String>,
+    /// Document keywords from `<meta name="keywords">` tag, split on commas
+    #[serde(default)]
+    pub keywords: Vec<String>,
 
+    /// Document author from `<meta name="author">` tag
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author: Option<String>,
 
+    /// Canonical URL from `<link rel="canonical">` tag
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub canonical: Option<String>,
+    pub canonical_url: Option<String>,
 
+    /// Base URL from `<base href="">` tag for resolving relative URLs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub base_href: Option<String>,
 
+    /// Document language from `lang` attribute
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub og_title: Option<String>,
+    pub language: Option<String>,
 
+    /// Document text direction from `dir` attribute
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub og_description: Option<String>,
+    pub text_direction: Option<TextDirection>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub og_image: Option<String>,
+    /// Open Graph metadata (og:* properties) for social media
+    /// Keys like "title", "description", "image", "url", etc.
+    #[serde(default)]
+    pub open_graph: BTreeMap<String, String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub og_url: Option<String>,
+    /// Twitter Card metadata (twitter:* properties)
+    /// Keys like "card", "site", "creator", "title", "description", "image", etc.
+    #[serde(default)]
+    pub twitter_card: BTreeMap<String, String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub og_type: Option<String>,
+    /// Additional meta tags not covered by specific fields
+    /// Keys are meta name/property attributes, values are content
+    #[serde(default)]
+    pub meta_tags: BTreeMap<String, String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub og_site_name: Option<String>,
+    /// Extracted header elements with hierarchy
+    #[serde(default)]
+    pub headers: Vec<HeaderMetadata>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub twitter_card: Option<String>,
+    /// Extracted hyperlinks with type classification
+    #[serde(default)]
+    pub links: Vec<LinkMetadata>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub twitter_title: Option<String>,
+    /// Extracted images with source and dimensions
+    #[serde(default)]
+    pub images: Vec<ImageMetadataType>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub twitter_description: Option<String>,
+    /// Extracted structured data blocks
+    #[serde(default)]
+    pub structured_data: Vec<StructuredData>,
+}
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub twitter_image: Option<String>,
+impl HtmlMetadata {
+    /// Check if metadata is empty (no meaningful content extracted).
+    pub fn is_empty(&self) -> bool {
+        self.title.is_none()
+            && self.description.is_none()
+            && self.keywords.is_empty()
+            && self.author.is_none()
+            && self.canonical_url.is_none()
+            && self.base_href.is_none()
+            && self.language.is_none()
+            && self.text_direction.is_none()
+            && self.open_graph.is_empty()
+            && self.twitter_card.is_empty()
+            && self.meta_tags.is_empty()
+            && self.headers.is_empty()
+            && self.links.is_empty()
+            && self.images.is_empty()
+            && self.structured_data.is_empty()
+    }
+}
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub twitter_site: Option<String>,
+#[cfg(feature = "html")]
+impl From<html_to_markdown_rs::ExtendedMetadata> for HtmlMetadata {
+    fn from(metadata: html_to_markdown_rs::ExtendedMetadata) -> Self {
+        let text_dir = metadata.document.text_direction.map(|td| match td {
+            html_to_markdown_rs::TextDirection::LeftToRight => TextDirection::LeftToRight,
+            html_to_markdown_rs::TextDirection::RightToLeft => TextDirection::RightToLeft,
+            html_to_markdown_rs::TextDirection::Auto => TextDirection::Auto,
+        });
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub twitter_creator: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub link_author: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub link_license: Option<String>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub link_alternate: Option<String>,
+        HtmlMetadata {
+            title: metadata.document.title,
+            description: metadata.document.description,
+            keywords: metadata.document.keywords,
+            author: metadata.document.author,
+            canonical_url: metadata.document.canonical_url,
+            base_href: metadata.document.base_href,
+            language: metadata.document.language,
+            text_direction: text_dir,
+            open_graph: metadata.document.open_graph,
+            twitter_card: metadata.document.twitter_card,
+            meta_tags: metadata.document.meta_tags,
+            headers: metadata
+                .headers
+                .into_iter()
+                .map(|h| HeaderMetadata {
+                    level: h.level,
+                    text: h.text,
+                    id: h.id,
+                    depth: h.depth,
+                    html_offset: h.html_offset,
+                })
+                .collect(),
+            links: metadata
+                .links
+                .into_iter()
+                .map(|l| LinkMetadata {
+                    href: l.href,
+                    text: l.text,
+                    title: l.title,
+                    link_type: match l.link_type {
+                        html_to_markdown_rs::LinkType::Anchor => LinkType::Anchor,
+                        html_to_markdown_rs::LinkType::Internal => LinkType::Internal,
+                        html_to_markdown_rs::LinkType::External => LinkType::External,
+                        html_to_markdown_rs::LinkType::Email => LinkType::Email,
+                        html_to_markdown_rs::LinkType::Phone => LinkType::Phone,
+                        html_to_markdown_rs::LinkType::Other => LinkType::Other,
+                    },
+                    rel: l.rel,
+                    attributes: l.attributes.into_iter().collect(),
+                })
+                .collect(),
+            images: metadata
+                .images
+                .into_iter()
+                .map(|img| ImageMetadataType {
+                    src: img.src,
+                    alt: img.alt,
+                    title: img.title,
+                    dimensions: img.dimensions,
+                    image_type: match img.image_type {
+                        html_to_markdown_rs::ImageType::DataUri => ImageType::DataUri,
+                        html_to_markdown_rs::ImageType::InlineSvg => ImageType::InlineSvg,
+                        html_to_markdown_rs::ImageType::External => ImageType::External,
+                        html_to_markdown_rs::ImageType::Relative => ImageType::Relative,
+                    },
+                    attributes: img.attributes.into_iter().collect(),
+                })
+                .collect(),
+            structured_data: metadata
+                .structured_data
+                .into_iter()
+                .map(|sd| StructuredData {
+                    data_type: match sd.data_type {
+                        html_to_markdown_rs::StructuredDataType::JsonLd => StructuredDataType::JsonLd,
+                        html_to_markdown_rs::StructuredDataType::Microdata => StructuredDataType::Microdata,
+                        html_to_markdown_rs::StructuredDataType::RDFa => StructuredDataType::RDFa,
+                    },
+                    raw_json: sd.raw_json,
+                    schema_type: sd.schema_type,
+                })
+                .collect(),
+        }
+    }
 }
 
 /// OCR processing metadata.
@@ -1205,10 +1436,6 @@ mod tests {
 
         assert_eq!(json.get("quality_score").unwrap(), 1.0);
     }
-
-    // ========================================================================
-    // Arc serialization tests
-    // ========================================================================
 
     #[test]
     fn test_arc_table_serialization_format() {

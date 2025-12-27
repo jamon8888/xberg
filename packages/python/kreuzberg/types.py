@@ -81,30 +81,64 @@ class PdfMetadata(TypedDict, total=False):
     page_count: int
 
 
+class HeaderMetadata(TypedDict):
+    """HTML header/heading metadata."""
+
+    level: int
+    text: str
+    id: str | None
+    depth: int
+    html_offset: int
+
+
+class LinkMetadata(TypedDict):
+    """HTML link metadata."""
+
+    href: str
+    text: str
+    title: str | None
+    link_type: Literal["anchor", "internal", "external", "email", "phone", "other"]
+    rel: list[str]
+    attributes: dict[str, str]
+
+
+class HtmlImageMetadata(TypedDict):
+    """HTML image metadata."""
+
+    src: str
+    alt: str | None
+    title: str | None
+    dimensions: tuple[int, int] | None
+    image_type: Literal["data_uri", "inline_svg", "external", "relative"]
+    attributes: dict[str, str]
+
+
+class StructuredData(TypedDict):
+    """Structured data (JSON-LD, microdata, RDFa) metadata."""
+
+    data_type: Literal["json_ld", "microdata", "rdfa"]
+    raw_json: str
+    schema_type: str | None
+
+
 class HtmlMetadata(TypedDict, total=False):
     """HTML metadata."""
 
     title: str | None
     description: str | None
-    keywords: str | None
+    keywords: list[str]
     author: str | None
-    canonical: str | None
+    canonical_url: str | None
     base_href: str | None
-    og_title: str | None
-    og_description: str | None
-    og_image: str | None
-    og_url: str | None
-    og_type: str | None
-    og_site_name: str | None
-    twitter_card: str | None
-    twitter_title: str | None
-    twitter_description: str | None
-    twitter_image: str | None
-    twitter_site: str | None
-    twitter_creator: str | None
-    link_author: str | None
-    link_license: str | None
-    link_alternate: str | None
+    language: str | None
+    text_direction: Literal["ltr", "rtl", "auto"] | None
+    open_graph: dict[str, str]
+    twitter_card: dict[str, str]
+    meta_tags: dict[str, str]
+    headers: list[HeaderMetadata]
+    links: list[LinkMetadata]
+    images: list[HtmlImageMetadata]
+    structured_data: list[StructuredData]
 
 
 class PptxMetadata(TypedDict, total=False):
@@ -307,10 +341,9 @@ class Metadata(TypedDict, total=False):
             line_count, word_count, character_count, headers, links, code_blocks
 
         HTML fields (when format_type == "html"):
-            canonical, base_href, og_title, og_description, og_image, og_url,
-            og_type, og_site_name, twitter_card, twitter_title,
-            twitter_description, twitter_image, twitter_site, twitter_creator,
-            link_author, link_license, link_alternate
+            canonical_url, base_href, language, text_direction, open_graph,
+            twitter_card, meta_tags, html_headers, html_links, html_images,
+            structured_data
 
         OCR fields (when format_type == "ocr"):
             psm, output_format, table_count, table_rows, table_cols
@@ -338,7 +371,6 @@ class Metadata(TypedDict, total=False):
         ...     entities = metadata["entities"]
     """
 
-    language: str
     date: str
     subject: str
 
@@ -391,23 +423,17 @@ class Metadata(TypedDict, total=False):
     links: list[tuple[str, str]]
     code_blocks: list[tuple[str, str]]
 
-    canonical: str
+    canonical_url: str
     base_href: str
-    og_title: str
-    og_description: str
-    og_image: str
-    og_url: str
-    og_type: str
-    og_site_name: str
-    twitter_card: str
-    twitter_title: str
-    twitter_description: str
-    twitter_image: str
-    twitter_site: str
-    twitter_creator: str
-    link_author: str
-    link_license: str
-    link_alternate: str
+    language: str
+    text_direction: str
+    open_graph: dict[str, str]
+    twitter_card: dict[str, str]
+    meta_tags: dict[str, str]
+    html_headers: list[HeaderMetadata]
+    html_links: list[LinkMetadata]
+    html_images: list[ImageMetadata]
+    structured_data: list[StructuredData]
 
     psm: int
     output_format: str
@@ -461,9 +487,11 @@ __all__ = [
     "ExcelMetadata",
     "ExtractedImage",
     "ExtractionResult",
+    "HeaderMetadata",
     "HtmlMetadata",
     "ImageMetadata",
     "ImagePreprocessingMetadata",
+    "LinkMetadata",
     "Metadata",
     "OcrMetadata",
     "PageBoundary",
@@ -474,6 +502,7 @@ __all__ = [
     "PageUnitType",
     "PdfMetadata",
     "PptxMetadata",
+    "StructuredData",
     "Table",
     "TextMetadata",
     "XmlMetadata",

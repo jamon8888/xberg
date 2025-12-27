@@ -564,61 +564,127 @@ public sealed class HtmlMetadata
     public string? Description { get; set; }
 
     [JsonPropertyName("keywords")]
-    public List<string>? Keywords { get; set; }
+    public List<string> Keywords { get; set; } = new();
 
     [JsonPropertyName("author")]
     public string? Author { get; set; }
 
-    [JsonPropertyName("canonical")]
-    public string? Canonical { get; set; }
+    [JsonPropertyName("canonical_url")]
+    public string? CanonicalUrl { get; set; }
 
     [JsonPropertyName("base_href")]
     public string? BaseHref { get; set; }
 
-    [JsonPropertyName("og_title")]
-    public string? OgTitle { get; set; }
+    [JsonPropertyName("language")]
+    public string? Language { get; set; }
 
-    [JsonPropertyName("og_description")]
-    public string? OgDescription { get; set; }
+    [JsonPropertyName("text_direction")]
+    public string? TextDirection { get; set; }
 
-    [JsonPropertyName("og_image")]
-    public string? OgImage { get; set; }
-
-    [JsonPropertyName("og_url")]
-    public string? OgUrl { get; set; }
-
-    [JsonPropertyName("og_type")]
-    public string? OgType { get; set; }
-
-    [JsonPropertyName("og_site_name")]
-    public string? OgSiteName { get; set; }
+    [JsonPropertyName("open_graph")]
+    public Dictionary<string, string> OpenGraph { get; set; } = new();
 
     [JsonPropertyName("twitter_card")]
-    public string? TwitterCard { get; set; }
+    public Dictionary<string, string> TwitterCard { get; set; } = new();
 
-    [JsonPropertyName("twitter_title")]
-    public string? TwitterTitle { get; set; }
+    [JsonPropertyName("meta_tags")]
+    public Dictionary<string, string> MetaTags { get; set; } = new();
 
-    [JsonPropertyName("twitter_description")]
-    public string? TwitterDescription { get; set; }
+    [JsonPropertyName("headers")]
+    public List<HeaderMetadata> Headers { get; set; } = new();
 
-    [JsonPropertyName("twitter_image")]
-    public string? TwitterImage { get; set; }
+    [JsonPropertyName("links")]
+    public List<LinkMetadata> Links { get; set; } = new();
 
-    [JsonPropertyName("twitter_site")]
-    public string? TwitterSite { get; set; }
+    [JsonPropertyName("images")]
+    public List<HtmlImageMetadata> Images { get; set; } = new();
 
-    [JsonPropertyName("twitter_creator")]
-    public string? TwitterCreator { get; set; }
+    [JsonPropertyName("structured_data")]
+    public List<StructuredData> StructuredData { get; set; } = new();
+}
 
-    [JsonPropertyName("link_author")]
-    public string? LinkAuthor { get; set; }
+/// <summary>
+/// Represents a header/heading in an HTML document.
+/// </summary>
+public sealed class HeaderMetadata
+{
+    [JsonPropertyName("level")]
+    public byte Level { get; set; }
 
-    [JsonPropertyName("link_license")]
-    public string? LinkLicense { get; set; }
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
 
-    [JsonPropertyName("link_alternate")]
-    public string? LinkAlternate { get; set; }
+    [JsonPropertyName("id")]
+    public string? Id { get; set; }
+
+    [JsonPropertyName("depth")]
+    public int Depth { get; set; }
+
+    [JsonPropertyName("html_offset")]
+    public int HtmlOffset { get; set; }
+}
+
+/// <summary>
+/// Represents a link in an HTML document.
+/// </summary>
+public sealed class LinkMetadata
+{
+    [JsonPropertyName("href")]
+    public string Href { get; set; } = string.Empty;
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
+
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("link_type")]
+    public string LinkType { get; set; } = "other";
+
+    [JsonPropertyName("rel")]
+    public List<string> Rel { get; set; } = new();
+
+    [JsonPropertyName("attributes")]
+    public Dictionary<string, string> Attributes { get; set; } = new();
+}
+
+/// <summary>
+/// Represents an image in an HTML document.
+/// </summary>
+public sealed class HtmlImageMetadata
+{
+    [JsonPropertyName("src")]
+    public string Src { get; set; } = string.Empty;
+
+    [JsonPropertyName("alt")]
+    public string? Alt { get; set; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("dimensions")]
+    public int[]? Dimensions { get; set; }
+
+    [JsonPropertyName("image_type")]
+    public string ImageType { get; set; } = "external";
+
+    [JsonPropertyName("attributes")]
+    public Dictionary<string, string> Attributes { get; set; } = new();
+}
+
+/// <summary>
+/// Represents structured data (JSON-LD, etc.) in an HTML document.
+/// </summary>
+public sealed class StructuredData
+{
+    [JsonPropertyName("data_type")]
+    public string DataType { get; set; } = "json_ld";
+
+    [JsonPropertyName("raw_json")]
+    public string RawJson { get; set; } = string.Empty;
+
+    [JsonPropertyName("schema_type")]
+    public string? SchemaType { get; set; }
 }
 
 public sealed class PptxMetadata
