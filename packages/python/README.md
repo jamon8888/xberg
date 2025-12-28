@@ -13,9 +13,7 @@
 [![Documentation](https://img.shields.io/badge/docs-kreuzberg.dev-007ec6)](https://kreuzberg.dev/)
 [![Discord](https://img.shields.io/badge/Discord-Join%20our%20community-007ec6)](https://discord.gg/pXxagNK2zN)
 
-High-performance document intelligence for Python. Extract text, metadata, and structured information from PDFs, Office documents, images, and 56 formats.
-
-Powered by a Rust core for native performance in document extraction.
+High-performance document intelligence engine for Python built on a Rust core. Extract text, metadata, and structured information from PDFs, Office documents, images, and 56 formats with extensible OCR backends and processing pipelines.
 
 
 **Powered by a Rust core** – Native performance for document extraction.
@@ -431,19 +429,20 @@ if result.detected_languages and "en" in result.detected_languages:
 
 ### ONNX Runtime (for embeddings)
 
-If using embeddings functionality, ONNX Runtime must be installed:
+If using embeddings functionality, ONNX Runtime version 1.21 or lower must be installed:
 
 ```bash
-# macOS
-brew install onnxruntime
+# macOS (pinned to version 1.21)
+brew install onnxruntime@1.21
 
-# Ubuntu/Debian
+# Ubuntu/Debian (ensure version ≤ 1.21)
 sudo apt install libonnxruntime libonnxruntime-dev
 
-# Windows (MSVC)
-scoop install onnxruntime
-# OR download from https://github.com/microsoft/onnxruntime/releases
+# Windows (download version 1.21 or lower)
+# Download from https://github.com/microsoft/onnxruntime/releases
 ```
+
+**Important:** Kreuzberg requires ONNX Runtime version 1.21 or lower. Newer versions may not be compatible.
 
 Without ONNX Runtime, embeddings will raise `MissingDependencyError` with installation instructions.
 

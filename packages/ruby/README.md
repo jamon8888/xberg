@@ -13,9 +13,7 @@
 [![Documentation](https://img.shields.io/badge/docs-kreuzberg.dev-007ec6)](https://kreuzberg.dev/)
 [![Discord](https://img.shields.io/badge/Discord-Join%20our%20community-007ec6)](https://discord.gg/pXxagNK2zN)
 
-High-performance document intelligence for Ruby, powered by Rust.
-
-Extract text, tables, images, and metadata from 56 file formats including PDF, DOCX, PPTX, XLSX, images, and more.
+High-performance document intelligence engine for Ruby built on a Rust core. Extract text, tables, images, and metadata from 56 file formats including PDF, DOCX, PPTX, XLSX, images, and more.
 
 
 > **Version  Release Candidate**

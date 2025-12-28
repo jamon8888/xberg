@@ -1,0 +1,6 @@
+go 1.25
+
+use (
+	./packages/go/v4
+	./tests/test_apps/go
+)

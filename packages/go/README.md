@@ -13,9 +13,7 @@
 [![Documentation](https://img.shields.io/badge/docs-kreuzberg.dev-007ec6)](https://kreuzberg.dev/)
 [![Discord](https://img.shields.io/badge/Discord-Join%20our%20community-007ec6)](https://discord.gg/pXxagNK2zN)
 
-High-performance document intelligence for Go backed by the Rust core that powers every Kreuzberg binding.
-
-Extract text, tables, images, and metadata with native Go API and context-aware async support.
+High-performance document intelligence engine for Go built on the Rust core that powers every Kreuzberg binding. Extract text, tables, images, and metadata from 56 formats with native Go API and context-aware async support.
 
 
 > **Version  Release Candidate**

@@ -15,10 +15,11 @@ use kreuzberg::keywords::{
     YakeParams as RustYakeParams,
 };
 use kreuzberg::types::TesseractConfig as RustTesseractConfig;
+use kreuzberg::pdf::HierarchyConfig;
 use kreuzberg::{
-    ChunkingConfig, EmbeddingConfig, ExtractionConfig, ExtractionResult as RustExtractionResult, ImageExtractionConfig,
-    ImagePreprocessingConfig, KreuzbergError, LanguageDetectionConfig, OcrConfig, PdfConfig, PostProcessorConfig,
-    TokenReductionConfig,
+    ChunkingConfig, EmbeddingConfig, ExtractionConfig, ExtractionResult as RustExtractionResult,
+    ImageExtractionConfig, ImagePreprocessingConfig, KreuzbergError, LanguageDetectionConfig, OcrConfig, PdfConfig,
+    PostProcessorConfig, TokenReductionConfig,
 };
 use magnus::exception::ExceptionClass;
 use magnus::r_hash::ForEach;
@@ -488,6 +489,46 @@ fn parse_language_detection_config(ruby: &Ruby, hash: RHash) -> Result<LanguageD
     Ok(config)
 }
 
+/// Parse HierarchyConfig from Ruby Hash
+fn parse_hierarchy_config(ruby: &Ruby, hash: RHash) -> Result<HierarchyConfig, Error> {
+    let enabled = if let Some(val) = get_kw(ruby, hash, "enabled") {
+        bool::try_convert(val)?
+    } else {
+        true
+    };
+
+    let k_clusters = if let Some(val) = get_kw(ruby, hash, "k_clusters") {
+        usize::try_convert(val)?
+    } else {
+        6
+    };
+
+    let include_bbox = if let Some(val) = get_kw(ruby, hash, "include_bbox") {
+        bool::try_convert(val)?
+    } else {
+        true
+    };
+
+    let ocr_coverage_threshold = if let Some(val) = get_kw(ruby, hash, "ocr_coverage_threshold") {
+        if !val.is_nil() {
+            Some(f64::try_convert(val)? as f32)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    let config = HierarchyConfig {
+        enabled,
+        k_clusters,
+        include_bbox,
+        ocr_coverage_threshold,
+    };
+
+    Ok(config)
+}
+
 /// Parse PdfConfig from Ruby Hash
 fn parse_pdf_config(ruby: &Ruby, hash: RHash) -> Result<PdfConfig, Error> {
     let extract_images = if let Some(val) = get_kw(ruby, hash, "extract_images") {
@@ -513,10 +554,22 @@ fn parse_pdf_config(ruby: &Ruby, hash: RHash) -> Result<PdfConfig, Error> {
         true
     };
 
+    let hierarchy = if let Some(val) = get_kw(ruby, hash, "hierarchy") {
+        if !val.is_nil() {
+            let h_hash = RHash::try_convert(val)?;
+            Some(parse_hierarchy_config(ruby, h_hash)?)
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
     let config = PdfConfig {
         extract_images,
         passwords,
         extract_metadata,
+        hierarchy,
     };
 
     Ok(config)

@@ -10,6 +10,7 @@ __all__ = [
     "ExtractedTable",
     "ExtractionConfig",
     "ExtractionResult",
+    "HierarchyConfig",
     "ImageExtractionConfig",
     "ImagePreprocessingConfig",
     "KeywordAlgorithm",
@@ -524,6 +525,10 @@ class PdfConfig:
         extract_metadata (bool): Extract PDF metadata (title, author, creation date,
             etc.). Default: True
 
+        hierarchy (HierarchyConfig | None): Document hierarchy detection configuration
+            for detecting document structure and organization. None = no hierarchy detection.
+            Default: None
+
     Example:
         Basic PDF configuration:
             >>> from kreuzberg import ExtractionConfig, PdfConfig
@@ -534,11 +539,15 @@ class PdfConfig:
 
         Handle encrypted PDFs:
             >>> config = ExtractionConfig(pdf_options=PdfConfig(passwords=["password123", "fallback_password"]))
+
+        Enable hierarchy detection:
+            >>> config = ExtractionConfig(pdf_options=PdfConfig(hierarchy=HierarchyConfig(k_clusters=6)))
     """
 
     extract_images: bool
     passwords: list[str] | None
     extract_metadata: bool
+    hierarchy: HierarchyConfig | None
 
     def __init__(
         self,
@@ -546,6 +555,50 @@ class PdfConfig:
         extract_images: bool | None = None,
         passwords: list[str] | None = None,
         extract_metadata: bool | None = None,
+        hierarchy: HierarchyConfig | None = None,
+    ) -> None: ...
+
+class HierarchyConfig:
+    """Document hierarchy detection configuration.
+
+    Controls detection of document structure and hierarchy using clustering algorithms.
+
+    Attributes:
+        enabled (bool): Enable hierarchy detection. Default: True
+
+        k_clusters (int): Number of clusters for k-means clustering.
+            Default: 6
+
+        include_bbox (bool): Include bounding box information in hierarchy output.
+            Default: True
+
+        ocr_coverage_threshold (float | None): Optional threshold for OCR coverage
+            before enabling hierarchy detection. Default: None
+
+    Example:
+        Basic hierarchy detection:
+            >>> from kreuzberg import ExtractionConfig, HierarchyConfig
+            >>> config = ExtractionConfig(hierarchy=HierarchyConfig())
+
+        Customize clustering parameters:
+            >>> config = ExtractionConfig(hierarchy=HierarchyConfig(k_clusters=8, include_bbox=False))
+
+        Conditional hierarchy detection with OCR:
+            >>> config = ExtractionConfig(hierarchy=HierarchyConfig(ocr_coverage_threshold=0.5))
+    """
+
+    enabled: bool
+    k_clusters: int
+    include_bbox: bool
+    ocr_coverage_threshold: float | None
+
+    def __init__(
+        self,
+        *,
+        enabled: bool | None = None,
+        k_clusters: int | None = None,
+        include_bbox: bool | None = None,
+        ocr_coverage_threshold: float | None = None,
     ) -> None: ...
 
 class PageConfig:

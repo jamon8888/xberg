@@ -69,11 +69,11 @@ new_formula=$(echo "$formula_content" | sed \
 
 new_formula=$(echo "$new_formula" | sed '/# bottle do/,/# end/d')
 
-# Escape forward slashes in bottle_block for sed
-escaped_bottle_block=$(echo "$bottle_block" | sed 's/\//\\\//g')
-new_formula=$(echo "$new_formula" | sed "/^  depends_on/i\\
-$escaped_bottle_block
-")
+# Insert bottle block before depends_on line using awk (more reliable than sed for multiline)
+new_formula=$(echo "$new_formula" | awk -v bottle="$bottle_block" '
+  /^  depends_on/ { print bottle; print ""; }
+  { print }
+')
 
 echo "$new_formula" >"$formula_path"
 

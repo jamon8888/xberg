@@ -47,20 +47,22 @@
 
 <div align="center" style="margin-top: 20px;">
   <a href="https://discord.gg/pXxagNK2zN">
-      <img height="25" src="https://img.shields.io/badge/Discord-Join%20our%20community-7289da?logo=discord&logoColor=white" alt="Discord">
+      <img height="22" src="https://img.shields.io/badge/Discord-Join%20our%20community-7289da?logo=discord&logoColor=white" alt="Discord">
   </a>
 </div>
 
-A polyglot document intelligence framework with a Rust core. Extract text, metadata, and structured information from PDFs, Office documents, images, and 100+ formats. Available for Rust, Python, TypeScript/Node.js, Ruby, Go, Java, C#, PHP, and Elixir—or use via CLI, REST API, or MCP server.
+Extract text and metadata from a wide range of file formats (56+), generate embeddings and post-process at native speeds without needing a GPU.
 
 > Note - Kreuzberg v4.0.0 is in **Release Candidate** stage. Bugs and breaking changes are expected.
 > This is a pre-release version. Please test the library and [report any issues](https://github.com/kreuzberg-dev/kreuzberg/issues) you encounter.
 
 ## Key Features
 
+- **Extensible architecture** – Plugin system for custom OCR backends, validators, post-processors, and document extractors
 - **Polyglot** – Native bindings for Rust, Python, TypeScript/Node.js, Ruby, Go, Java, C#, PHP, and Elixir
-- **100+ file formats** – PDF, Office documents, images, HTML, XML, emails, archives, academic formats, and more
-- **OCR support** – Multiple backends (Tesseract, EasyOCR, PaddleOCR) with table extraction
+- **56 file formats** – PDF, Office documents, images, HTML, XML, emails, archives, academic formats across 8 categories
+- **OCR support** – Tesseract (all languages via native binding), EasyOCR/PaddleOCR (Python), Guten (Node.js), extensible via plugin API
+- **High performance** – Rust core with native PDFium, SIMD optimizations and full parallelism
 - **Flexible deployment** – Use as library, CLI tool, REST API server, or MCP server
 - **Memory efficient** – Streaming parsers for multi-GB files
 
@@ -106,9 +108,9 @@ To use embeddings functionality:
 
 ## Supported Formats
 
-**100+ file formats** across 8 major categories with intelligent format detection and comprehensive metadata extraction.
+56 file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
 
-### 📄 Office Documents
+### Office Documents
 
 | Category | Formats | Capabilities |
 |----------|---------|--------------|
@@ -118,7 +120,7 @@ To use embeddings functionality:
 | **PDF** | `.pdf` | Text, tables, images, metadata, OCR support |
 | **eBooks** | `.epub`, `.fb2` | Chapters, metadata, embedded resources |
 
-### 🖼️ Images (OCR-Enabled)
+### Images (OCR-Enabled)
 
 **Raster:** `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.tiff`, `.tif`
 **Advanced:** `.jp2`, `.jpx`, `.jpm`, `.mj2`, `.pnm`, `.pbm`, `.pgm`, `.ppm`
@@ -126,7 +128,7 @@ To use embeddings functionality:
 
 All image formats support OCR with table detection and metadata extraction (EXIF, dimensions, color space).
 
-### 🌐 Web & Data
+### Web & Data
 
 | Category | Formats | Features |
 |----------|---------|----------|
@@ -134,14 +136,14 @@ All image formats support OCR with table detection and metadata extraction (EXIF
 | **Structured Data** | `.json`, `.yaml`, `.yml`, `.toml`, `.csv`, `.tsv` | Schema detection, nested structures, validation |
 | **Text & Markdown** | `.txt`, `.md`, `.markdown`, `.rst`, `.org`, `.rtf` | CommonMark, GFM, reStructuredText, Org Mode |
 
-### 📧 Email & Archives
+### Email & Archives
 
 | Category | Formats | Features |
 |----------|---------|----------|
 | **Email** | `.eml`, `.msg` | Headers, body (HTML/plain), attachments, threading |
 | **Archives** | `.zip`, `.tar`, `.tgz`, `.gz`, `.7z` | File listing, nested archives, metadata |
 
-### 🎓 Academic & Scientific
+### Academic & Scientific
 
 | Category | Formats | Features |
 |----------|---------|----------|
@@ -224,60 +226,70 @@ All images support API server, CLI, and MCP server modes with automatic platform
 
 ## Architecture
 
-Kreuzberg is built with a Rust core for efficient document extraction and processing.
+Kreuzberg is built as an extensible document intelligence engine with a Rust core, plugin system, and polyglot bindings.
 
 <details>
 <summary><strong>System Architecture Diagram</strong></summary>
 
 ```mermaid
 graph TB
-    subgraph Core["Rust Core"]
+    subgraph RustCore["Rust Core Engine"]
         direction TB
-        Extractors["Text Extractors"]
-        Parsers["Document Parsers"]
-        OCREngine["OCR Engines"]
-        OutputFormats["Output Formats"]
+        PDFium["PDFium\n(Native Bindings)"]
+        Parsers["Document Parsers\n(PDF, Office, Images, Web)"]
+        TesseractCore["Tesseract OCR\n(Native Binding)"]
+        Cache["Cache Layer"]
+        Runtime["Tokio Async Runtime"]
+
+        PDFium --> Parsers
+        TesseractCore --> Parsers
+        Cache --> Parsers
+        Runtime --> Parsers
     end
 
-    subgraph FFI["FFI/Binding Layer"]
+    subgraph PluginSystem["Extensibility Layer"]
         direction TB
-        PyBind["Python Binding"]
-        NodeBind["Node.js Binding"]
-        WasmBind["WASM Binding"]
-        GoBind["Go FFI"]
-        JavaBind["Java FFM"]
-        CSharpBind["C# P/Invoke"]
-        PhpBind["PHP Extension"]
-        RubyBind["Ruby Extension"]
-        ElixirBind["Elixir NIF"]
+        OcrBackend["OcrBackend Trait"]
+        Extractor["DocumentExtractor Trait"]
+        Validator["Validator Trait"]
+        PostProcessor["PostProcessor Trait"]
+        Registry["Plugin Registry"]
+
+        Registry --> OcrBackend
+        Registry --> Extractor
+        Registry --> Validator
+        Registry --> PostProcessor
     end
 
-    subgraph Parsers["Document Format Parsers"]
+    subgraph BindingLayer["Language Bindings"]
         direction TB
-        PDF["PDF Parser"]
-        Office["Office Docs<br/>DOCX, XLSX, PPTX"]
-        Images["Image Formats<br/>PNG, JPG, TIFF"]
-        Web["Web Formats<br/>HTML, XML, JSON"]
-        Archives["Archives<br/>ZIP, TAR, 7Z"]
-        Email["Email<br/>EML, MSG"]
-        Academic["Academic<br/>LaTeX, BibTeX, Markdown"]
+        PyBind["Python (PyO3)"]
+        NodeBind["Node.js (NAPI-RS)"]
+        WasmBind["WASM"]
+        GoBind["Go (FFI)"]
+        JavaBind["Java (FFM)"]
+        CSharpBind["C# (P/Invoke)"]
+        PhpBind["PHP (FFI)"]
+        RubyBind["Ruby (Magnus)"]
+        ElixirBind["Elixir (Rustler)"]
     end
 
-    subgraph OCR["OCR Backends"]
+    subgraph Extensions["Language-Specific Extensions"]
         direction TB
-        Tesseract["Tesseract OCR"]
-        EasyOCR["EasyOCR"]
-        PaddleOCR["PaddleOCR"]
-        TableDetect["Table Detection<br/>& Extraction"]
+        EasyOCR["EasyOCR\n(Python)"]
+        PaddleOCR["PaddleOCR\n(Python)"]
+        Guten["Guten OCR\n(Node.js)"]
+        TesseractWasm["Tesseract-WASM\n(WASM)"]
     end
 
     subgraph Output["Output & Features"]
         direction TB
-        TextOut["Extracted Text"]
-        MetadataOut["Metadata"]
-        StructuredOut["Structured Data<br/>& Tables"]
-        Embeddings["Embeddings<br/>ONNX Runtime"]
-        Chunking["Document Chunking"]
+        Text["Extracted Text"]
+        Metadata["Metadata"]
+        Tables["Tables"]
+        Images["Images"]
+        Chunks["Chunks"]
+        Embeddings["Embeddings (ONNX)"]
     end
 
     subgraph Deployment["Deployment Options"]
@@ -288,26 +300,17 @@ graph TB
         Docker["Docker Images"]
     end
 
-    Core --> FFI
-    Parsers --> Core
-    OCR --> Core
-    Core --> Output
-    Core --> Deployment
+    RustCore --> PluginSystem
+    PluginSystem --> BindingLayer
+    BindingLayer --> Extensions
+    PluginSystem --> Output
+    RustCore --> Output
+    RustCore --> Deployment
 
-    FFI --> PyBind
-    FFI --> NodeBind
-    FFI --> WasmBind
-    FFI --> GoBind
-    FFI --> JavaBind
-    FFI --> CSharpBind
-    FFI --> PhpBind
-    FFI --> RubyBind
-    FFI --> ElixirBind
-
-    style Core fill:#CE422B
-    style FFI fill:#4A90E2
-    style Parsers fill:#7ED321
-    style OCR fill:#F5A623
+    style RustCore fill:#CE422B
+    style PluginSystem fill:#F5A623
+    style BindingLayer fill:#4A90E2
+    style Extensions fill:#7ED321
     style Output fill:#9013FE
     style Deployment fill:#50E3C2
 ```
@@ -316,11 +319,11 @@ graph TB
 
 ### Design Principles
 
-- **Rust core** – Native code for text extraction and processing
-- **Async throughout** – Asynchronous processing with Tokio runtime
-- **Memory efficient** – Streaming parsers for large files
-- **Parallel batch processing** – Configurable concurrency for multiple documents
-- **Zero-copy operations** – Efficient data handling where possible
+- **Rust core with native PDFium** – PDFium integrated via native bindings, bundled by default
+- **Extensible architecture** – Plugin system for custom OCR backends, validators, post-processors, and extractors
+- **High performance** – Global Tokio runtime, SIMD optimizations, zero-copy operations, streaming parsers
+- **Memory efficient** – Streaming parsers for multi-GB files, lazy initialization
+- **Polyglot bindings** – Native bindings for 9 languages, language-specific extensions supported
 
 ## Documentation
 

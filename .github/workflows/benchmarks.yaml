@@ -1059,20 +1059,12 @@ jobs:
         with:
           cache-key-prefix: benchmarks-java-sync
 
-      - name: Setup Java with SDKMAN
-        uses: sdkman/sdkman-action@v1-preview-2
-        id: sdkman
-        with:
-          candidate: java
-          version: 25.0.1-tem
-
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         id: setup-java
         with:
-          distribution: 'jdkfile'
-          java-version: 25.0.1
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: 'temurin'
+          java-version: '25'
 
       - name: Setup ONNX Runtime
         uses: ./.github/actions/setup-onnx-runtime
@@ -1519,20 +1511,12 @@ jobs:
         with:
           cache-key-prefix: benchmarks-tika-sync
 
-      - name: Setup Java with SDKMAN
-        uses: sdkman/sdkman-action@v1-preview-2
-        id: sdkman
-        with:
-          candidate: java
-          version: 25.0.1-tem
-
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         id: setup-java
         with:
-          distribution: 'jdkfile'
-          java-version: 25.0.1
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: 'temurin'
+          java-version: '25'
 
       - name: Setup ONNX Runtime
         uses: ./.github/actions/setup-onnx-runtime
@@ -1594,20 +1578,12 @@ jobs:
         with:
           cache-key-prefix: benchmarks-tika-batch
 
-      - name: Setup Java with SDKMAN
-        uses: sdkman/sdkman-action@v1-preview-2
-        id: sdkman
-        with:
-          candidate: java
-          version: 25.0.1-tem
-
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         id: setup-java
         with:
-          distribution: 'jdkfile'
-          java-version: 25.0.1
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: 'temurin'
+          java-version: '25'
 
       - name: Setup ONNX Runtime
         uses: ./.github/actions/setup-onnx-runtime
