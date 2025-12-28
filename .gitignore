@@ -137,3 +137,29 @@ libpdfium.a
 # Profiling artifacts
 profiling-results/
 profiling-results-*/
+
+# AI Rules generated files
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/ruby-bindings-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/rust-core-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/code-reviewer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/polyglot-architect/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/polyglot-architect.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/tutorial-writer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/tutorial-writer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/docs-writer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/ruby-bindings-engineer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/typescript-bindings-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/python-bindings-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/rust-core-engineer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/api-doc-writer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/docs-writer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/test-automation-engineer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/java-bindings-engineer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/test-automation-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/typescript-bindings-engineer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/api-doc-writer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/go-bindings-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/go-bindings-engineer.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/code-reviewer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/skills/java-bindings-engineer/SKILL.md
+/Users/naamanhirschfeld/workspace/kreuzberg-dev/kreuzberg/.claude/agents/python-bindings-engineer.md

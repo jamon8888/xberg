@@ -1,6 +1,7 @@
 # Kreuzberg.dev
 
 [![Rust](https://img.shields.io/crates/v/kreuzberg?label=Rust)](https://crates.io/crates/kreuzberg)
+[![Elixir/Hex](https://img.shields.io/hexpm/v/kreuzberg?label=Elixir)](https://hex.pm/packages/kreuzberg)
 [![Python](https://img.shields.io/pypi/v/kreuzberg?label=Python)](https://pypi.org/project/kreuzberg/)
 [![TypeScript/Node.js](https://img.shields.io/npm/v/@kreuzberg/node?label=TypeScript%2FNode.js&color=3178c6)](https://www.npmjs.com/package/@kreuzberg/node)
 [![Browser/WASM](https://img.shields.io/npm/v/@kreuzberg/wasm?label=Browser%2FWASM&color=654ff0)](https://www.npmjs.com/package/@kreuzberg/wasm)
