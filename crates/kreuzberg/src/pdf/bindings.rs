@@ -36,6 +36,7 @@ fn extract_and_get_lib_dir() -> Result<Option<PathBuf>, String> {
 }
 
 fn bind_to_pdfium(lib_dir: &Option<PathBuf>) -> Result<Box<dyn PdfiumLibraryBindings>, String> {
+    let _ = lib_dir;
     #[cfg(all(feature = "pdf", feature = "bundled-pdfium", not(target_arch = "wasm32")))]
     {
         if let Some(dir) = lib_dir {
