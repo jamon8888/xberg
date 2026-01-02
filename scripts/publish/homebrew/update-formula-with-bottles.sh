@@ -78,11 +78,45 @@ new_formula=$(echo "$formula_content" | sed \
 new_formula=$(echo "$new_formula" | sed '/^  bottle do$/,/^  end$/d')
 new_formula=$(echo "$new_formula" | sed '/^  # bottle do$/,/^  # end$/d')
 
-# Insert bottle block before depends_on line using awk (more reliable than sed for multiline)
-new_formula=$(echo "$new_formula" | awk -v bottle="$bottle_block" '
-  /^  depends_on/ && !inserted { print bottle; print ""; inserted=1 }
-  { print }
-')
+# Use Python for reliable multiline replacement since bash/sed/awk have issues with multiline variables
+# Also removes extra blank lines and inserts the bottle block before first depends_on
+new_formula=$(
+  python3 <<PYTHON_SCRIPT
+import re
+
+formula = """$new_formula"""
+bottle_block = """$bottle_block"""
+
+# Remove multiple consecutive blank lines (keep max 1 blank line between sections)
+lines = formula.split('\n')
+result = []
+prev_blank = False
+
+for line in lines:
+  is_blank = line.strip() == ''
+
+  # Skip consecutive blank lines
+  if is_blank and prev_blank:
+    continue
+
+  prev_blank = is_blank
+  result.append(line)
+
+# Now insert the bottle block before the first depends_on
+final_result = []
+inserted = False
+
+for line in result:
+  if line.startswith('  depends_on') and not inserted:
+    # Insert bottle block before this line
+    final_result.append(bottle_block)
+    final_result.append('')
+    inserted = True
+  final_result.append(line)
+
+print('\n'.join(final_result))
+PYTHON_SCRIPT
+)
 
 echo "$new_formula" >"$formula_path"
 
