@@ -756,6 +756,18 @@ public final class KreuzbergFFI {
 	/**
 	 * Reads a null-terminated C string from native memory.
 	 *
+	 * <p>
+	 * This method reads a C string using the FFM API's native string handling. The
+	 * reinterpret operation creates a memory segment view that extends to
+	 * C_STRING_MAX_SIZE, but getString(0) only reads up to the null terminator. The
+	 * Arena.global() scope ensures thread-safety by using a scope that is valid
+	 * across all threads and never closed.
+	 *
+	 * <p>
+	 * Previously, using a confined-scope reinterpret caused issues under concurrent
+	 * access because the default scope could be invalidated by other operations.
+	 * Using Arena.global() ensures the segment view remains valid during the read.
+	 *
 	 * @param address
 	 *            the address of the C string
 	 * @return the Java String, or null if address is NULL
@@ -764,7 +776,10 @@ public final class KreuzbergFFI {
 		if (address == null || address.address() == 0) {
 			return null;
 		}
-		return address.reinterpret(C_STRING_MAX_SIZE).getString(0);
+		// Use Arena.global() to ensure thread-safe access to the memory segment.
+		// The getString(0) method reads bytes until it finds the null terminator,
+		// so it won't actually access all C_STRING_MAX_SIZE bytes.
+		return address.reinterpret(C_STRING_MAX_SIZE, Arena.global(), null).getString(0);
 	}
 
 	/**
