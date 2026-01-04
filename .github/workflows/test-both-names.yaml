@@ -1,0 +1,12 @@
+name: Test Runner Names
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-scale-set-name:
+    runs-on: benchmark
+    steps:
+      - run: echo 'Testing with scale set name benchmark'
+      - run: hostname
+      - run: uptime
