@@ -1645,6 +1645,16 @@ jobs:
           cache-key-prefix: publish-php-${{ matrix.settings.label }}
           use-sccache: ${{ runner.os != 'Windows' }}
 
+      - name: Detect partial cache hit and clean stale fingerprints
+        shell: bash
+        run: |
+          # Check if cache was a partial hit (restored from fallback key)
+          # For now, we'll do a more conservative check: always clean before build
+          # since the current Cargo.lock changes frequently
+          echo "Preparing clean Rust build environment..."
+          cargo clean --release -p kreuzberg-php 2>/dev/null || true
+          cargo clean --release -p kreuzberg 2>/dev/null || true
+
       - name: Cache PDFium
         uses: ./.github/actions/cache-pdfium
         with:
