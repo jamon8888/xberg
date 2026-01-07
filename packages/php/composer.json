@@ -60,7 +60,7 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
+        "test": "./run-tests.sh",
         "phpstan": "vendor/bin/phpstan analyse src --level=max",
         "lint": "@phpstan",
         "format": "vendor/bin/php-cs-fixer fix src",
