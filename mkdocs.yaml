@@ -183,7 +183,6 @@ nav:
       - API Server: guides/api-server.md
       - Creating Plugins: guides/plugins.md
       - C# Bindings: guides/csharp.md
-  - Benchmarks: benchmarks/index.md
   - CLI: cli/usage.md
   - API Reference:
       - Python: reference/api-python.md
