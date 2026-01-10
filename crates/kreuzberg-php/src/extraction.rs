@@ -131,16 +131,35 @@ pub fn kreuzberg_extract_bytes(
                         .ok_or_else(|| PhpException::default("Custom extractor result missing 'content'".to_string()))?
                         .to_string();
 
-                    let metadata = if let Some(_meta_val) = result_array.get("metadata") {
-                        // TODO: Implement metadata conversion
-                        Default::default()
+                    let metadata = if let Some(meta_val) = result_array.get("metadata") {
+                        if let Some(meta_arr) = meta_val.array() {
+                            let mut additional = std::collections::HashMap::new();
+                            for (key, val) in meta_arr.iter() {
+                                let key_str = format!("{}", key);
+                                if let Ok(json_val) = crate::types::php_zval_to_json_value(val) {
+                                    additional.insert(key_str, json_val);
+                                }
+                            }
+                            kreuzberg::types::Metadata {
+                                additional,
+                                ..Default::default()
+                            }
+                        } else {
+                            Default::default()
+                        }
                     } else {
                         Default::default()
                     };
 
-                    let tables = if let Some(_tables_val) = result_array.get("tables") {
-                        // TODO: Implement tables conversion
-                        vec![]
+                    let tables = if let Some(tables_val) = result_array.get("tables") {
+                        if let Some(tables_arr) = tables_val.array() {
+                            tables_arr
+                                .iter()
+                                .filter_map(|(_, t)| t.array().and_then(|a| crate::types::php_array_to_table(a).ok()))
+                                .collect()
+                        } else {
+                            vec![]
+                        }
                     } else {
                         vec![]
                     };

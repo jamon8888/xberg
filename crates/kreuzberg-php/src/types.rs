@@ -878,3 +878,72 @@ impl Keyword {
         Ok(Self { text, score, algorithm })
     }
 }
+
+/// Convert PHP Zval to serde_json::Value recursively.
+pub(crate) fn php_zval_to_json_value(zval: &Zval) -> PhpResult<serde_json::Value> {
+    use serde_json::json;
+
+    if zval.is_null() {
+        return Ok(serde_json::Value::Null);
+    }
+    if let Some(b) = zval.bool() {
+        return Ok(json!(b));
+    }
+    if let Some(i) = zval.long() {
+        return Ok(json!(i));
+    }
+    if let Some(f) = zval.double() {
+        return Ok(json!(f));
+    }
+    if let Some(s) = zval.str() {
+        return Ok(json!(s.to_string()));
+    }
+    if let Some(arr) = zval.array() {
+        let mut map = serde_json::Map::new();
+        for (key, val) in arr.iter() {
+            // Convert key to string, handling both numeric and string keys
+            let key_str = format!("{}", key);
+            map.insert(key_str, php_zval_to_json_value(val)?);
+        }
+        return Ok(serde_json::Value::Object(map));
+    }
+    Ok(serde_json::Value::Null)
+}
+
+/// Convert PHP array to kreuzberg::types::Table.
+pub(crate) fn php_array_to_table(arr: &ext_php_rs::types::ZendHashTable) -> PhpResult<kreuzberg::types::Table> {
+    // Extract cells as 2D array
+    let cells = if let Some(cells_val) = arr.get("cells") {
+        if let Some(cells_arr) = cells_val.array() {
+            let mut rows = Vec::new();
+            for (_, row_val) in cells_arr.iter() {
+                if let Some(row_arr) = row_val.array() {
+                    let mut cols = Vec::new();
+                    for (_, cell_val) in row_arr.iter() {
+                        cols.push(cell_val.str().unwrap_or("").to_string());
+                    }
+                    rows.push(cols);
+                }
+            }
+            rows
+        } else {
+            vec![]
+        }
+    } else {
+        vec![]
+    };
+
+    let markdown = arr.get("markdown").and_then(|v| v.str()).unwrap_or("").to_string();
+
+    let page_number = arr
+        .get("page_number")
+        .and_then(|v| v.long())
+        .map(|v| v as usize)
+        .unwrap_or(1);
+
+    Ok(kreuzberg::types::Table {
+        cells,
+        markdown,
+        page_number,
+    })
+}

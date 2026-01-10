@@ -10,7 +10,7 @@ use crate::plugins::{OcrBackend, OcrBackendType, Plugin};
 use crate::types::ExtractionResult;
 use async_trait::async_trait;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use crate::ocr::types::TesseractConfig as InternalTesseractConfig;
 
@@ -24,6 +24,7 @@ use crate::ocr::types::TesseractConfig as InternalTesseractConfig;
 /// Uses Arc for shared ownership and is thread-safe (Send + Sync).
 pub struct TesseractBackend {
     processor: Arc<OcrProcessor>,
+    available_languages: OnceLock<Vec<String>>,
 }
 
 impl TesseractBackend {
@@ -35,6 +36,7 @@ impl TesseractBackend {
         })?;
         Ok(Self {
             processor: Arc::new(processor),
+            available_languages: OnceLock::new(),
         })
     }
 
@@ -46,6 +48,7 @@ impl TesseractBackend {
         })?;
         Ok(Self {
             processor: Arc::new(processor),
+            available_languages: OnceLock::new(),
         })
     }
 
@@ -91,6 +94,54 @@ impl TesseractBackend {
                 ..Default::default()
             },
         }
+    }
+
+    /// Get cached available languages, lazily querying Tesseract if needed.
+    ///
+    /// Uses `OnceLock` to ensure the Tesseract API is only queried once.
+    /// Falls back to hardcoded language list if dynamic querying fails.
+    fn get_cached_languages(&self) -> &[String] {
+        self.available_languages
+            .get_or_init(|| match self.query_available_languages() {
+                Ok(langs) => langs,
+                Err(_) => Self::fallback_languages(),
+            })
+    }
+
+    /// Query available languages from the Tesseract API.
+    ///
+    /// Creates a temporary Tesseract API instance and initializes it with
+    /// the default English language to query available languages.
+    ///
+    /// # Returns
+    ///
+    /// Returns a vector of available language codes, or an error if querying fails.
+    fn query_available_languages(&self) -> Result<Vec<String>> {
+        let api = kreuzberg_tesseract::TesseractAPI::new();
+        api.init("", "eng").map_err(|e| crate::KreuzbergError::Ocr {
+            message: format!("Failed to initialize Tesseract for language query: {}", e),
+            source: Some(Box::new(e)),
+        })?;
+
+        api.get_available_languages().map_err(|e| crate::KreuzbergError::Ocr {
+            message: format!("Failed to query available Tesseract languages: {}", e),
+            source: Some(Box::new(e)),
+        })
+    }
+
+    /// Fallback list of supported languages (hardcoded list).
+    ///
+    /// Used when dynamic language querying fails, ensuring the backend
+    /// always has a sensible default set of languages.
+    fn fallback_languages() -> Vec<String> {
+        vec![
+            "eng", "deu", "fra", "spa", "ita", "por", "rus", "chi_sim", "chi_tra", "jpn", "kor", "ara", "hin", "ben",
+            "tha", "vie", "heb", "tur", "pol", "nld", "swe", "dan", "fin", "nor", "ces", "hun", "ron", "ukr", "bul",
+            "hrv", "srp", "slk", "slv", "lit", "lav", "est",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect()
     }
 }
 
@@ -232,46 +283,7 @@ impl OcrBackend for TesseractBackend {
     }
 
     fn supports_language(&self, lang: &str) -> bool {
-        // TODO: Query Tesseract for available languages
-        matches!(
-            lang,
-            "eng"
-                | "deu"
-                | "fra"
-                | "spa"
-                | "ita"
-                | "por"
-                | "rus"
-                | "chi_sim"
-                | "chi_tra"
-                | "jpn"
-                | "kor"
-                | "ara"
-                | "hin"
-                | "ben"
-                | "tha"
-                | "vie"
-                | "heb"
-                | "tur"
-                | "pol"
-                | "nld"
-                | "swe"
-                | "dan"
-                | "fin"
-                | "nor"
-                | "ces"
-                | "hun"
-                | "ron"
-                | "ukr"
-                | "bul"
-                | "hrv"
-                | "srp"
-                | "slk"
-                | "slv"
-                | "lit"
-                | "lav"
-                | "est"
-        )
+        self.get_cached_languages().contains(&lang.to_string())
     }
 
     fn backend_type(&self) -> OcrBackendType {
@@ -279,15 +291,7 @@ impl OcrBackend for TesseractBackend {
     }
 
     fn supported_languages(&self) -> Vec<String> {
-        // TODO: Query Tesseract API for available languages dynamically
-        vec![
-            "eng", "deu", "fra", "spa", "ita", "por", "rus", "chi_sim", "chi_tra", "jpn", "kor", "ara", "hin", "ben",
-            "tha", "vie", "heb", "tur", "pol", "nld", "swe", "dan", "fin", "nor", "ces", "hun", "ron", "ukr", "bul",
-            "hrv", "srp", "slk", "slv", "lit", "lav", "est",
-        ]
-        .into_iter()
-        .map(String::from)
-        .collect()
+        self.get_cached_languages().to_vec()
     }
 
     fn supports_table_detection(&self) -> bool {

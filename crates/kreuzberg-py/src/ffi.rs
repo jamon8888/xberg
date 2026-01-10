@@ -13,7 +13,10 @@
 use pyo3::prelude::*;
 use std::ffi::{CStr, CString};
 
-use kreuzberg_ffi::{kreuzberg_classify_error, kreuzberg_error_code_name, kreuzberg_get_error_details};
+use kreuzberg_ffi::{
+    get_last_error_code as ffi_get_last_error_code, get_last_panic_context as ffi_get_last_panic_context,
+    kreuzberg_classify_error, kreuzberg_error_code_name, kreuzberg_get_error_details,
+};
 
 /// Error details from kreuzberg-ffi.
 ///
@@ -131,25 +134,55 @@ pub fn error_code_name(code: u32) -> PyResult<String> {
     Ok(name)
 }
 
-/// Get the last error code from the FFI layer.
+/// Get the last error code from the FFI panic shield.
 ///
-/// Returns 0 (Success) - actual error codes are only available through
-/// the C FFI library and are thread-local in the FFI layer.
+/// Returns the error code from the most recent error or panic caught by the
+/// kreuzberg-ffi panic shield. Returns 0 (Success) if no error has occurred.
 ///
-/// This function exists for API completeness and future extension
-/// when FFI layer integration is available.
+/// Error codes:
+/// - 0: Success (no error)
+/// - 1: Generic error
+/// - 2: Panic was caught
+/// - 3: Invalid argument
+/// - 4: IO error
+/// - 5: Parsing error
+/// - 6: OCR error
+/// - 7: Missing dependency
+///
+/// Returns:
+///     int: Numeric error code representing the last error type
 pub fn get_last_error_code() -> i32 {
-    // TODO: Link to kreuzberg-ffi when available in py bindings
-    0
+    ffi_get_last_error_code() as i32
 }
 
-/// Stub panic context function.
+/// Get the last panic context from the FFI panic shield as a JSON string.
 ///
-/// Returns None since panic context is not available in the Rust bindings.
-/// Panic context is only available through the C FFI library.
+/// Retrieves the panic context from the most recent panic caught by the
+/// kreuzberg-ffi panic shield. The context is serialized to JSON format
+/// for easy consumption by Python code.
 ///
-/// This function exists for API completeness and future extension.
+/// The returned JSON object (when present) contains:
+/// - "file" (str): Source file where the panic occurred
+/// - "line" (int): Line number where the panic occurred
+/// - "function" (str): Function name where the panic occurred
+/// - "message" (str): Panic message
+/// - "timestamp" (str): Seconds since UNIX epoch when panic was captured
+///
+/// Returns:
+///     str | None: JSON serialized panic context if a panic has been caught,
+///                 None if no panic has occurred or error retrieving context
 pub fn get_last_panic_context() -> Option<String> {
-    // TODO: Link to kreuzberg-ffi when available in py bindings
-    None
+    ffi_get_last_panic_context().and_then(|ctx| {
+        let json = serde_json::json!({
+            "file": ctx.file,
+            "line": ctx.line,
+            "function": ctx.function,
+            "message": ctx.message,
+            "timestamp": ctx.timestamp
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d: std::time::Duration| d.as_secs_f64().to_string())
+                .unwrap_or_else(|_| "unknown".to_string()),
+        });
+        serde_json::to_string(&json).ok()
+    })
 }
