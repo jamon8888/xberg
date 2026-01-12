@@ -13,7 +13,7 @@ module Kreuzberg
     # @param ocr [Boolean] Enable OCR
     # @return [String] Extracted content
     #
-    def extract(path:, output: 'text', ocr: false)
+    def extract(path, output: 'text', ocr: false)
       args = ['extract', path, '--format', output]
       args.push('--ocr', ocr ? 'true' : 'false')
       CLIProxy.call(args)
@@ -24,7 +24,7 @@ module Kreuzberg
     # @param path [String] Path to the file
     # @return [String] MIME type
     #
-    def detect(path:)
+    def detect(path)
       CLIProxy.call(['detect', path]).strip
     end
 

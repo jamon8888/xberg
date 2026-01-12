@@ -1101,7 +1101,7 @@ RSpec.describe 'Kreuzberg Metadata Types' do
       empty_file = create_test_html_file(empty_html)
       begin
         expect do
-          result = Kreuzberg.extract_file_sync(empty_file)
+          result = Kreuzberg.extract_file_sync(path: empty_file)
           expect(result).to be_a(Kreuzberg::Result)
         end.not_to raise_error
       ensure
@@ -1112,7 +1112,7 @@ RSpec.describe 'Kreuzberg Metadata Types' do
       minimal_file = create_test_html_file(minimal_html)
       begin
         expect do
-          result = Kreuzberg.extract_file_sync(minimal_file)
+          result = Kreuzberg.extract_file_sync(path: minimal_file)
           expect(result).to be_a(Kreuzberg::Result)
           metadata = result.metadata
           if metadata.is_a?(Kreuzberg::HtmlMetadata)
@@ -1135,7 +1135,7 @@ RSpec.describe 'Kreuzberg Metadata Types' do
       large_file = create_test_html_file(large_html)
       begin
         expect do
-          result = Kreuzberg.extract_file_sync(large_file)
+          result = Kreuzberg.extract_file_sync(path: large_file)
           expect(result).to be_a(Kreuzberg::Result)
           metadata = result.metadata
 
@@ -1180,7 +1180,7 @@ RSpec.describe 'Kreuzberg Metadata Types' do
       begin
         threads = test_files.map do |file|
           Thread.new do
-            result = Kreuzberg.extract_file_sync(file)
+            result = Kreuzberg.extract_file_sync(path: file)
             results << result
           rescue StandardError => e
             errors << e

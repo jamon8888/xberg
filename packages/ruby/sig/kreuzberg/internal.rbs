@@ -21,10 +21,10 @@ module Kreuzberg
 
   module CLI
     # All methods are both instance and class methods due to module_function
-    def extract: (path: String, ?output: String, ?ocr: bool) -> String
-    def self.extract: (path: String, ?output: String, ?ocr: bool) -> String
-    def detect: (path: String) -> String
-    def self.detect: (path: String) -> String
+    def extract: (String path, ?output: String, ?ocr: bool) -> String
+    def self.extract: (String path, ?output: String, ?ocr: bool) -> String
+    def detect: (String path) -> String
+    def self.detect: (String path) -> String
     def version: () -> String
     def self.version: () -> String
     def help: () -> String

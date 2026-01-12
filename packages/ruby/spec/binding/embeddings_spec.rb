@@ -25,7 +25,7 @@ RSpec.describe 'Embeddings Vector Generation' do
         expect(first_chunk.embedding).not_to be_nil if first_chunk.embedding
         if first_chunk.embedding.is_a?(Array) && !first_chunk.embedding.empty?
           dimension = first_chunk.embedding.length
-          expect(dimension).to be_in([384, 512, 768, 1024])
+          expect(dimension).to(satisfy { |d| [384, 512, 768, 1024].include?(d) })
         end
       end
     end
@@ -751,7 +751,7 @@ RSpec.describe 'Embeddings Vector Generation' do
         norm_sq = embedding.sum { |x| x * x }
         similarity = dot_product / norm_sq if norm_sq > 0
 
-        expect(similarity).to be_close_to(1.0, 0.0001) if similarity
+        expect(similarity).to be_within(0.0001).of(1.0) if similarity
       end
     end
 

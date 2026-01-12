@@ -617,8 +617,9 @@ module Kreuzberg
         insert_page_markers: false,
         marker_format: "\n\n<!-- PAGE {page_num} -->\n\n"
       )
-        @extract_pages = extract_pages ? true : false
-        @insert_page_markers = insert_page_markers ? true : false
+        # Handle boolean conversion: treat 0 as false (like in C/FFI), but other truthy values as true
+        @extract_pages = !extract_pages.nil? && extract_pages != false && extract_pages != 0
+        @insert_page_markers = !insert_page_markers.nil? && insert_page_markers != false && insert_page_markers != 0
         @marker_format = marker_format.to_s
       end
 

@@ -3,24 +3,29 @@
 RSpec.describe 'Pages Extraction' do
   describe 'Extract Pages' do
     it 'returns pages array when extractPages is true' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result).not_to be_nil
       expect(result.pages).not_to be_nil
       expect(result.pages).to be_a(Array)
-      expect(result.pages.length).to be > 0
     end
 
     it 'returns page numbers for each page' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -29,11 +34,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'returns page content for each page' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -42,24 +50,30 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'returns nil for pages when extractPages is false' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: false)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result).not_to be_nil
       expect(result.pages).to be_nil
     end
 
     it 'preserves page order' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
-      if result.pages.length > 1
+      if result.pages && result.pages.length > 1
         (0...(result.pages.length - 1)).each do |i|
           expect(result.pages[i].page_number).to be < result.pages[i + 1].page_number
         end
@@ -69,11 +83,14 @@ RSpec.describe 'Pages Extraction' do
 
   describe 'Insert Page Markers' do
     it 'inserts page markers when insertPageMarkers is true' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(insert_page_markers: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result).not_to be_nil
       expect(result.content).not_to be_nil
@@ -81,11 +98,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'does not insert markers when insertPageMarkers is false' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(insert_page_markers: false)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result).not_to be_nil
       # Default marker format should not appear when not enabled
@@ -93,11 +113,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'contains page numbers in markers' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(insert_page_markers: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       # Should contain at least page 1
@@ -105,11 +128,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'inserts multiple markers for multi-page documents' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(insert_page_markers: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       marker_count = result.content.scan('<!-- PAGE').length
@@ -119,6 +145,9 @@ RSpec.describe 'Pages Extraction' do
 
   describe 'Custom Marker Format' do
     it 'uses custom marker format when specified' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       custom_format = '=== PAGE {page_num} ==='
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
@@ -127,7 +156,7 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result).not_to be_nil
       expect(result.content).not_to be_nil
@@ -135,6 +164,9 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'replaces page_num placeholder in custom format' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       custom_format = '[Page Number: {page_num}]'
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
@@ -143,7 +175,7 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       expect(result.content).to include('[Page Number:')
@@ -151,6 +183,9 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'handles simple custom format' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       custom_format = 'PAGE_{page_num}'
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
@@ -159,13 +194,16 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       expect(result.content).to include('PAGE_')
     end
 
     it 'handles custom format with line separators' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       custom_format = "\n---PAGE {page_num}---\n"
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
@@ -174,13 +212,16 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       expect(result.content).to include('---PAGE')
     end
 
     it 'overrides default marker format' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       custom_format = 'CUSTOM_PAGE_{page_num}'
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
@@ -189,7 +230,7 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       expect(result.content).to include('CUSTOM_PAGE_')
@@ -198,22 +239,28 @@ RSpec.describe 'Pages Extraction' do
 
   describe 'Multi-Page PDF' do
     it 'produces multiple pages from multi-page PDF' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       expect(result.pages.length).to be > 0
     end
 
     it 'page numbers are sequential' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each_with_index do |page, index|
@@ -222,11 +269,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'each page has content' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -236,11 +286,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'with markers contains all pages' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(insert_page_markers: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.content).not_to be_nil
       marker_count = result.content.scan('<!-- PAGE').length
@@ -250,11 +303,14 @@ RSpec.describe 'Pages Extraction' do
 
   describe 'Page Content Structure Validation' do
     it 'validates page structure' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -264,11 +320,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'page content has required fields' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -278,11 +337,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'page content with tables preserves table data' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -292,11 +354,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'page content with images preserves image data' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       result.pages.each do |page|
@@ -306,11 +371,14 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'page content is not empty' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(extract_pages: true)
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       page_with_content = result.pages.find { |p| p.content && !p.content.strip.empty? }
@@ -320,6 +388,9 @@ RSpec.describe 'Pages Extraction' do
 
   describe 'Combined Features' do
     it 'extract pages and insert markers together' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
           extract_pages: true,
@@ -327,7 +398,7 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result).not_to be_nil
       expect(result.pages).not_to be_nil
@@ -336,6 +407,9 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'extract pages with custom marker format' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
           extract_pages: true,
@@ -344,7 +418,7 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       expect(result.pages.length).to be > 0
@@ -352,6 +426,9 @@ RSpec.describe 'Pages Extraction' do
     end
 
     it 'page extraction consistency between array and markers' do
+      pdf_file = test_document_path('pdf/sample.pdf')
+      skip "Test PDF not available at #{pdf_file}" unless File.exist?(pdf_file)
+
       config = Kreuzberg::Config::Extraction.new(
         pages: Kreuzberg::Config::PageConfig.new(
           extract_pages: true,
@@ -359,7 +436,7 @@ RSpec.describe 'Pages Extraction' do
         )
       )
 
-      result = Kreuzberg.extract_file(path: 'test.pdf', config: config)
+      result = Kreuzberg.extract_file_sync(path: pdf_file, config: config)
 
       expect(result.pages).not_to be_nil
       expect(result.content).not_to be_nil

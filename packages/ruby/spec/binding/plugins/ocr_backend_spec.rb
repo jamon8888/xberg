@@ -33,7 +33,7 @@ RSpec.describe 'OCR Backend Plugin System' do
 
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(backend: 'mock-ocr')
+        ocr: Kreuzberg::Config::OCR.new(backend: 'mock-ocr')
       )
 
       result = Kreuzberg.extract_file_sync(path: test_image, config: config)
@@ -63,7 +63,7 @@ RSpec.describe 'OCR Backend Plugin System' do
 
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(
+        ocr: Kreuzberg::Config::OCR.new(
           backend: 'config-capture',
           language: 'eng'
         )
@@ -99,7 +99,7 @@ RSpec.describe 'OCR Backend Plugin System' do
 
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(backend: 'bytes-capture')
+        ocr: Kreuzberg::Config::OCR.new(backend: 'bytes-capture')
       )
 
       Kreuzberg.extract_file_sync(path: test_image, config: config)
@@ -128,7 +128,7 @@ RSpec.describe 'OCR Backend Plugin System' do
 
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(backend: 'simple-ocr')
+        ocr: Kreuzberg::Config::OCR.new(backend: 'simple-ocr')
       )
 
       result = Kreuzberg.extract_file_sync(path: test_image, config: config)
@@ -164,7 +164,7 @@ RSpec.describe 'OCR Backend Plugin System' do
 
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(backend: 'stateful-ocr')
+        ocr: Kreuzberg::Config::OCR.new(backend: 'stateful-ocr')
       )
 
       Kreuzberg.extract_file_sync(path: test_image, config: config)
@@ -193,7 +193,7 @@ RSpec.describe 'OCR Backend Plugin System' do
 
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(backend: 'failing-ocr')
+        ocr: Kreuzberg::Config::OCR.new(backend: 'failing-ocr')
       )
 
       expect do
@@ -204,7 +204,7 @@ RSpec.describe 'OCR Backend Plugin System' do
     it 'handles missing OCR backend gracefully' do
       config = Kreuzberg::Config::Extraction.new(
         force_ocr: true,
-        ocr: Kreuzberg::Config::Ocr.new(backend: 'nonexistent-backend')
+        ocr: Kreuzberg::Config::OCR.new(backend: 'nonexistent-backend')
       )
 
       expect do

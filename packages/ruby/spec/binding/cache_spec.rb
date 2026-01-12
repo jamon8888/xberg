@@ -208,7 +208,7 @@ RSpec.describe 'Cache Management' do
     it 'caches batch extraction results' do
       Kreuzberg.clear_cache
 
-      results = Kreuzberg.batch_extract_files_sync([test_pdf, test_text])
+      results = Kreuzberg.batch_extract_files_sync(paths: [test_pdf, test_text])
       stats = Kreuzberg.cache_stats
 
       expect(results.length).to eq(2)
@@ -216,7 +216,7 @@ RSpec.describe 'Cache Management' do
     end
 
     it 'clear_cache affects batch extractions' do
-      Kreuzberg.batch_extract_files_sync([test_pdf, test_text])
+      Kreuzberg.batch_extract_files_sync(paths: [test_pdf, test_text])
 
       Kreuzberg.clear_cache
 

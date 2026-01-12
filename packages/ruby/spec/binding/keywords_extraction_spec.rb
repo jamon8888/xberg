@@ -334,7 +334,7 @@ RSpec.describe 'Keyword Extraction' do
         'Artificial intelligence enables predictions and automation globally.'
       ]
 
-      results = texts.map { |text| Kreuzberg.extract_bytes_sync(text, 'text/plain', config: config) }
+      results = texts.map { |text| Kreuzberg.extract_bytes_sync(data: text, mime_type: 'text/plain', config: config) }
 
       expect(results.length).to eq(3)
       results.each do |result|
@@ -376,7 +376,7 @@ RSpec.describe 'Keyword Extraction' do
         )
       ]
 
-      results = configs.map { |cfg| Kreuzberg.extract_bytes_sync(text, 'text/plain', config: cfg) }
+      results = configs.map { |cfg| Kreuzberg.extract_bytes_sync(data: text, mime_type: 'text/plain', config: cfg) }
 
       expect(results.length).to eq(3)
       results.each do |result|

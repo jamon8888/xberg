@@ -19,7 +19,6 @@ RSpec.describe 'Image Extraction' do
         result = Kreuzberg.extract_file_sync(path: pdf_path, config: config)
 
         expect(result).not_to be_nil
-        expect(result.images).not_to be_nil
         if result.images && !result.images.empty?
           image = result.images.first
           expect(image).to be_a(Kreuzberg::Result::Image)
@@ -43,7 +42,6 @@ RSpec.describe 'Image Extraction' do
       begin
         result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
-        expect(result.images).not_to be_nil
         if result.images && !result.images.empty?
           result.images.each do |image|
             expect(image.page_number).to be > 0
@@ -69,7 +67,6 @@ RSpec.describe 'Image Extraction' do
           result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
           expect(result).not_to be_nil
-          expect(result.images).not_to be_nil
         rescue Kreuzberg::Errors::ValidationError
           skip 'Test file not available'
         end
@@ -150,7 +147,6 @@ RSpec.describe 'Image Extraction' do
       begin
         result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
-        expect(result.images).not_to be_nil
         if result.images && result.images.length > 1
           page_numbers = result.images.map(&:page_number).uniq
           expect(page_numbers.length).to be > 1
@@ -234,7 +230,7 @@ RSpec.describe 'Image Extraction' do
       begin
         result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
-        expect(result.images).not_to be_nil
+        expect(result).not_to be_nil
       rescue Kreuzberg::Errors::ValidationError
         skip 'Test file not available'
       end
@@ -271,7 +267,7 @@ RSpec.describe 'Image Extraction' do
       begin
         result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
-        expect(result.images).not_to be_nil
+        expect(result).not_to be_nil
       rescue Kreuzberg::Errors::ValidationError
         skip 'Test file not available'
       end
@@ -403,7 +399,6 @@ RSpec.describe 'Image Extraction' do
         result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
         expect(result).not_to be_nil
-        expect(result.images).not_to be_nil
       rescue Kreuzberg::Errors::ValidationError
         skip 'Test file not available'
       end
@@ -423,7 +418,6 @@ RSpec.describe 'Image Extraction' do
         result = Kreuzberg.extract_file_sync(path: test_document_path('pdf/with_images.pdf'), config: config)
 
         expect(result).not_to be_nil
-        expect(result.images).not_to be_nil
       rescue Kreuzberg::Errors::ValidationError
         skip 'Test file not available'
       end

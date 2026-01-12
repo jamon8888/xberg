@@ -364,7 +364,7 @@ RSpec.describe 'Error Handling' do
 
       # Valid extraction
       valid_file = create_test_file('Valid content')
-      Kreuzberg.extract_file_sync(valid_file)
+      Kreuzberg.extract_file_sync(path: valid_file)
       results << :success1
 
       # Another invalid file

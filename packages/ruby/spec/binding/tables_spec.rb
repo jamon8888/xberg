@@ -36,7 +36,7 @@ RSpec.describe 'Table Extraction Quality' do
 
       if result.tables && !result.tables.empty?
         expect(result.tables).to all(
-          be_a(Kreuzberg::Types::Table).and(
+          be_a(Kreuzberg::Result::Table).and(
             have_attributes(cells: be_a(Array))
           )
         )
@@ -524,7 +524,7 @@ RSpec.describe 'Table Extraction Quality' do
       config = Kreuzberg::Config::Extraction.new
 
       begin
-        result = Kreuzberg.extract_file('test.txt', config: config)
+        result = Kreuzberg.extract_file(path: 'test.txt', config: config)
         expect(result).not_to be_nil
         expect(result.tables).to be_a(Array) if result.tables
       rescue Kreuzberg::Errors::ValidationError
