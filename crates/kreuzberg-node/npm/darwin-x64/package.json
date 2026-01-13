@@ -1,6 +1,6 @@
 {
 	"name": "@kreuzberg/node-darwin-x64",
-	"version": "4.0.3",
+	"version": "4.0.4",
 	"cpu": [
 		"x64"
 	],

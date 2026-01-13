@@ -506,7 +506,7 @@ checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
 name = "benchmark-harness"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "ahash",
  "async-trait",
@@ -1699,7 +1699,7 @@ checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 
 [[package]]
 name = "e2e-rust"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "async-trait",
  "hex",
@@ -2428,9 +2428,9 @@ dependencies = [
 
 [[package]]
 name = "html-to-markdown-rs"
-version = "2.21.1"
+version = "2.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c2a0dea5c57e612ae9dc6b2b5bca66b947691e67a5983d202299be60d2448e3"
+checksum = "3bb7c7ffc0873f09acdafa568ebc3d15f22331bfaaa3fc2cd4d872daade9bdc2"
 dependencies = [
  "astral-tl",
  "base64 0.22.1",
@@ -3069,7 +3069,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "ahash",
  "anyhow",
@@ -3140,7 +3140,7 @@ dependencies = [
  "tempfile",
  "text-splitter",
  "thiserror 2.0.17",
- "tiff 0.11.0",
+ "tiff 0.11.1",
  "tokio",
  "tokio-test",
  "toml 0.9.11+spec-1.1.0",
@@ -3161,7 +3161,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-cli"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "anyhow",
  "clap",
@@ -3176,7 +3176,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-e2e-generator"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -3194,7 +3194,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-ffi"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "async-trait",
  "cbindgen",
@@ -3210,7 +3210,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-node"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3259,7 +3259,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-php"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "async-trait",
  "ext-php-rs",
@@ -3272,7 +3272,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-py"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "async-trait",
  "html-to-markdown-rs",
@@ -3288,7 +3288,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-tesseract"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "cc",
  "cmake",
@@ -3301,7 +3301,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-wasm"
-version = "4.0.3"
+version = "4.0.4"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5539,7 +5539,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6db2770f06117d490610c7488547d543617b21bfa07796d7a12f6f1bd53850d1"
 dependencies = [
  "rand_chacha",
- "rand_core 0.9.4",
+ "rand_core 0.9.5",
 ]
 
 [[package]]
@@ -5549,7 +5549,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
 dependencies = [
  "ppv-lite86",
- "rand_core 0.9.4",
+ "rand_core 0.9.5",
 ]
 
 [[package]]
@@ -5560,9 +5560,9 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "rand_core"
-version = "0.9.4"
+version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f1b3bc831f92381018fd9c6350b917c7b21f1eed35a65a51900e0e55a3d7afa"
+checksum = "76afc826de14238e6e8c374ddcc1fa19e374fd8dd986b0d2af0d02377261d83c"
 dependencies = [
  "getrandom 0.3.4",
 ]
@@ -7037,9 +7037,9 @@ dependencies = [
 
 [[package]]
 name = "tiff"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ca7d255bdca58582b097aeb0e62c3b2daefa9fcc894e7d7b97abade6a73d56b"
+checksum = "12a428a62d64194a42bd7d19eeaaa3300d1365bc5e7e23e5b2c3efcdfddead6f"
 dependencies = [
  "fax",
  "flate2",

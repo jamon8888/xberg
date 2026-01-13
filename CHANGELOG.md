@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.4] - 2026-01-13
+
+### Fixed
+
+#### Docker
+- **LibreOffice now accessible in full image**: Fixed `MissingDependencyError` when extracting legacy MS Office formats (.doc, .ppt) via REST API ([#288](https://github.com/kreuzberg-dev/kreuzberg/issues/288))
+  - Added symlinks `/usr/local/bin/soffice` and `/usr/local/bin/libreoffice` pointing to LibreOffice installation
+  - Added missing runtime dependencies: libssl3, libnss3, libnspr4, libdbus-1-3, libcups2
+
+#### CI/CD
+- **C# Windows CI**: Fixed JSON serialization for FFI - changed `JsonIgnoreCondition.WhenWritingNull` to `JsonIgnoreCondition.Never` to ensure Rust FFI receives all required fields
+- **Go CI**: Added FFI header file (`kreuzberg.h`) and pkg-config file to artifact uploads for cross-job availability
+- **PHP Windows CI**: Fixed path separator issue - replaced hardcoded `/` with `DIRECTORY_SEPARATOR` in 14 test files for Windows compatibility
+- **Cargo workspace**: Removed hardcoded version constraints from path dependencies in `kreuzberg-cli` and `kreuzberg` crates
+
+#### Elixir Publish Workflow
+- **Fixed native library paths**: Elixir NIF libraries are now correctly located in workspace root `target/` directory instead of local package target directory
+
+---
+
 ## [4.0.3] - 2026-01-12
 
 ### Added
