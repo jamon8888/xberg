@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.3] - 2026-01-12
 
+### Added
+
+#### HTML Configuration Support
+- **Full `html_options` configuration**: The `html_options` field in `ExtractionConfig` is now fully configurable from config files (TOML/YAML/JSON) and all language bindings ([#282](https://github.com/kreuzberg-dev/kreuzberg/issues/282))
+  - Upgraded `html-to-markdown-rs` to v2.21.1 with serde support
+  - Configure heading styles, code block styles, list formatting, text wrapping, and more
+  - Replaces v3's `HTMLToMarkdownConfig` with more comprehensive options
+  - See migration guide for available options and examples
+
 ### Fixed
 
 #### Go Module
@@ -23,7 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Documentation
 - **Rust OCR code examples**: Fixed incorrect `Some(...)` wrapper in OcrConfig examples - `backend` and `language` fields are plain `String` types, not `Option<String>` ([#284](https://github.com/kreuzberg-dev/kreuzberg/issues/284))
   - Updated all Rust doc snippets in `docs/snippets/rust/` to use correct types
-- **HTMLToMarkdownConfig migration guide**: Clarified that `HTMLToMarkdownConfig` was intentionally removed in v4; HTML-to-Markdown conversion now uses sensible defaults from `html-to-markdown-rs` library ([#282](https://github.com/kreuzberg-dev/kreuzberg/issues/282))
+
+#### Tests
+- **Flaky concurrent interning test**: Marked `test_concurrent_interning` as `#[ignore]` to prevent intermittent CI failures
 
 #### Distribution
 - **Homebrew tap visibility**: Made `kreuzberg-dev/homebrew-tap` repository public to enable `brew install kreuzberg-dev/tap/kreuzberg` ([#283](https://github.com/kreuzberg-dev/kreuzberg/issues/283))

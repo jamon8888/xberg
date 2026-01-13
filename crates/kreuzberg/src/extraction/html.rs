@@ -149,7 +149,7 @@ fn convert_inline_images_with_options(
     options: ConversionOptions,
     image_config: LibInlineImageConfig,
 ) -> Result<HtmlExtraction> {
-    convert_with_inline_images(html, Some(options), image_config)
+    convert_with_inline_images(html, Some(options), image_config, None)
         .map_err(|e| KreuzbergError::parsing(format!("Failed to convert HTML to Markdown with images: {}", e)))
 }
 
@@ -321,7 +321,7 @@ pub fn convert_html_to_markdown_with_metadata(
     if html_requires_large_stack(html.len()) {
         let html = html.to_string();
         return run_on_dedicated_stack(move || {
-            convert_with_metadata(&html, Some(options), metadata_config)
+            convert_with_metadata(&html, Some(options), metadata_config, None)
                 .map_err(|e| KreuzbergError::parsing(format!("HTML metadata extraction failed: {}", e)))
                 .map(|(markdown, extended_metadata)| {
                     let html_metadata = HtmlMetadata::from(extended_metadata);
@@ -337,7 +337,7 @@ pub fn convert_html_to_markdown_with_metadata(
         });
     }
 
-    let (markdown, extended_metadata) = convert_with_metadata(html, Some(options), metadata_config)
+    let (markdown, extended_metadata) = convert_with_metadata(html, Some(options), metadata_config, None)
         .map_err(|e| KreuzbergError::parsing(format!("HTML metadata extraction failed: {}", e)))?;
 
     let html_metadata = HtmlMetadata::from(extended_metadata);

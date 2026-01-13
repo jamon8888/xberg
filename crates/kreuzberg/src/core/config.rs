@@ -115,12 +115,12 @@ pub struct ExtractionConfig {
     #[serde(default)]
     pub postprocessor: Option<PostProcessorConfig>,
 
-    /// HTML conversion options (None = use defaults)
+    /// HTML to Markdown conversion options (None = use defaults)
     ///
-    /// Note: This field cannot be deserialized from TOML/YAML/JSON files.
-    /// Set it programmatically after loading config.
+    /// Configure how HTML documents are converted to Markdown, including heading styles,
+    /// list formatting, code block styles, and preprocessing options.
     #[cfg(feature = "html")]
-    #[serde(skip)]
+    #[serde(default)]
     pub html_options: Option<html_to_markdown_rs::ConversionOptions>,
 
     /// Maximum concurrent extractions in batch operations (None = num_cpus * 2).

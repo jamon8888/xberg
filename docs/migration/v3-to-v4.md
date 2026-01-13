@@ -1392,21 +1392,27 @@ result = extract_file("doc.pdf", config=config)
 #### Entity Extraction, Keyword Extraction, Document Classification
 Removed. Use external libraries (spaCy, KeyBERT, etc.) with postprocessors if needed.
 
-#### HTMLToMarkdownConfig Removed
+#### HTMLToMarkdownConfig Replaced with html_options
 
-v3 provided `HTMLToMarkdownConfig` for customizing HTML-to-Markdown conversion with options like `extract_metadata`, `preprocess_html`, and various formatting settings.
+v3 provided `HTMLToMarkdownConfig` for customizing HTML-to-Markdown conversion.
 
-**v4 removes this configuration entirely.** The HTML-to-Markdown conversion now uses carefully tuned defaults that work well for most documents. This change was intentional to simplify the API.
+**v4 replaces this with `html_options`**, which provides comprehensive configuration for HTML-to-Markdown conversion using the `html-to-markdown-rs` library. The new configuration offers more options and better control than v3.
 
-**Why was this removed?**
-- v4 uses the `html-to-markdown-rs` library internally, which has sensible defaults
-- The previous configuration options added complexity without significant benefit
-- Most users never customized these settings
-- The defaults produce clean, readable Markdown output for typical HTML documents
+**Available options in `html_options`:**
 
-**What if I need custom HTML-to-Markdown behavior?**
-
-For advanced Rust users who need fine-grained control, the internal `html_options` field exists in `ExtractionConfig` but is not exposed through language bindings. If you have specific requirements that the defaults don't satisfy, please [file an issue](https://github.com/kreuzberg-dev/kreuzberg/issues) describing your use case.
+- `heading_style` - Heading format: "atx" (#), "underlined" (===), or "atx_closed" (# ... #)
+- `list_indent_type` - List indentation: "spaces" or "tabs"
+- `list_indent_width` - Number of spaces/tabs for list indentation
+- `code_block_style` - Code block format: "indented", "backticks", or "tildes"
+- `highlight_style` - Mark element style: "double_equal", "html", "bold", or "none"
+- `whitespace_mode` - Whitespace handling: "normalized" or "strict"
+- `newline_style` - Line break style: "spaces" (two spaces) or "backslash"
+- `preprocessing` - HTML preprocessing options (remove navigation, forms, etc.)
+- `extract_metadata` - Whether to extract document metadata
+- `autolinks` - Enable automatic linking for bare URLs
+- `wrap` - Enable text wrapping
+- `wrap_width` - Line width for text wrapping (default: 80)
+- And many more...
 
 **Migration:**
 ```python title="Python"
@@ -1420,8 +1426,42 @@ config = ExtractionConfig(
     )
 )
 
-# v4 - no configuration needed, uses optimized defaults
-config = ExtractionConfig()  # HTML-to-Markdown works automatically
+# v4 with html_options
+from kreuzberg import ExtractionConfig, HtmlOptions, PreprocessingOptions
+
+config = ExtractionConfig(
+    html_options=HtmlOptions(
+        extract_metadata=True,
+        heading_style="atx",
+        code_block_style="backticks",
+        preprocessing=PreprocessingOptions(
+            enabled=True,
+            remove_navigation=True,
+            remove_forms=True,
+        ),
+    )
+)
+
+# v4 - defaults work well for most cases
+config = ExtractionConfig()  # Uses sensible defaults
+```
+
+**Rust example:**
+```rust title="Rust"
+use kreuzberg::{ExtractionConfig, extract_file_sync};
+use html_to_markdown_rs::{ConversionOptions, HeadingStyle, CodeBlockStyle};
+
+let config = ExtractionConfig {
+    html_options: Some(ConversionOptions {
+        heading_style: HeadingStyle::Atx,
+        code_block_style: CodeBlockStyle::Backticks,
+        extract_metadata: true,
+        ..Default::default()
+    }),
+    ..Default::default()
+};
+
+let result = extract_file_sync("document.html", None, &config)?;
 ```
 
 #### Other
