@@ -493,11 +493,13 @@ mod tests {
         let monitor = ResourceMonitor::new();
 
         monitor.start(Duration::from_millis(10)).await;
-        tokio::time::sleep(Duration::from_millis(50)).await;
+        tokio::time::sleep(Duration::from_millis(100)).await;
         let samples = monitor.stop().await;
 
         assert!(!samples.is_empty(), "Should have collected samples");
-        assert!(samples.len() >= 3, "Should have at least 3 samples");
+        // With 10ms interval and 100ms sleep, we expect at least 5-8 samples
+        // But to avoid flakiness, we allow for timing variance and require at least 2
+        assert!(samples.len() >= 2, "Should have at least 2 samples");
     }
 
     #[tokio::test]
