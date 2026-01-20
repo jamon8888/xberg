@@ -1,15 +1,9 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: [
-		"typescript/index.ts",
-		"typescript/cli.ts",
-		"typescript/errors.ts",
-		"typescript/types.ts",
-		"typescript/ocr/guten-ocr.ts",
-	],
+	entry: ["typescript/**/*.ts", "!typescript/**/*.spec.ts", "!typescript/**/*.d.ts"],
 	format: ["esm", "cjs"],
-	bundle: true,
+	bundle: false,
 	dts: {
 		compilerOptions: {
 			skipLibCheck: true,
