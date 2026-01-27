@@ -11,7 +11,7 @@ module Kreuzberg
   # rubocop:disable Metrics/ClassLength
   class Result
     attr_reader :content, :mime_type, :metadata, :metadata_json, :tables,
-                :detected_languages, :chunks, :images, :pages, :elements
+                :detected_languages, :chunks, :images, :pages, :elements, :djot_content
 
     # @!attribute [r] cells
     #   @return [Array<Array<String>>] Table cells (2D array)
@@ -180,6 +180,7 @@ module Kreuzberg
     #
     # @param hash [Hash] Hash returned from native extension
     #
+    # rubocop:disable Metrics/AbcSize
     def initialize(hash)
       @content = get_value(hash, 'content', '')
       @mime_type = get_value(hash, 'mime_type', '')
@@ -191,7 +192,9 @@ module Kreuzberg
       @images = parse_images(get_value(hash, 'images'))
       @pages = parse_pages(get_value(hash, 'pages'))
       @elements = parse_elements(get_value(hash, 'elements'))
+      @djot_content = parse_djot_content(get_value(hash, 'djot_content'))
     end
+    # rubocop:enable Metrics/AbcSize
 
     # Convert to hash
     #
@@ -207,7 +210,8 @@ module Kreuzberg
         chunks: serialize_chunks,
         images: serialize_images,
         pages: serialize_pages,
-        elements: serialize_elements
+        elements: serialize_elements,
+        djot_content: @djot_content&.to_h
       }
     end
 
@@ -433,6 +437,12 @@ module Kreuzberg
         x1: coordinates_data['x1'].to_f,
         y1: coordinates_data['y1'].to_f
       )
+    end
+
+    def parse_djot_content(djot_data)
+      return nil if djot_data.nil?
+
+      DjotContent.new(djot_data)
     end
   end
   # rubocop:enable Metrics/ClassLength

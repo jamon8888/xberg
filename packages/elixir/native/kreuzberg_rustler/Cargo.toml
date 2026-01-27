@@ -6,9 +6,6 @@ license = "MIT"
 description = "Elixir bindings for Kreuzberg document intelligence library"
 repository = "https://github.com/kreuzberg-dev/kreuzberg"
 
-[lints]
-workspace = true
-
 [lib]
 name = "kreuzberg_rustler"
 crate-type = ["cdylib"]

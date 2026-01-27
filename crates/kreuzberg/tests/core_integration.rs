@@ -408,10 +408,8 @@ async fn test_nonexistent_file_error() {
     let result = extract_file("/nonexistent/file.txt", None, &config).await;
 
     assert!(result.is_err());
-    assert!(matches!(
-        result.unwrap_err(),
-        kreuzberg::KreuzbergError::Validation { .. }
-    ));
+    // File validation returns Io error for missing files (NotFound)
+    assert!(matches!(result.unwrap_err(), kreuzberg::KreuzbergError::Io(_)));
 }
 
 /// Test error handling for unsupported MIME types.

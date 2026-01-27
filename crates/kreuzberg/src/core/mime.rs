@@ -231,15 +231,15 @@ static SUPPORTED_MIME_TYPES: Lazy<HashSet<&'static str>> = Lazy::new(|| {
 ///
 /// # Errors
 ///
-/// Returns `KreuzbergError::Validation` if file doesn't exist (when `check_exists` is true).
+/// Returns `KreuzbergError::Io` if file doesn't exist (when `check_exists` is true).
 /// Returns `KreuzbergError::UnsupportedFormat` if MIME type cannot be determined.
 pub fn detect_mime_type(path: impl AsRef<Path>, check_exists: bool) -> Result<String> {
     let path = path.as_ref();
 
     if check_exists && !path.exists() {
-        return Err(KreuzbergError::validation(format!(
-            "File does not exist: {}",
-            path.display()
+        return Err(KreuzbergError::from(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("File does not exist: {}", path.display()),
         )));
     }
 

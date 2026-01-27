@@ -294,13 +294,15 @@ type PageConfig struct {
 }
 
 // OutputFormat controls the format of extracted content.
-// Options: "plain", "markdown", "djot", "html"
-// Default: "markdown" (via Rust)
+// Options: "plain", "text", "markdown", "md", "djot", "html"
+// Default: "plain" (via Rust)
 type OutputFormat string
 
 const (
 	OutputFormatPlain    OutputFormat = "plain"
+	OutputFormatText     OutputFormat = "text" // Alias for plain
 	OutputFormatMarkdown OutputFormat = "markdown"
+	OutputFormatMd       OutputFormat = "md" // Alias for markdown
 	OutputFormatDjot     OutputFormat = "djot"
 	OutputFormatHTML     OutputFormat = "html"
 )

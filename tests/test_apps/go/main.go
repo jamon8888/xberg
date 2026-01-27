@@ -60,6 +60,36 @@ func main() {
 	runner.StartSection("Embedding Preset Functions")
 	testEmbeddingPresets(runner)
 
+	runner.StartSection("Validation List Functions")
+	testValidationLists(runner)
+
+	runner.StartSection("Result Serialization")
+	testResultSerialization(runner)
+
+	runner.StartSection("Config File Functions")
+	testConfigFileFunctions(runner)
+
+	runner.StartSection("Plugin Registration Functions")
+	testPluginRegistration(runner)
+
+	runner.StartSection("Context-based Batch Extraction")
+	testBatchExtractionContext(runner)
+
+	runner.StartSection("Additional Validation Functions")
+	testAdditionalValidation(runner)
+
+	runner.StartSection("Configuration Builder Functions")
+	testConfigBuilders(runner)
+
+	runner.StartSection("Result Accessor Methods")
+	testResultAccessors(runner)
+
+	runner.StartSection("Metadata Type Accessors")
+	testMetadataTypeAccessors(runner)
+
+	runner.StartSection("Additional Pointer Helpers")
+	testAdditionalPointerHelpers(runner)
+
 	exitCode := runner.Summary()
 	os.Exit(exitCode)
 }
@@ -472,7 +502,7 @@ func testConfigFunctions(tr *TestRunner) {
 // testMimeTypeFunctions tests MIME type detection and validation.
 func testMimeTypeFunctions(tr *TestRunner) {
 	tr.Test("DetectMimeType recognizes PDF", func() error {
-		pdfBytes, err := getTestPDFBytes()
+		pdfBytes, err := getTestPDFBytesForMain()
 		if err != nil {
 			return fmt.Errorf("failed to get test PDF: %w", err)
 		}
@@ -487,8 +517,10 @@ func testMimeTypeFunctions(tr *TestRunner) {
 	})
 
 	tr.Test("DetectMimeTypeFromPath works for PDF", func() error {
-		testDocs := filepath.Join(filepath.Dir(os.Args[0]), "test_documents")
-		pdfPath := filepath.Join(testDocs, "tiny.pdf")
+		pdfPath, err := getTestDocumentPathForMain("", "tiny.pdf")
+		if err != nil {
+			return fmt.Errorf("test PDF not found: %w", err)
+		}
 		if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
 			return fmt.Errorf("test PDF not found: %s", pdfPath)
 		}
@@ -682,8 +714,13 @@ func testFFIErrorCodes(tr *TestRunner) {
 
 // testExtractionSync tests synchronous extraction functions.
 func testExtractionSync(tr *TestRunner) {
-	testDocs := filepath.Join(filepath.Dir(os.Args[0]), "test_documents")
-	pdfPath := filepath.Join(testDocs, "tiny.pdf")
+	pdfPath, err := getTestDocumentPathForMain("", "tiny.pdf")
+	if err != nil {
+		tr.Test("ExtractFileSync with valid PDF", func() error {
+			return fmt.Errorf("Could not find test document: %w", err)
+		})
+		return
+	}
 
 	tr.Test("ExtractFileSync with valid PDF", func() error {
 		if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
@@ -716,7 +753,7 @@ func testExtractionSync(tr *TestRunner) {
 	})
 
 	tr.Test("ExtractBytesSync with valid PDF", func() error {
-		data, err := getTestPDFBytes()
+		data, err := getTestPDFBytesForMain()
 		if err != nil {
 			return fmt.Errorf("failed to get PDF bytes: %w", err)
 		}
@@ -731,7 +768,7 @@ func testExtractionSync(tr *TestRunner) {
 	})
 
 	tr.Test("ExtractBytesSync with config", func() error {
-		data, err := getTestPDFBytes()
+		data, err := getTestPDFBytesForMain()
 		if err != nil {
 			return fmt.Errorf("failed to get PDF bytes: %w", err)
 		}
@@ -755,8 +792,10 @@ func testExtractionContext(tr *TestRunner) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		testDocs := filepath.Join(filepath.Dir(os.Args[0]), "test_documents")
-		pdfPath := filepath.Join(testDocs, "tiny.pdf")
+		pdfPath, err := getTestDocumentPathForMain("", "tiny.pdf")
+		if err != nil {
+			return fmt.Errorf("test PDF not found: %w", err)
+		}
 
 		if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
 			return fmt.Errorf("test PDF not found: %s", pdfPath)
@@ -776,7 +815,7 @@ func testExtractionContext(tr *TestRunner) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		data, err := getTestPDFBytes()
+		data, err := getTestPDFBytesForMain()
 		if err != nil {
 			return fmt.Errorf("failed to get PDF bytes: %w", err)
 		}
@@ -794,8 +833,10 @@ func testExtractionContext(tr *TestRunner) {
 // testBatchExtraction tests batch extraction functions.
 func testBatchExtraction(tr *TestRunner) {
 	tr.Test("BatchExtractFilesSync with multiple files", func() error {
-		testDocs := filepath.Join(filepath.Dir(os.Args[0]), "test_documents")
-		pdfPath := filepath.Join(testDocs, "tiny.pdf")
+		pdfPath, err := getTestDocumentPathForMain("", "tiny.pdf")
+		if err != nil {
+			return fmt.Errorf("test PDF not found: %w", err)
+		}
 
 		if _, err := os.Stat(pdfPath); os.IsNotExist(err) {
 			return fmt.Errorf("test PDF not found: %s", pdfPath)
@@ -813,7 +854,7 @@ func testBatchExtraction(tr *TestRunner) {
 	})
 
 	tr.Test("BatchExtractBytesSync with multiple items", func() error {
-		data, err := getTestPDFBytes()
+		data, err := getTestPDFBytesForMain()
 		if err != nil {
 			return fmt.Errorf("failed to get PDF bytes: %w", err)
 		}
@@ -1017,9 +1058,677 @@ func testEmbeddingPresets(tr *TestRunner) {
 	})
 }
 
-// getTestPDFBytes returns bytes from the test PDF file.
-func getTestPDFBytes() ([]byte, error) {
-	testDocs := filepath.Join(filepath.Dir(os.Args[0]), "test_documents")
-	pdfPath := filepath.Join(testDocs, "tiny.pdf")
+// testValidationLists tests the validation list functions.
+func testValidationLists(tr *TestRunner) {
+	tr.Test("GetValidBinarizationMethods returns list", func() error {
+		methods, err := kb.GetValidBinarizationMethods()
+		if err != nil {
+			return fmt.Errorf("GetValidBinarizationMethods failed: %w", err)
+		}
+		if len(methods) == 0 {
+			return errors.New("no methods returned")
+		}
+		return nil
+	})
+
+	tr.Test("GetValidLanguageCodes returns list", func() error {
+		codes, err := kb.GetValidLanguageCodes()
+		if err != nil {
+			return fmt.Errorf("GetValidLanguageCodes failed: %w", err)
+		}
+		if len(codes) == 0 {
+			return errors.New("no codes returned")
+		}
+		return nil
+	})
+
+	tr.Test("GetValidOCRBackends returns list", func() error {
+		backends, err := kb.GetValidOCRBackends()
+		if err != nil {
+			return fmt.Errorf("GetValidOCRBackends failed: %w", err)
+		}
+		if len(backends) == 0 {
+			return errors.New("no backends returned")
+		}
+		return nil
+	})
+
+	tr.Test("GetValidTokenReductionLevels returns list", func() error {
+		levels, err := kb.GetValidTokenReductionLevels()
+		if err != nil {
+			return fmt.Errorf("GetValidTokenReductionLevels failed: %w", err)
+		}
+		if len(levels) == 0 {
+			return errors.New("no levels returned")
+		}
+		return nil
+	})
+}
+
+// testResultSerialization tests result JSON serialization.
+func testResultSerialization(tr *TestRunner) {
+	tr.Test("ResultToJSON serializes result", func() error {
+		result := &kb.ExtractionResult{
+			Content:  "test content",
+			MimeType: "text/plain",
+		}
+		jsonStr, err := kb.ResultToJSON(result)
+		if err != nil {
+			return fmt.Errorf("ResultToJSON failed: %w", err)
+		}
+		if jsonStr == "" {
+			return errors.New("empty JSON result")
+		}
+		return nil
+	})
+
+	tr.Test("ResultFromJSON deserializes result", func() error {
+		jsonStr := `{"content": "test", "mime_type": "text/plain"}`
+		result, err := kb.ResultFromJSON(jsonStr)
+		if err != nil {
+			return fmt.Errorf("ResultFromJSON failed: %w", err)
+		}
+		if result == nil {
+			return errors.New("result is nil")
+		}
+		return nil
+	})
+}
+
+// testConfigFileFunctions tests config file loading functions.
+func testConfigFileFunctions(tr *TestRunner) {
+	tr.Test("ConfigDiscover returns config or nil", func() error {
+		cfg, err := kb.ConfigDiscover()
+		_ = cfg // can be nil, just checking it doesn't error
+		_ = err  // can error, just checking it's callable
+		return nil
+	})
+
+	tr.Test("LoadExtractionConfigFromFile handles missing file gracefully", func() error {
+		_, err := kb.LoadExtractionConfigFromFile("/nonexistent/config.json")
+		// Should error on missing file
+		if err == nil {
+			return errors.New("missing file should error")
+		}
+		return nil
+	})
+
+	tr.Test("ConfigFromFile handles missing file gracefully", func() error {
+		_, err := kb.ConfigFromFile("/nonexistent/config.json")
+		// Should error on missing file
+		if err == nil {
+			return errors.New("missing file should error")
+		}
+		return nil
+	})
+}
+
+// testPluginRegistration tests plugin registration and clearing functions.
+func testPluginRegistration(tr *TestRunner) {
+	tr.Test("ListOCRBackends works", func() error {
+		backends, err := kb.ListOCRBackends()
+		if err != nil {
+			return fmt.Errorf("ListOCRBackends failed: %w", err)
+		}
+		if backends == nil {
+			return errors.New("backends list is nil")
+		}
+		return nil
+	})
+
+	tr.Test("ListPostProcessors works", func() error {
+		processors, err := kb.ListPostProcessors()
+		if err != nil {
+			return fmt.Errorf("ListPostProcessors failed: %w", err)
+		}
+		if processors == nil {
+			return errors.New("processors list is nil")
+		}
+		return nil
+	})
+
+	tr.Test("ListValidators works", func() error {
+		validators, err := kb.ListValidators()
+		if err != nil {
+			return fmt.Errorf("ListValidators failed: %w", err)
+		}
+		if validators == nil {
+			return errors.New("validators list is nil")
+		}
+		return nil
+	})
+
+	tr.Test("ListDocumentExtractors works", func() error {
+		extractors, err := kb.ListDocumentExtractors()
+		if err != nil {
+			return fmt.Errorf("ListDocumentExtractors failed: %w", err)
+		}
+		if extractors == nil {
+			return errors.New("extractors list is nil")
+		}
+		return nil
+	})
+}
+
+// testBatchExtractionContext tests batch extraction with context.
+func testBatchExtractionContext(tr *TestRunner) {
+	pdfPath, err := getTestDocumentPathForMain("", "tiny.pdf")
+	if err != nil {
+		tr.Test("BatchExtractFilesWithContext (unable to find test file)", func() error {
+			return fmt.Errorf("Could not find test document: %w", err)
+		})
+		tr.Test("BatchExtractBytesWithContext (unable to find test file)", func() error {
+			return fmt.Errorf("Could not find test document: %w", err)
+		})
+		return
+	}
+
+	tr.Test("BatchExtractFilesWithContext completes", func() error {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		paths := []string{pdfPath}
+		results, err := kb.BatchExtractFilesWithContext(ctx, paths, nil)
+		if err != nil {
+			return fmt.Errorf("BatchExtractFilesWithContext failed: %w", err)
+		}
+		if len(results) != len(paths) {
+			return errors.New("result count mismatch")
+		}
+		return nil
+	})
+
+	tr.Test("BatchExtractBytesWithContext completes", func() error {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		data, err := getTestPDFBytesForMain()
+		if err != nil {
+			return fmt.Errorf("failed to get test PDF: %w", err)
+		}
+
+		items := []kb.BytesWithMime{
+			{Data: data, MimeType: "application/pdf"},
+		}
+		results, err := kb.BatchExtractBytesWithContext(ctx, items, nil)
+		if err != nil {
+			return fmt.Errorf("BatchExtractBytesWithContext failed: %w", err)
+		}
+		if len(results) != len(items) {
+			return errors.New("result count mismatch")
+		}
+		return nil
+	})
+}
+
+// testAdditionalValidation tests additional validation functions.
+func testAdditionalValidation(tr *TestRunner) {
+	tr.Test("ValidateChunkingParams accepts valid values", func() error {
+		return kb.ValidateChunkingParams(1024, 100)
+	})
+
+	tr.Test("ValidateChunkingParams rejects zero max_chars", func() error {
+		err := kb.ValidateChunkingParams(0, 100)
+		if err == nil {
+			return errors.New("zero max_chars should be rejected")
+		}
+		return nil
+	})
+
+	tr.Test("ValidateConfidence accepts valid value", func() error {
+		return kb.ValidateConfidence(0.8)
+	})
+
+	tr.Test("ValidateConfidence rejects value > 1.0", func() error {
+		err := kb.ValidateConfidence(1.5)
+		if err == nil {
+			return errors.New("value > 1.0 should be rejected")
+		}
+		return nil
+	})
+
+	tr.Test("ValidateDPI accepts valid value", func() error {
+		return kb.ValidateDPI(300)
+	})
+
+	tr.Test("ValidateDPI rejects zero", func() error {
+		err := kb.ValidateDPI(0)
+		if err == nil {
+			return errors.New("zero DPI should be rejected")
+		}
+		return nil
+	})
+
+	tr.Test("ValidateOutputFormat accepts 'plain'", func() error {
+		return kb.ValidateOutputFormat("plain")
+	})
+
+	tr.Test("ValidateOutputFormat rejects invalid format", func() error {
+		err := kb.ValidateOutputFormat("invalid_format_xyz")
+		if err == nil {
+			return errors.New("invalid format should be rejected")
+		}
+		return nil
+	})
+}
+
+// testConfigBuilders tests configuration builder functions.
+func testConfigBuilders(tr *TestRunner) {
+	tr.Test("NewExtractionConfig with options", func() error {
+		cfg := kb.NewExtractionConfig(
+			kb.WithUseCache(true),
+			kb.WithForceOCR(false),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewChunkingConfig with options", func() error {
+		cfg := kb.NewChunkingConfig(
+			kb.WithChunkSize(1024),
+			kb.WithMaxOverlap(100),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewOCRConfig with options", func() error {
+		cfg := kb.NewOCRConfig(
+			kb.WithOCRBackend("tesseract"),
+			kb.WithOCRLanguage("eng"),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewTesseractConfig with options", func() error {
+		cfg := kb.NewTesseractConfig(
+			kb.WithTesseractLanguage("eng"),
+			kb.WithTesseractPSM(6),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewImageExtractionConfig with options", func() error {
+		cfg := kb.NewImageExtractionConfig(
+			kb.WithExtractImages(true),
+			kb.WithImageTargetDPI(300),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewImagePreprocessingConfig with options", func() error {
+		cfg := kb.NewImagePreprocessingConfig(
+			kb.WithTargetDPI(300),
+			kb.WithAutoRotate(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewPdfConfig with options", func() error {
+		cfg := kb.NewPdfConfig(
+			kb.WithPdfExtractImages(true),
+			kb.WithPdfExtractMetadata(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewLanguageDetectionConfig with options", func() error {
+		cfg := kb.NewLanguageDetectionConfig(
+			kb.WithLanguageDetectionEnabled(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewKeywordConfig with options", func() error {
+		cfg := kb.NewKeywordConfig(
+			kb.WithKeywordAlgorithm("yake"),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewHTMLConversionOptions with options", func() error {
+		cfg := kb.NewHTMLConversionOptions(
+			kb.WithHeadingStyle("atx"),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewEmbeddingConfig with options", func() error {
+		cfg := kb.NewEmbeddingConfig(
+			kb.WithEmbeddingNormalize(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewHierarchyConfig with options", func() error {
+		cfg := kb.NewHierarchyConfig(
+			kb.WithHierarchyEnabled(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewPageConfig with options", func() error {
+		cfg := kb.NewPageConfig(
+			kb.WithExtractPages(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewTokenReductionConfig with options", func() error {
+		cfg := kb.NewTokenReductionConfig(
+			kb.WithTokenReductionMode("aggressive"),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewPostProcessorConfig with options", func() error {
+		cfg := kb.NewPostProcessorConfig(
+			kb.WithPostProcessorEnabled(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewFontConfig with options", func() error {
+		cfg := kb.NewFontConfig(
+			kb.WithFontConfigEnabled(true),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewYakeParams with options", func() error {
+		cfg := kb.NewYakeParams(
+			kb.WithYakeWindowSize(3),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+
+	tr.Test("NewRakeParams with options", func() error {
+		cfg := kb.NewRakeParams(
+			kb.WithRakeMinWordLength(3),
+		)
+		if cfg == nil {
+			return errors.New("config is nil")
+		}
+		return nil
+	})
+}
+
+// testResultAccessors tests ExtractionResult accessor methods.
+func testResultAccessors(tr *TestRunner) {
+	tr.Test("ExtractionResult.GetPageCount returns count", func() error {
+		result := &kb.ExtractionResult{
+			Metadata: kb.Metadata{
+				PageStructure: &kb.PageStructure{
+					TotalCount: 2,
+				},
+			},
+		}
+		count, err := result.GetPageCount()
+		if err != nil {
+			return fmt.Errorf("GetPageCount failed: %w", err)
+		}
+		if count != 2 {
+			return fmt.Errorf("expected 2 pages, got %d", count)
+		}
+		return nil
+	})
+
+	tr.Test("ExtractionResult.GetChunkCount returns count", func() error {
+		result := &kb.ExtractionResult{
+			Chunks: []kb.Chunk{
+				{Content: "chunk1"},
+				{Content: "chunk2"},
+			},
+		}
+		count, err := result.GetChunkCount()
+		if err != nil {
+			return fmt.Errorf("GetChunkCount failed: %w", err)
+		}
+		if count != 2 {
+			return fmt.Errorf("expected 2 chunks, got %d", count)
+		}
+		return nil
+	})
+
+	tr.Test("ExtractionResult.GetDetectedLanguage returns language", func() error {
+		result := &kb.ExtractionResult{
+			Metadata: kb.Metadata{},
+		}
+		lang, err := result.GetDetectedLanguage()
+		// Can return empty string, just checking it doesn't panic
+		_ = lang
+		_ = err
+		return nil
+	})
+
+	tr.Test("ExtractionResult.GetMetadataField returns field", func() error {
+		result := &kb.ExtractionResult{
+			Metadata: kb.Metadata{},
+		}
+		field, err := result.GetMetadataField("title")
+		// Can be nil, just checking it doesn't panic
+		_ = field
+		_ = err
+		return nil
+	})
+
+	tr.Test("ExtractionResult.String returns string representation", func() error {
+		result := &kb.ExtractionResult{
+			Content: "test content",
+		}
+		str := result.String()
+		if str == "" {
+			return errors.New("empty string representation")
+		}
+		return nil
+	})
+}
+
+// testMetadataTypeAccessors tests Metadata type accessor methods.
+func testMetadataTypeAccessors(tr *TestRunner) {
+	tr.Test("Metadata.HTMLMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.HTMLMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.XMLMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.XMLMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.TextMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.TextMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.ImageMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.ImageMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.EmailMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.EmailMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.ExcelMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.ExcelMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.ArchiveMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.ArchiveMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.PptxMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.PptxMetadata()
+		_ = ok
+		return nil
+	})
+
+	tr.Test("Metadata.OcrMetadata accessor", func() error {
+		meta := kb.Metadata{}
+		_, ok := meta.OcrMetadata()
+		_ = ok
+		return nil
+	})
+}
+
+// testAdditionalPointerHelpers tests the remaining pointer helper functions.
+func testAdditionalPointerHelpers(tr *TestRunner) {
+	tr.Test("Int32Ptr creates pointer to int32", func() error {
+		ptr := kb.Int32Ptr(42)
+		if ptr == nil || *ptr != 42 {
+			return errors.New("Int32Ptr failed")
+		}
+		return nil
+	})
+
+	tr.Test("Int64Ptr creates pointer to int64", func() error {
+		ptr := kb.Int64Ptr(100)
+		if ptr == nil || *ptr != 100 {
+			return errors.New("Int64Ptr failed")
+		}
+		return nil
+	})
+
+	tr.Test("Float32Ptr creates pointer to float32", func() error {
+		ptr := kb.Float32Ptr(3.14)
+		if ptr == nil || *ptr != 3.14 {
+			return errors.New("Float32Ptr failed")
+		}
+		return nil
+	})
+
+	tr.Test("Float64Ptr creates pointer to float64", func() error {
+		ptr := kb.Float64Ptr(3.14159)
+		if ptr == nil || *ptr != 3.14159 {
+			return errors.New("Float64Ptr failed")
+		}
+		return nil
+	})
+
+	tr.Test("Uint32Ptr creates pointer to uint32", func() error {
+		ptr := kb.Uint32Ptr(42)
+		if ptr == nil || *ptr != 42 {
+			return errors.New("Uint32Ptr failed")
+		}
+		return nil
+	})
+
+	tr.Test("Uint64Ptr creates pointer to uint64", func() error {
+		ptr := kb.Uint64Ptr(100)
+		if ptr == nil || *ptr != 100 {
+			return errors.New("Uint64Ptr failed")
+		}
+		return nil
+	})
+}
+
+// getTestDocumentPathForMain returns the full path to a test document by walking up from current directory.
+func getTestDocumentPathForMain(subdir, filename string) (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	// Navigate from test_apps/go to find test_documents directory
+	var testDocsDir string
+	currentDir := wd
+	for {
+		// First, check in current directory
+		testDocsPath := filepath.Join(currentDir, "test_documents")
+		if _, err := os.Stat(testDocsPath); err == nil {
+			// Found test_documents, verify it has the expected structure
+			if _, err := os.Stat(filepath.Join(testDocsPath, "tiny.pdf")); err == nil {
+				testDocsDir = testDocsPath
+				break
+			}
+		}
+
+		parent := filepath.Dir(currentDir)
+		if parent == currentDir {
+			return "", errors.New("failed to find test_documents directory with tiny.pdf")
+		}
+		currentDir = parent
+	}
+
+	if subdir != "" {
+		return filepath.Join(testDocsDir, subdir, filename), nil
+	}
+	return filepath.Join(testDocsDir, filename), nil
+}
+
+// getTestPDFBytesForMain returns bytes from the test PDF file.
+func getTestPDFBytesForMain() ([]byte, error) {
+	pdfPath, err := getTestDocumentPathForMain("", "tiny.pdf")
+	if err != nil {
+		return nil, err
+	}
 	return os.ReadFile(pdfPath)
 }

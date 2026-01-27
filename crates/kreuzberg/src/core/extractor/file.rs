@@ -106,9 +106,8 @@ pub(in crate::core::extractor) fn record_error(error: &KreuzbergError) {
 ///
 /// # Errors
 ///
-/// Returns `KreuzbergError::Validation` if the file doesn't exist or path is invalid.
+/// Returns `KreuzbergError::Io` if the file doesn't exist (NotFound) or for other file I/O errors.
 /// Returns `KreuzbergError::UnsupportedFormat` if MIME type is not supported.
-/// Returns `KreuzbergError::Io` for file I/O errors (these always bubble up).
 ///
 /// # Example
 ///

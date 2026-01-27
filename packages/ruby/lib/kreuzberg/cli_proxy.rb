@@ -91,11 +91,13 @@ module Kreuzberg
         lib_path.join('bin', binary_name),
         lib_path.join(binary_name),
         root_path.join('../../crates/kreuzberg-cli/target/release', binary_name),
-        root_path.join('../../target/release', binary_name)
+        root_path.join('../../target/release', binary_name),
+        root_path.join('../../target/debug', binary_name)
       ]
 
       workspace_root = root_path.parent&.parent
       paths << workspace_root.join('target', 'release', binary_name) if workspace_root
+      paths << workspace_root.join('target', 'debug', binary_name) if workspace_root
 
       paths
     end

@@ -15,11 +15,15 @@ module Kreuzberg
     # @example Extract with explicit MIME type
     # @example Extract with OCR enabled
     def extract_file_sync(path:, mime_type: nil, config: nil)
+      # Validate that the file exists
+      path_str = path.to_s
+      raise Errors::IOError, "File not found: #{path_str}" unless File.exist?(path_str)
+
       opts = normalize_config(config)
       hash = if mime_type
-               native_extract_file_sync(path.to_s, mime_type.to_s, **opts)
+               native_extract_file_sync(path_str, mime_type.to_s, **opts)
              else
-               native_extract_file_sync(path.to_s, **opts)
+               native_extract_file_sync(path_str, **opts)
              end
       result = Result.new(hash)
       record_cache_entry!(result, opts)
@@ -53,6 +57,8 @@ module Kreuzberg
     #   response = HTTParty.get("https://example.com/document.docx")
     #   result = Kreuzberg.extract_bytes_sync(response.body, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     def extract_bytes_sync(data:, mime_type:, config: nil)
+      raise TypeError, "mime_type must be a String, got #{mime_type.inspect}" if mime_type.nil?
+
       opts = normalize_config(config)
       hash = native_extract_bytes_sync(data.to_s, mime_type.to_s, **opts)
       result = Result.new(hash)
@@ -92,6 +98,12 @@ module Kreuzberg
     #   config = Kreuzberg::Config::Extraction.new(force_ocr: true)
     #   results = Kreuzberg.batch_extract_files_sync(paths, config: config)
     def batch_extract_files_sync(paths:, config: nil)
+      # Validate that all files exist
+      paths.each do |path|
+        path_str = path.to_s
+        raise Errors::IOError, "File not found: #{path_str}" unless File.exist?(path_str)
+      end
+
       opts = normalize_config(config)
       hashes = native_batch_extract_files_sync(paths.map(&:to_s), **opts)
       results = hashes.map { |hash| Result.new(hash) }
@@ -130,11 +142,15 @@ module Kreuzberg
     #   )
     #   result = Kreuzberg.extract_file("document.pdf", config: config)
     def extract_file(path:, mime_type: nil, config: nil)
+      # Validate that the file exists
+      path_str = path.to_s
+      raise Errors::IOError, "File not found: #{path_str}" unless File.exist?(path_str)
+
       opts = normalize_config(config)
       hash = if mime_type
-               native_extract_file(path.to_s, mime_type.to_s, **opts)
+               native_extract_file(path_str, mime_type.to_s, **opts)
              else
-               native_extract_file(path.to_s, **opts)
+               native_extract_file(path_str, **opts)
              end
       result = Result.new(hash)
       record_cache_entry!(result, opts)

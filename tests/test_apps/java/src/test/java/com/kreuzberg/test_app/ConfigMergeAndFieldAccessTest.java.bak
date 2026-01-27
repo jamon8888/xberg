@@ -1,0 +1,350 @@
+package com.kreuzberg.test_app;
+
+import static org.assertj.core.api.Assertions.*;
+
+import dev.kreuzberg.KreuzbergException;
+import dev.kreuzberg.config.*;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Comprehensive tests for configuration merge and field access operations.
+ *
+ * <p>
+ * Tests verify that ExtractionConfig.merge() and ExtractionConfig.getField()
+ * work correctly with various configurations and nested structures.
+ *
+ * @since 4.2.0
+ */
+@DisplayName("Configuration Merge and Field Access Tests")
+final class ConfigMergeAndFieldAccessTest {
+
+	@Nested
+	@DisplayName("ExtractionConfig Merge Tests")
+	final class ConfigMergeTests {
+
+		@Test
+		@DisplayName("Merge overwrites boolean values")
+		void testMergeOverwritesBooleanValues() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.enableQualityProcessing(false)
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.useCache(false)
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge preserves unset values in target")
+		void testMergePreservesUnsetValues() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.enableQualityProcessing(true)
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.useCache(false)
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge with nested configs")
+		void testMergeWithNestedConfigs() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.ocr(OcrConfig.builder().backend("tesseract").language("eng").build())
+					.chunking(ChunkingConfig.builder().maxChars(512).build())
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.ocr(OcrConfig.builder().language("deu").build())
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge with empty config2")
+		void testMergeWithEmptyConfig() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder().build();
+
+			ExtractionConfig merged = config1.merge(config2);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge with all sub-configs")
+		void testMergeWithAllSubConfigs() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.ocr(OcrConfig.builder().backend("tesseract").build())
+					.chunking(ChunkingConfig.builder().maxChars(512).build())
+					.languageDetection(LanguageDetectionConfig.builder().enabled(false).build())
+					.pdfOptions(PdfConfig.builder().useOcrForImages(true).build())
+					.keywords(KeywordConfig.builder().algorithm("yake").build())
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.ocr(OcrConfig.builder().language("eng").build())
+					.keywords(KeywordConfig.builder().maxKeywords(20).build())
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge with null config throws exception")
+		void testMergeWithNullConfig() {
+			ExtractionConfig config = ExtractionConfig.builder().build();
+
+			assertThatThrownBy(() -> config.merge(null))
+					.isInstanceOf(IllegalArgumentException.class)
+					.hasMessageContaining("null");
+		}
+
+		@Test
+		@DisplayName("Merge with string values")
+		void testMergeWithStringValues() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.outputFormat("markdown")
+					.resultFormat("unified")
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.outputFormat("html")
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge chain of multiple configs")
+		void testMergeChain() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.enableQualityProcessing(true)
+					.build();
+
+			ExtractionConfig config3 = ExtractionConfig.builder()
+					.forceOcr(false)
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2).merge(config3);
+			assertThat(merged).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Merge preserves resulting config validity")
+		void testMergePresevesValidity() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.outputFormat("plain")
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.outputFormat("markdown")
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+
+			// Merged config should be valid and serializable
+			String json = merged.toJson();
+			assertThat(json).isNotEmpty();
+		}
+	}
+
+	@Nested
+	@DisplayName("ExtractionConfig Field Access Tests")
+	final class ConfigFieldAccessTests {
+
+		@Test
+		@DisplayName("Get top-level field returns optional")
+		void testGetTopLevelField() throws KreuzbergException {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.useCache(true)
+					.build();
+
+			Optional<String> field = config.getField("use_cache");
+			assertThat(field).isNotEmpty();
+		}
+
+		@Test
+		@DisplayName("Get non-existent field returns empty optional")
+		void testGetNonExistentField() throws KreuzbergException {
+			ExtractionConfig config = ExtractionConfig.builder().build();
+
+			Optional<String> field = config.getField("nonexistent_field");
+			assertThat(field).isEmpty();
+		}
+
+		@Test
+		@DisplayName("Get field with null fieldName throws exception")
+		void testGetFieldWithNullName() {
+			ExtractionConfig config = ExtractionConfig.builder().build();
+
+			assertThatThrownBy(() -> config.getField(null))
+					.isInstanceOf(IllegalArgumentException.class)
+					.hasMessageContaining("null");
+		}
+
+		@Test
+		@DisplayName("Get field with empty fieldName throws exception")
+		void testGetFieldWithEmptyName() {
+			ExtractionConfig config = ExtractionConfig.builder().build();
+
+			assertThatThrownBy(() -> config.getField(""))
+					.isInstanceOf(IllegalArgumentException.class)
+					.hasMessageContaining("empty");
+		}
+
+		@Test
+		@DisplayName("Get field for output_format")
+		void testGetFieldOutputFormat() throws KreuzbergException {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.outputFormat("markdown")
+					.build();
+
+			Optional<String> field = config.getField("output_format");
+			assertThat(field).isNotEmpty();
+		}
+
+		@Test
+		@DisplayName("Get field for result_format")
+		void testGetFieldResultFormat() throws KreuzbergException {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.resultFormat("element_based")
+					.build();
+
+			Optional<String> field = config.getField("result_format");
+			assertThat(field).isNotEmpty();
+		}
+
+		@Test
+		@DisplayName("Get field with multiple configs set")
+		void testGetFieldMultipleConfigs() throws KreuzbergException {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.useCache(false)
+					.enableQualityProcessing(true)
+					.forceOcr(false)
+					.outputFormat("djot")
+					.build();
+
+			Optional<String> cache = config.getField("use_cache");
+			Optional<String> quality = config.getField("enable_quality_processing");
+			Optional<String> ocr = config.getField("force_ocr");
+			Optional<String> format = config.getField("output_format");
+
+			assertThat(cache).isNotEmpty();
+			assertThat(quality).isNotEmpty();
+			assertThat(ocr).isNotEmpty();
+			assertThat(format).isNotEmpty();
+		}
+
+		@Test
+		@DisplayName("Get field for max_concurrent_extractions")
+		void testGetFieldMaxConcurrentExtractions() throws KreuzbergException {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.maxConcurrentExtractions(4)
+					.build();
+
+			Optional<String> field = config.getField("max_concurrent_extractions");
+			assertThat(field).isNotEmpty();
+		}
+
+		@Test
+		@DisplayName("Field access works after serialization round-trip")
+		void testFieldAccessAfterRoundTrip() throws KreuzbergException {
+			ExtractionConfig original = ExtractionConfig.builder()
+					.useCache(true)
+					.outputFormat("html")
+					.build();
+
+			String json = original.toJson();
+			ExtractionConfig reconstructed = ExtractionConfig.fromJson(json);
+
+			Optional<String> field = reconstructed.getField("use_cache");
+			assertThat(field).isNotEmpty();
+		}
+	}
+
+	@Nested
+	@DisplayName("Configuration Consistency Tests")
+	final class ConfigConsistencyTests {
+
+		@Test
+		@DisplayName("Merge result is valid configuration")
+		void testMergeResultIsValid() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.outputFormat("markdown")
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.enableQualityProcessing(true)
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+
+			// Should be serializable
+			String json = merged.toJson();
+			assertThat(json).isNotEmpty().contains("use_cache");
+		}
+
+		@Test
+		@DisplayName("Merged config can be merged again")
+		void testMergeCanChain() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.enableQualityProcessing(true)
+					.build();
+
+			ExtractionConfig config3 = ExtractionConfig.builder()
+					.forceOcr(false)
+					.build();
+
+			ExtractionConfig result = config1.merge(config2).merge(config3);
+
+			// Should be valid and serializable
+			String json = result.toJson();
+			assertThat(json).isNotEmpty();
+		}
+
+		@Test
+		@DisplayName("Merged config retains builder-set flags")
+		void testMergeRetainsBuildFlags() throws KreuzbergException {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.ocr(OcrConfig.builder().backend("tesseract").build())
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.useCache(false)
+					.build();
+
+			ExtractionConfig merged = config1.merge(config2);
+
+			// Merged should have both configurations
+			assertThat(merged).isNotNull();
+			assertThat(merged.getOcr()).isNotNull();
+		}
+	}
+}

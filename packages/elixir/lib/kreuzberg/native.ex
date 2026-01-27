@@ -6,7 +6,7 @@ defmodule Kreuzberg.Native do
     crate: "kreuzberg_rustler",
     base_url: "https://github.com/kreuzberg-dev/kreuzberg/releases/download/v#{Mix.Project.config()[:version]}",
     version: Mix.Project.config()[:version],
-    force_build: System.get_env("KREUZBERG_BUILD") in ["1", "true"] || Mix.env() in [:test, :dev],
+    force_build: true,
     # Targets that are built in CI (see publish.yaml elixir-natives matrix)
     targets: ~w(
       aarch64-apple-darwin

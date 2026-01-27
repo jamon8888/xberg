@@ -411,7 +411,8 @@ mod tests {
 
         assert!(result.is_err());
         use crate::KreuzbergError;
-        assert!(matches!(result.unwrap_err(), KreuzbergError::Validation { .. }));
+        // File validation returns Io error, not Validation error
+        assert!(matches!(result.unwrap_err(), KreuzbergError::Io { .. }));
     }
 
     #[test]

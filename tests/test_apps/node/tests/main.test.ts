@@ -198,6 +198,144 @@ describe("Kreuzberg TypeScript/Node.js Bindings", () => {
 		});
 	});
 
+	describe("ExtractionConfig Output and Result Formats", () => {
+		let testTxtFile: string;
+		let testTxtBuffer: Buffer;
+
+		beforeAll(() => {
+			testTxtBuffer = Buffer.from("# Test Heading\n\nThis is **bold** text.");
+			testTxtFile = join(tmpdir(), "format-test.txt");
+			writeFileSync(testTxtFile, testTxtBuffer);
+		});
+
+		describe("outputFormat configuration", () => {
+			it("should accept outputFormat 'plain'", () => {
+				const config = { outputFormat: "plain" as const };
+				expect(config.outputFormat).toBe("plain");
+			});
+
+			it("should accept outputFormat 'markdown'", () => {
+				const config = { outputFormat: "markdown" as const };
+				expect(config.outputFormat).toBe("markdown");
+			});
+
+			it("should accept outputFormat 'djot'", () => {
+				const config = { outputFormat: "djot" as const };
+				expect(config.outputFormat).toBe("djot");
+			});
+
+			it("should accept outputFormat 'html'", () => {
+				const config = { outputFormat: "html" as const };
+				expect(config.outputFormat).toBe("html");
+			});
+
+			it("should extract with outputFormat 'plain' (sync)", () => {
+				const config = { outputFormat: "plain" as const };
+				const result = extractFileSync(testTxtFile, null, config);
+				expect(result).toBeDefined();
+				expect(typeof result.content).toBe("string");
+			});
+
+			it("should extract with outputFormat 'markdown' (sync)", () => {
+				const config = { outputFormat: "markdown" as const };
+				const result = extractBytesSync(testTxtBuffer, "text/plain", config);
+				expect(result).toBeDefined();
+			});
+
+			it("should extract with outputFormat 'html' (async)", async () => {
+				const config = { outputFormat: "html" as const };
+				const result = await extractFile(testTxtFile, null, config);
+				expect(result).toBeDefined();
+			});
+
+			it("should extract with outputFormat 'djot' (async)", async () => {
+				const config = { outputFormat: "djot" as const };
+				const result = await extractBytes(testTxtBuffer, "text/plain", config);
+				expect(result).toBeDefined();
+			});
+		});
+
+		describe("resultFormat configuration", () => {
+			it("should accept resultFormat 'unified'", () => {
+				const config = { resultFormat: "unified" as const };
+				expect(config.resultFormat).toBe("unified");
+			});
+
+			it("should accept resultFormat 'element_based'", () => {
+				const config = { resultFormat: "element_based" as const };
+				expect(config.resultFormat).toBe("element_based");
+			});
+
+			it("should extract with resultFormat 'unified' (sync)", () => {
+				const config = { resultFormat: "unified" as const };
+				const result = extractFileSync(testTxtFile, null, config);
+				expect(result).toBeDefined();
+				expect(result.content).toBeDefined();
+			});
+
+			it("should extract with resultFormat 'element_based' (sync)", () => {
+				const config = { resultFormat: "element_based" as const };
+				const result = extractBytesSync(testTxtBuffer, "text/plain", config);
+				expect(result).toBeDefined();
+			});
+
+			it("should extract with resultFormat 'unified' (async)", async () => {
+				const config = { resultFormat: "unified" as const };
+				const result = await extractFile(testTxtFile, null, config);
+				expect(result).toBeDefined();
+			});
+
+			it("should extract with resultFormat 'element_based' (async)", async () => {
+				const config = { resultFormat: "element_based" as const };
+				const result = await extractBytes(testTxtBuffer, "text/plain", config);
+				expect(result).toBeDefined();
+			});
+		});
+
+		describe("Format combinations", () => {
+			it("should combine outputFormat and resultFormat", () => {
+				const config = {
+					outputFormat: "markdown" as const,
+					resultFormat: "unified" as const,
+				};
+				expect(config.outputFormat).toBe("markdown");
+				expect(config.resultFormat).toBe("unified");
+			});
+
+			it("should extract with combined formats (sync)", () => {
+				const config = {
+					outputFormat: "markdown" as const,
+					resultFormat: "element_based" as const,
+				};
+				const result = extractFileSync(testTxtFile, null, config);
+				expect(result).toBeDefined();
+			});
+
+			it("should extract with combined formats (async)", async () => {
+				const config = {
+					outputFormat: "html" as const,
+					resultFormat: "unified" as const,
+				};
+				const result = await extractFile(testTxtFile, null, config);
+				expect(result).toBeDefined();
+			});
+
+			it("should batch extract with outputFormat", async () => {
+				const config = { outputFormat: "markdown" as const };
+				const results = await batchExtractFiles([testTxtFile], config);
+				expect(Array.isArray(results)).toBe(true);
+				expect(results.length).toBe(1);
+			});
+
+			it("should batch extract with resultFormat (sync)", () => {
+				const config = { resultFormat: "element_based" as const };
+				const results = batchExtractFilesSync([testTxtFile], config);
+				expect(Array.isArray(results)).toBe(true);
+				expect(results.length).toBe(1);
+			});
+		});
+	});
+
 	describe("Single Document Extraction", () => {
 		let testPdfFile: string;
 		let testTxtFile: string;

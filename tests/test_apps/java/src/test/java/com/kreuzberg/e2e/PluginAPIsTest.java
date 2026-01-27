@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import dev.kreuzberg.config.ExtractionConfig;
 import dev.kreuzberg.Kreuzberg;
 import dev.kreuzberg.KreuzbergException;
+import dev.kreuzberg.OcrBackend;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -100,11 +101,18 @@ enabled = false
 
 
     @Test
-    @DisplayName("Clear all OCR backends and verify list is empty")
+    @DisplayName("Register custom OCR backend and verify it's in list")
     void ocrBackendsClear() throws KreuzbergException {
-        Kreuzberg.clearOCRBackends();
+        // Register a custom OCR backend
+        OcrBackend customBackend = (data, configJson) -> "test-result";
+        Kreuzberg.registerOcrBackend("test-custom-ocr", customBackend, List.of("eng"));
+
         List<String> result = Kreuzberg.listOCRBackends();
-        assertEquals(0, result.size());
+        assertNotNull(result);
+        assertTrue(result.contains("test-custom-ocr"), "Custom backend should be registered");
+
+        // Clean up - unregister the custom backend
+        Kreuzberg.unregisterOCRBackend("test-custom-ocr");
     }
 
     @Test

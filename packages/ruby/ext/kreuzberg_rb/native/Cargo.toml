@@ -31,7 +31,7 @@ embeddings = ["kreuzberg/embeddings"]
 
 [dependencies]
 async-trait = "0.1.89"
-kreuzberg = { path = "../../../../../crates/kreuzberg", default-features = false, features = [
+kreuzberg = { path = "../../../vendor/kreuzberg", default-features = false, features = [
     "pdf",
     "excel",
     "office",
@@ -51,7 +51,7 @@ kreuzberg = { path = "../../../../../crates/kreuzberg", default-features = false
     "bundled-pdfium",
     "tokio-runtime",
 ] }
-kreuzberg-ffi = { path = "../../../../../crates/kreuzberg-ffi" }
+kreuzberg-ffi = { path = "../../../vendor/kreuzberg-ffi" }
 magnus = { git = "https://github.com/matsadler/magnus", rev = "f6db11769efb517427bf7f121f9c32e18b059b38", features = [
     "rb-sys",
 ] }

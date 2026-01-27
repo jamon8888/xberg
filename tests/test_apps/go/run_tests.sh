@@ -9,4 +9,5 @@ export LD_LIBRARY_PATH="$REPO_ROOT/target/release:$LD_LIBRARY_PATH"
 export PKG_CONFIG_PATH="$REPO_ROOT/crates/kreuzberg-ffi:$PKG_CONFIG_PATH"
 
 cd "$SCRIPT_DIR"
-go test -v ./...
+# Use kreuzberg_dev tag for development builds within monorepo
+go test -tags kreuzberg_dev -v ./...

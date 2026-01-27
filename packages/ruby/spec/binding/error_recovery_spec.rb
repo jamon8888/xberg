@@ -57,7 +57,7 @@ RSpec.describe 'Error Recovery' do
       nonexistent_path = '/nonexistent/file/that/does/not/exist.pdf'
 
       expect { Kreuzberg.extract_file_sync(path: nonexistent_path, config: config) }
-        .to raise_error(Kreuzberg::Errors::ValidationError, /not found|does not exist|no such file/)
+        .to raise_error(Kreuzberg::Errors::IOError, /not found|does not exist|no such file/)
     end
 
     it 'provides descriptive error messages for invalid MIME types' do
@@ -293,7 +293,7 @@ RSpec.describe 'Error Recovery' do
 
       expect(validation_error).to be_a(ArgumentError)
 
-      # Runtime error (file not found)
+      # Runtime error (file not found) - IOError since the file doesn't exist
       runtime_error = nil
       begin
         Kreuzberg.extract_file_sync(path: '/nonexistent/file.pdf')
@@ -301,7 +301,7 @@ RSpec.describe 'Error Recovery' do
         runtime_error = e
       end
 
-      expect(runtime_error).to be_a(Kreuzberg::Errors::ValidationError)
+      expect(runtime_error).to be_a(Kreuzberg::Errors::IOError)
     end
 
     it 'provides error recovery suggestions in messages' do

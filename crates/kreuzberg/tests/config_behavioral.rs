@@ -46,6 +46,7 @@ async fn test_output_format_plain_produces_plain() {
 
 /// Test output_format Markdown produces markdown formatting
 #[tokio::test]
+#[cfg(feature = "html")]
 async fn test_output_format_markdown_produces_markdown() {
     let html = b"<h1>Title</h1><p>Paragraph with <strong>bold</strong> text.</p>";
 
@@ -318,6 +319,7 @@ async fn test_quality_processing_disabled_no_score() {
 
 /// Test output_format combinations with result_format
 #[tokio::test]
+#[cfg(feature = "html")]
 async fn test_output_format_with_element_based() {
     let html = b"<p>First paragraph</p><p>Second paragraph</p>";
 

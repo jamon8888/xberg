@@ -66,24 +66,43 @@ class APIParityValidator:
 
         content = ts_file.read_text()
 
-        # Find the ExtractionConfig interface
-        pattern = r'export interface ExtractionConfig\s*\{([^}]+)\}'
-        match = re.search(pattern, content, re.DOTALL)
+        # Find the ExtractionConfig interface start position
+        interface_start = content.find('export interface ExtractionConfig {')
 
-        if not match:
+        if interface_start == -1:
             errors.append("ExtractionConfig interface not found")
             return set(), errors
 
-        interface_body = match.group(1)
+        # Extract all lines after interface start until we hit another export/interface
+        # Use brace counting to find the interface end
+        brace_count = 0
+        started = False
+        interface_lines = []
+
+        for line in content[interface_start:].split('\n'):
+            if '{' in line:
+                if not started and 'ExtractionConfig' in line:
+                    started = True
+                brace_count += line.count('{')
+
+            if started:
+                interface_lines.append(line)
+
+            if '}' in line:
+                brace_count -= line.count('}')
+                if started and brace_count <= 0:
+                    break
+
+        interface_body = '\n'.join(interface_lines)
 
         # Extract field names (including optional ones with ?)
-        # Match patterns like: useCache?: boolean; or outputFormat?: string;
-        # Exclude methods (toJson, getField, merge, etc.)
-        field_pattern = r'(\w+)\??\s*:\s*(?!.*\()'  # Negative lookahead to exclude methods
+        # Match patterns at the start of a line (with tabs/spaces): fieldName?: type;
+        # This excludes JSDoc examples and method parameters
+        field_pattern = r'^\s+(\w+)\??\s*:\s*(?:\w+|\{|")'
         fields = set()
-        for match in re.finditer(field_pattern, interface_body):
-            field_name = match.group(1)
-            # Exclude method names
+        for line_match in re.finditer(field_pattern, interface_body, re.MULTILINE):
+            field_name = line_match.group(1)
+            # Exclude method names (they have parentheses in their declaration)
             if field_name not in ['toJson', 'getField', 'merge', 'config', 'content', 'default']:
                 fields.add(field_name)
 
@@ -115,8 +134,17 @@ class APIParityValidator:
 
         fields = set()
 
-        # Extract from docstring attributes section
-        attr_section_pattern = r'Attributes:(.+?)(?=\n\n|\nclass |\Z)'
+        # Extract class-level type annotations (e.g., "use_cache: bool")
+        # This is the primary pattern for .pyi stub files
+        annotation_pattern = r'^\s{4}(\w+)\s*:\s*[^\n]+'
+        for line_match in re.finditer(annotation_pattern, class_body, re.MULTILINE):
+            field_name = line_match.group(1)
+            # Exclude dunder methods and private attributes
+            if not field_name.startswith('_') and not field_name.startswith('def'):
+                fields.add(field_name)
+
+        # Also extract from docstring attributes section for additional coverage
+        attr_section_pattern = r'Attributes:(.+?)(?=\n\n\s*Example:|\n\n\s*\Z|\n\nclass )'
         attr_match = re.search(attr_section_pattern, class_body, re.DOTALL)
 
         if attr_match:
@@ -124,10 +152,6 @@ class APIParityValidator:
             # Match patterns like "use_cache (bool):"
             attr_pattern = r'(\w+)\s*\([^)]+\):'
             fields.update(re.findall(attr_pattern, attr_text))
-
-        # Also look for @property decorators
-        prop_pattern = r'@property\s+def (\w+)\('
-        fields.update(re.findall(prop_pattern, class_body))
 
         return fields, errors
 
@@ -255,8 +279,8 @@ class APIParityValidator:
 
         content = java_file.read_text()
 
-        # Find the class definition
-        pattern = r'public class ExtractionConfig(.+?)(?=\nclass |\Z)'
+        # Find the class definition (supports 'public class' and 'public final class')
+        pattern = r'public\s+(?:final\s+)?class ExtractionConfig(.+?)(?=\nclass |\Z)'
         match = re.search(pattern, content, re.DOTALL)
 
         if not match:
@@ -265,13 +289,13 @@ class APIParityValidator:
 
         class_body = match.group(1)
 
-        # Match private fields (not getter/setter methods)
-        # Pattern: private OcrConfig ocr;
-        field_pattern = r'private\s+(?:final\s+)?[\w<>]+\s+(\w+)\s*;'
-        fields = set(re.findall(field_pattern, class_body))
+        # Extract fields from toMap() serialization keys which are the canonical names
+        # Pattern: map.put("field_name", ...)
+        map_put_pattern = r'map\.put\("(\w+)",'
+        fields = set(re.findall(map_put_pattern, class_body))
 
-        # Convert camelCase to snake_case
-        fields = {self._camel_to_snake(f) for f in fields}
+        # Also include private fields as backup (already snake_case from map.put pattern)
+        # No need for camelCase to snake_case conversion for map.put keys
 
         return fields, errors
 
@@ -286,30 +310,70 @@ class APIParityValidator:
 
         content = csharp_file.read_text()
 
-        # Find the ExtractionConfig class
-        pattern = r'public sealed class ExtractionConfig\s*\{([^}]+?(?:public\s+[\w?]+\s+\w+\s*\{[^}]*\})*[^}]*?)\}'
-        match = re.search(pattern, content, re.DOTALL)
+        # Find the ExtractionConfig class section by locating start and finding next class
+        start_pattern = r'public sealed class ExtractionConfig\s*\{'
+        start_match = re.search(start_pattern, content)
 
-        if not match:
+        if not start_match:
             errors.append("ExtractionConfig class not found in Models.cs")
             return set(), errors
 
-        class_body = match.group(1)
+        # Find the position after the opening brace
+        start_pos = start_match.end()
 
-        # Match public properties
-        # Patterns like: public string? UseCache { get; set; }
-        prop_pattern = r'public\s+\w+\??\s+(\w+)\s*\{'
-        fields = set(re.findall(prop_pattern, class_body))
+        # Find all properties with JsonPropertyName attribute until we hit another class
+        # Look for patterns like: [JsonPropertyName("use_cache")]\n    public bool? UseCache { get; init; }
+        fields = set()
+        remaining_content = content[start_pos:]
 
-        # Convert PascalCase to snake_case
-        fields = {self._camel_to_snake(f) for f in fields}
+        # Find properties by looking for JsonPropertyName attribute followed by property declaration
+        # This extracts the JSON name directly which is snake_case
+        json_prop_pattern = r'\[JsonPropertyName\("(\w+)"\)\]'
+        for match in re.finditer(json_prop_pattern, remaining_content):
+            # Stop if we hit another class definition
+            pos = match.start()
+            if 'public sealed class' in remaining_content[:pos] and remaining_content[:pos].count('public sealed class') > 0:
+                # Check if there's a class definition before this match
+                class_check = remaining_content[:pos]
+                if re.search(r'public sealed class \w+', class_check):
+                    break
+            fields.add(match.group(1))
 
         return fields, errors
 
     def extract_wasm_fields(self) -> Tuple[Set[str], list[str]]:
-        """Extract field names from WebAssembly (same as TypeScript)."""
-        # WASM uses the same TypeScript definitions
-        return self.extract_typescript_fields()
+        """Extract field names from WebAssembly TypeScript types."""
+        errors = []
+        wasm_file = self.repo_root / "crates/kreuzberg-wasm/typescript/types.ts"
+
+        if not wasm_file.exists():
+            errors.append(f"WASM types file not found: {wasm_file}")
+            return set(), errors
+
+        content = wasm_file.read_text()
+
+        # Find the ExtractionConfig interface
+        pattern = r'export interface ExtractionConfig\s*\{([^}]+)\}'
+        match = re.search(pattern, content, re.DOTALL)
+
+        if not match:
+            errors.append("ExtractionConfig interface not found in WASM types")
+            return set(), errors
+
+        interface_body = match.group(1)
+
+        # Extract field names (excluding methods)
+        field_pattern = r'(\w+)\??\s*:\s*(?!.*\()'
+        fields = set()
+        for match in re.finditer(field_pattern, interface_body):
+            field_name = match.group(1)
+            if field_name not in ['toJson', 'getField', 'merge', 'config', 'content', 'default']:
+                fields.add(field_name)
+
+        # Convert camelCase to snake_case for comparison
+        fields = {self._camel_to_snake(f) for f in fields}
+
+        return fields, errors
 
     def extract_elixir_fields(self) -> Tuple[Set[str], list[str]]:
         """Extract field names from Elixir config."""

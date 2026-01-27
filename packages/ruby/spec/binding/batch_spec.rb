@@ -295,7 +295,7 @@ RSpec.describe Kreuzberg do
   end
 
   describe 'batch error handling' do
-    it 'handles missing files gracefully in batch' do
+    it 'raises IOError for missing files in batch' do
       paths = [
         '/nonexistent/file1.txt',
         '/nonexistent/file2.txt'
@@ -303,10 +303,10 @@ RSpec.describe Kreuzberg do
 
       expect do
         described_class.batch_extract_files_sync(paths: paths)
-      end.not_to raise_error
+      end.to raise_error(Kreuzberg::Errors::IOError, /not found/)
     end
 
-    it 'handles mixed valid and invalid paths' do
+    it 'raises IOError when batch contains invalid paths' do
       paths = []
       temp_dir = Dir.mktmpdir
 
@@ -316,8 +316,9 @@ RSpec.describe Kreuzberg do
 
       paths << '/nonexistent/invalid.txt'
 
-      results = described_class.batch_extract_files_sync(paths: paths)
-      expect(results).to be_a(Array)
+      expect do
+        described_class.batch_extract_files_sync(paths: paths)
+      end.to raise_error(Kreuzberg::Errors::IOError, /not found/)
     ensure
       FileUtils.remove_entry(temp_dir)
     end

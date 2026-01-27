@@ -30,8 +30,10 @@ const VALID_TESSERACT_PSM: &[i32] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 
 /// Valid tesseract OEM (OCR Engine Mode) values.
 const VALID_TESSERACT_OEM: &[i32] = &[0, 1, 2, 3];
 
-/// Valid output formats for tesseract.
-const VALID_OUTPUT_FORMATS: &[&str] = &["text", "markdown"];
+/// Valid output formats for document extraction.
+/// Supports plain text, markdown, djot, and HTML output formats.
+/// Also accepts aliases: "text" for "plain", "md" for "markdown".
+const VALID_OUTPUT_FORMATS: &[&str] = &["plain", "text", "markdown", "md", "djot", "html"];
 
 /// Validate a binarization method string.
 ///
@@ -248,11 +250,17 @@ pub fn validate_tesseract_oem(oem: i32) -> Result<()> {
     }
 }
 
-/// Validate a tesseract output format.
+/// Validate a document extraction output format.
+///
+/// Accepts the following formats and aliases:
+/// - "plain" or "text" for plain text output
+/// - "markdown" or "md" for Markdown output
+/// - "djot" for Djot markup format
+/// - "html" for HTML output
 ///
 /// # Arguments
 ///
-/// * `format` - The output format to validate (e.g., "text", "markdown")
+/// * `format` - The output format to validate
 ///
 /// # Returns
 ///
@@ -264,7 +272,11 @@ pub fn validate_tesseract_oem(oem: i32) -> Result<()> {
 /// use kreuzberg::core::config_validation::validate_output_format;
 ///
 /// assert!(validate_output_format("text").is_ok());
+/// assert!(validate_output_format("plain").is_ok());
 /// assert!(validate_output_format("markdown").is_ok());
+/// assert!(validate_output_format("md").is_ok());
+/// assert!(validate_output_format("djot").is_ok());
+/// assert!(validate_output_format("html").is_ok());
 /// assert!(validate_output_format("json").is_err());
 /// ```
 pub fn validate_output_format(format: &str) -> Result<()> {

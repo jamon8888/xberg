@@ -1,0 +1,375 @@
+package com.kreuzberg.test_app;
+
+import static org.assertj.core.api.Assertions.*;
+
+import dev.kreuzberg.config.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Comprehensive tests for configuration builder patterns.
+ *
+ * <p>
+ * Tests verify that all builder implementations follow correct patterns:
+ * method chaining, null handling, reset scenarios, and state isolation.
+ *
+ * @since 4.2.0
+ */
+@DisplayName("Configuration Builder Tests")
+final class ConfigBuilderTest {
+
+	@Nested
+	@DisplayName("OcrConfig Builder Tests")
+	final class OcrConfigBuilderTests {
+
+		@Test
+		@DisplayName("OcrConfig builder allows method chaining")
+		void testOcrConfigBuilderChaining() {
+			OcrConfig config = OcrConfig.builder()
+					.backend("tesseract")
+					.language("eng")
+					.build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.getBackend()).isEqualTo("tesseract");
+			assertThat(config.getLanguage()).isEqualTo("eng");
+		}
+
+		@Test
+		@DisplayName("OcrConfig builder returns self for chaining")
+		void testOcrConfigBuilderReturnsSelf() {
+			OcrConfig.Builder builder = OcrConfig.builder();
+			OcrConfig.Builder result = builder.backend("tesseract");
+
+			assertThat(result).isNotNull();
+		}
+
+		@Test
+		@DisplayName("OcrConfig builder with only backend")
+		void testOcrConfigBuilderPartialConfiguration() {
+			OcrConfig config = OcrConfig.builder()
+					.backend("tesseract")
+					.build();
+
+			assertThat(config.getBackend()).isEqualTo("tesseract");
+			assertThat(config.getLanguage()).isEqualTo("eng"); // default
+		}
+
+		@Test
+		@DisplayName("OcrConfig builder with no configuration uses defaults")
+		void testOcrConfigBuilderDefaults() {
+			OcrConfig config = OcrConfig.builder().build();
+
+			assertThat(config.getBackend()).isEqualTo("tesseract");
+			assertThat(config.getLanguage()).isEqualTo("eng");
+		}
+
+		@Test
+		@DisplayName("OcrConfig builder state is isolated between instances")
+		void testOcrConfigBuilderStateIsolation() {
+			OcrConfig.Builder builder1 = OcrConfig.builder().backend("tesseract");
+			OcrConfig.Builder builder2 = OcrConfig.builder().backend("custom");
+
+			OcrConfig config1 = builder1.build();
+			OcrConfig config2 = builder2.build();
+
+			assertThat(config1.getBackend()).isEqualTo("tesseract");
+			assertThat(config2.getBackend()).isEqualTo("custom");
+		}
+	}
+
+	@Nested
+	@DisplayName("ChunkingConfig Builder Tests")
+	final class ChunkingConfigBuilderTests {
+
+		@Test
+		@DisplayName("ChunkingConfig builder allows method chaining")
+		void testChunkingConfigBuilderChaining() {
+			ChunkingConfig config = ChunkingConfig.builder()
+					.maxChars(512)
+					.maxOverlap(50)
+					.build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.getMaxChars()).isEqualTo(512);
+			assertThat(config.getMaxOverlap()).isEqualTo(50);
+		}
+
+		@Test
+		@DisplayName("ChunkingConfig builder with partial configuration")
+		void testChunkingConfigBuilderPartial() {
+			ChunkingConfig config = ChunkingConfig.builder()
+					.maxChars(1024)
+					.build();
+
+			assertThat(config.getMaxChars()).isEqualTo(1024);
+		}
+	}
+
+	@Nested
+	@DisplayName("KeywordConfig Builder Tests")
+	final class KeywordConfigBuilderTests {
+
+		@Test
+		@DisplayName("KeywordConfig builder allows method chaining")
+		void testKeywordConfigBuilderChaining() {
+			KeywordConfig config = KeywordConfig.builder()
+					.algorithm("yake")
+					.maxKeywords(10)
+					.minScore(0.1)
+					.language("en")
+					.build();
+
+			assertThat(config).isNotNull();
+		}
+
+		@Test
+		@DisplayName("KeywordConfig builder with ngram_range")
+		void testKeywordConfigBuilderNgramRange() {
+			KeywordConfig config = KeywordConfig.builder()
+					.ngramRange(1, 3)
+					.build();
+
+			assertThat(config).isNotNull();
+		}
+
+		@Test
+		@DisplayName("KeywordConfig builder handles null algorithm")
+		void testKeywordConfigBuilderNullAlgorithm() {
+			KeywordConfig config = KeywordConfig.builder()
+					.algorithm(null)
+					.build();
+
+			assertThat(config).isNotNull();
+		}
+	}
+
+	@Nested
+	@DisplayName("EmbeddingConfig Builder Tests")
+	final class EmbeddingConfigBuilderTests {
+
+		@Test
+		@DisplayName("EmbeddingConfig builder allows method chaining")
+		void testEmbeddingConfigBuilderChaining() {
+			EmbeddingConfig config = EmbeddingConfig.builder()
+					.preset("fast")
+					.normalize(true)
+					.batchSize(32)
+					.useCache(true)
+					.build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.getNormalize()).isTrue();
+			assertThat(config.getBatchSize()).isEqualTo(32);
+		}
+
+		@Test
+		@DisplayName("EmbeddingConfig builder preset method sets model")
+		void testEmbeddingConfigBuilderPreset() {
+			EmbeddingConfig config = EmbeddingConfig.builder()
+					.preset("balanced")
+					.build();
+
+			assertThat(config.getModel()).isNotNull();
+		}
+
+		@Test
+		@DisplayName("EmbeddingConfig builder has sensible defaults")
+		void testEmbeddingConfigBuilderDefaults() {
+			EmbeddingConfig config = EmbeddingConfig.builder().build();
+
+			assertThat(config.getNormalize()).isTrue();
+			assertThat(config.getBatchSize()).isEqualTo(32);
+			assertThat(config.getUseCache()).isTrue();
+		}
+
+		@Test
+		@DisplayName("EmbeddingConfig builder can change defaults")
+		void testEmbeddingConfigBuilderOverrideDefaults() {
+			EmbeddingConfig config = EmbeddingConfig.builder()
+					.normalize(false)
+					.batchSize(64)
+					.useCache(false)
+					.build();
+
+			assertThat(config.getNormalize()).isFalse();
+			assertThat(config.getBatchSize()).isEqualTo(64);
+			assertThat(config.getUseCache()).isFalse();
+		}
+	}
+
+	@Nested
+	@DisplayName("PdfConfig Builder Tests")
+	final class PdfConfigBuilderTests {
+
+		@Test
+		@DisplayName("PdfConfig builder allows method chaining")
+		void testPdfConfigBuilderChaining() {
+			PdfConfig config = PdfConfig.builder()
+					.useOcrForImages(true)
+					.build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.isUseOcrForImages()).isTrue();
+		}
+
+		@Test
+		@DisplayName("PdfConfig builder has sensible defaults")
+		void testPdfConfigBuilderDefaults() {
+			PdfConfig config = PdfConfig.builder().build();
+			assertThat(config).isNotNull();
+		}
+	}
+
+	@Nested
+	@DisplayName("ExtractionConfig Builder Tests")
+	final class ExtractionConfigBuilderTests {
+
+		@Test
+		@DisplayName("ExtractionConfig builder allows method chaining")
+		void testExtractionConfigBuilderChaining() {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.useCache(true)
+					.enableQualityProcessing(true)
+					.forceOcr(false)
+					.outputFormat("markdown")
+					.resultFormat("unified")
+					.build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.isUseCache()).isTrue();
+			assertThat(config.isEnableQualityProcessing()).isTrue();
+			assertThat(config.isForceOcr()).isFalse();
+			assertThat(config.getOutputFormat()).isEqualTo("markdown");
+			assertThat(config.getResultFormat()).isEqualTo("unified");
+		}
+
+		@Test
+		@DisplayName("ExtractionConfig builder with sub-configs")
+		void testExtractionConfigBuilderWithSubconfigs() {
+			ExtractionConfig config = ExtractionConfig.builder()
+					.ocr(OcrConfig.builder().backend("tesseract").build())
+					.chunking(ChunkingConfig.builder().maxChars(512).build())
+					.languageDetection(LanguageDetectionConfig.builder().enabled(false).build())
+					.build();
+
+			assertThat(config.getOcr()).isNotNull();
+			assertThat(config.getChunking()).isNotNull();
+			assertThat(config.getLanguageDetection()).isNotNull();
+		}
+
+		@Test
+		@DisplayName("ExtractionConfig builder with empty configuration")
+		void testExtractionConfigBuilderEmpty() {
+			ExtractionConfig config = ExtractionConfig.builder().build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.getOcr()).isNull();
+			assertThat(config.getChunking()).isNull();
+		}
+
+		@Test
+		@DisplayName("ExtractionConfig builder state isolation")
+		void testExtractionConfigBuilderStateIsolation() {
+			ExtractionConfig config1 = ExtractionConfig.builder()
+					.useCache(true)
+					.build();
+
+			ExtractionConfig config2 = ExtractionConfig.builder()
+					.useCache(false)
+					.build();
+
+			assertThat(config1.isUseCache()).isTrue();
+			assertThat(config2.isUseCache()).isFalse();
+		}
+
+		@Test
+		@DisplayName("ExtractionConfig builder with all output formats")
+		void testExtractionConfigBuilderOutputFormats() {
+			for (String format : new String[] { "plain", "markdown", "djot", "html" }) {
+				ExtractionConfig config = ExtractionConfig.builder()
+						.outputFormat(format)
+						.build();
+
+				assertThat(config.getOutputFormat()).isEqualTo(format);
+			}
+		}
+
+		@Test
+		@DisplayName("ExtractionConfig builder with all result formats")
+		void testExtractionConfigBuilderResultFormats() {
+			for (String format : new String[] { "unified", "element_based" }) {
+				ExtractionConfig config = ExtractionConfig.builder()
+						.resultFormat(format)
+						.build();
+
+				assertThat(config.getResultFormat()).isEqualTo(format);
+			}
+		}
+	}
+
+	@Nested
+	@DisplayName("LanguageDetectionConfig Builder Tests")
+	final class LanguageDetectionConfigBuilderTests {
+
+		@Test
+		@DisplayName("LanguageDetectionConfig builder allows method chaining")
+		void testLanguageDetectionConfigBuilderChaining() {
+			LanguageDetectionConfig config = LanguageDetectionConfig.builder()
+					.enabled(false)
+					.build();
+
+			assertThat(config).isNotNull();
+			assertThat(config.isEnabled()).isFalse();
+		}
+
+		@Test
+		@DisplayName("LanguageDetectionConfig builder has enabled default")
+		void testLanguageDetectionConfigBuilderDefault() {
+			LanguageDetectionConfig config = LanguageDetectionConfig.builder().build();
+
+			assertThat(config.isEnabled()).isTrue();
+		}
+	}
+
+	@Nested
+	@DisplayName("Builder Pattern General Tests")
+	final class BuilderPatternGeneralTests {
+
+		@Test
+		@DisplayName("Builders create independent instances")
+		void testBuildersCreateIndependentInstances() {
+			OcrConfig config1 = OcrConfig.builder().backend("tesseract").build();
+			OcrConfig config2 = OcrConfig.builder().backend("custom").build();
+
+			assertThat(config1).isNotEqualTo(config2);
+			assertThat(config1.getBackend()).isNotEqualTo(config2.getBackend());
+		}
+
+		@Test
+		@DisplayName("Multiple build calls on same builder create different instances")
+		void testMultipleBuildCalls() {
+			OcrConfig.Builder builder = OcrConfig.builder().backend("tesseract");
+
+			OcrConfig config1 = builder.build();
+			OcrConfig config2 = builder.build();
+
+			// Both should be valid configurations
+			assertThat(config1).isNotNull();
+			assertThat(config2).isNotNull();
+		}
+
+		@Test
+		@DisplayName("Builder methods return builder for chaining")
+		void testBuilderMethodsReturnBuilder() {
+			OcrConfig.Builder builder = OcrConfig.builder();
+
+			// Each method should return the builder (or a builder)
+			OcrConfig.Builder result1 = builder.backend("tesseract");
+			OcrConfig.Builder result2 = result1.language("eng");
+
+			assertThat(result2).isNotNull();
+		}
+	}
+}

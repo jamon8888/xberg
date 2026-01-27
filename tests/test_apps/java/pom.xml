@@ -43,6 +43,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.27.7</version>
@@ -81,8 +87,9 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <environmentVariables>
-                        <DYLD_LIBRARY_PATH>${project.basedir}/../../kreuzberg/target/release</DYLD_LIBRARY_PATH>
-                        <LD_LIBRARY_PATH>${project.basedir}/../../kreuzberg/target/release</LD_LIBRARY_PATH>
+                        <DYLD_LIBRARY_PATH>${project.basedir}/../../../target/release</DYLD_LIBRARY_PATH>
+                        <LD_LIBRARY_PATH>${project.basedir}/../../../target/release</LD_LIBRARY_PATH>
+                        <KREUZBERG_FFI_DIR>${project.basedir}/../../../target/release</KREUZBERG_FFI_DIR>
                     </environmentVariables>
                 </configuration>
             </plugin>

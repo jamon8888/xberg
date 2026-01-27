@@ -211,3 +211,7 @@ packages/csharp/test_html_debug.cs
 .codex/skills/elixir-114-with-exdoc-credo/SKILL.md
 .codex/skills/elixir-bindings-patterns/SKILL.md
 packages/php/tests.xml
+
+# Go test binaries
+tests/test_apps/go/kreuzberg-test-suite
+tests/test_apps/go/main

@@ -87,6 +87,7 @@ end
 
 require_relative 'kreuzberg/cache_api'
 require_relative 'kreuzberg/extraction_api'
+require_relative 'kreuzberg/djot_content'
 
 Kreuzberg.singleton_class.prepend(Kreuzberg::CacheAPI)
 Kreuzberg.singleton_class.prepend(Kreuzberg::ExtractionAPI)

@@ -95,6 +95,88 @@ export interface ExtractedKeyword {
 }
 
 /**
+ * HTML preprocessing options
+ */
+export interface HtmlPreprocessingOptions {
+	/** Whether preprocessing is enabled */
+	enabled?: boolean;
+	/** Preset configuration */
+	preset?: "minimal" | "standard" | "aggressive";
+	/** Remove navigation elements */
+	removeNavigation?: boolean;
+	/** Remove form elements */
+	removeForms?: boolean;
+}
+
+/**
+ * HTML conversion options for HTML documents
+ */
+export interface HtmlConversionOptions {
+	/** Heading style for markdown output */
+	headingStyle?: "atx" | "underlined" | "atx_closed";
+	/** List indentation type */
+	listIndentType?: "spaces" | "tabs";
+	/** List indentation width */
+	listIndentWidth?: number;
+	/** Bullet character for lists */
+	bullets?: string;
+	/** Symbol for strong/emphasis */
+	strongEmSymbol?: string;
+	/** Escape asterisks in output */
+	escapeAsterisks?: boolean;
+	/** Escape underscores in output */
+	escapeUnderscores?: boolean;
+	/** Escape miscellaneous characters */
+	escapeMisc?: boolean;
+	/** Escape ASCII control characters */
+	escapeAscii?: boolean;
+	/** Language for code blocks */
+	codeLanguage?: string;
+	/** Auto-convert URLs to links */
+	autolinks?: boolean;
+	/** Default document title */
+	defaultTitle?: boolean;
+	/** Use HTML line breaks in tables */
+	brInTables?: boolean;
+	/** Use hOCR spatial tables */
+	hocrSpatialTables?: boolean;
+	/** Highlighting style */
+	highlightStyle?: "double_equal" | "html" | "bold" | "none";
+	/** Extract metadata from HTML */
+	extractMetadata?: boolean;
+	/** Whitespace handling mode */
+	whitespaceMode?: "normalized" | "strict";
+	/** Strip newlines from output */
+	stripNewlines?: boolean;
+	/** Wrap text output */
+	wrap?: boolean;
+	/** Text wrap width */
+	wrapWidth?: number;
+	/** Convert as inline content */
+	convertAsInline?: boolean;
+	/** Subscript symbol */
+	subSymbol?: string;
+	/** Superscript symbol */
+	supSymbol?: string;
+	/** Newline style */
+	newlineStyle?: "spaces" | "backslash";
+	/** Code block style */
+	codeBlockStyle?: "indented" | "backticks" | "tildes";
+	/** Elements to keep inline images in */
+	keepInlineImagesIn?: string[];
+	/** Output encoding */
+	encoding?: string;
+	/** Enable debug output */
+	debug?: boolean;
+	/** Tags to strip from output */
+	stripTags?: string[];
+	/** Tags to preserve in output */
+	preserveTags?: string[];
+	/** HTML preprocessing options */
+	preprocessing?: HtmlPreprocessingOptions;
+}
+
+/**
  * Configuration for document extraction
  */
 export interface ExtractionConfig {
@@ -116,6 +198,8 @@ export interface ExtractionConfig {
 	postprocessor?: PostProcessorConfig;
 	/** Keyword extraction configuration */
 	keywords?: KeywordConfig;
+	/** HTML conversion options */
+	htmlOptions?: HtmlConversionOptions;
 	/** Whether to use caching */
 	useCache?: boolean;
 	/** Enable quality processing */
@@ -124,6 +208,22 @@ export interface ExtractionConfig {
 	forceOcr?: boolean;
 	/** Maximum concurrent extractions */
 	maxConcurrentExtractions?: number;
+	/**
+	 * Content output format.
+	 * Controls the format of the extracted content:
+	 * - "plain": Raw extracted text (default)
+	 * - "markdown": Markdown formatted output
+	 * - "djot": Djot markup format
+	 * - "html": HTML formatted output
+	 */
+	outputFormat?: "plain" | "markdown" | "djot" | "html";
+	/**
+	 * Result structure format.
+	 * Controls whether results are returned in unified format or element-based format.
+	 * - "unified": All content in the content field (default)
+	 * - "element_based": Semantic elements for Unstructured compatibility
+	 */
+	resultFormat?: "unified" | "element_based";
 }
 
 /**

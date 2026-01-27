@@ -1029,9 +1029,11 @@ runner.test("validate_tesseract_oem(3) returns True", lambda: validate_tesseract
 
 runner.test("validate_tesseract_oem(4) returns False", lambda: not validate_tesseract_oem(4))
 
-runner.test("validate_output_format('plain') returns True", lambda: validate_output_format("plain"))
+runner.test("validate_output_format('text') returns True", lambda: validate_output_format("text"))
 
 runner.test("validate_output_format('markdown') returns True", lambda: validate_output_format("markdown"))
+
+runner.test("validate_output_format('plain') returns True", lambda: validate_output_format("plain"))
 
 runner.test("validate_output_format('html') returns True", lambda: validate_output_format("html"))
 

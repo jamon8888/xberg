@@ -109,9 +109,10 @@ def test_invalid_path_type() -> None:
     Note: v4 doesn't do explicit type validation - it just converts to str.
     Invalid types like int/None get stringified and fail with "file not found".
     This is acceptable behavior - the error message is still clear.
+    Io errors from Rust map to OSError in Python.
     """
-    with pytest.raises((ValueError, ValidationError), match="File does not exist"):
+    with pytest.raises((OSError, ValueError, ValidationError), match="File does not exist"):
         extract_file_sync(cast("Any", 12345))
 
-    with pytest.raises((ValueError, TypeError, ValidationError)):
+    with pytest.raises((OSError, ValueError, TypeError, ValidationError)):
         extract_file_sync(cast("Any", None))

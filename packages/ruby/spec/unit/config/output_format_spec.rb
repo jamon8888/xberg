@@ -282,34 +282,34 @@ RSpec.describe 'Output Format and Result Format Configuration' do
     end
 
     describe 'format validation and edge cases' do
-      it 'handles empty string output_format' do
-        config = described_class.new(output_format: '')
-
-        expect(config.output_format).to eq ''
+      it 'raises error for empty string output_format' do
+        expect do
+          described_class.new(output_format: '')
+        end.to raise_error(ArgumentError, /Invalid output_format/)
       end
 
-      it 'handles empty string result_format' do
-        config = described_class.new(result_format: '')
-
-        expect(config.result_format).to eq ''
+      it 'raises error for empty string result_format' do
+        expect do
+          described_class.new(result_format: '')
+        end.to raise_error(ArgumentError, /Invalid result_format/)
       end
 
-      it 'handles whitespace in output_format' do
-        config = described_class.new(output_format: '  plain  ')
-
-        expect(config.output_format).to eq '  plain  '
+      it 'raises error for whitespace in output_format' do
+        expect do
+          described_class.new(output_format: '  plain  ')
+        end.to raise_error(ArgumentError, /Invalid output_format/)
       end
 
-      it 'handles case sensitivity in output_format' do
+      it 'normalizes case in output_format' do
         config = described_class.new(output_format: 'MarkDown')
 
-        expect(config.output_format).to eq 'MarkDown'
+        expect(config.output_format).to eq 'markdown'
       end
 
-      it 'handles custom string in result_format' do
-        config = described_class.new(result_format: 'custom_format')
-
-        expect(config.result_format).to eq 'custom_format'
+      it 'raises error for custom string in result_format' do
+        expect do
+          described_class.new(result_format: 'custom_format')
+        end.to raise_error(ArgumentError, /Invalid result_format/)
       end
     end
 

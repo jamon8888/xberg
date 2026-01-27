@@ -93,7 +93,7 @@ defmodule Kreuzberg.ExtractionConfig do
       # Validate invalid format
       iex> config = %Kreuzberg.ExtractionConfig{output_format: "invalid"}
       iex> Kreuzberg.ExtractionConfig.validate(config)
-      {:error, "Field 'output_format' must be one of: plain, markdown, djot, html"}
+      {:error, "Field 'output_format' must be one of: plain, text, markdown, md, djot, html"}
 
       # Convert to map for NIF
       iex> config = %Kreuzberg.ExtractionConfig{chunking: %{"size" => 512}}
@@ -615,7 +615,13 @@ defmodule Kreuzberg.ExtractionConfig do
       "plain" ->
         :ok
 
+      "text" ->
+        :ok
+
       "markdown" ->
+        :ok
+
+      "md" ->
         :ok
 
       "djot" ->
@@ -626,7 +632,7 @@ defmodule Kreuzberg.ExtractionConfig do
 
       _invalid ->
         {:error,
-         "Field 'output_format' must be one of: plain, markdown, djot, html, got: #{value}"}
+         "Field 'output_format' must be one of: plain, text, markdown, md, djot, html, got: #{value}"}
     end
   end
 

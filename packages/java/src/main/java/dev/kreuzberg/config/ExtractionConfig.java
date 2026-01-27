@@ -132,6 +132,16 @@ public final class ExtractionConfig {
 		return imageExtraction;
 	}
 
+	/**
+	 * Get the image extraction configuration (alias for getImageExtraction).
+	 *
+	 * @return the image extraction configuration, or null if not set
+	 * @since 4.2.0
+	 */
+	public ImageExtractionConfig getImages() {
+		return imageExtraction;
+	}
+
 	public ImagePreprocessingConfig getImagePreprocessing() {
 		return imagePreprocessing;
 	}
@@ -682,6 +692,19 @@ public final class ExtractionConfig {
 
 		public Builder imageExtraction(ImageExtractionConfig imageExtraction) {
 			this.imageExtraction = imageExtraction;
+			return this;
+		}
+
+		/**
+		 * Set the image extraction configuration (alias for imageExtraction).
+		 *
+		 * @param images
+		 *            the image extraction configuration
+		 * @return this builder for chaining
+		 * @since 4.2.0
+		 */
+		public Builder images(ImageExtractionConfig images) {
+			this.imageExtraction = images;
 			return this;
 		}
 

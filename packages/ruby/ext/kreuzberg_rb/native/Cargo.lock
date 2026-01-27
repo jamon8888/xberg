@@ -716,9 +716,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.53"
+version = "1.2.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "755d2fce177175ffca841e9a06afdb2c4ab0f593d53b4dee48147dfaade85932"
+checksum = "6354c81bbfd62d9cfa9cb3c773c2b7b2a3a482d569de977fd0e961f6e7c00583"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -2027,9 +2027,9 @@ dependencies = [
 
 [[package]]
 name = "html-to-markdown-rs"
-version = "2.23.1"
+version = "2.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1f4d6781ac8dd203853803d27054ca4153c7fd0f3956cb7fc95dc06f42a1c46"
+checksum = "ffbf49450676163bdf69fac2acf72674fcf2d2aaf690aa247368c567cc9afb2a"
 dependencies = [
  "astral-tl",
  "base64 0.22.1",
@@ -2627,7 +2627,7 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg"
-version = "4.1.0"
+version = "4.2.0"
 dependencies = [
  "ahash",
  "async-trait",
@@ -2706,17 +2706,18 @@ dependencies = [
  "uuid",
  "whatlang",
  "yake-rust",
- "zip 7.1.0",
+ "zip 7.2.0",
 ]
 
 [[package]]
 name = "kreuzberg-ffi"
-version = "4.1.0"
+version = "4.2.0"
 dependencies = [
  "async-trait",
  "cbindgen",
  "html-to-markdown-rs",
  "kreuzberg",
+ "log",
  "serde",
  "serde_json",
  "tokio",
@@ -2767,14 +2768,14 @@ dependencies = [
 
 [[package]]
 name = "kreuzberg-tesseract"
-version = "4.1.0"
+version = "4.2.0"
 dependencies = [
  "cc",
  "cmake",
  "libc",
  "reqwest 0.13.1",
  "thiserror 2.0.18",
- "zip 7.1.0",
+ "zip 7.2.0",
 ]
 
 [[package]]
@@ -5022,9 +5023,9 @@ dependencies = [
 
 [[package]]
 name = "rmcp"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1815dbc06c414d720f8bc1951eccd66bc99efc6376331f1e7093a119b3eb508"
+checksum = "0a621b37a548ff6ab6292d57841eb25785a7f146d89391a19c9f199414bd13da"
 dependencies = [
  "async-trait",
  "axum",
@@ -5054,9 +5055,9 @@ dependencies = [
 
 [[package]]
 name = "rmcp-macros"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11f0bc7008fa102e771a76c6d2c9b253be3f2baa5964e060464d038ae1cbc573"
+checksum = "6b79ed92303f9262db79575aa8c3652581668e9d136be6fd0b9ededa78954c95"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -6013,6 +6014,7 @@ checksum = "91e7d9e3bb61134e77bde20dd4825b97c010155709965fedf0f49bb138e52a9d"
 dependencies = [
  "deranged",
  "itoa",
+ "js-sys",
  "num-conv",
  "powerfmt",
  "serde",
@@ -6406,6 +6408,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2df906b07856748fa3f6e0ad0cbaa047052d4a7dd609e231c4f72cee8c36f31"
 
 [[package]]
+name = "typed-path"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e43ffa54726cdc9ea78392023ffe9fe9cf9ac779e1c6fcb0d23f9862e3879d20"
+
+[[package]]
 name = "typeid"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6698,9 +6706,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.19.0"
+version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2e054861b4bd027cd373e18e8d8d8e6548085000e41290d95ce0c373a654b4a"
+checksum = "ee48d38b119b0cd71fe4141b30f5ba9c7c5d9f4e7a3a8b4a674e4b6ef789976f"
 dependencies = [
  "getrandom 0.3.4",
  "js-sys",
@@ -7498,9 +7506,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "7.1.0"
+version = "7.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9013f1222db8a6d680f13a7ccdc60a781199cd09c2fa4eff58e728bb181757fc"
+checksum = "c42e33efc22a0650c311c2ef19115ce232583abbe80850bc8b66509ebef02de0"
 dependencies = [
  "aes",
  "bzip2",
@@ -7518,6 +7526,7 @@ dependencies = [
  "ppmd-rust",
  "sha1",
  "time",
+ "typed-path",
  "zeroize",
  "zopfli",
  "zstd",

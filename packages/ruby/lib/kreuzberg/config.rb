@@ -715,9 +715,12 @@ module Kreuzberg
     class Extraction
       attr_reader :use_cache, :enable_quality_processing, :force_ocr,
                   :ocr, :chunking, :language_detection, :pdf_options,
-                  :image_extraction, :image_preprocessing, :postprocessor,
+                  :images, :image_preprocessing, :postprocessor,
                   :token_reduction, :keywords, :html_options, :pages,
                   :max_concurrent_extractions, :output_format, :result_format
+
+      # Alias for backward compatibility - image_extraction is the canonical name
+      alias image_extraction images
 
       # Load configuration from a file.
       #
@@ -746,11 +749,11 @@ module Kreuzberg
         images: :image_extraction
       }.freeze
 
-      # Valid output format values (case-sensitive)
-      VALID_OUTPUT_FORMATS = %w[Plain Markdown Html].freeze
+      # Valid output format values (case-insensitive, normalized internally)
+      VALID_OUTPUT_FORMATS = %w[plain markdown html djot].freeze
 
-      # Valid result format values (case-sensitive)
-      VALID_RESULT_FORMATS = %w[Unified Elements].freeze
+      # Valid result format values (case-insensitive, normalized internally)
+      VALID_RESULT_FORMATS = %w[unified elements element_based].freeze
 
       def self.from_file(path)
         hash = Kreuzberg._config_from_file_native(path)
@@ -842,7 +845,7 @@ module Kreuzberg
         @chunking = normalize_config(params[:chunking], Chunking)
         @language_detection = normalize_config(params[:language_detection], LanguageDetection)
         @pdf_options = normalize_config(params[:pdf_options], PDF)
-        @image_extraction = normalize_config(params[:image_extraction], ImageExtraction)
+        @images = normalize_config(params[:image_extraction], ImageExtraction)
         @image_preprocessing = normalize_config(params[:image_preprocessing], ImagePreprocessing)
         @postprocessor = normalize_config(params[:postprocessor], PostProcessor)
         @token_reduction = normalize_config(params[:token_reduction], TokenReduction)
@@ -857,21 +860,21 @@ module Kreuzberg
       def validate_output_format(value)
         return nil if value.nil?
 
-        str_value = value.to_s
+        str_value = value.to_s.downcase
         return str_value if VALID_OUTPUT_FORMATS.include?(str_value)
 
         raise ArgumentError,
-              "Invalid output_format: #{str_value}. Valid values: #{VALID_OUTPUT_FORMATS.join(', ')}"
+              "Invalid output_format: #{value}. Valid values: #{VALID_OUTPUT_FORMATS.join(', ')}"
       end
 
       def validate_result_format(value)
         return nil if value.nil?
 
-        str_value = value.to_s
+        str_value = value.to_s.downcase
         return str_value if VALID_RESULT_FORMATS.include?(str_value)
 
         raise ArgumentError,
-              "Invalid result_format: #{str_value}. Valid values: #{VALID_RESULT_FORMATS.join(', ')}"
+              "Invalid result_format: #{value}. Valid values: #{VALID_RESULT_FORMATS.join(', ')}"
       end
 
       # rubocop:disable Metrics/CyclomaticComplexity
@@ -885,7 +888,7 @@ module Kreuzberg
           chunking: @chunking&.to_h,
           language_detection: @language_detection&.to_h,
           pdf_options: @pdf_options&.to_h,
-          image_extraction: @image_extraction&.to_h,
+          images: @images&.to_h,
           image_preprocessing: @image_preprocessing&.to_h,
           postprocessor: @postprocessor&.to_h,
           token_reduction: @token_reduction&.to_h,
@@ -1021,7 +1024,7 @@ module Kreuzberg
         when :pdf_options
           @pdf_options = normalize_config(value, PDF)
         when :image_extraction
-          @image_extraction = normalize_config(value, ImageExtraction)
+          @images = normalize_config(value, ImageExtraction)
         when :image_preprocessing
           @image_preprocessing = normalize_config(value, ImagePreprocessing)
         when :postprocessor
@@ -1061,6 +1064,24 @@ module Kreuzberg
         nil
       end
 
+      # Set output_format attribute
+      #
+      # @param value [String, nil] Output format value
+      # @return [String, nil] The value that was set
+      #
+      def output_format=(value)
+        @output_format = validate_output_format(value)
+      end
+
+      # Set result_format attribute
+      #
+      # @param value [String, nil] Result format value
+      # @return [String, nil] The value that was set
+      #
+      def result_format=(value)
+        @result_format = validate_result_format(value)
+      end
+
       private
 
       def normalize_config(value, klass)
@@ -1079,7 +1100,7 @@ module Kreuzberg
         @chunking = merged.chunking
         @language_detection = merged.language_detection
         @pdf_options = merged.pdf_options
-        @image_extraction = merged.image_extraction
+        @images = merged.image_extraction
         @image_preprocessing = merged.image_preprocessing
         @postprocessor = merged.postprocessor
         @token_reduction = merged.token_reduction

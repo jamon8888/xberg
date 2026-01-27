@@ -44,7 +44,7 @@ readonly class ExtractionConfig
          * @var PdfConfig|null
          * @default null
          */
-        public ?PdfConfig $pdf = null,
+        public ?PdfConfig $pdfOptions = null,
 
         /**
          * Text chunking configuration.
@@ -77,7 +77,7 @@ readonly class ExtractionConfig
          * @var ImageExtractionConfig|null
          * @default null
          */
-        public ?ImageExtractionConfig $imageExtraction = null,
+        public ?ImageExtractionConfig $images = null,
 
         /**
          * Page extraction configuration.
@@ -87,7 +87,7 @@ readonly class ExtractionConfig
          * @var PageConfig|null
          * @default null
          */
-        public ?PageConfig $page = null,
+        public ?PageConfig $pages = null,
 
         /**
          * Language detection configuration.
@@ -110,6 +110,26 @@ readonly class ExtractionConfig
          * @default null
          */
         public ?KeywordConfig $keywords = null,
+
+        /**
+         * Post-processor configuration.
+         *
+         * Configures post-processing options for extracted content.
+         *
+         * @var PostProcessorConfig|null
+         * @default null
+         */
+        public ?PostProcessorConfig $postprocessor = null,
+
+        /**
+         * Token reduction configuration.
+         *
+         * Configures token reduction/optimization for extracted content.
+         *
+         * @var TokenReductionConfig|null
+         * @default null
+         */
+        public ?TokenReductionConfig $tokenReduction = null,
 
         /**
          * Enable image extraction from documents.
@@ -329,7 +349,11 @@ readonly class ExtractionConfig
         }
 
         $pdf = null;
-        if (isset($data['pdf']) && is_array($data['pdf'])) {
+        if (isset($data['pdf_options']) && is_array($data['pdf_options'])) {
+            /** @var array<string, mixed> $pdfData */
+            $pdfData = $data['pdf_options'];
+            $pdf = PdfConfig::fromArray($pdfData);
+        } elseif (isset($data['pdf']) && is_array($data['pdf'])) {
             /** @var array<string, mixed> $pdfData */
             $pdfData = $data['pdf'];
             $pdf = PdfConfig::fromArray($pdfData);
@@ -392,13 +416,27 @@ readonly class ExtractionConfig
             $htmlOptions = $htmlOptionsData;
         }
 
+        $postprocessor = null;
+        if (isset($data['postprocessor']) && is_array($data['postprocessor'])) {
+            /** @var array<string, mixed> $postprocessorData */
+            $postprocessorData = $data['postprocessor'];
+            $postprocessor = PostProcessorConfig::fromArray($postprocessorData);
+        }
+
+        $tokenReduction = null;
+        if (isset($data['token_reduction']) && is_array($data['token_reduction'])) {
+            /** @var array<string, mixed> $tokenReductionData */
+            $tokenReductionData = $data['token_reduction'];
+            $tokenReduction = TokenReductionConfig::fromArray($tokenReductionData);
+        }
+
         return new self(
             ocr: $ocr,
-            pdf: $pdf,
+            pdfOptions: $pdf,
             chunking: $chunking,
             embedding: $embedding,
-            imageExtraction: $imageExtraction,
-            page: $page,
+            images: $imageExtraction,
+            pages: $page,
             languageDetection: $languageDetection,
             keywords: $keywords,
             extractImages: $extractImages,
@@ -412,6 +450,8 @@ readonly class ExtractionConfig
             resultFormat: $resultFormat,
             outputEncoding: $outputEncoding,
             htmlOptions: $htmlOptions,
+            postprocessor: $postprocessor,
+            tokenReduction: $tokenReduction,
         );
     }
 
@@ -588,24 +628,26 @@ readonly class ExtractionConfig
 
         // If extractImages is enabled but imageExtraction config is not provided,
         // auto-create an ImageExtractionConfig to enable image extraction
-        $imageExtraction = $this->imageExtraction;
+        $imageExtraction = $this->images;
         if ($this->extractImages && $imageExtraction === null) {
             $imageExtraction = new ImageExtractionConfig(extractImages: true);
         } elseif (!$this->extractImages && $imageExtraction !== null) {
-            // If extractImages is false but imageExtraction config exists, respect the config
-            $imageExtraction = $this->imageExtraction;
+            // If extractImages is false but images config exists, respect the config
+            $imageExtraction = $this->images;
         }
 
         $result = [
             'ocr' => $this->ocr?->toArray(),
-            'pdf' => $this->pdf?->toArray(),
+            'pdf_options' => $this->pdfOptions?->toArray(),
             'chunking' => $chunking?->toArray(),
             'embedding' => $this->embedding?->toArray(),
             'images' => $imageExtraction?->toArray(),
-            'pages' => $this->page?->toArray(),
+            'pages' => $this->pages?->toArray(),
             'language_detection' => $this->languageDetection?->toArray(),
             'keywords' => $this->keywords?->toArray(),
             'html_options' => $this->htmlOptions,
+            'postprocessor' => $this->postprocessor?->toArray(),
+            'token_reduction' => $this->tokenReduction?->toArray(),
         ];
 
         // Add simple boolean/string fields only if explicitly set to non-default values

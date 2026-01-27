@@ -20,9 +20,9 @@ public class OcrTest {
             "ocr_image_hello_world",
             "images/test_hello_world.png",
             config,
-            Arrays.asList("tesseract", "tesseract"),
-            "Requires Tesseract OCR for image text extraction.",
-            true,
+            Collections.emptyList(),
+            "OCR is always available",
+            false,
             result -> {
                 E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("image/png"));
                 E2EHelpers.Assertions.assertMinContentLength(result, 5);
@@ -38,9 +38,9 @@ public class OcrTest {
             "ocr_image_no_text",
             "images/flower_no_text.jpg",
             config,
-            Arrays.asList("tesseract", "tesseract"),
-            "Skip when Tesseract is unavailable.",
-            true,
+            Collections.emptyList(),
+            "OCR is always available",
+            false,
             result -> {
                 E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("image/jpeg"));
                 E2EHelpers.Assertions.assertMaxContentLength(result, 200);
@@ -55,9 +55,9 @@ public class OcrTest {
             "ocr_pdf_image_only_german",
             "pdfs/image_only_german_pdf.pdf",
             config,
-            Arrays.asList("tesseract", "tesseract"),
-            "Skip if OCR backend unavailable.",
-            true,
+            Collections.emptyList(),
+            "OCR is always available",
+            false,
             result -> {
                 E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
                 E2EHelpers.Assertions.assertMinContentLength(result, 20);
@@ -73,9 +73,9 @@ public class OcrTest {
             "ocr_pdf_rotated_90",
             "pdfs/ocr_test_rotated_90.pdf",
             config,
-            Arrays.asList("tesseract", "tesseract"),
-            "Skip automatically when OCR backend is missing.",
-            true,
+            Collections.emptyList(),
+            "OCR is always available",
+            false,
             result -> {
                 E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
                 E2EHelpers.Assertions.assertMinContentLength(result, 10);
@@ -90,9 +90,9 @@ public class OcrTest {
             "ocr_pdf_tesseract",
             "pdfs/ocr_test.pdf",
             config,
-            Arrays.asList("tesseract", "tesseract"),
-            "Skip automatically if OCR backend is unavailable.",
-            true,
+            Collections.emptyList(),
+            "OCR is always available",
+            false,
             result -> {
                 E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
                 E2EHelpers.Assertions.assertMinContentLength(result, 20);

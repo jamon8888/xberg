@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'tempfile'
+require 'fileutils'
 
 RSpec.describe 'Table Extraction Quality' do
   describe 'table structure extraction' do
@@ -523,12 +525,19 @@ RSpec.describe 'Table Extraction Quality' do
     it 'handles documents with no tables gracefully' do
       config = Kreuzberg::Config::Extraction.new
 
+      # Create a temporary text file for this test
+      file = Tempfile.new(['no_tables_test', '.txt'])
+      file.write('This is a text document without any tables.')
+      file.close
+
       begin
-        result = Kreuzberg.extract_file(path: 'test.txt', config: config)
+        result = Kreuzberg.extract_file(path: file.path, config: config)
         expect(result).not_to be_nil
         expect(result.tables).to be_a(Array) if result.tables
-      rescue Kreuzberg::Errors::ValidationError
+      rescue Kreuzberg::Errors::IOError
         skip 'Text file not available for testing'
+      ensure
+        FileUtils.rm_f(file.path)
       end
     end
 

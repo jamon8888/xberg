@@ -21,7 +21,7 @@ defmodule KreuzbergTestApp.MixProject do
 
   defp deps do
     [
-      {:kreuzberg, "~> 4.2.0"},
+      {:kreuzberg, path: "../../../packages/elixir", override: true},
       {:rustler, ">= 0.0.0", optional: true}
     ]
   end

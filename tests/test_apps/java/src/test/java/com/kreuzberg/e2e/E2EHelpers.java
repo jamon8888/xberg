@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public final class E2EHelpers {
     private static final Path WORKSPACE_ROOT =
-            Paths.get("").toAbsolutePath().getParent().getParent();
+            Paths.get("").toAbsolutePath().getParent().getParent().getParent();
     private static final Path TEST_DOCUMENTS = WORKSPACE_ROOT.resolve("test_documents");
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
