@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.2.3] - 2026-01-28
+
+### Fixed
+
+#### Elixir Bindings
+- **API parity**: Added `ExtractionConfig.new/0` and `new/1` constructors for consistent struct creation
+- **Chunk field alignment**: Changed `text` field to `content` for API parity with Rust core (from 445b9cd67)
+
+#### C# Bindings
+- **Error type fix**: File-not-found errors now throw `KreuzbergIOException` instead of `KreuzbergValidationException`
+  - Aligns with Rust error handling where file access issues are I/O errors
+
+#### Go Bindings
+- **Test alignment**: Removed references to deprecated `WithEmbedding()` API and `Chunking.Embedding` field
+- **Test fixes**: Updated config_comprehensive_test, config_result_test, embeddings_test, memory_safety_test
+
+#### Java Bindings
+- **ExtractionConfig expansion**: Added `embedding()` and `imagePreprocessing()` builder methods
+- **Default value alignment**: Fixed test assertions to expect `enableQualityProcessing=true` (matches Rust default)
+
+#### Ruby Bindings
+- **Rubocop compliance**: Fixed `Style/EmptyClassDefinition` offenses in api_proxy.rb, cli_proxy.rb, mcp_proxy.rb
+
+---
+
 ## [4.2.2] - 2026-01-28
 
 ### Changed
