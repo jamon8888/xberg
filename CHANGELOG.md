@@ -34,9 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Go Bindings
 - **Test alignment**: Removed references to deprecated `WithEmbedding()` API and `Chunking.Embedding` field
 - **Test fixes**: Updated config_comprehensive_test, config_result_test, embeddings_test, memory_safety_test
+- **Empty HTML test**: Fixed `TestMetadataEmptyHTML` false assertion requiring empty HTML to produce content
 
 #### Java Bindings
-- **ExtractionConfig expansion**: Added `embedding()` and `imagePreprocessing()` builder methods
+- **API parity**: Removed non-canonical `embedding` and `imagePreprocessing` top-level fields from `ExtractionConfig` (restores exact 16-field parity with Rust core)
 - **Default value alignment**: Fixed test assertions to expect `enableQualityProcessing=true` (matches Rust default)
 
 #### Ruby Bindings
