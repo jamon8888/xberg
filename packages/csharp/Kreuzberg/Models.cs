@@ -10,73 +10,73 @@ namespace Kreuzberg;
 /// Categorizes text content into semantic units for downstream processing.
 /// Compatible with Unstructured.io element types.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<ElementType>))]
 public enum ElementType
 {
     /// <summary>
     /// Document title element.
     /// </summary>
-    [JsonPropertyName("title")]
+    [JsonStringEnumMemberName("title")]
     Title,
 
     /// <summary>
     /// Main narrative text body element.
     /// </summary>
-    [JsonPropertyName("narrative_text")]
+    [JsonStringEnumMemberName("narrative_text")]
     NarrativeText,
 
     /// <summary>
     /// Section heading element.
     /// </summary>
-    [JsonPropertyName("heading")]
+    [JsonStringEnumMemberName("heading")]
     Heading,
 
     /// <summary>
     /// List item element (bullet, numbered, etc.).
     /// </summary>
-    [JsonPropertyName("list_item")]
+    [JsonStringEnumMemberName("list_item")]
     ListItem,
 
     /// <summary>
     /// Table element.
     /// </summary>
-    [JsonPropertyName("table")]
+    [JsonStringEnumMemberName("table")]
     Table,
 
     /// <summary>
     /// Image element.
     /// </summary>
-    [JsonPropertyName("image")]
+    [JsonStringEnumMemberName("image")]
     Image,
 
     /// <summary>
     /// Page break marker element.
     /// </summary>
-    [JsonPropertyName("page_break")]
+    [JsonStringEnumMemberName("page_break")]
     PageBreak,
 
     /// <summary>
     /// Code block element.
     /// </summary>
-    [JsonPropertyName("code_block")]
+    [JsonStringEnumMemberName("code_block")]
     CodeBlock,
 
     /// <summary>
     /// Block quote element.
     /// </summary>
-    [JsonPropertyName("block_quote")]
+    [JsonStringEnumMemberName("block_quote")]
     BlockQuote,
 
     /// <summary>
     /// Footer text element.
     /// </summary>
-    [JsonPropertyName("footer")]
+    [JsonStringEnumMemberName("footer")]
     Footer,
 
     /// <summary>
     /// Header text element.
     /// </summary>
-    [JsonPropertyName("header")]
+    [JsonStringEnumMemberName("header")]
     Header,
 }
 
@@ -451,28 +451,64 @@ public sealed class ExtractedImage
     public ExtractionResult? OcrResult { get; set; }
 }
 
+/// <summary>
+/// Document format type classification for metadata categorization.
+/// </summary>
 public enum FormatType
 {
+    /// <summary>
+    /// Unknown or unrecognized document format.
+    /// </summary>
     Unknown,
-    [JsonPropertyName("pdf")]
+    /// <summary>
+    /// PDF document format.
+    /// </summary>
+    [JsonStringEnumMemberName("pdf")]
     Pdf,
-    [JsonPropertyName("excel")]
+    /// <summary>
+    /// Excel spreadsheet format.
+    /// </summary>
+    [JsonStringEnumMemberName("excel")]
     Excel,
-    [JsonPropertyName("email")]
+    /// <summary>
+    /// Email message format.
+    /// </summary>
+    [JsonStringEnumMemberName("email")]
     Email,
-    [JsonPropertyName("pptx")]
+    /// <summary>
+    /// PowerPoint presentation format.
+    /// </summary>
+    [JsonStringEnumMemberName("pptx")]
     Pptx,
-    [JsonPropertyName("archive")]
+    /// <summary>
+    /// Archive format (ZIP, TAR, etc.).
+    /// </summary>
+    [JsonStringEnumMemberName("archive")]
     Archive,
-    [JsonPropertyName("image")]
+    /// <summary>
+    /// Image format (PNG, JPEG, TIFF, etc.).
+    /// </summary>
+    [JsonStringEnumMemberName("image")]
     Image,
-    [JsonPropertyName("xml")]
+    /// <summary>
+    /// XML document format.
+    /// </summary>
+    [JsonStringEnumMemberName("xml")]
     Xml,
-    [JsonPropertyName("text")]
+    /// <summary>
+    /// Plain text format.
+    /// </summary>
+    [JsonStringEnumMemberName("text")]
     Text,
-    [JsonPropertyName("html")]
+    /// <summary>
+    /// HTML document format.
+    /// </summary>
+    [JsonStringEnumMemberName("html")]
     Html,
-    [JsonPropertyName("ocr")]
+    /// <summary>
+    /// OCR-processed document format.
+    /// </summary>
+    [JsonStringEnumMemberName("ocr")]
     Ocr,
 }
 
@@ -537,32 +573,62 @@ public sealed class FormatMetadata
     public OcrMetadata? Ocr { get; set; }
 }
 
+/// <summary>
+/// Document-level metadata extracted during processing.
+/// </summary>
 public sealed class Metadata
 {
+    /// <summary>
+    /// Detected or specified language of the document content.
+    /// </summary>
     [JsonPropertyName("language")]
     public string? Language { get; set; }
 
+    /// <summary>
+    /// Document date (creation or modification), if available.
+    /// </summary>
     [JsonPropertyName("date")]
     public string? Date { get; set; }
 
+    /// <summary>
+    /// Document subject, if available.
+    /// </summary>
     [JsonPropertyName("subject")]
     public string? Subject { get; set; }
 
+    /// <summary>
+    /// The detected document format type.
+    /// </summary>
     [JsonPropertyName("format_type")]
     public FormatType FormatType { get; set; } = FormatType.Unknown;
 
+    /// <summary>
+    /// Format-specific metadata container.
+    /// </summary>
     [JsonPropertyName("format")]
     public FormatMetadata Format { get; set; } = new();
 
+    /// <summary>
+    /// Image preprocessing metadata, if image preprocessing was applied.
+    /// </summary>
     [JsonPropertyName("image_preprocessing")]
     public ImagePreprocessingMetadata? ImagePreprocessing { get; set; }
 
+    /// <summary>
+    /// JSON schema associated with the document, if available.
+    /// </summary>
     [JsonPropertyName("json_schema")]
     public JsonNode? JsonSchema { get; set; }
 
+    /// <summary>
+    /// Error metadata if an error occurred during extraction.
+    /// </summary>
     [JsonPropertyName("error")]
     public ErrorMetadata? Error { get; set; }
 
+    /// <summary>
+    /// Page structure information for paginated documents.
+    /// </summary>
     [JsonPropertyName("pages")]
     public PageStructure? Pages { get; set; }
 
@@ -573,54 +639,105 @@ public sealed class Metadata
     [JsonPropertyName("keywords")]
     public List<ExtractedKeyword>? Keywords { get; set; }
 
+    /// <summary>
+    /// Additional untyped metadata fields captured as extension data.
+    /// </summary>
     [JsonExtensionData]
     public JsonObject? Additional { get; set; }
 }
 
+/// <summary>
+/// Metadata about image preprocessing operations applied during extraction.
+/// </summary>
 public sealed class ImagePreprocessingMetadata
 {
+    /// <summary>
+    /// Original image dimensions [width, height] in pixels.
+    /// </summary>
     [JsonPropertyName("original_dimensions")]
     public int[]? OriginalDimensions { get; set; }
 
+    /// <summary>
+    /// Original image DPI [horizontal, vertical].
+    /// </summary>
     [JsonPropertyName("original_dpi")]
     public double[]? OriginalDpi { get; set; }
 
+    /// <summary>
+    /// Target DPI used for preprocessing.
+    /// </summary>
     [JsonPropertyName("target_dpi")]
     public int TargetDpi { get; set; }
 
+    /// <summary>
+    /// Scale factor applied to the image.
+    /// </summary>
     [JsonPropertyName("scale_factor")]
     public double ScaleFactor { get; set; }
 
+    /// <summary>
+    /// Whether the DPI was automatically adjusted.
+    /// </summary>
     [JsonPropertyName("auto_adjusted")]
     public bool AutoAdjusted { get; set; }
 
+    /// <summary>
+    /// Final DPI after preprocessing.
+    /// </summary>
     [JsonPropertyName("final_dpi")]
     public int FinalDpi { get; set; }
 
+    /// <summary>
+    /// New image dimensions [width, height] after preprocessing.
+    /// </summary>
     [JsonPropertyName("new_dimensions")]
     public int[]? NewDimensions { get; set; }
 
+    /// <summary>
+    /// Resampling method used for resizing (e.g., "lanczos", "bilinear").
+    /// </summary>
     [JsonPropertyName("resample_method")]
     public string? ResampleMethod { get; set; }
 
+    /// <summary>
+    /// Whether the image dimensions were clamped to a maximum.
+    /// </summary>
     [JsonPropertyName("dimension_clamped")]
     public bool DimensionClamped { get; set; }
 
+    /// <summary>
+    /// Calculated DPI from image metadata, if available.
+    /// </summary>
     [JsonPropertyName("calculated_dpi")]
     public int? CalculatedDpi { get; set; }
 
+    /// <summary>
+    /// Whether resizing was skipped (e.g., image already at target size).
+    /// </summary>
     [JsonPropertyName("skipped_resize")]
     public bool SkippedResize { get; set; }
 
+    /// <summary>
+    /// Error message if resizing failed, if any.
+    /// </summary>
     [JsonPropertyName("resize_error")]
     public string? ResizeError { get; set; }
 }
 
+/// <summary>
+/// Metadata about an error that occurred during document extraction.
+/// </summary>
 public sealed class ErrorMetadata
 {
+    /// <summary>
+    /// The type or category of the error.
+    /// </summary>
     [JsonPropertyName("error_type")]
     public string ErrorType { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Human-readable error message describing what went wrong.
+    /// </summary>
     [JsonPropertyName("message")]
     public string Message { get; set; } = string.Empty;
 }
@@ -655,176 +772,350 @@ public sealed class ExtractedKeyword
     public List<int>? Positions { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to PDF documents.
+/// </summary>
 public sealed class PdfMetadata
 {
+    /// <summary>
+    /// Document title from PDF metadata.
+    /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
 
+    /// <summary>
+    /// Document subject from PDF metadata.
+    /// </summary>
     [JsonPropertyName("subject")]
     public string? Subject { get; set; }
 
+    /// <summary>
+    /// Document author from PDF metadata.
+    /// </summary>
     [JsonPropertyName("author")]
     public string? Author { get; set; }
 
+    /// <summary>
+    /// Keywords from PDF metadata.
+    /// </summary>
     [JsonPropertyName("keywords")]
     public List<string>? Keywords { get; set; }
 
+    /// <summary>
+    /// Creator application from PDF metadata.
+    /// </summary>
     [JsonPropertyName("creator")]
     public string? Creator { get; set; }
 
+    /// <summary>
+    /// PDF producer application from PDF metadata.
+    /// </summary>
     [JsonPropertyName("producer")]
     public string? Producer { get; set; }
 
+    /// <summary>
+    /// Document creation date from PDF metadata.
+    /// </summary>
     [JsonPropertyName("creation_date")]
     public string? CreationDate { get; set; }
 
+    /// <summary>
+    /// Document modification date from PDF metadata.
+    /// </summary>
     [JsonPropertyName("modification_date")]
     public string? ModificationDate { get; set; }
 
+    /// <summary>
+    /// Total number of pages in the PDF document.
+    /// </summary>
     [JsonPropertyName("page_count")]
     public int? PageCount { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to Excel spreadsheet documents.
+/// </summary>
 public sealed class ExcelMetadata
 {
+    /// <summary>
+    /// Number of sheets in the workbook.
+    /// </summary>
     [JsonPropertyName("sheet_count")]
     public int? SheetCount { get; set; }
 
+    /// <summary>
+    /// Names of the sheets in the workbook.
+    /// </summary>
     [JsonPropertyName("sheet_names")]
     public List<string>? SheetNames { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to email messages.
+/// </summary>
 public sealed class EmailMetadata
 {
+    /// <summary>
+    /// Sender email address.
+    /// </summary>
     [JsonPropertyName("from_email")]
     public string? FromEmail { get; set; }
 
+    /// <summary>
+    /// Sender display name.
+    /// </summary>
     [JsonPropertyName("from_name")]
     public string? FromName { get; set; }
 
+    /// <summary>
+    /// List of recipient email addresses.
+    /// </summary>
     [JsonPropertyName("to_emails")]
     public List<string>? ToEmails { get; set; }
 
+    /// <summary>
+    /// List of CC recipient email addresses.
+    /// </summary>
     [JsonPropertyName("cc_emails")]
     public List<string>? CcEmails { get; set; }
 
+    /// <summary>
+    /// List of BCC recipient email addresses.
+    /// </summary>
     [JsonPropertyName("bcc_emails")]
     public List<string>? BccEmails { get; set; }
 
+    /// <summary>
+    /// Unique message identifier from the email headers.
+    /// </summary>
     [JsonPropertyName("message_id")]
     public string? MessageId { get; set; }
 
+    /// <summary>
+    /// List of attachment filenames in the email.
+    /// </summary>
     [JsonPropertyName("attachments")]
     public List<string>? Attachments { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to archive files (ZIP, TAR, etc.).
+/// </summary>
 public sealed class ArchiveMetadata
 {
+    /// <summary>
+    /// Archive format name (e.g., "zip", "tar", "gz").
+    /// </summary>
     [JsonPropertyName("format")]
     public string? Format { get; set; }
 
+    /// <summary>
+    /// Number of files in the archive.
+    /// </summary>
     [JsonPropertyName("file_count")]
     public int? FileCount { get; set; }
 
+    /// <summary>
+    /// List of file paths within the archive.
+    /// </summary>
     [JsonPropertyName("file_list")]
     public List<string>? FileList { get; set; }
 
+    /// <summary>
+    /// Total uncompressed size in bytes.
+    /// </summary>
     [JsonPropertyName("total_size")]
     public int? TotalSize { get; set; }
 
+    /// <summary>
+    /// Total compressed size in bytes.
+    /// </summary>
     [JsonPropertyName("compressed_size")]
     public int? CompressedSize { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to image files.
+/// </summary>
 public sealed class ImageMetadata
 {
+    /// <summary>
+    /// Image width in pixels.
+    /// </summary>
     [JsonPropertyName("width")]
     public uint Width { get; set; }
 
+    /// <summary>
+    /// Image height in pixels.
+    /// </summary>
     [JsonPropertyName("height")]
     public uint Height { get; set; }
 
+    /// <summary>
+    /// Image format name (e.g., "PNG", "JPEG", "TIFF").
+    /// </summary>
     [JsonPropertyName("format")]
     public string Format { get; set; } = string.Empty;
 
+    /// <summary>
+    /// EXIF metadata key-value pairs, if available.
+    /// </summary>
     [JsonPropertyName("exif")]
     public Dictionary<string, string>? Exif { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to XML documents.
+/// </summary>
 public sealed class XmlMetadata
 {
+    /// <summary>
+    /// Total number of XML elements in the document.
+    /// </summary>
     [JsonPropertyName("element_count")]
     public int? ElementCount { get; set; }
 
+    /// <summary>
+    /// List of unique XML element names found in the document.
+    /// </summary>
     [JsonPropertyName("unique_elements")]
     public List<string>? UniqueElements { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to plain text and Markdown documents.
+/// </summary>
 public sealed class TextMetadata
 {
+    /// <summary>
+    /// Total number of lines in the document.
+    /// </summary>
     [JsonPropertyName("line_count")]
     public int? LineCount { get; set; }
 
+    /// <summary>
+    /// Total number of words in the document.
+    /// </summary>
     [JsonPropertyName("word_count")]
     public int? WordCount { get; set; }
 
+    /// <summary>
+    /// Total number of characters in the document.
+    /// </summary>
     [JsonPropertyName("character_count")]
     public int? CharacterCount { get; set; }
 
+    /// <summary>
+    /// Headers found in the text document.
+    /// </summary>
     [JsonPropertyName("headers")]
     public List<string>? Headers { get; set; }
 
+    /// <summary>
+    /// Links found in the text document, each as [text, url].
+    /// </summary>
     [JsonPropertyName("links")]
     public List<List<string>>? Links { get; set; }
 
+    /// <summary>
+    /// Code blocks found in the text document, each as [language, code].
+    /// </summary>
     [JsonPropertyName("code_blocks")]
     public List<List<string>>? CodeBlocks { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to HTML documents.
+/// </summary>
 public sealed class HtmlMetadata
 {
+    /// <summary>
+    /// Document title from the HTML title element.
+    /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
 
+    /// <summary>
+    /// Meta description from the HTML document.
+    /// </summary>
     [JsonPropertyName("description")]
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Meta keywords from the HTML document.
+    /// </summary>
     [JsonPropertyName("keywords")]
     public List<string> Keywords { get; set; } = new();
 
+    /// <summary>
+    /// Author from the HTML meta tags.
+    /// </summary>
     [JsonPropertyName("author")]
     public string? Author { get; set; }
 
+    /// <summary>
+    /// Canonical URL from the HTML link element.
+    /// </summary>
     [JsonPropertyName("canonical_url")]
     public string? CanonicalUrl { get; set; }
 
+    /// <summary>
+    /// Base href from the HTML base element.
+    /// </summary>
     [JsonPropertyName("base_href")]
     public string? BaseHref { get; set; }
 
+    /// <summary>
+    /// Document language from the HTML lang attribute.
+    /// </summary>
     [JsonPropertyName("language")]
     public string? Language { get; set; }
 
+    /// <summary>
+    /// Text direction from the HTML dir attribute (e.g., "ltr", "rtl").
+    /// </summary>
     [JsonPropertyName("text_direction")]
     public string? TextDirection { get; set; }
 
+    /// <summary>
+    /// Open Graph metadata key-value pairs.
+    /// </summary>
     [JsonPropertyName("open_graph")]
     public Dictionary<string, string> OpenGraph { get; set; } = new();
 
+    /// <summary>
+    /// Twitter Card metadata key-value pairs.
+    /// </summary>
     [JsonPropertyName("twitter_card")]
     public Dictionary<string, string> TwitterCard { get; set; } = new();
 
+    /// <summary>
+    /// Additional meta tag key-value pairs.
+    /// </summary>
     [JsonPropertyName("meta_tags")]
     public Dictionary<string, string> MetaTags { get; set; } = new();
 
+    /// <summary>
+    /// Headers/headings found in the HTML document.
+    /// </summary>
     [JsonPropertyName("headers")]
     public List<HeaderMetadata> Headers { get; set; } = new();
 
+    /// <summary>
+    /// Links found in the HTML document.
+    /// </summary>
     [JsonPropertyName("links")]
     public List<LinkMetadata> Links { get; set; } = new();
 
+    /// <summary>
+    /// Images found in the HTML document.
+    /// </summary>
     [JsonPropertyName("images")]
     public List<HtmlImageMetadata> Images { get; set; } = new();
 
+    /// <summary>
+    /// Structured data (JSON-LD, etc.) found in the HTML document.
+    /// </summary>
     [JsonPropertyName("structured_data")]
     public List<StructuredData> StructuredData { get; set; } = new();
 }
@@ -834,18 +1125,33 @@ public sealed class HtmlMetadata
 /// </summary>
 public sealed class HeaderMetadata
 {
+    /// <summary>
+    /// Heading level (1-6 corresponding to h1-h6).
+    /// </summary>
     [JsonPropertyName("level")]
     public byte Level { get; set; }
 
+    /// <summary>
+    /// Text content of the heading.
+    /// </summary>
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
+    /// <summary>
+    /// HTML id attribute of the heading element, if present.
+    /// </summary>
     [JsonPropertyName("id")]
     public string? Id { get; set; }
 
+    /// <summary>
+    /// Nesting depth of the heading in the document structure.
+    /// </summary>
     [JsonPropertyName("depth")]
     public int Depth { get; set; }
 
+    /// <summary>
+    /// Character offset of this heading in the original HTML source.
+    /// </summary>
     [JsonPropertyName("html_offset")]
     public int HtmlOffset { get; set; }
 }
@@ -855,21 +1161,39 @@ public sealed class HeaderMetadata
 /// </summary>
 public sealed class LinkMetadata
 {
+    /// <summary>
+    /// The URL target of the link.
+    /// </summary>
     [JsonPropertyName("href")]
     public string Href { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Display text of the link.
+    /// </summary>
     [JsonPropertyName("text")]
     public string Text { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Title attribute of the link, if present.
+    /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
 
+    /// <summary>
+    /// Classified link type (e.g., "internal", "external", "mailto", "other").
+    /// </summary>
     [JsonPropertyName("link_type")]
     public string LinkType { get; set; } = "other";
 
+    /// <summary>
+    /// Rel attribute values of the link (e.g., "nofollow", "noopener").
+    /// </summary>
     [JsonPropertyName("rel")]
     public List<string> Rel { get; set; } = new();
 
+    /// <summary>
+    /// Additional HTML attributes on the link element.
+    /// </summary>
     [JsonPropertyName("attributes")]
     public Dictionary<string, string> Attributes { get; set; } = new();
 }
@@ -879,21 +1203,39 @@ public sealed class LinkMetadata
 /// </summary>
 public sealed class HtmlImageMetadata
 {
+    /// <summary>
+    /// Image source URL.
+    /// </summary>
     [JsonPropertyName("src")]
     public string Src { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Alt text of the image, if present.
+    /// </summary>
     [JsonPropertyName("alt")]
     public string? Alt { get; set; }
 
+    /// <summary>
+    /// Title attribute of the image, if present.
+    /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
 
+    /// <summary>
+    /// Image dimensions [width, height] in pixels, if specified.
+    /// </summary>
     [JsonPropertyName("dimensions")]
     public int[]? Dimensions { get; set; }
 
+    /// <summary>
+    /// Image type classification (e.g., "external", "inline", "data_uri").
+    /// </summary>
     [JsonPropertyName("image_type")]
     public string ImageType { get; set; } = "external";
 
+    /// <summary>
+    /// Additional HTML attributes on the image element.
+    /// </summary>
     [JsonPropertyName("attributes")]
     public Dictionary<string, string> Attributes { get; set; } = new();
 }
@@ -903,51 +1245,99 @@ public sealed class HtmlImageMetadata
 /// </summary>
 public sealed class StructuredData
 {
+    /// <summary>
+    /// Type of structured data (e.g., "json_ld", "microdata", "rdfa").
+    /// </summary>
     [JsonPropertyName("data_type")]
     public string DataType { get; set; } = "json_ld";
 
+    /// <summary>
+    /// Raw JSON string of the structured data.
+    /// </summary>
     [JsonPropertyName("raw_json")]
     public string RawJson { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Schema.org type (e.g., "Article", "Product"), if detected.
+    /// </summary>
     [JsonPropertyName("schema_type")]
     public string? SchemaType { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to PowerPoint presentation documents.
+/// </summary>
 public sealed class PptxMetadata
 {
+    /// <summary>
+    /// Presentation title.
+    /// </summary>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
 
+    /// <summary>
+    /// Presentation author.
+    /// </summary>
     [JsonPropertyName("author")]
     public string? Author { get; set; }
 
+    /// <summary>
+    /// Presentation description.
+    /// </summary>
     [JsonPropertyName("description")]
     public string? Description { get; set; }
 
+    /// <summary>
+    /// Presentation summary.
+    /// </summary>
     [JsonPropertyName("summary")]
     public string? Summary { get; set; }
 
+    /// <summary>
+    /// Fonts used in the presentation.
+    /// </summary>
     [JsonPropertyName("fonts")]
     public List<string>? Fonts { get; set; }
 }
 
+/// <summary>
+/// Metadata specific to OCR-processed documents.
+/// </summary>
 public sealed class OcrMetadata
 {
+    /// <summary>
+    /// Language used for OCR processing.
+    /// </summary>
     [JsonPropertyName("language")]
     public string? Language { get; set; }
 
+    /// <summary>
+    /// Page Segmentation Mode (PSM) used by the OCR engine.
+    /// </summary>
     [JsonPropertyName("psm")]
     public int? Psm { get; set; }
 
+    /// <summary>
+    /// Output format of the OCR results.
+    /// </summary>
     [JsonPropertyName("output_format")]
     public string? OutputFormat { get; set; }
 
+    /// <summary>
+    /// Number of tables detected by OCR.
+    /// </summary>
     [JsonPropertyName("table_count")]
     public int? TableCount { get; set; }
 
+    /// <summary>
+    /// Number of rows in detected tables.
+    /// </summary>
     [JsonPropertyName("table_rows")]
     public int? TableRows { get; set; }
 
+    /// <summary>
+    /// Number of columns in detected tables.
+    /// </summary>
     [JsonPropertyName("table_cols")]
     public int? TableCols { get; set; }
 }
