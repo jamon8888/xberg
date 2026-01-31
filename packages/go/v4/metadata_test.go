@@ -49,12 +49,15 @@ func TestMetadataRoundTripPreservesFormatAndAdditionalFields(t *testing.T) {
 	if meta.Format.Pdf == nil || meta.Format.Pdf.PageCount == nil || *meta.Format.Pdf.PageCount != 2 {
 		t.Fatalf("expected pdf metadata with page count")
 	}
-	if meta.Additional == nil || len(meta.Additional) != 1 {
-		t.Fatalf("expected additional metadata")
+	if meta.Additional == nil || len(meta.Additional) != 2 {
+		t.Fatalf("expected 2 additional metadata fields (date + custom_meta), got %d", len(meta.Additional))
 	}
 
 	if _, ok := meta.Additional["custom_meta"]; !ok {
 		t.Fatalf("missing custom metadata field")
+	}
+	if _, ok := meta.Additional["date"]; !ok {
+		t.Fatalf("missing date in additional (no longer a core field)")
 	}
 
 	encoded, err := json.Marshal(meta)
@@ -762,7 +765,7 @@ func TestNewFieldsExist(t *testing.T) {
 		"CanonicalURL":   "*string",
 		"BaseHref":       "*string",
 		"Language":       "*string",
-		"TextDirection":  "*string",
+		"TextDirection":  "*kreuzberg.TextDirection",
 		"OpenGraph":      "map[string]string",
 		"TwitterCard":    "map[string]string",
 		"MetaTags":       "map[string]string",
@@ -857,7 +860,7 @@ func TestStructuredDataFields(t *testing.T) {
 		RawJSON:  `{"@type":"Article"}`,
 	}
 
-	if sd.DataType != "json_ld" {
+	if sd.DataType != StructuredDataTypeJSONLD {
 		t.Errorf("DataType field incorrect")
 	}
 	if sd.RawJSON != `{"@type":"Article"}` {
