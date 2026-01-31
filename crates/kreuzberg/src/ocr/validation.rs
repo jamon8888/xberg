@@ -131,6 +131,12 @@ lazy_static::lazy_static! {
 }
 
 pub fn validate_language_code(lang_code: &str) -> Result<(), OcrError> {
+    // Accept "all" and "*" as special values to auto-detect installed languages
+    let lower = lang_code.to_ascii_lowercase();
+    if lower == "all" || lower == "*" {
+        return Ok(());
+    }
+
     for code in lang_code.split('+') {
         if !TESSERACT_SUPPORTED_LANGUAGE_CODES.contains(code) {
             return Err(OcrError::InvalidLanguageCode(format!(
@@ -155,6 +161,14 @@ pub fn validate_tesseract_version(version: u32) -> Result<(), OcrError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_validate_language_code_all_keyword() {
+        assert!(validate_language_code("all").is_ok());
+        assert!(validate_language_code("*").is_ok());
+        assert!(validate_language_code("ALL").is_ok());
+        assert!(validate_language_code("All").is_ok());
+    }
 
     #[test]
     fn test_validate_language_code_valid() {

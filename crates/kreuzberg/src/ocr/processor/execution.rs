@@ -4,7 +4,9 @@
 //! text extraction, and result formatting.
 
 use super::config::{apply_tesseract_variables, hash_config};
-use super::validation::{resolve_tessdata_path, strip_control_characters, validate_language_and_traineddata};
+use super::validation::{
+    resolve_all_installed_languages, resolve_tessdata_path, strip_control_characters, validate_language_and_traineddata,
+};
 use crate::core::config::ExtractionConfig;
 use crate::ocr::cache::OcrCache;
 use crate::ocr::error::OcrError;
@@ -323,7 +325,33 @@ pub(super) fn process_file_with_cache(
     process_image_with_cache(&image_bytes, config, cache, output_format)
 }
 
+/// Check if a language value is the "all" wildcard (case-insensitive).
+fn is_all_languages(lang: &str) -> bool {
+    let lower = lang.to_ascii_lowercase();
+    lower == "all" || lower == "*"
+}
+
+/// Resolve the "all"/"*" wildcard in a config's language field.
+///
+/// If the language is a wildcard, scans the tessdata directory for installed
+/// languages and returns a new config with the resolved language string.
+/// Otherwise returns `None`, indicating the original config should be used as-is.
+fn resolve_config_language(config: &TesseractConfig) -> Result<Option<TesseractConfig>, OcrError> {
+    if is_all_languages(&config.language) {
+        let tessdata_path = resolve_tessdata_path();
+        let resolved = resolve_all_installed_languages(&tessdata_path)?;
+        let mut resolved_config = config.clone();
+        resolved_config.language = resolved;
+        Ok(Some(resolved_config))
+    } else {
+        Ok(None)
+    }
+}
+
 /// Process an image and return OCR results, using cache if enabled.
+///
+/// Resolves the `"all"` / `"*"` language wildcard, then delegates to
+/// [`process_image_resolved`] for caching and OCR execution.
 ///
 /// # Arguments
 ///
@@ -343,6 +371,25 @@ pub(super) fn process_image_with_cache(
 ) -> Result<OcrExtractionResult, OcrError> {
     config.validate().map_err(OcrError::InvalidConfiguration)?;
 
+    // Resolve "all" / "*" before hashing so cache keys reflect actual languages.
+    // If not a wildcard, resolved is None and we use the original config (no clone).
+    let resolved = resolve_config_language(config)?;
+    let config = resolved.as_ref().unwrap_or(config);
+
+    process_image_resolved(image_bytes, config, cache, output_format)
+}
+
+/// Inner implementation operating on an already-resolved config.
+///
+/// Handles cache lookup, OCR execution, and cache storage. Callers are
+/// responsible for validating and resolving wildcards in the config before
+/// calling this function.
+fn process_image_resolved(
+    image_bytes: &[u8],
+    config: &TesseractConfig,
+    cache: &OcrCache,
+    output_format: Option<crate::core::config::OutputFormat>,
+) -> Result<OcrExtractionResult, OcrError> {
     let mut hasher = ahash::AHasher::default();
     use std::hash::{Hash, Hasher};
     image_bytes.hash(&mut hasher);
@@ -378,7 +425,10 @@ pub(super) fn process_image_with_cache(
 
 /// Process multiple image files in parallel using Rayon.
 ///
-/// This method processes OCR operations in parallel across CPU cores for improved throughput.
+/// Validates and resolves the language wildcard once, then processes all files
+/// in parallel using [`process_image_resolved`] directly (skipping redundant
+/// per-image resolution).
+///
 /// Results are returned in the same order as the input file paths.
 pub(super) fn process_files_batch(
     file_paths: Vec<String>,
@@ -387,21 +437,64 @@ pub(super) fn process_files_batch(
 ) -> Vec<BatchItemResult> {
     use rayon::prelude::*;
 
-    file_paths
-        .par_iter()
-        .map(|path| match process_file_with_cache(path, config, cache, None) {
-            Ok(result) => BatchItemResult {
-                file_path: path.clone(),
-                success: true,
-                result: Some(result),
-                error: None,
-            },
-            Err(e) => BatchItemResult {
-                file_path: path.clone(),
+    // Validate once for the entire batch.
+    if let Err(e) = config.validate().map_err(OcrError::InvalidConfiguration) {
+        return file_paths
+            .into_iter()
+            .map(|path| BatchItemResult {
+                file_path: path,
                 success: false,
                 result: None,
                 error: Some(e.to_string()),
-            },
+            })
+            .collect();
+    }
+
+    // Resolve "all" / "*" once for the entire batch.
+    let resolved = match resolve_config_language(config) {
+        Ok(r) => r,
+        Err(e) => {
+            return file_paths
+                .into_iter()
+                .map(|path| BatchItemResult {
+                    file_path: path,
+                    success: false,
+                    result: None,
+                    error: Some(e.to_string()),
+                })
+                .collect();
+        }
+    };
+    let config = resolved.as_ref().unwrap_or(config);
+
+    file_paths
+        .par_iter()
+        .map(|path| {
+            let image_bytes = match std::fs::read(path) {
+                Ok(b) => b,
+                Err(e) => {
+                    return BatchItemResult {
+                        file_path: path.clone(),
+                        success: false,
+                        result: None,
+                        error: Some(OcrError::IOError(format!("Failed to read file '{}': {}", path, e)).to_string()),
+                    };
+                }
+            };
+            match process_image_resolved(&image_bytes, config, cache, None) {
+                Ok(result) => BatchItemResult {
+                    file_path: path.clone(),
+                    success: true,
+                    result: Some(result),
+                    error: None,
+                },
+                Err(e) => BatchItemResult {
+                    file_path: path.clone(),
+                    success: false,
+                    result: None,
+                    error: Some(e.to_string()),
+                },
+            }
         })
         .collect()
 }
@@ -410,6 +503,27 @@ pub(super) fn process_files_batch(
 mod tests {
     use super::*;
     use tempfile::tempdir;
+
+    #[test]
+    fn test_is_all_languages() {
+        assert!(is_all_languages("all"));
+        assert!(is_all_languages("ALL"));
+        assert!(is_all_languages("All"));
+        assert!(is_all_languages("*"));
+        assert!(!is_all_languages("eng"));
+        assert!(!is_all_languages("eng+fra"));
+        assert!(!is_all_languages(""));
+    }
+
+    #[test]
+    fn test_resolve_config_language_passthrough() {
+        let config = TesseractConfig {
+            language: "eng".to_string(),
+            ..TesseractConfig::default()
+        };
+        let resolved = resolve_config_language(&config).unwrap();
+        assert!(resolved.is_none(), "non-wildcard should return None (no clone)");
+    }
 
     #[test]
     fn test_compute_image_hash_deterministic() {

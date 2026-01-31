@@ -196,9 +196,17 @@ impl OcrBackend for TesseractBackend {
             source: Some(Box::new(e)),
         })?;
 
+        // Use resolved language from OCR result metadata (handles "all"/"*" resolution)
+        let resolved_language = ocr_result
+            .metadata
+            .get("language")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&tess_config.language)
+            .to_string();
+
         let metadata = crate::types::Metadata {
             format: Some(crate::types::FormatMetadata::Ocr(crate::types::OcrMetadata {
-                language: tess_config.language.clone(),
+                language: resolved_language,
                 psm: tess_config.psm as i32,
                 output_format: tess_config.output_format.clone(),
                 table_count: ocr_result.tables.len(),
@@ -256,9 +264,17 @@ impl OcrBackend for TesseractBackend {
             source: Some(Box::new(e)),
         })?;
 
+        // Use resolved language from OCR result metadata (handles "all"/"*" resolution)
+        let resolved_language = ocr_result
+            .metadata
+            .get("language")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&tess_config.language)
+            .to_string();
+
         let metadata = crate::types::Metadata {
             format: Some(crate::types::FormatMetadata::Ocr(crate::types::OcrMetadata {
-                language: tess_config.language.clone(),
+                language: resolved_language,
                 psm: tess_config.psm as i32,
                 output_format: tess_config.output_format.clone(),
                 table_count: ocr_result.tables.len(),

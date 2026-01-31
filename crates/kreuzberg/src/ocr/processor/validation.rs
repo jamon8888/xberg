@@ -4,6 +4,7 @@
 //! before OCR processing begins.
 
 use crate::ocr::error::OcrError;
+use crate::ocr::validation::TESSERACT_SUPPORTED_LANGUAGE_CODES;
 use std::env;
 use std::path::Path;
 
@@ -83,6 +84,71 @@ pub(super) fn resolve_tessdata_path() -> String {
         .unwrap_or_default()
 }
 
+/// Resolve all installed Tesseract languages from the tessdata directory.
+///
+/// Scans the tessdata directory for `*.traineddata` files, filters against
+/// known Tesseract language codes (excluding non-language files like `osd`),
+/// and returns a `+`-separated language string (e.g., `"eng+fra+deu"`).
+///
+/// # Arguments
+///
+/// * `tessdata_path` - Path to the tessdata directory
+///
+/// # Returns
+///
+/// A `+`-separated string of installed language codes, or an error if no languages are found.
+pub(super) fn resolve_all_installed_languages(tessdata_path: &str) -> Result<String, OcrError> {
+    if tessdata_path.is_empty() {
+        return Err(OcrError::TesseractInitializationFailed(
+            "Cannot resolve installed languages: tessdata path is empty. \
+             Set TESSDATA_PREFIX or install Tesseract with language data."
+                .to_string(),
+        ));
+    }
+
+    let tessdata_dir = Path::new(tessdata_path);
+    if !tessdata_dir.exists() {
+        return Err(OcrError::TesseractInitializationFailed(format!(
+            "Tessdata directory does not exist: {}",
+            tessdata_path
+        )));
+    }
+
+    let entries = std::fs::read_dir(tessdata_dir).map_err(|e| {
+        OcrError::TesseractInitializationFailed(format!("Failed to read tessdata directory '{}': {}", tessdata_path, e))
+    })?;
+
+    // Non-language traineddata files to exclude (special-purpose data, not OCR languages)
+    const EXCLUDED: &[&str] = &["osd", "equ"];
+
+    let mut languages: Vec<String> = entries
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| {
+            let path = entry.path();
+            let file_name = path.file_name()?.to_str()?;
+            let lang = file_name.strip_suffix(".traineddata")?;
+            if EXCLUDED.contains(&lang) {
+                return None;
+            }
+            if TESSERACT_SUPPORTED_LANGUAGE_CODES.contains(lang) {
+                Some(lang.to_string())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    if languages.is_empty() {
+        return Err(OcrError::TesseractInitializationFailed(format!(
+            "No installed Tesseract languages found in '{}'",
+            tessdata_path
+        )));
+    }
+
+    languages.sort();
+    Ok(languages.join("+"))
+}
+
 /// Strip control characters from text, preserving whitespace.
 ///
 /// Removes control characters (0x00-0x1F, 0x7F) except for newlines, carriage returns, and tabs.
@@ -110,6 +176,69 @@ pub(super) fn strip_control_characters(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_resolve_all_installed_languages_success() {
+        let dir = tempfile::tempdir().unwrap();
+        let tessdata = dir.path();
+
+        // Create mock traineddata files
+        std::fs::write(tessdata.join("eng.traineddata"), b"").unwrap();
+        std::fs::write(tessdata.join("fra.traineddata"), b"").unwrap();
+        std::fs::write(tessdata.join("deu.traineddata"), b"").unwrap();
+
+        let result = resolve_all_installed_languages(tessdata.to_str().unwrap()).unwrap();
+        assert_eq!(result, "deu+eng+fra");
+    }
+
+    #[test]
+    fn test_resolve_all_installed_languages_excludes_osd() {
+        let dir = tempfile::tempdir().unwrap();
+        let tessdata = dir.path();
+
+        std::fs::write(tessdata.join("eng.traineddata"), b"").unwrap();
+        std::fs::write(tessdata.join("osd.traineddata"), b"").unwrap();
+
+        let result = resolve_all_installed_languages(tessdata.to_str().unwrap()).unwrap();
+        assert_eq!(result, "eng");
+    }
+
+    #[test]
+    fn test_resolve_all_installed_languages_excludes_equ() {
+        let dir = tempfile::tempdir().unwrap();
+        let tessdata = dir.path();
+
+        std::fs::write(tessdata.join("eng.traineddata"), b"").unwrap();
+        std::fs::write(tessdata.join("equ.traineddata"), b"").unwrap();
+
+        let result = resolve_all_installed_languages(tessdata.to_str().unwrap()).unwrap();
+        assert_eq!(result, "eng");
+    }
+
+    #[test]
+    fn test_resolve_all_installed_languages_excludes_unknown() {
+        let dir = tempfile::tempdir().unwrap();
+        let tessdata = dir.path();
+
+        std::fs::write(tessdata.join("eng.traineddata"), b"").unwrap();
+        std::fs::write(tessdata.join("notareal.traineddata"), b"").unwrap();
+
+        let result = resolve_all_installed_languages(tessdata.to_str().unwrap()).unwrap();
+        assert_eq!(result, "eng");
+    }
+
+    #[test]
+    fn test_resolve_all_installed_languages_empty_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = resolve_all_installed_languages(dir.path().to_str().unwrap());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_resolve_all_installed_languages_empty_path() {
+        let result = resolve_all_installed_languages("");
+        assert!(result.is_err());
+    }
 
     #[test]
     fn test_strip_control_characters() {

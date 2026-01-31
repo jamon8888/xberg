@@ -142,6 +142,14 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_language_code_all_keyword() {
+        assert!(validate_language_code("all").is_ok());
+        assert!(validate_language_code("ALL").is_ok());
+        assert!(validate_language_code("All").is_ok());
+        assert!(validate_language_code("*").is_ok());
+    }
+
+    #[test]
     fn test_validate_language_code_invalid() {
         let result = validate_language_code("invalid");
         assert!(result.is_err());

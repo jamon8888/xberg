@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+#### OCR
+- **`KREUZBERG_OCR_LANGUAGE="all"` support**: Setting the language to `"all"` or `"*"` automatically detects and uses all installed Tesseract languages from the tessdata directory, eliminating manual enumeration (#344)
+
+### Fixed
+
+#### Python Bindings
+- **Overhauled `_internal_bindings.pyi` type stubs**: Exhaustive audit against Rust source to ensure all types, fields, and optionality match exactly
+  - Changed `Chunk` from `TypedDict` to proper class (matches PyO3 `#[pyclass]`)
+  - Replaced bare `dict[str, Any]` with precise TypedDicts: `ChunkMetadata`, `ErrorDetails`, `HtmlConversionOptions`, `HtmlPreprocessingOptions`, `Attributes`, `HeaderMetadata`, `LinkMetadata`, `HtmlImageMetadata`, `StructuredData`, `PageBoundary`, `PageInfo`, `PageStructure`
+  - Fixed `PptxMetadata` fields (was title/author/description, now slide_count/slide_names)
+  - Fixed `PdfMetadata` fields (removed common Metadata fields that don't belong)
+  - Fixed `HtmlMetadata` structure (individual og_*/twitter_* fields → open_graph/twitter_card/meta_tags dicts)
+  - Fixed optionality on PDF, Email, Archive, HTML, and OCR metadata fields
+  - Added missing `metadata` field on `InlineElement`
+  - Added missing `output_format`/`result_format` on `ExtractionResult`
+  - Added missing `language` field in OCR metadata
+  - Removed orphaned `PageHierarchy`/`HierarchicalBlock` types and `PageContent.hierarchy` (never set in Python conversion)
+- **Removed duplicate `types.py`**: Deleted `kreuzberg/types.py` which contained 43 duplicate type definitions conflicting with `_internal_bindings.pyi`
+- **Consolidated duplicate test files**: Merged unique tests from `test_embeddings_advanced.py`, `test_images_extraction.py`, `test_tables_extraction.py` into their canonical counterparts and deleted the duplicates
+
+#### Go Bindings
+- **Consolidated config tests**: Renamed `config_comprehensive_test.go` → `config_test.go` and removed 5 duplicate FontConfig tests that overlapped with `font_config_test.go`
+
+### Changed
+
+- **Dependency update**: Bumped `html-to-markdown-rs` from 2.24.1 to 2.24.3
+
+---
+
 ## [4.2.6] - 2026-01-31
 
 ### Fixed
