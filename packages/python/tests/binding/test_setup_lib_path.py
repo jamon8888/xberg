@@ -24,8 +24,8 @@ def test_setup_library_paths_routes_to_macos(monkeypatch: pytest.MonkeyPatch) ->
     package_calls: list[Path] = []
 
     monkeypatch.setattr("platform.system", lambda: "Darwin")
-    monkeypatch.setattr("kreuzberg._setup_lib_path._setup_macos_paths", lambda path: package_calls.append(path))
-    monkeypatch.setattr("kreuzberg._setup_lib_path._fix_macos_install_names", lambda path: package_calls.append(path))
+    monkeypatch.setattr("kreuzberg._setup_lib_path._setup_macos_paths", package_calls.append)
+    monkeypatch.setattr("kreuzberg._setup_lib_path._fix_macos_install_names", package_calls.append)
 
     setup_library_paths()
     assert package_calls
@@ -34,7 +34,7 @@ def test_setup_library_paths_routes_to_macos(monkeypatch: pytest.MonkeyPatch) ->
 def test_setup_library_paths_routes_to_linux(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("platform.system", lambda: "Linux")
     called: list[Path] = []
-    monkeypatch.setattr("kreuzberg._setup_lib_path._setup_linux_paths", lambda path: called.append(path))
+    monkeypatch.setattr("kreuzberg._setup_lib_path._setup_linux_paths", called.append)
 
     setup_library_paths()
     assert called
@@ -43,7 +43,7 @@ def test_setup_library_paths_routes_to_linux(monkeypatch: pytest.MonkeyPatch) ->
 def test_setup_library_paths_routes_to_windows(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("platform.system", lambda: "Windows")
     called: list[Path] = []
-    monkeypatch.setattr("kreuzberg._setup_lib_path._setup_windows_paths", lambda path: called.append(path))
+    monkeypatch.setattr("kreuzberg._setup_lib_path._setup_windows_paths", called.append)
 
     setup_library_paths()
     assert called

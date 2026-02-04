@@ -133,7 +133,8 @@ async def test_extract_file_with_none_config(docx_document: Path) -> None:
 @pytest.mark.asyncio
 async def test_extract_bytes_with_none_config(docx_document: Path) -> None:
     """Test async extract_bytes uses default config when None."""
-    data = Path(docx_document).read_bytes()
+    with Path(docx_document).open("rb") as f:
+        data = f.read()
 
     result = await extract_bytes(
         data,
@@ -156,7 +157,8 @@ async def test_batch_extract_files_with_none_config(docx_document: Path) -> None
 @pytest.mark.asyncio
 async def test_batch_extract_bytes_with_none_config(docx_document: Path) -> None:
     """Test async batch_extract_bytes uses default config when None."""
-    data = Path(docx_document).read_bytes()
+    with Path(docx_document).open("rb") as f:
+        data = f.read()
 
     results = await batch_extract_bytes(
         [data],
@@ -302,7 +304,8 @@ def test_batch_extract_bytes_with_bytearray(docx_document: Path) -> None:
 @pytest.mark.asyncio
 async def test_batch_extract_bytes_async_with_bytearray(docx_document: Path) -> None:
     """Test async batch_extract_bytes works with bytearray."""
-    data = bytearray(Path(docx_document).read_bytes())
+    with Path(docx_document).open("rb") as f:
+        data = bytearray(f.read())
 
     results = await batch_extract_bytes(
         [data],

@@ -87,7 +87,7 @@ def test_serve_command_help() -> None:
             check=False,
         )
     except subprocess.TimeoutExpired as e:
-        stderr = e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr if e.stderr else "")
+        stderr = e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
         _cli_feature_unavailable_skip("serve", stderr)
 
     if result.returncode != 0:
@@ -114,7 +114,7 @@ def test_mcp_command_help() -> None:
             check=False,
         )
     except subprocess.TimeoutExpired as e:
-        stderr = e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr if e.stderr else "")
+        stderr = e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
         _cli_feature_unavailable_skip("mcp", stderr)
 
     if result.returncode != 0:

@@ -29,7 +29,7 @@ linker = "gcc"
 ar = "ar"
 
 [target.wasm32-unknown-unknown]
-rustflags = ["-C", "target-feature=+bulk-memory"]
+rustflags = ["-C", "target-feature=+bulk-memory", "--cfg", "getrandom_backend=\"wasm_js\""]
 
 # Temporarily disabled build-std due to linker arg issues
 # [unstable]
