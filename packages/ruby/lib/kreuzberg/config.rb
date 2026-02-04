@@ -71,7 +71,6 @@ module Kreuzberg
     class Chunking
       attr_reader :max_chars, :max_overlap, :preset, :embedding, :enabled
 
-      # rubocop:disable Metrics/CyclomaticComplexity
       def initialize(
         max_chars: nil,
         max_overlap: nil,
@@ -81,7 +80,6 @@ module Kreuzberg
         chunk_overlap: nil,
         enabled: true
       )
-        # rubocop:enable Metrics/CyclomaticComplexity
         resolved_size = chunk_size || max_chars || 1000
         resolved_overlap = chunk_overlap || max_overlap || 200
 
@@ -867,7 +865,6 @@ module Kreuzberg
               "Invalid result_format: #{value}. Valid values: #{VALID_RESULT_FORMATS.join(', ')}"
       end
 
-      # rubocop:disable Metrics/CyclomaticComplexity
       def to_h
         {
           use_cache: @use_cache,
@@ -888,7 +885,6 @@ module Kreuzberg
           result_format: @result_format
         }.compact
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
 
       # Serialize configuration to JSON string
       #
@@ -992,7 +988,7 @@ module Kreuzberg
       #   config[:use_cache] = false
       #   config[:force_ocr] = true
       #
-      # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength
+      # rubocop:disable Metrics/MethodLength
       def []=(key, value)
         key_sym = key.to_sym
         case key_sym
@@ -1032,7 +1028,7 @@ module Kreuzberg
           raise ArgumentError, "Unknown configuration key: #{key}"
         end
       end
-      # rubocop:enable Metrics/CyclomaticComplexity, Metrics/MethodLength
+      # rubocop:enable Metrics/MethodLength
 
       # Get a configuration field using hash-like syntax
       #
