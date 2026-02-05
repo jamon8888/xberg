@@ -35,5 +35,5 @@ name = "kreuzberg"
 path = "src/main.rs"
 
 [dev-dependencies]
-ureq = { version = "3.1", features = ["json"] }
+ureq = { version = "3.2", features = ["json"] }
 tempfile = { workspace = true }
