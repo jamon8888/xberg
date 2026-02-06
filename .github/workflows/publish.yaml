@@ -517,7 +517,7 @@ jobs:
           target: ${{ matrix.rust_target }}
           manylinux: ${{ matrix.manylinux }}
           working-directory: packages/python
-          sccache: true
+          sccache: false
           docker-options: ${{ steps.tesseract-cache.outputs.docker-options }}
           before-script-linux: |
             set -euo pipefail
