@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [4.3.0] - 2026-02-11
+
 ### Added
+
+#### Blank Page Detection
+- **`is_blank` field on `PageInfo` and `PageContent`**: Pages with fewer than 3 non-whitespace characters and no tables or images are flagged as blank. Detection uses a two-phase approach: text-only analysis during extraction, then refinement after table/image assignment. Available across all 9 language bindings (Python, TypeScript, Ruby, Java, Go, C#, PHP, Elixir, WASM). Closes #378.
 
 #### PaddleOCR Backend
 - **PaddleOCR backend via ONNX Runtime**: New OCR backend (`kreuzberg-paddle-ocr`) using PaddlePaddle's PP-OCRv4 models converted to ONNX format, run via ONNX Runtime. Supports 6 languages (English, Chinese, Japanese, Korean, German, French) with automatic model downloading and caching. Provides superior CJK recognition compared to Tesseract.
@@ -1628,6 +1635,7 @@ See [Migration Guide](https://docs.kreuzberg.dev/migration/v3-to-v4/) for detail
 - [Format Support](reference/formats.md) - Supported file formats
 - [Extraction Guide](guides/extraction.md) - Extraction examples
 
+[4.3.0]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.3.0
 [4.2.15]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.15
 [4.2.14]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.14
 [4.2.13]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.13

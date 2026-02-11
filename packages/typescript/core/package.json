@@ -1,7 +1,7 @@
 {
   "name": "@kreuzberg/core",
-  "version": "4.2.15",
-  "description": "Kreuzberg document intelligence library — core types and utilities for text extraction from 75+ formats",
+  "version": "4.3.0",
+  "description": "Kreuzberg document intelligence library \u2014 core types and utilities for text extraction from 75+ formats",
   "keywords": [
     "document-extraction",
     "document-intelligence",

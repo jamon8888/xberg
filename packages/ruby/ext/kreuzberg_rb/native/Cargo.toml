@@ -37,7 +37,7 @@ collapsible_if = "allow"
 
 [package]
 name = "kreuzberg-rb"
-version = "4.2.15"
+version = "4.3.0"
 edition = "2024"
 rust-version = "1.91"
 authors = ["Na'aman Hirschfeld <nhirschfeld@gmail.com>"]
