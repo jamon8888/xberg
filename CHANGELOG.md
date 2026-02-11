@@ -76,6 +76,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `OcrConfig` constructor silently ignoring `paddle_ocr_config` and `element_config` keyword arguments.
 - Fixed keyword extraction results (and all `metadata.additional` entries from post-processors) being silently dropped in Python bindings. The `ExtractionResult.from_rust()` method now propagates flattened additional metadata fields, matching all other bindings. Closes #379.
 
+#### TypeScript/Node.js Bindings
+- Fixed PaddleOCR config (`paddle_ocr_config`) and element config (`element_config`) being silently dropped by the NAPI-RS binding layer.
+- Fixed `ocr_elements` missing from extraction result conversion in TypeScript wrapper.
+
+#### Ruby Bindings
+- Fixed `kreuzberg-pdfium-render` vendored crate not included in gemspec, causing gem build failures.
+- Fixed PaddleOCR config and element config not being parsed in Ruby binding config layer.
+- Fixed `ocr_elements` missing from Ruby extraction result conversion.
+
+#### Go Bindings
+- Fixed `PdfMetadata` deserialization failing when keyword extraction produces object arrays instead of simple strings. Added lenient `UnmarshalJSON` fallback with field-by-field recovery.
+
+#### C# Bindings
+- Fixed keyword extraction data inaccessible in C# — `ExtractedKeywords` was marked `[JsonIgnore]` and excluded from metadata serialization. Added lenient metadata extraction fallback for mixed-type keyword fields.
+
+#### PHP Bindings
+- Fixed `document`, `elements`, and `ocrElements` properties inaccessible on `ExtractionResult` — these fields were not exposed through the `__get` handler.
+- Fixed `ExtractionConfig::toArray()` not serializing `include_document_structure`, causing document structure extraction to be silently ignored.
+- Fixed wrapper function names for document extractor management (`kreuzberg_*_document_extractors` → `kreuzberg_*_extractors`).
+- Added missing OCR backend management functions (`kreuzberg_list_ocr_backends`, `kreuzberg_clear_ocr_backends`, `kreuzberg_unregister_ocr_backend`).
+- Fixed `page_count` metadata key mismatch between serialization (`pageCount`) and deserialization (`page_count`).
+
+#### Elixir Bindings
+- Fixed NIF config parser not forwarding `include_document_structure`, `result_format`, `output_format`, `html_options`, `max_concurrent_extractions`, and `security_limits` options.
+- Added missing document extractor management NIFs (`list_document_extractors`, `unregister_document_extractor`, `clear_document_extractors`).
+
+#### CI
+- Fixed PHP E2E tests not actually running in CI — the task was configured to run package unit tests instead of E2E tests.
+
 ### Changed
 
 #### Build System
