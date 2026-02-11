@@ -239,7 +239,7 @@ output=$(docker run --rm \
   --name "$container" \
   -v "${TEST_DOCS_DIR}:/data:ro" \
   "$IMAGE_NAME" \
-  extract /data/text/simple.txt --output json 2>&1 || true)
+  extract /data/text/simple.txt --output-format json 2>&1 || true)
 log_verbose "JSON output (first 200 chars): ${output:0:200}"
 if echo "$output" | grep -q '{'; then
   pass_test

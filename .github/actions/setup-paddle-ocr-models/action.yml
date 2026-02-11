@@ -148,21 +148,21 @@ runs:
         echo "Checking for PaddleOCR models in $CACHE_DIR"
 
         if [ -f "$CACHE_DIR/det/model.onnx" ]; then
-          SIZE=$(du -b "$CACHE_DIR/det/model.onnx" | cut -f1)
+          SIZE=$(wc -c < "$CACHE_DIR/det/model.onnx" | tr -d ' ')
           AVAILABLE_MODELS+=("det")
           TOTAL_SIZE=$((TOTAL_SIZE + SIZE))
           echo "  ✓ Detection model: $(numfmt --to=iec-i --suffix=B $SIZE 2>/dev/null || echo $SIZE bytes)"
         fi
 
         if [ -f "$CACHE_DIR/cls/model.onnx" ]; then
-          SIZE=$(du -b "$CACHE_DIR/cls/model.onnx" | cut -f1)
+          SIZE=$(wc -c < "$CACHE_DIR/cls/model.onnx" | tr -d ' ')
           AVAILABLE_MODELS+=("cls")
           TOTAL_SIZE=$((TOTAL_SIZE + SIZE))
           echo "  ✓ Classification model: $(numfmt --to=iec-i --suffix=B $SIZE 2>/dev/null || echo $SIZE bytes)"
         fi
 
         if [ -f "$CACHE_DIR/rec/model.onnx" ]; then
-          SIZE=$(du -b "$CACHE_DIR/rec/model.onnx" | cut -f1)
+          SIZE=$(wc -c < "$CACHE_DIR/rec/model.onnx" | tr -d ' ')
           AVAILABLE_MODELS+=("rec")
           TOTAL_SIZE=$((TOTAL_SIZE + SIZE))
           echo "  ✓ Recognition model: $(numfmt --to=iec-i --suffix=B $SIZE 2>/dev/null || echo $SIZE bytes)"

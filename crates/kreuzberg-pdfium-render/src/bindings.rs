@@ -1753,18 +1753,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         name: &str,
     ) -> FPDF_STRUCTELEMENT_ATTR_VALUE;
 
-    #[cfg(any(
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+        ))
     ))]
     /// Gets the type of an attribute in a structure element attribute map.
     ///
@@ -1803,18 +1819,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
     #[allow(non_snake_case)]
     fn FPDF_StructElement_Attr_GetType(&self, value: FPDF_STRUCTELEMENT_ATTR_VALUE) -> FPDF_OBJECT_TYPE;
 
-    #[cfg(any(
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+        ))
     ))]
     /// Gets the value of a boolean attribute in an attribute map by name as `FPDF_BOOL`.
     /// [PdfiumLibraryBindings::FPDF_StructElement_Attr_GetType] should have returned
@@ -1867,18 +1899,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_value: *mut FPDF_BOOL,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+        ))
     ))]
     /// Gets the value of a number attribute in an attribute map by name as float.
     /// [PdfiumLibraryBindings::FPDF_StructElement_Attr_GetType] should have returned
@@ -1931,18 +1979,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_value: *mut f32,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+        ))
     ))]
     /// Gets the value of a string attribute in an attribute map by name as string.
     /// [PdfiumLibraryBindings::FPDF_StructElement_Attr_GetType] should have returned
@@ -2016,18 +2080,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_buflen: *mut c_ulong,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+        ))
     ))]
     /// Gets the value of a blob attribute in an attribute map by name as string.
     ///
@@ -2779,22 +2859,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
     #[allow(non_snake_case)]
     fn FPDFBitmap_GetFormat(&self, bitmap: FPDF_BITMAP) -> c_int;
 
-    #[cfg(any(
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666"
+        ))
     ))]
     /// Fills a rectangle in a bitmap.
     ///
@@ -7481,24 +7573,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_buflen: *mut c_ulong,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     /// Gets the name of a content mark.
     ///
@@ -7566,24 +7668,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_buflen: *mut c_ulong,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     /// Gets the key of a property in a content mark.
     ///
@@ -7697,24 +7809,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_buflen: *mut c_ulong,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     /// Gets the value of a string property in a content mark by key.
     ///
@@ -7777,24 +7899,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         out_buflen: *mut c_ulong,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     /// Gets the value of a blob property in a content mark by key.
     ///
@@ -7934,24 +8066,34 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
         value_len: c_ulong,
     ) -> FPDF_BOOL;
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     /// Sets the value of a blob property in a content mark by key. If a parameter
     /// with key `key` exists, its value is set to `value`. Otherwise, it is added as
@@ -8700,7 +8842,19 @@ pub trait PdfiumLibraryBindings: Send + Sync + Drop {
     #[allow(non_snake_case)]
     fn FPDFFont_GetFamilyName(&self, font: FPDF_FONT, buffer: *mut c_char, length: size_t) -> size_t;
 
-    #[cfg(feature = "pdfium_6611")]
+    #[cfg(all(
+        feature = "pdfium_6611",
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666"
+        ))
+    ))]
     /// Gets the family name of a font.
     ///
     ///    `font`   - the handle to the font object.

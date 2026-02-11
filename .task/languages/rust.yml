@@ -79,9 +79,10 @@ tasks:
       PDFIUM_VERSION: '{{.PDFIUM_VERSION}}'
     cmds:
       # Note: exclude benchmark-harness on Windows as jemalloc doesn't build with MSVC
-      - cmd: cargo build --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm
+      # Note: exclude kreuzberg-pdfium-render because --all-features enables mutually exclusive static/dynamic linking
+      - cmd: cargo build --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude kreuzberg-pdfium-render
         platforms: [linux, darwin]
-      - cmd: cargo build --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude benchmark-harness
+      - cmd: cargo build --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude benchmark-harness --exclude kreuzberg-pdfium-render
         platforms: [windows]
 
   build:release:
@@ -91,9 +92,9 @@ tasks:
       CMAKE: '{{.CMAKE_PATH}}'
       PDFIUM_VERSION: '{{.PDFIUM_VERSION}}'
     cmds:
-      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm
+      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude kreuzberg-pdfium-render
         platforms: [linux, darwin]
-      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude benchmark-harness
+      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude benchmark-harness --exclude kreuzberg-pdfium-render
         platforms: [windows]
 
   build:ci:
@@ -104,9 +105,9 @@ tasks:
       PDFIUM_VERSION: '{{.PDFIUM_VERSION}}'
       RUSTFLAGS: '-C debuginfo=2'
     cmds:
-      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm
+      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude kreuzberg-pdfium-render
         platforms: [linux, darwin]
-      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude benchmark-harness
+      - cmd: cargo build --release --workspace --all-features --exclude kreuzberg-php --exclude kreuzberg-node --exclude kreuzberg-wasm --exclude benchmark-harness --exclude kreuzberg-pdfium-render
         platforms: [windows]
 
   build:profiling:

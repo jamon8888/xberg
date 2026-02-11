@@ -333,7 +333,7 @@ async fn test_docx_produces_markdown_mime_type() {
 
     assert_eq!(
         result.mime_type.as_ref() as &str,
-        "text/markdown",
-        "DOCX extractor should produce text/markdown mime type"
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "DOCX extractor should preserve input MIME type"
     );
 }

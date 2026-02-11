@@ -84,7 +84,7 @@ keywords-yake = ["dep:yake-rust", "stopwords"]
 keywords-rake = ["dep:rake", "stopwords"]
 keywords = ["keywords-yake", "keywords-rake"]
 
-api = ["dep:axum", "dep:tower", "dep:tower-http", "dep:utoipa", "tokio-runtime"]
+api = ["dep:axum", "dep:tower", "dep:tower-http", "dep:utoipa", "tokio-runtime", "chunking"]
 mcp = ["dep:rmcp", "tokio-runtime"]
 mcp-http = ["mcp", "api"]
 

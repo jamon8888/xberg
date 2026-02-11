@@ -203,7 +203,18 @@ impl PaddleOcrBackend {
     ///
     /// Returns a tuple of (text_content, ocr_elements) where elements preserve
     /// full spatial and confidence information from PaddleOCR.
-    async fn do_ocr(&self, image_bytes: &[u8], _language: &str) -> Result<(String, Vec<OcrElement>)> {
+    ///
+    /// # Arguments
+    ///
+    /// * `image_bytes` - Raw image bytes (PNG, JPEG, BMP, etc.)
+    /// * `_language` - Language hint (currently unused, reserved for future multi-model support)
+    /// * `effective_config` - The resolved PaddleOcrConfig to use for this inference
+    async fn do_ocr(
+        &self,
+        image_bytes: &[u8],
+        _language: &str,
+        effective_config: Arc<PaddleOcrConfig>,
+    ) -> Result<(String, Vec<OcrElement>)> {
         // Ensure OCR engine is initialized (this also initializes models)
         {
             let engine = self.get_or_init_engine()?;
@@ -217,7 +228,7 @@ impl PaddleOcrBackend {
 
         let image_bytes_owned = image_bytes.to_vec();
         let ocr_engine = Arc::clone(&self.ocr_engine);
-        let config = Arc::clone(&self.config);
+        let config = effective_config;
 
         // Run OCR in blocking task to avoid blocking the async runtime
         let text_blocks = tokio::task::spawn_blocking(move || {
@@ -366,11 +377,26 @@ impl OcrBackend for PaddleOcrBackend {
             });
         }
 
+        // Resolve effective PaddleOcrConfig: override from OcrConfig.paddle_ocr_config if present,
+        // otherwise fall back to the backend's default config.
+        let effective_config: Arc<PaddleOcrConfig> = if let Some(ref paddle_json) = config.paddle_ocr_config {
+            let overridden: PaddleOcrConfig =
+                serde_json::from_value(paddle_json.clone()).map_err(|e| crate::KreuzbergError::Validation {
+                    message: format!("Failed to deserialize paddle_ocr_config: {}", e),
+                    source: None,
+                })?;
+            Arc::new(overridden)
+        } else {
+            Arc::clone(&self.config)
+        };
+
         // Map language code to PaddleOCR language identifier
         let paddle_lang = map_language_code(&config.language).unwrap_or("en");
 
         // Perform OCR - returns both text and structured elements
-        let (text, ocr_elements) = self.do_ocr(image_bytes, paddle_lang).await?;
+        let (text, ocr_elements) = self
+            .do_ocr(image_bytes, paddle_lang, Arc::clone(&effective_config))
+            .await?;
 
         // Attempt table detection if enabled and we have elements
         let mut tables: Vec<Table> = vec![];
@@ -378,7 +404,7 @@ impl OcrBackend for PaddleOcrBackend {
         let mut table_rows: Option<usize> = None;
         let mut table_cols: Option<usize> = None;
 
-        if self.config.enable_table_detection && !ocr_elements.is_empty() {
+        if effective_config.enable_table_detection && !ocr_elements.is_empty() {
             // Convert OCR elements to HocrWords for table reconstruction
             // Using 0.3 as minimum confidence threshold (matches typical Tesseract defaults)
             let words = elements_to_hocr_words(&ocr_elements, 0.3);
@@ -422,11 +448,13 @@ impl OcrBackend for PaddleOcrBackend {
             ..Default::default()
         };
 
-        // Preserve OCR elements if any were extracted
-        let ocr_elements_opt = if ocr_elements.is_empty() {
-            None
-        } else {
+        // Include OCR elements only when element_config requests them
+        let include_elements = config.element_config.as_ref().is_some_and(|ec| ec.include_elements);
+
+        let ocr_elements_opt = if include_elements && !ocr_elements.is_empty() {
             Some(ocr_elements)
+        } else {
+            None
         };
 
         Ok(ExtractionResult {

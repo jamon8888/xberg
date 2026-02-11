@@ -362,21 +362,34 @@ impl<'a> PdfPageTextChar<'a> {
         self.text_object().map(|text_object| text_object.render_mode())
     }
 
-    #[cfg(any(
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+        ))
     ))]
     /// Returns the text rendering mode for this character.
     pub fn render_mode(&self) -> Result<PdfPageTextRenderMode, PdfiumError> {

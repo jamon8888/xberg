@@ -30,74 +30,405 @@ pub enum PdfiumApiVersion {
 
 impl PdfiumApiVersion {
     /// Returns the currently selected `PdfiumApiVersion` based on compile-time feature flags.
+    /// When multiple version features are enabled (which is common since Cargo features are additive),
+    /// the highest enabled version is returned.
     pub(crate) fn current() -> Self {
         #[cfg(feature = "pdfium_future")]
         return PdfiumApiVersion::Future;
 
-        #[cfg(feature = "pdfium_7543")]
+        #[cfg(all(feature = "pdfium_7543", not(feature = "pdfium_future")))]
         return PdfiumApiVersion::V7543;
 
-        #[cfg(feature = "pdfium_7350")]
+        #[cfg(all(
+            feature = "pdfium_7350",
+            not(any(feature = "pdfium_future", feature = "pdfium_7543"))
+        ))]
         return PdfiumApiVersion::V7350;
 
-        #[cfg(feature = "pdfium_7215")]
+        #[cfg(all(
+            feature = "pdfium_7215",
+            not(any(feature = "pdfium_future", feature = "pdfium_7543", feature = "pdfium_7350"))
+        ))]
         return PdfiumApiVersion::V7215;
 
-        #[cfg(feature = "pdfium_7123")]
+        #[cfg(all(
+            feature = "pdfium_7123",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215"
+            ))
+        ))]
         return PdfiumApiVersion::V7123;
 
-        #[cfg(feature = "pdfium_6996")]
+        #[cfg(all(
+            feature = "pdfium_6996",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123"
+            ))
+        ))]
         return PdfiumApiVersion::V6996;
 
-        #[cfg(feature = "pdfium_6721")]
+        #[cfg(all(
+            feature = "pdfium_6721",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996"
+            ))
+        ))]
         return PdfiumApiVersion::V6721;
 
-        #[cfg(feature = "pdfium_6666")]
+        #[cfg(all(
+            feature = "pdfium_6666",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721"
+            ))
+        ))]
         return PdfiumApiVersion::V6666;
 
-        #[cfg(feature = "pdfium_6611")]
+        #[cfg(all(
+            feature = "pdfium_6611",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666"
+            ))
+        ))]
         return PdfiumApiVersion::V6611;
 
-        #[cfg(feature = "pdfium_6569")]
+        #[cfg(all(
+            feature = "pdfium_6569",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611"
+            ))
+        ))]
         return PdfiumApiVersion::V6569;
 
-        #[cfg(feature = "pdfium_6555")]
+        #[cfg(all(
+            feature = "pdfium_6555",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569"
+            ))
+        ))]
         return PdfiumApiVersion::V6555;
 
-        #[cfg(feature = "pdfium_6490")]
+        #[cfg(all(
+            feature = "pdfium_6490",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555"
+            ))
+        ))]
         return PdfiumApiVersion::V6490;
 
-        #[cfg(feature = "pdfium_6406")]
+        #[cfg(all(
+            feature = "pdfium_6406",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490"
+            ))
+        ))]
         return PdfiumApiVersion::V6406;
 
-        #[cfg(feature = "pdfium_6337")]
+        #[cfg(all(
+            feature = "pdfium_6337",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406"
+            ))
+        ))]
         return PdfiumApiVersion::V6337;
 
-        #[cfg(feature = "pdfium_6295")]
+        #[cfg(all(
+            feature = "pdfium_6295",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337"
+            ))
+        ))]
         return PdfiumApiVersion::V6295;
 
-        #[cfg(feature = "pdfium_6259")]
+        #[cfg(all(
+            feature = "pdfium_6259",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295"
+            ))
+        ))]
         return PdfiumApiVersion::V6259;
 
-        #[cfg(feature = "pdfium_6164")]
+        #[cfg(all(
+            feature = "pdfium_6164",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259"
+            ))
+        ))]
         return PdfiumApiVersion::V6164;
 
-        #[cfg(feature = "pdfium_6124")]
+        #[cfg(all(
+            feature = "pdfium_6124",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164"
+            ))
+        ))]
         return PdfiumApiVersion::V6124;
 
-        #[cfg(feature = "pdfium_6110")]
+        #[cfg(all(
+            feature = "pdfium_6110",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124"
+            ))
+        ))]
         return PdfiumApiVersion::V6110;
 
-        #[cfg(feature = "pdfium_6084")]
+        #[cfg(all(
+            feature = "pdfium_6084",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124",
+                feature = "pdfium_6110"
+            ))
+        ))]
         return PdfiumApiVersion::V6084;
 
-        #[cfg(feature = "pdfium_6043")]
+        #[cfg(all(
+            feature = "pdfium_6043",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124",
+                feature = "pdfium_6110",
+                feature = "pdfium_6084"
+            ))
+        ))]
         return PdfiumApiVersion::V6043;
 
-        #[cfg(feature = "pdfium_6015")]
+        #[cfg(all(
+            feature = "pdfium_6015",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124",
+                feature = "pdfium_6110",
+                feature = "pdfium_6084",
+                feature = "pdfium_6043"
+            ))
+        ))]
         return PdfiumApiVersion::V6015;
 
-        #[cfg(feature = "pdfium_5961")]
+        #[cfg(all(
+            feature = "pdfium_5961",
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124",
+                feature = "pdfium_6110",
+                feature = "pdfium_6084",
+                feature = "pdfium_6043",
+                feature = "pdfium_6015"
+            ))
+        ))]
         return PdfiumApiVersion::V5961;
     }
 }

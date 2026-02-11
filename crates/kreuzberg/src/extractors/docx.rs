@@ -111,7 +111,7 @@ impl DocumentExtractor for DocxExtractor {
     async fn extract_bytes(
         &self,
         content: &[u8],
-        _mime_type: &str,
+        mime_type: &str,
         _config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let (text, tables, page_boundaries) = {
@@ -332,7 +332,7 @@ impl DocumentExtractor for DocxExtractor {
 
         Ok(ExtractionResult {
             content: text,
-            mime_type: "text/markdown".to_string().into(),
+            mime_type: mime_type.to_string().into(),
             metadata: Metadata {
                 pages: page_structure,
                 keywords: parsed_keywords,

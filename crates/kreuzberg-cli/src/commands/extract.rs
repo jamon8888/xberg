@@ -104,13 +104,16 @@ pub fn apply_extraction_overrides(
                 Some("easyocr") => ("easyocr", "en"),
                 _ => ("tesseract", "eng"),
             };
+            // Preserve existing paddle_ocr_config and element_config from config file/inline JSON
+            let existing_paddle_config = config.ocr.as_ref().and_then(|o| o.paddle_ocr_config.clone());
+            let existing_element_config = config.ocr.as_ref().and_then(|o| o.element_config.clone());
             config.ocr = Some(OcrConfig {
                 backend: backend.to_string(),
                 language: language.to_string(),
                 tesseract_config: None,
                 output_format: None,
-                paddle_ocr_config: None,
-                element_config: None,
+                paddle_ocr_config: existing_paddle_config,
+                element_config: existing_element_config,
             });
         } else {
             config.ocr = None;

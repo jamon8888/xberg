@@ -5869,22 +5869,34 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
             .unwrap() as c_int
     }
 
-    #[cfg(any(
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666"
+        ))
     ))]
     #[allow(non_snake_case)]
     fn FPDFBitmap_FillRect(
@@ -13072,24 +13084,34 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
         result
     }
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     #[allow(non_snake_case)]
     fn FPDFPageObjMark_GetName(
@@ -13244,24 +13266,34 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
         result
     }
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     #[allow(non_snake_case)]
     fn FPDFPageObjMark_GetParamKey(
@@ -13540,24 +13572,34 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
         result
     }
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     #[allow(non_snake_case)]
     fn FPDFPageObjMark_GetParamStringValue(
@@ -13711,24 +13753,34 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
         result
     }
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     #[allow(non_snake_case)]
     fn FPDFPageObjMark_GetParamBlobValue(
@@ -13999,24 +14051,34 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
         result
     }
 
-    #[cfg(any(
-        feature = "pdfium_6721",
-        feature = "pdfium_6666",
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961",
+    #[cfg(all(
+        any(
+            feature = "pdfium_6721",
+            feature = "pdfium_6666",
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961",
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+        ))
     ))]
     #[allow(non_snake_case)]
     fn FPDFPageObjMark_SetBlobParam(
@@ -15560,7 +15622,19 @@ impl PdfiumLibraryBindings for WasmPdfiumBindings {
         result
     }
 
-    #[cfg(feature = "pdfium_6611")]
+    #[cfg(all(
+        feature = "pdfium_6611",
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666"
+        ))
+    ))]
     #[allow(non_snake_case)]
     fn FPDFFont_GetFamilyName(&self, font: FPDF_FONT, buffer: *mut c_char, length: c_ulong) -> c_ulong {
         log::debug!("pdfium-render::PdfiumLibraryBindings::FPDFFont_GetFamilyName()");

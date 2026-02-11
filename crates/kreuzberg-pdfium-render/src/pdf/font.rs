@@ -737,22 +737,34 @@ impl<'a> PdfFont<'a> {
         self.bindings
     }
 
-    #[cfg(any(
-        feature = "pdfium_6611",
-        feature = "pdfium_6569",
-        feature = "pdfium_6555",
-        feature = "pdfium_6490",
-        feature = "pdfium_6406",
-        feature = "pdfium_6337",
-        feature = "pdfium_6295",
-        feature = "pdfium_6259",
-        feature = "pdfium_6164",
-        feature = "pdfium_6124",
-        feature = "pdfium_6110",
-        feature = "pdfium_6084",
-        feature = "pdfium_6043",
-        feature = "pdfium_6015",
-        feature = "pdfium_5961"
+    #[cfg(all(
+        any(
+            feature = "pdfium_6611",
+            feature = "pdfium_6569",
+            feature = "pdfium_6555",
+            feature = "pdfium_6490",
+            feature = "pdfium_6406",
+            feature = "pdfium_6337",
+            feature = "pdfium_6295",
+            feature = "pdfium_6259",
+            feature = "pdfium_6164",
+            feature = "pdfium_6124",
+            feature = "pdfium_6110",
+            feature = "pdfium_6084",
+            feature = "pdfium_6043",
+            feature = "pdfium_6015",
+            feature = "pdfium_5961"
+        ),
+        not(any(
+            feature = "pdfium_future",
+            feature = "pdfium_7543",
+            feature = "pdfium_7350",
+            feature = "pdfium_7215",
+            feature = "pdfium_7123",
+            feature = "pdfium_6996",
+            feature = "pdfium_6721",
+            feature = "pdfium_6666"
+        ))
     ))]
     #[inline]
     #[deprecated(
@@ -836,21 +848,34 @@ impl<'a> PdfFont<'a> {
             .bindings
             .FPDFFont_GetFamilyName(self.handle, std::ptr::null_mut(), 0);
 
-        #[cfg(any(
-            feature = "pdfium_6569",
-            feature = "pdfium_6555",
-            feature = "pdfium_6490",
-            feature = "pdfium_6406",
-            feature = "pdfium_6337",
-            feature = "pdfium_6295",
-            feature = "pdfium_6259",
-            feature = "pdfium_6164",
-            feature = "pdfium_6124",
-            feature = "pdfium_6110",
-            feature = "pdfium_6084",
-            feature = "pdfium_6043",
-            feature = "pdfium_6015",
-            feature = "pdfium_5961"
+        #[cfg(all(
+            any(
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124",
+                feature = "pdfium_6110",
+                feature = "pdfium_6084",
+                feature = "pdfium_6043",
+                feature = "pdfium_6015",
+                feature = "pdfium_5961"
+            ),
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+            ))
         ))]
         let buffer_length = self.bindings.FPDFFont_GetFontName(self.handle, std::ptr::null_mut(), 0);
 
@@ -877,21 +902,34 @@ impl<'a> PdfFont<'a> {
             self.bindings
                 .FPDFFont_GetFamilyName(self.handle, buffer.as_mut_ptr() as *mut c_char, buffer_length);
 
-        #[cfg(any(
-            feature = "pdfium_6569",
-            feature = "pdfium_6555",
-            feature = "pdfium_6490",
-            feature = "pdfium_6406",
-            feature = "pdfium_6337",
-            feature = "pdfium_6295",
-            feature = "pdfium_6259",
-            feature = "pdfium_6164",
-            feature = "pdfium_6124",
-            feature = "pdfium_6110",
-            feature = "pdfium_6084",
-            feature = "pdfium_6043",
-            feature = "pdfium_6015",
-            feature = "pdfium_5961"
+        #[cfg(all(
+            any(
+                feature = "pdfium_6569",
+                feature = "pdfium_6555",
+                feature = "pdfium_6490",
+                feature = "pdfium_6406",
+                feature = "pdfium_6337",
+                feature = "pdfium_6295",
+                feature = "pdfium_6259",
+                feature = "pdfium_6164",
+                feature = "pdfium_6124",
+                feature = "pdfium_6110",
+                feature = "pdfium_6084",
+                feature = "pdfium_6043",
+                feature = "pdfium_6015",
+                feature = "pdfium_5961"
+            ),
+            not(any(
+                feature = "pdfium_future",
+                feature = "pdfium_7543",
+                feature = "pdfium_7350",
+                feature = "pdfium_7215",
+                feature = "pdfium_7123",
+                feature = "pdfium_6996",
+                feature = "pdfium_6721",
+                feature = "pdfium_6666",
+                feature = "pdfium_6611",
+            ))
         ))]
         let result = self
             .bindings

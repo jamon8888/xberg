@@ -138,7 +138,7 @@ def generate_vendor_cargo_toml(repo_root: Path, workspace_deps: dict[str, object
     deps_str = "\n".join(deps_lines)
 
     # Build members list based on actually copied crates
-    members = [name for name in ["kreuzberg", "kreuzberg-ffi", "kreuzberg-tesseract", "kreuzberg-paddle-ocr", "rb-sys"]
+    members = [name for name in ["kreuzberg", "kreuzberg-ffi", "kreuzberg-tesseract", "kreuzberg-paddle-ocr", "kreuzberg-pdfium-render", "rb-sys"]
                if name in copied_crates]
     members_str = ', '.join(f'"{m}"' for m in members)
 
@@ -191,6 +191,7 @@ def main() -> None:
         ("crates/kreuzberg-ffi", "kreuzberg-ffi"),
         ("crates/kreuzberg-tesseract", "kreuzberg-tesseract"),
         ("crates/kreuzberg-paddle-ocr", "kreuzberg-paddle-ocr"),
+        ("crates/kreuzberg-pdfium-render", "kreuzberg-pdfium-render"),
         ("vendor/rb-sys", "rb-sys"),
     ]
 
