@@ -228,6 +228,9 @@ jobs:
           TESSDATA_PREFIX: "/usr/share/tesseract-ocr/5/tessdata"
           LD_LIBRARY_PATH: "${{ github.workspace }}/target/release:${{ env.LD_LIBRARY_PATH || '' }}"
           DYLD_LIBRARY_PATH: "${{ github.workspace }}/target/release:${{ env.DYLD_LIBRARY_PATH || '' }}"
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task rust:e2e:test
         shell: bash
 

@@ -339,26 +339,6 @@ Deno.test("office_jats_basic", { permissions: { read: true } }, async () => {
 	assertions.assertMinContentLength(result, 10);
 });
 
-Deno.test("office_jupyter_basic", { permissions: { read: true } }, async () => {
-	const documentBytes = await resolveDocument("jupyter/rank.ipynb");
-	const config = buildConfig(undefined);
-	let result: ExtractionResult | null = null;
-	try {
-		// Sync file extraction - WASM uses extractBytes with pre-read bytes
-		result = await extractBytes(documentBytes, "application/x-ipynb+json", config);
-	} catch (error) {
-		if (shouldSkipFixture(error, "office_jupyter_basic", [], undefined)) {
-			return;
-		}
-		throw error;
-	}
-	if (result === null) {
-		return;
-	}
-	assertions.assertExpectedMime(result, ["application/x-ipynb+json"]);
-	assertions.assertMinContentLength(result, 10);
-});
-
 Deno.test("office_latex_basic", { permissions: { read: true } }, async () => {
 	const documentBytes = await resolveDocument("latex/basic_sections.tex");
 	const config = buildConfig(undefined);

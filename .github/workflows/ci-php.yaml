@@ -272,6 +272,9 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
+
       - name: Install Task
         uses: ./.github/actions/install-task
 
@@ -308,4 +311,8 @@ jobs:
 
       - name: Run E2E tests
         shell: bash
+        env:
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task php:e2e:test

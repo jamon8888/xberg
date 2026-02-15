@@ -159,6 +159,9 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
+
       - name: Install Task
         uses: ./.github/actions/install-task
 
@@ -204,6 +207,9 @@ jobs:
         shell: bash
         env:
           KREUZBERG_BUILD: "1"
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task elixir:e2e:test
 
       - name: Verify FFI build artifacts

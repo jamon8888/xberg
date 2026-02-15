@@ -145,19 +145,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
-          bundler-cache: false
+          bundler-cache: true
           working-directory: packages/ruby
-
-      - name: Set BUNDLE_GEMFILE (Unix)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: echo "BUNDLE_GEMFILE=${{ github.workspace }}/packages/ruby/Gemfile" >> "$GITHUB_ENV"
-
-      - name: Install Ruby dependencies
-        shell: bash
-        working-directory: packages/ruby
-        run: |
-          bundle install
 
       - name: Print Ruby environment (pre-setup)
         shell: bash
@@ -567,24 +556,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
-          bundler-cache: false
+          bundler-cache: true
           working-directory: packages/ruby
-
-      - name: Set BUNDLE_GEMFILE (Unix)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: echo "BUNDLE_GEMFILE=${{ github.workspace }}/packages/ruby/Gemfile" >> "$GITHUB_ENV"
-
-      - name: Install Ruby dependencies
-        shell: bash
-        working-directory: packages/ruby
-        run: |
-          bundle install
-
-      - name: Install Ruby deps
-        if: runner.os != 'Windows'
-        shell: bash
-        run: scripts/ci/ruby/install-ruby-deps.sh
 
       - name: Configure short paths for Windows MAX_PATH mitigation
         if: runner.os == 'Windows'
@@ -639,6 +612,9 @@ jobs:
         uses: ./.github/actions/setup-onnx-runtime
         with:
           ort-version: ${{ env.ORT_VERSION }}
+
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
 
       - name: Install gem
         shell: bash
@@ -714,4 +690,8 @@ jobs:
 
       - name: Run E2E tests
         shell: bash
+        env:
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task ruby:e2e:test

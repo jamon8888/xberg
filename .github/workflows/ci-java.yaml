@@ -250,6 +250,9 @@ jobs:
           ort-version: ${{ env.ORT_VERSION }}
           dest-dir: target/release
 
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
+
       - name: Setup Java
         uses: actions/setup-java@v4
         id: setup-java
@@ -368,11 +371,19 @@ jobs:
       - name: Run E2E tests (Unix)
         if: runner.os != 'Windows'
         shell: bash
+        env:
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task -vv java:e2e:test
 
       - name: Run E2E tests (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task -vv java:e2e:test
 
       - name: Upload Java unit test reports

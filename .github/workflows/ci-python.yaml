@@ -283,11 +283,8 @@ jobs:
           python-version: "3.13"
           cache-prefix: test-py-3.13
 
-      - name: Cache HuggingFace models
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/huggingface
-          key: huggingface-${{ runner.os }}-py-3.13-${{ hashFiles('packages/python/pyproject.toml') || 'fallback' }}
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
 
       - name: Download wheels
         uses: actions/download-artifact@v4
@@ -355,4 +352,7 @@ jobs:
         shell: bash
         env:
           PYTEST_TIMEOUT: 300
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task python:e2e:test

@@ -429,6 +429,9 @@ jobs:
           ort-version: ${{ env.ORT_VERSION }}
           dest-dir: 'target/release'
 
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
+
       - name: Download FFI library
         uses: actions/download-artifact@v4
         with:
@@ -662,3 +665,6 @@ jobs:
           CGO_CFLAGS: ${{ env.CGO_CFLAGS }}
           CGO_LDFLAGS: ${{ env.CGO_LDFLAGS }}
           PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"

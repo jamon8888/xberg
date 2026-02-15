@@ -1498,6 +1498,12 @@ impl PdfiumLibraryBindings for StaticPdfiumBindings {
 
     #[inline]
     #[allow(non_snake_case)]
+    fn FPDFAnnot_SetFormFieldFlags(&self, form: FPDF_FORMHANDLE, annot: FPDF_ANNOTATION, flags: c_int) -> FPDF_BOOL {
+        unsafe { crate::bindgen::FPDFAnnot_SetFormFieldFlags(form, annot, flags) }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
     fn FPDFAnnot_GetFormFieldAtPoint(
         &self,
         form: FPDF_FORMHANDLE,
@@ -1566,6 +1572,19 @@ impl PdfiumLibraryBindings for StaticPdfiumBindings {
     #[allow(non_snake_case)]
     fn FPDFAnnot_GetFontSize(&self, form: FPDF_FORMHANDLE, annot: FPDF_ANNOTATION, value: *mut f32) -> FPDF_BOOL {
         unsafe { crate::bindgen::FPDFAnnot_GetFontSize(form, annot, value) }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
+    fn FPDFAnnot_SetFontColor(
+        &self,
+        form: FPDF_FORMHANDLE,
+        annot: FPDF_ANNOTATION,
+        R: c_uint,
+        G: c_uint,
+        B: c_uint,
+    ) -> FPDF_BOOL {
+        unsafe { crate::bindgen::FPDFAnnot_SetFontColor(form, annot, R, G, B) }
     }
 
     #[inline]
@@ -2849,6 +2868,12 @@ impl PdfiumLibraryBindings for StaticPdfiumBindings {
 
     #[inline]
     #[allow(non_snake_case)]
+    fn FPDFPage_InsertObjectAtIndex(&self, page: FPDF_PAGE, page_object: FPDF_PAGEOBJECT, index: usize) -> FPDF_BOOL {
+        unsafe { crate::bindgen::FPDFPage_InsertObjectAtIndex(page, page_object, index) }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
     fn FPDFPage_RemoveObject(&self, page: FPDF_PAGE, page_obj: FPDF_PAGEOBJECT) -> FPDF_BOOL {
         unsafe { crate::bindgen::FPDFPage_RemoveObject(page, page_obj) }
     }
@@ -3759,6 +3784,17 @@ impl PdfiumLibraryBindings for StaticPdfiumBindings {
         out_buflen: *mut c_ulong,
     ) -> FPDF_BOOL {
         unsafe { crate::bindgen::FPDFAttachment_GetFile(attachment, buffer, buflen, out_buflen) }
+    }
+
+    #[inline]
+    #[allow(non_snake_case)]
+    fn FPDFAttachment_GetSubtype(
+        &self,
+        attachment: FPDF_ATTACHMENT,
+        buffer: *mut FPDF_WCHAR,
+        buflen: c_ulong,
+    ) -> c_ulong {
+        unsafe { crate::bindgen::FPDFAttachment_GetSubtype(attachment, buffer, buflen) }
     }
 
     #[inline]

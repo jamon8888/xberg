@@ -103,6 +103,141 @@ internal class PageConfigConverter : JsonConverter<PageConfig>
     }
 }
 
+internal class EmbeddingConfigConverter : JsonConverter<EmbeddingConfig>
+{
+    public override EmbeddingConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("Expected StartObject");
+        }
+
+        string? model = null;
+        int? batchSize = null;
+        bool? normalize = null;
+        int? dimensions = null;
+        bool? useCache = null;
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                continue;
+            }
+
+            var propertyName = reader.GetString();
+            reader.Read();
+
+            switch (propertyName?.ToLowerInvariant())
+            {
+                case "model":
+                    if (reader.TokenType == JsonTokenType.String)
+                    {
+                        model = reader.GetString();
+                    }
+                    else if (reader.TokenType == JsonTokenType.StartObject)
+                    {
+                        // Rust sends model as tagged enum: {"type":"preset","name":"balanced"}
+                        string? modelType = null;
+                        string? modelName = null;
+                        string? modelId = null;
+                        while (reader.Read())
+                        {
+                            if (reader.TokenType == JsonTokenType.EndObject) break;
+                            if (reader.TokenType != JsonTokenType.PropertyName) continue;
+                            var innerProp = reader.GetString();
+                            reader.Read();
+                            switch (innerProp)
+                            {
+                                case "type": modelType = reader.GetString(); break;
+                                case "name": modelName = reader.GetString(); break;
+                                case "model": modelName = reader.GetString(); break;
+                                case "model_id": modelId = reader.GetString(); break;
+                                default: reader.Skip(); break;
+                            }
+                        }
+                        model = modelName ?? modelId ?? modelType;
+                    }
+                    else if (reader.TokenType == JsonTokenType.Null)
+                    {
+                        model = null;
+                    }
+                    break;
+                case "batch_size":
+                    batchSize = reader.TokenType == JsonTokenType.Null ? null : reader.GetInt32();
+                    break;
+                case "normalize":
+                    normalize = reader.TokenType == JsonTokenType.Null ? null : reader.GetBoolean();
+                    break;
+                case "dimensions":
+                    dimensions = reader.TokenType == JsonTokenType.Null ? null : reader.GetInt32();
+                    break;
+                case "use_cache":
+                    useCache = reader.TokenType == JsonTokenType.Null ? null : reader.GetBoolean();
+                    break;
+            }
+        }
+
+        return new EmbeddingConfig
+        {
+            Model = model,
+            BatchSize = batchSize,
+            Normalize = normalize,
+            Dimensions = dimensions,
+            UseCache = useCache
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, EmbeddingConfig value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("model");
+        if (!string.IsNullOrEmpty(value.Model))
+        {
+            // Wrap simple model name as Rust preset tagged enum
+            writer.WriteStartObject();
+            writer.WritePropertyName("type");
+            writer.WriteStringValue("preset");
+            writer.WritePropertyName("name");
+            writer.WriteStringValue(value.Model);
+            writer.WriteEndObject();
+        }
+        else
+        {
+            writer.WriteNullValue();
+        }
+
+        writer.WritePropertyName("normalize");
+        writer.WriteBooleanValue(value.Normalize ?? true);
+
+        if (value.BatchSize.HasValue)
+        {
+            writer.WritePropertyName("batch_size");
+            writer.WriteNumberValue(value.BatchSize.Value);
+        }
+
+        if (value.Dimensions.HasValue)
+        {
+            writer.WritePropertyName("dimensions");
+            writer.WriteNumberValue(value.Dimensions.Value);
+        }
+
+        if (value.UseCache.HasValue)
+        {
+            writer.WritePropertyName("use_cache");
+            writer.WriteBooleanValue(value.UseCache.Value);
+        }
+
+        writer.WriteEndObject();
+    }
+}
+
 internal class KeywordConfigConverter : JsonConverter<KeywordConfig>
 {
     public override KeywordConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -1413,7 +1548,7 @@ internal static class Serialization
         PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = false,
-        Converters = { new MetadataConverter(), new ByteArrayConverter() }
+        Converters = { new MetadataConverter(), new EmbeddingConfigConverter(), new ByteArrayConverter() }
     };
 
     /// <summary>
@@ -1426,7 +1561,7 @@ internal static class Serialization
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = false,
-        Converters = { new MetadataConverter(), new PageConfigConverter(), new KeywordConfigConverter(), new ByteArrayConverter() }
+        Converters = { new MetadataConverter(), new PageConfigConverter(), new KeywordConfigConverter(), new EmbeddingConfigConverter(), new ByteArrayConverter() }
     };
 
     /// <summary>
@@ -1442,7 +1577,7 @@ internal static class Serialization
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = false,
-            Converters = { new MetadataConverter(), new ByteArrayConverter() },
+            Converters = { new MetadataConverter(), new EmbeddingConfigConverter(), new ByteArrayConverter() },
             TypeInfoResolver = KreuzbergJsonContext.Default
         };
         return options;

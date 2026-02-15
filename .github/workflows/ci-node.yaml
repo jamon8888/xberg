@@ -359,6 +359,9 @@ jobs:
       - name: Setup PaddleOCR Models
         uses: ./.github/actions/setup-paddle-ocr-models
 
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
+
       - name: Download Node bindings
         uses: actions/download-artifact@v4
         with:
@@ -431,6 +434,9 @@ jobs:
         env:
           VERBOSE: "1"
           DEBUG: "kreuzberg*"
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: |
           set -x
           time task node:e2e:test

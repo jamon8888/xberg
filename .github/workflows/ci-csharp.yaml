@@ -246,6 +246,9 @@ jobs:
         with:
           ort-version: ${{ env.ORT_VERSION }}
 
+      - name: Cache Hugging Face models (fastembed)
+        uses: ./.github/actions/cache-hf-fastembed
+
       - name: Setup Tesseract environment
         shell: bash
         run: scripts/ci/csharp/setup-tessdata-env.sh
@@ -282,6 +285,9 @@ jobs:
           LD_LIBRARY_PATH: ${{ github.workspace }}/target/release:${{ env.LD_LIBRARY_PATH }}
           DYLD_LIBRARY_PATH: ${{ github.workspace }}/target/release:${{ env.DYLD_LIBRARY_PATH }}
           KREUZBERG_SKIP_LEGACY_OFFICE: ${{ runner.os == 'Windows' && '1' || '' }}
+          KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
+          KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
         run: task csharp:e2e:test
 
       - name: Upload C# crash dumps

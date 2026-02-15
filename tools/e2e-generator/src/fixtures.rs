@@ -582,6 +582,11 @@ pub fn should_include_for_wasm(fixture: &Fixture, target: WasmTarget) -> bool {
         }
     }
 
+    // Jupyter notebook parsing is not supported in the WASM Deno environment
+    if target == WasmTarget::Deno && fixture.id == "office_jupyter_basic" {
+        return false;
+    }
+
     if target == WasmTarget::Deno
         && fixture.category() == "html"
         && let Some(doc) = &fixture.document
