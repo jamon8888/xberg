@@ -468,8 +468,13 @@ impl PdfiumRenderWasmState {
     fn copy_bytes_to_pdfium_address(&self, bytes: &[u8], remote_ptr: usize) {
         log::debug!("pdfium-render::PdfiumRenderWasmState::copy_bytes_to_pdfium_address(): entering");
 
-        let view = unsafe { Uint8Array::view(bytes) };
-        self.heap_u8().set(&view, remote_ptr as u32);
+        // We must NOT use Uint8Array::view(bytes) here. That creates a zero-copy view into
+        // kreuzberg's WASM linear memory, which becomes detached if memory.grow() is triggered
+        // by any subsequent JS interop call (including heap_u8()'s Reflect::get below).
+        // Instead, copy bytes into a JS-heap-allocated Uint8Array that is immune to detachment.
+        let safe_copy = Uint8Array::new_with_length(bytes.len() as u32);
+        safe_copy.copy_from(bytes);
+        self.heap_u8().set(&safe_copy, remote_ptr as u32);
 
         log::debug!(
             "pdfium-render::PdfiumRenderWasmState::copy_bytes_to_pdfium_address(): copied {} bytes into WASM heap at address {}",
@@ -537,11 +542,8 @@ impl PdfiumRenderWasmState {
     /// therefore copy buffers from our own memory heap across into Pdfium's memory heap, and vice versa.
     #[inline]
     fn copy_ptr_with_len_to_pdfium<T>(&self, ptr: *const T, len: usize) -> usize {
-        self.copy_bytes_to_pdfium(
-            unsafe { Uint8Array::view_mut_raw(ptr as *mut u8, len) }
-                .to_vec()
-                .as_slice(),
-        )
+        let bytes = unsafe { std::slice::from_raw_parts(ptr as *const u8, len) };
+        self.copy_bytes_to_pdfium(bytes)
     }
 
     /// Copies the raw bytes at the given pointer into Pdfium's WASM memory heap, returning a
@@ -561,11 +563,8 @@ impl PdfiumRenderWasmState {
             len
         );
 
-        let result = self.copy_bytes_to_pdfium(
-            unsafe { Uint8Array::view_mut_raw(ptr as *mut u8, len) }
-                .to_vec()
-                .as_slice(),
-        );
+        let bytes = unsafe { std::slice::from_raw_parts(ptr as *const u8, len) };
+        let result = self.copy_bytes_to_pdfium(bytes);
 
         log::debug!("pdfium-render::PdfiumRenderWasmState::copy_struct_to_pdfium(): leaving");
 
@@ -613,11 +612,15 @@ impl PdfiumRenderWasmState {
         );
 
         loop {
-            let utf16_char = unsafe { Uint8Array::view_mut_raw((str as *mut u8).add(len), 2) };
+            // Read bytes directly from the pointer instead of creating unsafe JS Uint8Array
+            // views. Uint8Array::view_mut_raw creates a view into WASM linear memory that can
+            // become detached if memory.grow() occurs.
+            let byte0 = unsafe { *((str as *const u8).add(len)) };
+            let byte1 = unsafe { *((str as *const u8).add(len + 1)) };
 
             len += 2;
 
-            if utf16_char.get_index(0) == 0 && utf16_char.get_index(1) == 0 {
+            if byte0 == 0 && byte1 == 0 {
                 // This is the end of the string.
 
                 break;
