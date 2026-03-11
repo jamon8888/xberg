@@ -234,7 +234,7 @@ impl<'a> PdfDocument<'a> {
             return None;
         }
 
-        let mut buffer = vec![0i8; len as usize];
+        let mut buffer = vec![0 as std::ffi::c_char; len as usize];
 
         let result = self
             .bindings

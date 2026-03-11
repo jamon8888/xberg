@@ -16,7 +16,11 @@ members = [
     "tools/snippet-runner",
     "e2e/rust",
 ]
-exclude = ["tests/test_apps/rust", "tests/test_apps/elixir"]
+exclude = [
+    "tests/test_apps/rust",
+    "tests/test_apps/elixir",
+    "packages/ruby/ext/kreuzberg_rb/native",
+]
 default-members = ["crates/kreuzberg", "crates/kreuzberg-cli"]
 resolver = "2"
 
