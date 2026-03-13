@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 authors.workspace = true
-description = "High-performance document intelligence library for Rust. Extract text, metadata, and structured data from PDFs, Office documents, images, and 75+ formats with async/sync APIs."
+description = "High-performance document intelligence library for Rust. Extract text, metadata, and structured data from PDFs, Office documents, images, and 88+ formats with async/sync APIs."
 license.workspace = true
 repository = "https://github.com/kreuzberg-dev/kreuzberg"
 homepage = "https://kreuzberg.dev"
@@ -42,6 +42,8 @@ office = [
     "dep:biblatex",
     "dep:biblib",
     "dep:org",
+    "dep:dbase",
+    "dep:hwpers",
     "html",
 ]
 email = ["dep:mail-parser", "dep:cfb"]
@@ -190,6 +192,8 @@ biblib = { version = "0.4", default-features = false, features = [
     "regex",
 ], optional = true }
 org = { version = "0.3", optional = true }
+dbase = { workspace = true, optional = true }
+hwpers = { workspace = true, optional = true }
 
 kreuzberg-tesseract = { path = "../kreuzberg-tesseract", version = "4.4.5", optional = true }
 image = { workspace = true, default-features = false, features = [

@@ -77,6 +77,8 @@ XML_PARSE_TYPES = frozenset({"xml"})
 XLRD_TYPES = frozenset({"xls"})
 ANTIWORD_TYPES = frozenset({"doc"})
 LIBREOFFICE_TYPES = frozenset({"ppt"})
+DBF_TYPES = frozenset({"dbf"})
+HWP_TYPES = frozenset({"hwp"})
 
 # Archive and image types are excluded from ground truth generation
 EXCLUDED_TYPES = frozenset({
@@ -90,7 +92,8 @@ ALL_HANDLED_TYPES = (
     PYTHON_DOCX_TYPES | PYTHON_PPTX_TYPES | OPENPYXL_TYPES |
     BEAUTIFULSOUP_TYPES | PYTHON_EMAIL_TYPES | EXTRACT_MSG_TYPES |
     NBFORMAT_TYPES | XML_PARSE_TYPES | XLRD_TYPES |
-    ANTIWORD_TYPES | LIBREOFFICE_TYPES | ODS_TYPES
+    ANTIWORD_TYPES | LIBREOFFICE_TYPES | ODS_TYPES |
+    DBF_TYPES | HWP_TYPES
 )
 
 
@@ -126,6 +129,10 @@ def get_source_type(file_type: str) -> str:
         return "libreoffice"
     if file_type in ODS_TYPES:
         return "odfpy"
+    if file_type in DBF_TYPES:
+        return "manual"
+    if file_type in HWP_TYPES:
+        return "manual"
     return "manual"
 
 

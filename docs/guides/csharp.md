@@ -1,6 +1,6 @@
 # C# Bindings for Kreuzberg <span class="version-badge unreleased">Unreleased</span>
 
-High-performance document intelligence for .NET applications. Extract text, metadata, and structured information from PDFs, Office documents, images, and 75+ formats.
+High-performance document intelligence for .NET applications. Extract text, metadata, and structured information from PDFs, Office documents, images, and 88+ formats.
 
 **Powered by a Rust core** – Native performance for document extraction with P/Invoke interoperability.
 

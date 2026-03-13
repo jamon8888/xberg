@@ -83,6 +83,9 @@ pub mod email;
 #[cfg(any(feature = "excel", feature = "excel-wasm"))]
 pub mod excel;
 
+#[cfg(feature = "office")]
+pub mod hwp;
+
 #[cfg(feature = "html")]
 pub mod html;
 
@@ -94,6 +97,9 @@ pub mod citation;
 
 #[cfg(feature = "office")]
 pub mod doc;
+
+#[cfg(feature = "office")]
+pub mod dbf;
 
 #[cfg(feature = "office")]
 pub mod docx;
@@ -168,6 +174,9 @@ pub use email::EmailExtractor;
 #[cfg(any(feature = "excel", feature = "excel-wasm"))]
 pub use excel::ExcelExtractor;
 
+#[cfg(feature = "office")]
+pub use hwp::HwpExtractor;
+
 #[cfg(feature = "html")]
 pub use html::HtmlExtractor;
 
@@ -176,6 +185,9 @@ pub use bibtex::BibtexExtractor;
 
 #[cfg(feature = "office")]
 pub use citation::CitationExtractor;
+
+#[cfg(feature = "office")]
+pub use dbf::DbfExtractor;
 
 #[cfg(feature = "office")]
 pub use doc::DocExtractor;
@@ -338,6 +350,8 @@ pub fn register_default_extractors() -> Result<()> {
         registry.register(Arc::new(PptExtractor::new()))?;
         registry.register(Arc::new(PptxExtractor::new()))?;
         registry.register(Arc::new(OdtExtractor::new()))?;
+        registry.register(Arc::new(DbfExtractor::new()))?;
+        registry.register(Arc::new(HwpExtractor::new()))?;
     }
 
     #[cfg(feature = "mdx")]
@@ -417,7 +431,7 @@ mod tests {
 
         #[cfg(feature = "office")]
         {
-            expected_count += 11;
+            expected_count += 13;
             assert!(extractor_names.contains(&"markdown-extractor".to_string()));
             assert!(extractor_names.contains(&"bibtex-extractor".to_string()));
             assert!(extractor_names.contains(&"citation-extractor".to_string()));
@@ -430,6 +444,8 @@ mod tests {
             assert!(extractor_names.contains(&"orgmode-extractor".to_string()));
             assert!(extractor_names.contains(&"opml-extractor".to_string()));
             assert!(extractor_names.contains(&"typst-extractor".to_string()));
+            assert!(extractor_names.contains(&"dbf-extractor".to_string()));
+            assert!(extractor_names.contains(&"hwp-extractor".to_string()));
         }
 
         #[cfg(all(feature = "tokio-runtime", feature = "office"))]

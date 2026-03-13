@@ -1,6 +1,6 @@
 # Supported Formats Reference
 
-Kreuzberg supports 75+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction. All formats support text and metadata extraction. Additional capabilities like OCR and table detection are noted per format.
+Kreuzberg supports 88+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction. All formats support text and metadata extraction. Additional capabilities like OCR and table detection are noted per format.
 
 ## Office Documents
 
@@ -9,6 +9,8 @@ Kreuzberg supports 75+ file formats across 8 major categories with intelligent f
 | Format | Extensions | MIME Type | Capabilities |
 |--------|-----------|-----------|--------------|
 | Microsoft Word | `.docx` | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` | Full text extraction, tables, embedded images, metadata, styles |
+| Word Macro-Enabled | `.docm` | `application/vnd.ms-word.document.macroEnabled.12` | Macro-enabled document extraction, metadata |
+| Word Template | `.dotx`, `.dotm`, `.dot` | Various Word template MIME types | Template document extraction, metadata |
 | OpenDocument Text | `.odt` | `application/vnd.oasis.opendocument.text` | Full text extraction, tables, embedded images, metadata, styles |
 
 ### Spreadsheets
@@ -22,6 +24,8 @@ Kreuzberg supports 75+ file formats across 8 major categories with intelligent f
 | Excel Add-in | `.xla` | `application/vnd.ms-excel` | Add-in data extraction |
 | Excel Macro Add-in | `.xlam` | `application/vnd.ms-excel.addin.macroEnabled.12` | Macro add-in metadata |
 | Excel Template | `.xltm` | `application/vnd.ms-excel.template.macroEnabled.12` | Template data and metadata |
+| Excel Template (XML) | `.xltx` | `application/vnd.openxmlformats-officedocument.spreadsheetml.template` | XML template data and metadata |
+| Excel Template (Legacy) | `.xlt` | `application/vnd.ms-excel` | Legacy template data extraction |
 | OpenDocument Spreadsheet | `.ods` | `application/vnd.oasis.opendocument.spreadsheet` | Sheet data, cell values, formulas, metadata |
 
 ### Presentations
@@ -31,6 +35,7 @@ Kreuzberg supports 75+ file formats across 8 major categories with intelligent f
 | PowerPoint Presentation | `.pptx` | `application/vnd.openxmlformats-officedocument.presentationml.presentation` | Slide text, speaker notes, embedded images, metadata |
 | PowerPoint Legacy | `.ppt` | `application/vnd.ms-powerpoint` | Legacy slide text extraction, metadata |
 | PowerPoint Slideshow | `.ppsx` | `application/vnd.openxmlformats-officedocument.presentationml.slideshow` | Slideshow content, speaker notes, metadata |
+| PowerPoint Template | `.potx`, `.potm`, `.pot` | Various PowerPoint template MIME types | Template slide extraction, metadata |
 
 ### PDF
 
@@ -44,6 +49,18 @@ Kreuzberg supports 75+ file formats across 8 major categories with intelligent f
 |--------|-----------|-----------|--------------|
 | EPUB | `.epub` | `application/epub+zip` | Chapter text, metadata, embedded resources, navigation |
 | FictionBook | `.fb2` | `application/x-fictionbook+xml` | Book content, metadata, chapter structure |
+
+### Database
+
+| Format | Extensions | MIME Type | Capabilities |
+|--------|-----------|-----------|--------------|
+| dBASE | `.dbf` | `application/x-dbf` | Table data extraction as markdown, field type support |
+
+### Hangul
+
+| Format | Extensions | MIME Type | Capabilities |
+|--------|-----------|-----------|--------------|
+| Hangul Word Processor | `.hwp`, `.hwpx` | `application/x-hwp`, `application/haansofthwpx` | Korean document format, text extraction |
 
 ## Images (OCR-Enabled)
 
@@ -160,7 +177,7 @@ Kreuzberg supports 75+ file formats across 8 major categories with intelligent f
 ## Format Capabilities Summary
 
 ### Text Extraction
-All 75+ formats support full or partial text extraction. Document structure and encoding are automatically detected.
+All 85+ formats support full or partial text extraction. Document structure and encoding are automatically detected.
 
 ### Metadata Support
 Comprehensive metadata extraction includes:

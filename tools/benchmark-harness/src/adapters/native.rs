@@ -98,8 +98,10 @@ impl FrameworkAdapter for NativeAdapter {
         matches!(
             file_type.to_lowercase().as_str(),
             // Documents
-            "pdf" | "docx" | "doc" | "odt" | "pptx" | "ppsx" | "pptm" | "ppt" |
-            "xlsx" | "xlsm" | "xlsb" | "xlam" | "xla" | "xls" | "ods" |
+            "pdf" | "docx" | "docm" | "dotx" | "dotm" | "dot" | "doc" | "odt" |
+            "pptx" | "ppsx" | "pptm" | "potx" | "potm" | "pot" | "ppt" |
+            "xlsx" | "xlsm" | "xlsb" | "xlam" | "xla" | "xltx" | "xlt" | "xls" | "ods" |
+            "dbf" | "hwp" | "hwpx" |
             // Text formats
             "txt" | "md" | "markdown" | "commonmark" | "html" | "htm" | "xml" | "rtf" | "rst" | "org" |
             // Data formats

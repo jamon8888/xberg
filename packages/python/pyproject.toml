@@ -7,7 +7,7 @@ name = "kreuzberg"
 version = "4.4.5"
 description = """\
   High-performance document intelligence library for Python. Extract text, metadata, and structured data from PDFs, \
-  Office documents, images, and 75+ formats. Powered by Rust core for 10-50x speed improvements.\
+  Office documents, images, and 88+ formats. Powered by Rust core for 10-50x speed improvements.\
   """
 readme = "README.md"
 keywords = [

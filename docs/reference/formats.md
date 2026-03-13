@@ -1,6 +1,6 @@
 # Format Support
 
-Kreuzberg supports 75+ file formats across major categories, providing comprehensive document intelligence capabilities through native Rust extractors.
+Kreuzberg supports 88+ file formats across major categories, providing comprehensive document intelligence capabilities through native Rust extractors.
 
 ## Overview
 
@@ -19,13 +19,17 @@ All formats support async/await and batch processing. Image formats and PDFs sup
 | Format | Extensions | MIME Type | Extraction Method | OCR Support | Special Features |
 |--------|-----------|-----------|-------------------|-------------|------------------|
 | PDF | `.pdf` | `application/pdf` | Native Rust (pdfium-render) | Yes | Metadata extraction, image extraction, text layer detection |
-| Excel | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xlam`, `.xla`, `.ods` | Various Excel MIME types | Native Rust (calamine) | No | Multi-sheet support, formula preservation |
+| Excel | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xlam`, `.xla`, `.xltx`, `.xlt`, `.ods` | Various Excel MIME types | Native Rust (calamine) | No | Multi-sheet support, formula preservation |
 | PowerPoint | `.pptx`, `.pptm`, `.ppsx` | `application/vnd.openxmlformats-officedocument.presentationml.presentation` | Native Rust (roxmltree) | Yes (for embedded images) | Slide extraction, image OCR, table detection |
+| PowerPoint Template | `.potx`, `.potm`, `.pot` | Various PowerPoint template MIME types | Native Rust (roxmltree) | Yes (for embedded images) | Template slide extraction |
 | Word (Modern) | `.docx` | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` | Native Rust | No | Preserves formatting, extracts metadata |
+| Word (Macro/Template) | `.docm`, `.dotx`, `.dotm`, `.dot` | Various Word MIME types | Native Rust | No | Macro-enabled and template variants |
 | Word (Legacy) | `.doc` | `application/msword` | Native OLE/CFB | Yes | Direct binary parsing |
 | PowerPoint (Legacy) | `.ppt` | `application/vnd.ms-powerpoint` | Native OLE/CFB | Yes | Direct binary parsing |
 | OpenDocument Text | `.odt` | `application/vnd.oasis.opendocument.text` | Native Rust | No | Full OpenDocument support |
 | OpenDocument Spreadsheet | `.ods` | `application/vnd.oasis.opendocument.spreadsheet` | Native Rust (calamine) | No | Multi-sheet support |
+| dBASE | `.dbf` | `application/x-dbf` | Native Rust (dbase) | No | Table data extraction, field type support |
+| Hangul Word Processor | `.hwp`, `.hwpx` | `application/x-hwp` | Native Rust (hwpers) | No | Korean document format, text extraction |
 
 ### Text & Markup
 
@@ -241,7 +245,7 @@ scoop install tesseract
 
 Kreuzberg automatically detects file formats using:
 
-1. **File Extension Mapping**: 75+ formats mapped to MIME types
+1. **File Extension Mapping**: 85+ formats mapped to MIME types
 2. **mime_guess Crate**: Fallback for unknown extensions
 3. **Manual Override**: Explicit MIME type can be provided
 

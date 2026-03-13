@@ -22,7 +22,7 @@
     <img src="https://img.shields.io/maven-central/v/dev.kreuzberg/kreuzberg?label=Java&color=007ec6" alt="Java">
   </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/releases">
-    <img src="https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=Go&color=007ec6&filter=v4.4.5" alt="Go">
+    <img src="https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=Go&color=007ec6&filter=v4.0.0" alt="Go">
   </a>
   <a href="https://www.nuget.org/packages/Kreuzberg/">
     <img src="https://img.shields.io/nuget/v/Kreuzberg?label=C%23&color=007ec6" alt="C#">
@@ -33,11 +33,11 @@
   <a href="https://rubygems.org/gems/kreuzberg">
     <img src="https://img.shields.io/gem/v/kreuzberg?label=Ruby&color=007ec6" alt="Ruby">
   </a>
+  <a href="https://kreuzberg-dev.r-universe.dev/kreuzberg">
+    <img src="https://img.shields.io/badge/R-kreuzberg-007ec6" alt="R">
+  </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/pkgs/container/kreuzberg">
     <img src="https://img.shields.io/badge/Docker-007ec6?logo=docker&logoColor=white" alt="Docker">
-  </a>
-  <a href="https://github.com/kreuzberg-dev/kreuzberg/releases">
-    <img src="https://img.shields.io/badge/C-FFI-007ec6" alt="C">
   </a>
 
   <!-- Project Info -->
@@ -58,7 +58,7 @@
 </div>
 
 
-Extract text, tables, images, and metadata from 75+ file formats including PDF, Office documents, and images. Ruby bindings with idiomatic Ruby API and native performance.
+Extract text, tables, images, and metadata from 88+ file formats including PDF, Office documents, and images. Ruby bindings with idiomatic Ruby API and native performance.
 
 
 ## Installation
@@ -91,7 +91,7 @@ gem 'kreuzberg'
 
 - **Ruby 3.2.0 or higher** required (including Ruby 4.x)
 - Ruby 4.0+ is fully supported with no code changes required
-- Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.24+ for embeddings support
+- Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.22.x for embeddings support
 - Optional: [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for OCR functionality
 
 **Ruby 4.0 Compatibility:** Kreuzberg is fully compatible with Ruby 4.0 (released December 25, 2025) and all Ruby 4.x versions. All tests pass with 100% compatibility. The gem compiles without any breaking changes. Key Ruby 4.0 features like Ruby Box, ZJIT compiler, and Ractor improvements work seamlessly with Kreuzberg.
@@ -188,7 +188,7 @@ config = Kreuzberg::Config::Extraction.new(
 result = Kreuzberg.extract_file_sync('contract.pdf', config: config)
 
 puts "Extracted #{result.content.length} characters"
-puts "Quality score: #{result.metadata&.dig('quality_score')}"
+puts "Quality score: #{result.quality_score}"
 puts "Processing time: #{result.metadata&.dig('processing_time')}ms"
 ```
 
@@ -208,19 +208,21 @@ puts "Processing time: #{result.metadata&.dig('processing_time')}ms"
 
 ## Features
 
-### Supported File Formats (75+)
+### Supported File Formats (88+)
 
-75+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
+88+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
 
 #### Office Documents
 
 | Category | Formats | Capabilities |
 |----------|---------|--------------|
-| **Word Processing** | `.docx`, `.odt` | Full text, tables, images, metadata, styles |
-| **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.ods` | Sheet data, formulas, cell metadata, charts |
-| **Presentations** | `.pptx`, `.ppt`, `.ppsx` | Slides, speaker notes, images, metadata |
+| **Word Processing** | `.docx`, `.docm`, `.dotx`, `.dotm`, `.dot`, `.odt` | Full text, tables, images, metadata, styles |
+| **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.xltx`, `.xlt`, `.ods` | Sheet data, formulas, cell metadata, charts |
+| **Presentations** | `.pptx`, `.pptm`, `.ppsx`, `.potx`, `.potm`, `.pot`, `.ppt` | Slides, speaker notes, images, metadata |
 | **PDF** | `.pdf` | Text, tables, images, metadata, OCR support |
 | **eBooks** | `.epub`, `.fb2` | Chapters, metadata, embedded resources |
+| **Database** | `.dbf` | Table data extraction, field type support |
+| **Hangul** | `.hwp`, `.hwpx` | Korean document format, text extraction |
 
 #### Images (OCR-Enabled)
 
@@ -334,7 +336,7 @@ config = Kreuzberg::Config::Extraction.new(
 result = Kreuzberg.extract_file_sync('contract.pdf', config: config)
 
 puts "Extracted #{result.content.length} characters"
-puts "Quality score: #{result.metadata&.dig('quality_score')}"
+puts "Quality score: #{result.quality_score}"
 puts "Processing time: #{result.metadata&.dig('processing_time')}ms"
 ```
 

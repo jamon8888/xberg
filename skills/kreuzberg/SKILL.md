@@ -1,7 +1,7 @@
 ---
 name: kreuzberg
 description: >-
-  Extract text, tables, metadata, and images from 75+ document formats
+  Extract text, tables, metadata, and images from 88+ document formats
   (PDF, Office, images, HTML, email, archives, academic) using Kreuzberg.
   Use when writing code that calls Kreuzberg APIs in Python, Node.js/TypeScript,
   Rust, or CLI. Covers installation, extraction (sync/async), configuration
@@ -15,7 +15,7 @@ metadata:
 
 # Kreuzberg Document Extraction
 
-Kreuzberg is a high-performance document intelligence library with a Rust core and native bindings for Python, Node.js/TypeScript, Ruby, Go, Java, C#, PHP, and Elixir. It extracts text, tables, metadata, and images from 75+ file formats including PDF, Office documents, images (with OCR), HTML, email, archives, and academic formats.
+Kreuzberg is a high-performance document intelligence library with a Rust core and native bindings for Python, Node.js/TypeScript, Ruby, Go, Java, C#, PHP, and Elixir. It extracts text, tables, metadata, and images from 88+ file formats including PDF, Office documents, images (with OCR), HTML, email, archives, and academic formats.
 
 Use this skill when writing code that:
 - Extracts text or metadata from documents
@@ -375,7 +375,7 @@ Detailed reference files for specific topics:
 - **[Rust API Reference](references/rust-api.md)** — All functions with feature gates, structs, Cargo.toml examples
 - **[CLI Reference](references/cli-reference.md)** — All commands, flags, config precedence, exit codes
 - **[Configuration Reference](references/configuration.md)** — TOML/YAML/JSON formats, auto-discovery, env vars, full schema
-- **[Supported Formats](references/supported-formats.md)** — All 75+ formats with file extensions and MIME types
+- **[Supported Formats](references/supported-formats.md)** — All 85+ formats with file extensions and MIME types
 - **[Advanced Features](references/advanced-features.md)** — Plugins, embeddings, MCP server, API server, security limits
 - **[Other Language Bindings](references/other-bindings.md)** — Go, Ruby, Java, C#, PHP, Elixir, WASM, Docker
 

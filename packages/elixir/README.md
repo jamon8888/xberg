@@ -22,7 +22,7 @@
     <img src="https://img.shields.io/maven-central/v/dev.kreuzberg/kreuzberg?label=Java&color=007ec6" alt="Java">
   </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/releases">
-    <img src="https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=Go&color=007ec6&filter=v4.4.5" alt="Go">
+    <img src="https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=Go&color=007ec6&filter=v4.0.0" alt="Go">
   </a>
   <a href="https://www.nuget.org/packages/Kreuzberg/">
     <img src="https://img.shields.io/nuget/v/Kreuzberg?label=C%23&color=007ec6" alt="C#">
@@ -33,11 +33,11 @@
   <a href="https://rubygems.org/gems/kreuzberg">
     <img src="https://img.shields.io/gem/v/kreuzberg?label=Ruby&color=007ec6" alt="Ruby">
   </a>
+  <a href="https://kreuzberg-dev.r-universe.dev/kreuzberg">
+    <img src="https://img.shields.io/badge/R-kreuzberg-007ec6" alt="R">
+  </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/pkgs/container/kreuzberg">
     <img src="https://img.shields.io/badge/Docker-007ec6?logo=docker&logoColor=white" alt="Docker">
-  </a>
-  <a href="https://github.com/kreuzberg-dev/kreuzberg/releases">
-    <img src="https://img.shields.io/badge/C-FFI-007ec6" alt="C">
   </a>
 
   <!-- Project Info -->
@@ -58,7 +58,7 @@
 </div>
 
 
-Extract text, tables, images, and metadata from 75+ file formats including PDF, Office documents, and images. Elixir bindings with native BEAM concurrency, OTP integration, and idiomatic Elixir API.
+Extract text, tables, images, and metadata from 88+ file formats including PDF, Office documents, and images. Elixir bindings with native BEAM concurrency, OTP integration, and idiomatic Elixir API.
 
 
 ## Installation
@@ -73,7 +73,7 @@ Add to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    kreuzberg: "~> 4.4"
+    kreuzberg: "~> 4.0"
   ]
 end
 ```
@@ -90,7 +90,7 @@ mix deps.get
 ### System Requirements
 
 - **Elixir 1.12+** and **Erlang/OTP 24+** required
-- Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.24+ for embeddings support
+- Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.22.x for embeddings support
 - Optional: [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for OCR functionality
 
 
@@ -206,19 +206,21 @@ end
 
 ## Features
 
-### Supported File Formats (75+)
+### Supported File Formats (88+)
 
-75+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
+88+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
 
 #### Office Documents
 
 | Category | Formats | Capabilities |
 |----------|---------|--------------|
-| **Word Processing** | `.docx`, `.odt` | Full text, tables, images, metadata, styles |
-| **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.ods` | Sheet data, formulas, cell metadata, charts |
-| **Presentations** | `.pptx`, `.ppt`, `.ppsx` | Slides, speaker notes, images, metadata |
+| **Word Processing** | `.docx`, `.docm`, `.dotx`, `.dotm`, `.dot`, `.odt` | Full text, tables, images, metadata, styles |
+| **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.xltx`, `.xlt`, `.ods` | Sheet data, formulas, cell metadata, charts |
+| **Presentations** | `.pptx`, `.pptm`, `.ppsx`, `.potx`, `.potm`, `.pot`, `.ppt` | Slides, speaker notes, images, metadata |
 | **PDF** | `.pdf` | Text, tables, images, metadata, OCR support |
 | **eBooks** | `.epub`, `.fb2` | Chapters, metadata, embedded resources |
+| **Database** | `.dbf` | Table data extraction, field type support |
+| **Hangul** | `.hwp`, `.hwpx` | Korean document format, text extraction |
 
 #### Images (OCR-Enabled)
 

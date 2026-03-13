@@ -1,0 +1,21 @@
+{
+	"id": "office_hwp_styled",
+	"category": "office",
+	"description": "Hangul Word Processor (.hwp) styled document extraction.",
+	"document": {
+		"path": "hwp/styled_document.hwp",
+		"media_type": "application/x-hwp"
+	},
+	"extraction": {
+		"config": {}
+	},
+	"assertions": {
+		"expected_mime": "application/x-hwp",
+		"min_content_length": 10
+	},
+	"skip": {
+		"if_document_missing": true,
+		"requires_feature": ["office"],
+		"notes": "Requires the office feature."
+	}
+}

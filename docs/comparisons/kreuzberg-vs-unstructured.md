@@ -8,7 +8,7 @@ A comprehensive comparison of Kreuzberg and Unstructured.io for document intelli
 |--------|-----------|--------------|
 | **Core Language** | Rust | Python |
 | **Performance** | Rust-based native speed | Python-based |
-| **Formats Supported** | 75+ | ~30 |
+| **Formats Supported** | 88+ | ~30 |
 | **Language Bindings** | 10 (Python, TS, Ruby, PHP, Go, Java, C#, Elixir, Rust, WASM) | Python + API |
 | **Deployment** | Self-hosted (CLI, API, library) | Cloud API + self-hosted |
 | **Pricing** | Free & open-source | Free tier + paid plans |
@@ -56,7 +56,7 @@ A comprehensive comparison of Kreuzberg and Unstructured.io for document intelli
 
 ### Supported File Formats
 
-**Kreuzberg (75+ formats)**:
+**Kreuzberg (88+ formats)**:
 - Documents: PDF, DOCX, DOC, ODT, RTF, TXT, Markdown, RST, LaTeX, Typst
 - Presentations: PPTX, PPT, ODP, Keynote
 - Spreadsheets: XLSX, XLS, ODS, CSV
@@ -187,7 +187,7 @@ A comprehensive comparison of Kreuzberg and Unstructured.io for document intelli
 - ✅ You need **maximum performance** (Rust-based native speed)
 - ✅ You're building a **polyglot stack** (Python, TS, Go, etc.)
 - ✅ You require **strict data privacy** (on-prem processing)
-- ✅ You need to process **75+ file formats**
+- ✅ You need to process **88+ file formats**
 - ✅ You want **zero API fees** (fully self-hosted)
 - ✅ You need **native bindings** for your language
 - ✅ You're processing **large document volumes** (high throughput)
@@ -235,7 +235,7 @@ A comprehensive comparison of Kreuzberg and Unstructured.io for document intelli
 **Kreuzberg** excels at:
 - Performance (Rust native)
 - Polyglot support (10 language bindings)
-- Format coverage (75+ formats)
+- Format coverage (88+ formats)
 - Self-hosted deployments
 - Cost efficiency (zero API fees)
 

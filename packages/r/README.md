@@ -54,7 +54,7 @@
   </a>
 </div>
 
-Extract text, tables, images, and metadata from 75+ file formats including PDF, Office documents, and images. R bindings with idiomatic R API and native performance via extendr.
+Extract text, tables, images, and metadata from 88+ file formats including PDF, Office documents, and images. R bindings with idiomatic R API and native performance via extendr.
 
 ## Installation
 
@@ -98,7 +98,7 @@ for (r in results) {
 
 ## Features
 
-### Supported File Formats (75+)
+### Supported File Formats (88+)
 
 | Category | Formats |
 |---|---|
@@ -114,7 +114,7 @@ for (r in results) {
 
 ### Key Capabilities
 
-- **Text extraction** from 75+ formats
+- **Text extraction** from 88+ formats
 - **Table extraction** with structure preservation
 - **OCR support** via Tesseract and PaddleOCR
 - **Text chunking** for RAG pipelines

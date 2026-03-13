@@ -6,7 +6,7 @@ Command-line interface for the Kreuzberg document intelligence library.
 
 This crate provides a production-ready CLI tool for document extraction, MIME type detection, batch processing, and cache management. It exposes the core extraction capabilities of the Kreuzberg Rust library through an easy-to-use command-line interface.
 
-The CLI supports 75 file formats including PDF, DOCX, PPTX, XLSX, images, HTML, and more, with optional OCR support for scanned documents.
+The CLI supports 88+ file formats including PDF, DOCX, PPTX, XLSX, images, HTML, and more, with optional OCR support for scanned documents.
 
 ## Architecture
 

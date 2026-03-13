@@ -92,6 +92,8 @@ console_error_panic_hook = "0.1"
 ctor = "0.6"
 lazy_static = "1.5.0"
 rayon = "1.11.0"
+dbase = "0.7"
+hwpers = "0.5"
 chrono = "0.4"
 itertools = "0.14"
 

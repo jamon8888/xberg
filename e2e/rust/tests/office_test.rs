@@ -53,6 +53,41 @@ fn test_office_commonmark_basic() {
 }
 
 #[test]
+fn test_office_dbf_basic() {
+    // dBASE (.dbf) table extraction as markdown.
+
+    let document_path = resolve_document("dbf/stations.dbf");
+    if !document_path.exists() {
+        println!(
+            "Skipping office_dbf_basic: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let result = match kreuzberg::extract_file_sync(&document_path, None, &config) {
+        Err(KreuzbergError::MissingDependency(dep)) => {
+            println!("Skipping office_dbf_basic: missing dependency {dep}", dep = dep);
+            return;
+        }
+        Err(KreuzbergError::UnsupportedFormat(fmt)) => {
+            println!(
+                "Skipping office_dbf_basic: unsupported format {fmt} (requires optional tool)",
+                fmt = fmt
+            );
+            return;
+        }
+        Err(err) => panic!("Extraction failed for office_dbf_basic: {err:?}"),
+        Ok(result) => result,
+    };
+
+    assertions::assert_expected_mime(&result, &["application/x-dbf"]);
+    assertions::assert_min_content_length(&result, 10);
+    assertions::assert_content_contains_any(&result, &["|"]);
+}
+
+#[test]
 fn test_office_djot_basic() {
     // Djot markup text extraction.
 
@@ -385,6 +420,74 @@ fn test_office_fictionbook_basic() {
     };
 
     assertions::assert_expected_mime(&result, &["application/x-fictionbook+xml", "application/x-fictionbook"]);
+    assertions::assert_min_content_length(&result, 10);
+}
+
+#[test]
+fn test_office_hwp_basic() {
+    // Hangul Word Processor (.hwp) text extraction.
+
+    let document_path = resolve_document("hwp/converted_output.hwp");
+    if !document_path.exists() {
+        println!(
+            "Skipping office_hwp_basic: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let result = match kreuzberg::extract_file_sync(&document_path, None, &config) {
+        Err(KreuzbergError::MissingDependency(dep)) => {
+            println!("Skipping office_hwp_basic: missing dependency {dep}", dep = dep);
+            return;
+        }
+        Err(KreuzbergError::UnsupportedFormat(fmt)) => {
+            println!(
+                "Skipping office_hwp_basic: unsupported format {fmt} (requires optional tool)",
+                fmt = fmt
+            );
+            return;
+        }
+        Err(err) => panic!("Extraction failed for office_hwp_basic: {err:?}"),
+        Ok(result) => result,
+    };
+
+    assertions::assert_expected_mime(&result, &["application/x-hwp"]);
+    assertions::assert_min_content_length(&result, 10);
+}
+
+#[test]
+fn test_office_hwp_styled() {
+    // Hangul Word Processor (.hwp) styled document extraction.
+
+    let document_path = resolve_document("hwp/styled_document.hwp");
+    if !document_path.exists() {
+        println!(
+            "Skipping office_hwp_styled: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let result = match kreuzberg::extract_file_sync(&document_path, None, &config) {
+        Err(KreuzbergError::MissingDependency(dep)) => {
+            println!("Skipping office_hwp_styled: missing dependency {dep}", dep = dep);
+            return;
+        }
+        Err(KreuzbergError::UnsupportedFormat(fmt)) => {
+            println!(
+                "Skipping office_hwp_styled: unsupported format {fmt} (requires optional tool)",
+                fmt = fmt
+            );
+            return;
+        }
+        Err(err) => panic!("Extraction failed for office_hwp_styled: {err:?}"),
+        Ok(result) => result,
+    };
+
+    assertions::assert_expected_mime(&result, &["application/x-hwp"]);
     assertions::assert_min_content_length(&result, 10);
 }
 

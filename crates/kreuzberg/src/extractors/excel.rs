@@ -304,6 +304,7 @@ impl DocumentExtractor for ExcelExtractor {
             "application/vnd.ms-excel.addin.macroEnabled",
             "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
             "application/vnd.oasis.opendocument.spreadsheet",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
         ]
     }
 
@@ -332,7 +333,7 @@ mod tests {
     fn test_excel_extractor_supported_mime_types() {
         let extractor = ExcelExtractor::new();
         let mime_types = extractor.supported_mime_types();
-        assert_eq!(mime_types.len(), 8);
+        assert_eq!(mime_types.len(), 9);
         assert!(mime_types.contains(&"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
         assert!(mime_types.contains(&"application/vnd.ms-excel"));
     }

@@ -27,7 +27,7 @@ The Kreuzberg CLI provides command-line access to all extraction features. This 
 !!! info "Feature Availability"
 **Homebrew Installation:**
 
-    - ✅ Text extraction (PDF, Office, images, 75+ formats)
+    - ✅ Text extraction (PDF, Office, images, 88+ formats)
     - ✅ OCR with Tesseract
     - ✅ HTTP API server (`serve` command)
     - ✅ MCP protocol server (`mcp` command)

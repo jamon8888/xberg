@@ -22,7 +22,7 @@
     <img src="https://img.shields.io/maven-central/v/dev.kreuzberg/kreuzberg?label=Java&color=007ec6" alt="Java">
   </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/releases">
-    <img src="https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=Go&color=007ec6&filter=v4.4.5" alt="Go">
+    <img src="https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=Go&color=007ec6&filter=v4.0.0" alt="Go">
   </a>
   <a href="https://www.nuget.org/packages/Kreuzberg/">
     <img src="https://img.shields.io/nuget/v/Kreuzberg?label=C%23&color=007ec6" alt="C#">
@@ -32,6 +32,9 @@
   </a>
   <a href="https://rubygems.org/gems/kreuzberg">
     <img src="https://img.shields.io/gem/v/kreuzberg?label=Ruby&color=007ec6" alt="Ruby">
+  </a>
+  <a href="https://kreuzberg-dev.r-universe.dev/kreuzberg">
+    <img src="https://img.shields.io/badge/R-kreuzberg-007ec6" alt="R">
   </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/pkgs/container/kreuzberg">
     <img src="https://img.shields.io/badge/Docker-007ec6?logo=docker&logoColor=white" alt="Docker">
@@ -55,9 +58,7 @@
 </div>
 
 
-Extract text, tables, images, and metadata from 75+ file formats including PDF, Office documents, and images. WebAssembly bindings for browsers, Deno, and Cloudflare Workers with portable deployment and multi-threading support.
-
-> **Full Feature Parity** — The WASM package supports all extraction capabilities at full parity with native bindings: PDF (via PDFium), Excel/spreadsheets (via Calamine), archives (ZIP, TAR, 7z, GZIP), and OCR (via built-in Tesseract-WASM). No external dependencies required.
+Extract text, tables, images, and metadata from 88+ file formats including PDF, Office documents, and images. WebAssembly bindings for browsers, Deno, and Cloudflare Workers with portable deployment and multi-threading support.
 
 
 ## Installation
@@ -97,7 +98,7 @@ yarn add @kreuzberg/wasm
 ### System Requirements
 
 - Modern browser with WebAssembly support, or Deno 1.0+, or Cloudflare Workers
-- OCR is built-in via Tesseract-WASM (enable at runtime with `enableOcr()`)
+- Optional: [Tesseract WASM](https://github.com/naptha/tesseract.js) for OCR functionality
 
 
 
@@ -174,40 +175,6 @@ extractWithOcr().catch(console.error);
 
 
 See [Table Extraction Guide](https://kreuzberg.dev/features/table-extraction/) for detailed examples.
-
-
-#### Excel/Spreadsheet Extraction
-
-Extract structured data from Excel files directly in the browser or server-side runtimes:
-
-```ts
-import { extractBytes, initWasm } from "@kreuzberg/wasm";
-
-async function extractSpreadsheet() {
-	await initWasm();
-
-	const bytes = new Uint8Array(
-		await fetch("report.xlsx").then((r) => r.arrayBuffer()),
-	);
-
-	const result = await extractBytes(
-		bytes,
-		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-	);
-
-	console.log("Spreadsheet content:");
-	console.log(result.content);
-
-	if (result.tables && result.tables.length > 0) {
-		result.tables.forEach((table, index) => {
-			console.log(`\nSheet ${index + 1}:`);
-			console.log(table.markdown);
-		});
-	}
-}
-
-extractSpreadsheet().catch(console.error);
-```
 
 
 
@@ -301,19 +268,21 @@ extractDocuments(fileBytes, mimes)
 
 ## Features
 
-### Supported File Formats (75+)
+### Supported File Formats (88+)
 
-75+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
+88+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
 
 #### Office Documents
 
 | Category | Formats | Capabilities |
 |----------|---------|--------------|
-| **Word Processing** | `.docx`, `.odt` | Full text, tables, images, metadata, styles |
-| **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.ods` | Sheet data, formulas, cell metadata, charts |
-| **Presentations** | `.pptx`, `.ppt`, `.ppsx` | Slides, speaker notes, images, metadata |
+| **Word Processing** | `.docx`, `.docm`, `.dotx`, `.dotm`, `.dot`, `.odt` | Full text, tables, images, metadata, styles |
+| **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.xltx`, `.xlt`, `.ods` | Sheet data, formulas, cell metadata, charts |
+| **Presentations** | `.pptx`, `.pptm`, `.ppsx`, `.potx`, `.potm`, `.pot`, `.ppt` | Slides, speaker notes, images, metadata |
 | **PDF** | `.pdf` | Text, tables, images, metadata, OCR support |
 | **eBooks** | `.epub`, `.fb2` | Chapters, metadata, embedded resources |
+| **Database** | `.dbf` | Table data extraction, field type support |
+| **Hangul** | `.hwp`, `.hwpx` | Korean document format, text extraction |
 
 #### Images (OCR-Enabled)
 
@@ -354,10 +323,14 @@ extractDocuments(fileBytes, mimes)
 - **Metadata Extraction** - Retrieve document properties, creation date, author, etc.
 - **Table Extraction** - Parse tables with structure and cell content preservation
 - **Image Extraction** - Extract embedded images and render page previews
-- **OCR Support** - Built-in Tesseract-WASM for scanned documents and images
-- **Full Feature Parity** - All extraction capabilities at parity with native bindings: PDF, Excel, archives, OCR, and 75+ formats
+- **OCR Support** - Integrate multiple OCR backends for scanned documents
+
 - **Async/Await** - Non-blocking document processing with concurrent operations
+
+
 - **Plugin System** - Extensible post-processing for custom text transformation
+
+
 - **Batch Processing** - Efficiently process multiple documents in parallel
 - **Memory Efficient** - Stream large files without loading entirely into memory
 - **Language Detection** - Detect and support multiple languages in documents

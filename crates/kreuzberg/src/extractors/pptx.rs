@@ -241,6 +241,8 @@ impl DocumentExtractor for PptxExtractor {
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
             "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
+            "application/vnd.openxmlformats-officedocument.presentationml.template",
+            "application/vnd.ms-powerpoint.template.macroEnabled.12",
         ]
     }
 
@@ -265,7 +267,7 @@ mod tests {
     fn test_pptx_extractor_supported_mime_types() {
         let extractor = PptxExtractor::new();
         let mime_types = extractor.supported_mime_types();
-        assert_eq!(mime_types.len(), 3);
+        assert_eq!(mime_types.len(), 5);
         assert!(mime_types.contains(&"application/vnd.openxmlformats-officedocument.presentationml.presentation"));
     }
 }

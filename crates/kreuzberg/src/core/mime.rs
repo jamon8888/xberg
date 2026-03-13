@@ -154,7 +154,22 @@ static FORMATS: &[FormatEntry] = &[
         aliases: &[],
     },
     FormatEntry {
-        extensions: &["doc"],
+        extensions: &["docm"],
+        mime_type: "application/vnd.ms-word.document.macroEnabled.12",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["dotx"],
+        mime_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["dotm"],
+        mime_type: "application/vnd.ms-word.template.macroEnabled.12",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["doc", "dot"],
         mime_type: "application/msword",
         aliases: &[],
     },
@@ -180,7 +195,17 @@ static FORMATS: &[FormatEntry] = &[
         aliases: &[],
     },
     FormatEntry {
-        extensions: &["ppt"],
+        extensions: &["potx"],
+        mime_type: "application/vnd.openxmlformats-officedocument.presentationml.template",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["potm"],
+        mime_type: "application/vnd.ms-powerpoint.template.macroEnabled.12",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["ppt", "pot"],
         mime_type: "application/vnd.ms-powerpoint",
         aliases: &[],
     },
@@ -191,7 +216,12 @@ static FORMATS: &[FormatEntry] = &[
         aliases: &[],
     },
     FormatEntry {
-        extensions: &["xls"],
+        extensions: &["xltx"],
+        mime_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["xls", "xlt"],
         mime_type: "application/vnd.ms-excel",
         aliases: &[],
     },
@@ -218,6 +248,23 @@ static FORMATS: &[FormatEntry] = &[
     FormatEntry {
         extensions: &["ods"],
         mime_type: "application/vnd.oasis.opendocument.spreadsheet",
+        aliases: &[],
+    },
+    // ── dBASE ──────────────────────────────────────────────────────────
+    FormatEntry {
+        extensions: &["dbf"],
+        mime_type: "application/x-dbf",
+        aliases: &["application/dbase"],
+    },
+    // ── Hangul ─────────────────────────────────────────────────────────
+    FormatEntry {
+        extensions: &["hwp"],
+        mime_type: "application/x-hwp",
+        aliases: &[],
+    },
+    FormatEntry {
+        extensions: &["hwpx"],
+        mime_type: "application/haansofthwpx",
         aliases: &[],
     },
     // ── Images ──────────────────────────────────────────────────────────
