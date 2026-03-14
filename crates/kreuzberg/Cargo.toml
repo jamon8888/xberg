@@ -77,6 +77,9 @@ paddle-ocr = [
     "tokio-runtime",
     "ocr",
 ]
+# Bundle ORT binaries via the official Microsoft release (includes CoreML on macOS, CUDA on Linux).
+# When active, no system ORT library is required and ort_discovery is skipped.
+ort-bundled = ["ort/download-binaries"]
 # Layout detection via ONNX Runtime (YOLO + RT-DETR)
 layout-detection = [
     "dep:ort",
@@ -85,6 +88,7 @@ layout-detection = [
     "dep:sha2",
     "dep:image",
     "tokio-runtime",
+    "ort-bundled",
 ]
 language-detection = ["dep:whatlang"]
 chunking = ["dep:text-splitter", "dep:pulldown-cmark"]

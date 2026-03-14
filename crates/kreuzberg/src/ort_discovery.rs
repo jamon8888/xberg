@@ -8,7 +8,17 @@ use std::sync::Once;
 static ORT_INIT: Once = Once::new();
 
 /// Ensure ONNX Runtime is discoverable. Safe to call multiple times (no-op after first).
+///
+/// When the `ort-bundled` feature is enabled the ORT binaries are embedded via the
+/// official Microsoft release and no system library search is needed.
 pub fn ensure_ort_available() {
+    #[cfg(feature = "ort-bundled")]
+    {
+        tracing::debug!("ONNX Runtime is bundled; skipping system library discovery");
+        return;
+    }
+
+    #[cfg(not(feature = "ort-bundled"))]
     ORT_INIT.call_once(|| {
         if let Err(msg) = try_discover_ort() {
             tracing::warn!("ONNX Runtime not found: {msg}");

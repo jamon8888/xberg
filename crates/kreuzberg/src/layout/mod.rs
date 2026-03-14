@@ -25,6 +25,8 @@ pub use models::rtdetr::RtDetrModel;
 pub use models::yolo::{YoloModel, YoloVariant};
 pub use types::{BBox, DetectionResult, LayoutClass, LayoutDetection};
 
+use std::sync::OnceLock;
+
 use crate::core::config::layout::LayoutDetectionConfig;
 use crate::model_cache::ModelCache;
 
@@ -33,6 +35,13 @@ static CACHED_ENGINE: ModelCache<LayoutEngine> = ModelCache::new();
 
 /// Global cached SLANet table structure recognition model.
 static CACHED_SLANET: ModelCache<models::slanet::SlaNetModel> = ModelCache::new();
+
+/// Tracks whether SLANet loading has been attempted.
+///
+/// `true` means loading succeeded at least once; `false` means it failed and
+/// we should not retry (avoids repeated model-download attempts and redundant
+/// warning logs on every document).
+static SLANET_TRIED: OnceLock<bool> = OnceLock::new();
 
 /// Convert an [`LayoutDetectionConfig`] into a [`LayoutEngineConfig`].
 pub fn config_from_extraction(layout_config: &LayoutDetectionConfig) -> LayoutEngineConfig {
@@ -75,16 +84,39 @@ pub fn return_engine(engine: LayoutEngine) {
 
 /// Take the cached SLANet model, or create a new one if the cache is empty.
 ///
-/// Returns `None` if the model cannot be loaded.
+/// Returns `None` if the model cannot be loaded. Once a load attempt fails,
+/// subsequent calls return `None` immediately without retrying, avoiding
+/// repeated download attempts and redundant warning logs.
 pub fn take_or_create_slanet() -> Option<models::slanet::SlaNetModel> {
-    CACHED_SLANET
-        .take_or_create(|| {
-            crate::ort_discovery::ensure_ort_available();
-            let manager = LayoutModelManager::new(None);
-            let model_path = manager.ensure_slanet_plus_model()?;
-            models::slanet::SlaNetModel::from_file(&model_path.to_string_lossy())
-        })
-        .ok()
+    // Fast path: if we already know SLANet is unavailable, skip immediately.
+    if let Some(&false) = SLANET_TRIED.get() {
+        return None;
+    }
+
+    let result = CACHED_SLANET.take_or_create(|| {
+        crate::ort_discovery::ensure_ort_available();
+        let manager = LayoutModelManager::new(None);
+        let model_path = manager.ensure_slanet_plus_model()?;
+        models::slanet::SlaNetModel::from_file(&model_path.to_string_lossy())
+    });
+
+    match result {
+        Ok(model) => {
+            // Mark as available (no-op if already set to true).
+            SLANET_TRIED.get_or_init(|| true);
+            Some(model)
+        }
+        Err(e) => {
+            // Only log and set the flag on the first failure.
+            SLANET_TRIED.get_or_init(|| {
+                tracing::warn!(
+                    "SLANet model unavailable, table structure recognition disabled: {e}"
+                );
+                false
+            });
+            None
+        }
+    }
 }
 
 /// Return a SLANet model to the global cache for reuse.

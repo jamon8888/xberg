@@ -30,5 +30,17 @@ pub fn build_session(path: &str) -> Result<Session, LayoutError> {
     #[cfg(target_os = "linux")]
     let builder = builder.with_execution_providers([ort::ep::CUDA::default().build()])?;
 
-    Ok(builder.commit_from_file(path)?)
+    let session = builder.commit_from_file(path)?;
+
+    // Log which execution providers were requested so diagnostics are easy to
+    // read in traces.  ORT silently falls back to CPU if a requested EP is
+    // unavailable at runtime, so this reflects intent, not guarantee.
+    #[cfg(target_os = "macos")]
+    tracing::debug!("ORT session built with CoreML EP requested (CPU fallback enabled)");
+    #[cfg(target_os = "linux")]
+    tracing::debug!("ORT session built with CUDA EP requested (CPU fallback enabled)");
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    tracing::debug!("ORT session built with CPU EP");
+
+    Ok(session)
 }
