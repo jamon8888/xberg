@@ -163,3 +163,6 @@ pub use enums::{
 };
 mod api;
 pub use api::{BoundingBoxArray, TesseractAPI};
+pub mod leptonica;
+#[cfg(any(feature = "build-tesseract", feature = "build-tesseract-wasm"))]
+pub use leptonica::Pix;
