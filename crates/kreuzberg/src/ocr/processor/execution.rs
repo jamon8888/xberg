@@ -647,7 +647,33 @@ pub(super) fn perform_ocr(
     // Obtain an initialized TesseractAPI from the per-thread cache. If the cache holds a
     // matching (tessdata_path, language) entry, `clear()` is called to reset image state
     // without reloading tessdata (~100MB). Otherwise a fresh API is created and initialized.
+    //
+    // The API is wrapped in a guard that returns it to the cache on drop (both on success
+    // and on any error path), preventing the cached state from being wasted on failures.
     let api = get_or_init_api(&tessdata_path, &config.language)?;
+    struct ApiGuard {
+        api: Option<TesseractAPI>,
+        tessdata_path: String,
+        language: String,
+    }
+    impl Drop for ApiGuard {
+        fn drop(&mut self) {
+            if let Some(api) = self.api.take() {
+                return_api_to_cache(api, self.tessdata_path.clone(), self.language.clone());
+            }
+        }
+    }
+    impl std::ops::Deref for ApiGuard {
+        type Target = TesseractAPI;
+        fn deref(&self) -> &TesseractAPI {
+            self.api.as_ref().expect("ApiGuard consumed prematurely")
+        }
+    }
+    let api = ApiGuard {
+        api: Some(api),
+        tessdata_path: tessdata_path.clone(),
+        language: config.language.clone(),
+    };
 
     log_ci_debug(ci_debug_enabled, "init", || {
         format!("language={} datapath='{}'", config.language, tessdata_path)
@@ -1043,9 +1069,9 @@ pub(super) fn perform_ocr(
         }
     }
 
-    // Return the API to the thread-local cache so the next call on this thread can reuse
-    // the initialized instance without reloading tessdata.
-    return_api_to_cache(api, tessdata_path, config.language.clone());
+    // The ApiGuard's Drop impl returns the API to the thread-local cache automatically
+    // on all exit paths (success and error). Drop explicitly here for clarity.
+    drop(api);
 
     Ok(OcrExtractionResult {
         content,

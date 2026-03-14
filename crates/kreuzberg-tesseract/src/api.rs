@@ -178,7 +178,11 @@ impl TesseractAPI {
         // terminated by -1. This is safe because:
         // 1. *handle is a valid pointer from TessBaseAPICreate()
         // 2. The function is called on a properly initialized Tesseract engine
+        // 3. The returned pointer must be freed with TessDeleteIntArray after use
         let confidences_ptr = unsafe { TessBaseAPIAllWordConfidences(*handle) };
+        if confidences_ptr.is_null() {
+            return Ok(Vec::new());
+        }
         let mut confidences = Vec::new();
         let mut i = 0;
         // SAFETY: We iterate through the array using pointer arithmetic (offset()).
@@ -187,13 +191,19 @@ impl TesseractAPI {
         // 2. The array is terminated by -1 sentinel value (invariant maintained by Tesseract)
         // 3. We read each element before checking termination condition (safe dereference)
         // 4. We only read from the array (no mutable access or aliasing)
-        // 5. The array remains valid for the lifetime of this call (managed by Tesseract engine)
+        // 5. The array remains valid until TessDeleteIntArray is called (after loop)
         // 6. Integer i never overflows: we read i32 values, so at most 2^31 iterations
         // 7. Offset arithmetic is valid: array bounds guaranteed by -1 terminator
         while unsafe { *confidences_ptr.offset(i) } != -1 {
             confidences.push(unsafe { *confidences_ptr.offset(i) });
             i += 1;
         }
+        // SAFETY: TessDeleteIntArray() deallocates the array returned by TessBaseAPIAllWordConfidences():
+        // 1. confidences_ptr is non-null (checked above)
+        // 2. confidences_ptr came from the Tesseract API (trusted source)
+        // 3. All array data has been copied into `confidences` before this call
+        // 4. Called exactly once per allocation to avoid double-free
+        unsafe { TessDeleteIntArray(confidences_ptr) };
         Ok(confidences)
     }
 
@@ -1707,7 +1717,12 @@ impl TesseractAPI {
         // 4. The mutex ensures exclusive access during the call
         let boxa = unsafe { TessBaseAPIGetWords(*handle, std::ptr::null_mut()) };
         if boxa.is_null() {
-            return Err(TesseractError::NullPointerError);
+            // Null boxa means no words found — return empty result rather than an error.
+            return Ok(BoundingBoxArray {
+                boxes: Vec::new(),
+                block_ids: None,
+                para_ids: None,
+            });
         }
         // SAFETY: boxa is a valid non-null BOXA* returned by TessBaseAPIGetWords.
         // boxaGetCount reads the count field and returns an i32 — no allocation, safe to call.
@@ -1721,8 +1736,8 @@ impl TesseractAPI {
             // SAFETY: boxaGetBox with L_NOCOPY (0) returns a borrowed pointer into the BOXA
             // that is valid for the lifetime of boxa.  We immediately call boxGetGeometry to
             // extract the geometry into local variables and never store the BOX pointer beyond
-            // this iteration.  boxGetGeometry writes into the four i32 locals and returns 0 on
-            // success.  Both calls are safe because:
+            // this iteration.  boxGetGeometry returns 1 on success and 0 on failure.
+            // Both calls are safe because:
             // 1. boxa is a valid non-null BOXA* (checked above)
             // 2. i is in [0, count) — within bounds of the array
             // 3. All four *mut i32 are valid, properly aligned stack locals
@@ -1730,9 +1745,12 @@ impl TesseractAPI {
             //    and remains valid until boxaDestroy is called below
             let bx = unsafe { boxaGetBox(boxa, i, 0) };
             if !bx.is_null() {
-                unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                let ok = unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                if ok != 0 {
+                    boxes.push((x, y, w, h));
+                }
+                // Skip this box if boxGetGeometry failed (would have pushed zero-values otherwise).
             }
-            boxes.push((x, y, w, h));
         }
         // SAFETY: boxaDestroy takes a *mut *mut BOXA, sets the pointer to null, and frees the
         // array together with all contained BOX objects.  This must be called exactly once — we
@@ -1778,7 +1796,12 @@ impl TesseractAPI {
         // 4. The mutex ensures exclusive access
         let boxa = unsafe { TessBaseAPIGetRegions(*handle, std::ptr::null_mut()) };
         if boxa.is_null() {
-            return Err(TesseractError::NullPointerError);
+            // Null boxa means no regions found — return empty result rather than an error.
+            return Ok(BoundingBoxArray {
+                boxes: Vec::new(),
+                block_ids: None,
+                para_ids: None,
+            });
         }
         // SAFETY: See get_words() for full explanation — same pattern applies here.
         let count = unsafe { boxaGetCount(boxa) };
@@ -1790,9 +1813,12 @@ impl TesseractAPI {
             let mut h = 0_i32;
             let bx = unsafe { boxaGetBox(boxa, i, 0) };
             if !bx.is_null() {
-                unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                // Only push if boxGetGeometry succeeds (returns 1); skip on failure.
+                let ok = unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                if ok != 0 {
+                    boxes.push((x, y, w, h));
+                }
             }
-            boxes.push((x, y, w, h));
         }
         let mut boxa_mut = boxa;
         // SAFETY: boxaDestroy sets boxa_mut to null after freeing — called exactly once.
@@ -1853,7 +1879,12 @@ impl TesseractAPI {
             )
         };
         if boxa.is_null() {
-            return Err(TesseractError::NullPointerError);
+            // Null boxa means no textlines found — return empty result rather than an error.
+            return Ok(BoundingBoxArray {
+                boxes: Vec::new(),
+                block_ids: None,
+                para_ids: None,
+            });
         }
         // SAFETY: See get_words() — same Leptonica traversal pattern.
         let count = unsafe { boxaGetCount(boxa) };
@@ -1866,9 +1897,12 @@ impl TesseractAPI {
             let mut h = 0_i32;
             let bx = unsafe { boxaGetBox(boxa, i, 0) };
             if !bx.is_null() {
-                unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                // Only push if boxGetGeometry succeeds (returns 1); skip on failure.
+                let ok = unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                if ok != 0 {
+                    boxes.push((x, y, w, h));
+                }
             }
-            boxes.push((x, y, w, h));
         }
         // Collect blockids if Tesseract allocated the array.
         // SAFETY: blockids_ptr is either null (Tesseract chose not to populate it) or a valid
@@ -1956,7 +1990,12 @@ impl TesseractAPI {
             )
         };
         if boxa.is_null() {
-            return Err(TesseractError::NullPointerError);
+            // Null boxa means no components found — return empty result rather than an error.
+            return Ok(BoundingBoxArray {
+                boxes: Vec::new(),
+                block_ids: None,
+                para_ids: None,
+            });
         }
         // SAFETY: See get_words() — same Leptonica traversal pattern.
         let count = unsafe { boxaGetCount(boxa) };
@@ -1969,9 +2008,12 @@ impl TesseractAPI {
             let mut h = 0_i32;
             let bx = unsafe { boxaGetBox(boxa, i, 0) };
             if !bx.is_null() {
-                unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                // Only push if boxGetGeometry succeeds (returns 1); skip on failure.
+                let ok = unsafe { boxGetGeometry(bx, &mut x, &mut y, &mut w, &mut h) };
+                if ok != 0 {
+                    boxes.push((x, y, w, h));
+                }
             }
-            boxes.push((x, y, w, h));
         }
         // Collect blockids if Tesseract allocated the array.
         // SAFETY: Same pattern as get_textlines() blockids collection.

@@ -349,6 +349,9 @@ impl ResultIterator {
     /// confidence, and font attributes for each word. This is more efficient than
     /// calling individual methods in a loop since it avoids repeated mutex acquisitions.
     ///
+    /// The iterator is always reset to the beginning before traversal so that partial
+    /// prior consumption does not cause words to be missed.
+    ///
     /// # Returns
     ///
     /// Returns a `Vec<WordData>` containing data for every word, or an error if the
@@ -357,6 +360,12 @@ impl ResultIterator {
         let handle = self.handle.lock().map_err(|_| TesseractError::MutexLockError)?;
         let raw = *handle;
         let mut words = Vec::new();
+
+        // Reset to the first element before traversal.  ResultIterator inherits from
+        // PageIterator in C++, so TessPageIteratorBegin operates on the same handle.
+        // SAFETY: raw is a valid mutex-guarded ResultIterator pointer; TessPageIteratorBegin
+        // simply resets the internal position and does not allocate or free memory.
+        unsafe { TessPageIteratorBegin(raw) };
 
         loop {
             // SAFETY: raw is the mutex-guarded *mut c_void handle. All calls within this
@@ -544,6 +553,7 @@ impl Drop for ResultIterator {
 #[cfg(any(feature = "build-tesseract", feature = "build-tesseract-wasm"))]
 unsafe extern "C" {
     pub fn TessResultIteratorDelete(handle: *mut c_void);
+    pub fn TessPageIteratorBegin(handle: *mut c_void);
     pub fn TessResultIteratorGetUTF8Text(handle: *mut c_void, level: c_int) -> *mut c_char;
     pub fn TessResultIteratorConfidence(handle: *mut c_void, level: c_int) -> c_float;
     pub fn TessResultIteratorWordRecognitionLanguage(handle: *mut c_void) -> *const c_char;

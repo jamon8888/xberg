@@ -276,8 +276,11 @@ impl PageIterator {
 
         loop {
             let mut justification: c_int = 0;
-            let mut is_list_item: bool = false;
-            let mut is_crown: bool = false;
+            // SAFETY: TessPageIteratorParagraphInfo expects BOOL* (int*) for is_list_item and
+            // is_crown. Rust bool is 1 byte while C int is 4 bytes, so we use c_int temporaries
+            // to avoid undefined behaviour (stack corruption) and convert afterwards.
+            let mut is_list_item_raw: c_int = 0;
+            let mut is_crown_raw: c_int = 0;
             let mut first_line_indent: c_int = 0;
 
             let para_ok = unsafe {
@@ -287,11 +290,14 @@ impl PageIterator {
                 TessPageIteratorParagraphInfo(
                     *handle,
                     &mut justification,
-                    &mut is_list_item,
-                    &mut is_crown,
+                    &mut is_list_item_raw,
+                    &mut is_crown_raw,
                     &mut first_line_indent,
                 )
             };
+
+            let is_list_item = is_list_item_raw != 0;
+            let is_crown = is_crown_raw != 0;
 
             let mut left: c_int = 0;
             let mut top: c_int = 0;
@@ -337,16 +343,19 @@ impl PageIterator {
     /// Returns the paragraph information as a tuple if successful, otherwise returns an error.
     pub fn paragraph_info(&self) -> Result<(TessParagraphJustification, bool, bool, i32)> {
         let mut justification = 0;
-        let mut is_list_item = false;
-        let mut is_crown = false;
+        // SAFETY: TessPageIteratorParagraphInfo expects BOOL* (int*) for is_list_item and
+        // is_crown. Rust bool is 1 byte while C int is 4 bytes, so we use c_int temporaries
+        // to avoid undefined behaviour (stack corruption) and convert afterwards.
+        let mut is_list_item_raw: c_int = 0;
+        let mut is_crown_raw: c_int = 0;
         let mut first_line_indent = 0;
         let handle = self.handle.lock().map_err(|_| TesseractError::MutexLockError)?;
         let result = unsafe {
             TessPageIteratorParagraphInfo(
                 *handle,
                 &mut justification,
-                &mut is_list_item,
-                &mut is_crown,
+                &mut is_list_item_raw,
+                &mut is_crown_raw,
                 &mut first_line_indent,
             )
         };
@@ -355,8 +364,8 @@ impl PageIterator {
         } else {
             Ok((
                 TessParagraphJustification::from_int(justification),
-                is_list_item,
-                is_crown,
+                is_list_item_raw != 0,
+                is_crown_raw != 0,
                 first_line_indent,
             ))
         }
@@ -405,8 +414,8 @@ unsafe extern "C" {
     pub fn TessPageIteratorParagraphInfo(
         handle: *mut c_void,
         justification: *mut c_int,
-        is_list_item: *mut bool,
-        is_crown: *mut bool,
+        is_list_item: *mut c_int,
+        is_crown: *mut c_int,
         first_line_indent: *mut c_int,
     ) -> c_int;
 }
