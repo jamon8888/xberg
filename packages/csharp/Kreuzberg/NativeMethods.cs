@@ -226,6 +226,28 @@ internal static partial class NativeMethods
     internal static extern IntPtr BatchExtractBytesSync(IntPtr items, UIntPtr count, IntPtr configJson);
 
     /// <summary>
+    /// Batch extracts multiple files with per-file configuration overrides.
+    /// </summary>
+    /// <param name="filePaths">Pointer to array of UTF-8 file path strings.</param>
+    /// <param name="fileConfigJsons">Pointer to array of nullable config JSON strings.</param>
+    /// <param name="count">Number of file paths.</param>
+    /// <param name="configJson">Pointer to batch-level extraction config JSON string.</param>
+    /// <returns>Pointer to CBatchResult struct (must be freed with FreeBatchResult).</returns>
+    [DllImport(LibraryName, EntryPoint = "kreuzberg_batch_extract_files_with_configs_sync", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr BatchExtractFilesWithConfigsSync(IntPtr filePaths, IntPtr fileConfigJsons, UIntPtr count, IntPtr configJson);
+
+    /// <summary>
+    /// Batch extracts multiple documents from bytes with per-file configuration overrides.
+    /// </summary>
+    /// <param name="items">Pointer to array of CBytesWithMime structs.</param>
+    /// <param name="fileConfigJsons">Pointer to array of nullable config JSON strings.</param>
+    /// <param name="count">Number of items.</param>
+    /// <param name="configJson">Pointer to batch-level extraction config JSON string.</param>
+    /// <returns>Pointer to CBatchResult struct (must be freed with FreeBatchResult).</returns>
+    [DllImport(LibraryName, EntryPoint = "kreuzberg_batch_extract_bytes_with_configs_sync", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern IntPtr BatchExtractBytesWithConfigsSync(IntPtr items, IntPtr fileConfigJsons, UIntPtr count, IntPtr configJson);
+
+    /// <summary>
     /// Loads extraction configuration from a JSON file.
     /// </summary>
     /// <param name="filePath">Pointer to UTF-8 file path string.</param>

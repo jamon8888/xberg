@@ -8,3 +8,22 @@ mod types;
 
 // Re-export all configuration functions for backward compatibility
 pub use types::*;
+
+use crate::error_handling::runtime_error;
+use crate::helpers::ruby_value_to_json;
+use magnus::{Error, Value};
+
+/// Parse a Ruby value (nil or Hash) into an `Option<kreuzberg::FileExtractionConfig>`.
+///
+/// - `nil` → `None` (use batch-level defaults)
+/// - Hash  → serialize to JSON, then deserialize to `FileExtractionConfig`
+pub fn parse_file_extraction_config(value: Value) -> Result<Option<kreuzberg::FileExtractionConfig>, Error> {
+    if value.is_nil() {
+        return Ok(None);
+    }
+
+    let json_value = ruby_value_to_json(value)?;
+    let file_config: kreuzberg::FileExtractionConfig = serde_json::from_value(json_value)
+        .map_err(|e| runtime_error(format!("Invalid file extraction config: {}", e)))?;
+    Ok(Some(file_config))
+}

@@ -1500,6 +1500,28 @@ struct CBatchResult *kreuzberg_batch_extract_bytes_sync(const struct CBytesWithM
                                                         const char *config_json);
 
 /**
+ * Batch extract files with per-file configuration overrides.
+ *
+ * file_config_jsons is an array of nullable C strings (NULL = use default,
+ * non-NULL = JSON for FileExtractionConfig).
+ */
+struct CBatchResult *kreuzberg_batch_extract_files_with_configs_sync(const char *const *file_paths,
+                                                                     const char *const *file_config_jsons,
+                                                                     uintptr_t count,
+                                                                     const char *config_json);
+
+/**
+ * Batch extract bytes with per-file configuration overrides.
+ *
+ * file_config_jsons is an array of nullable C strings (NULL = use default,
+ * non-NULL = JSON for FileExtractionConfig).
+ */
+struct CBatchResult *kreuzberg_batch_extract_bytes_with_configs_sync(const struct CBytesWithMime *items,
+                                                                     const char *const *file_config_jsons,
+                                                                     uintptr_t count,
+                                                                     const char *config_json);
+
+/**
  * Parse HeadingStyle from string to discriminant.
  *
  * Valid values: "atx", "underlined", "atx_closed" | "atx-closed"

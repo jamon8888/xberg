@@ -390,3 +390,38 @@ const (
 	ResultFormatUnified      ResultFormat = "unified"
 	ResultFormatElementBased ResultFormat = "element_based"
 )
+
+// FileExtractionConfig provides per-file extraction configuration overrides for batch processing.
+// All fields are pointers for optionality — nil means "use the batch-level default."
+// Batch-level concerns (caching, concurrency, acceleration, security) are excluded.
+type FileExtractionConfig struct {
+	EnableQualityProcessing  *bool                    `json:"enable_quality_processing,omitempty"`
+	OCR                      *OCRConfig               `json:"ocr,omitempty"`
+	ForceOCR                 *bool                    `json:"force_ocr,omitempty"`
+	Chunking                 *ChunkingConfig          `json:"chunking,omitempty"`
+	Images                   *ImageExtractionConfig   `json:"images,omitempty"`
+	PdfOptions               *PdfConfig               `json:"pdf_options,omitempty"`
+	TokenReduction           *TokenReductionConfig    `json:"token_reduction,omitempty"`
+	LanguageDetection        *LanguageDetectionConfig `json:"language_detection,omitempty"`
+	Pages                    *PageConfig              `json:"pages,omitempty"`
+	Keywords                 *KeywordConfig           `json:"keywords,omitempty"`
+	Postprocessor            *PostProcessorConfig     `json:"postprocessor,omitempty"`
+	HTMLOptions              *HTMLConversionOptions   `json:"html_options,omitempty"`
+	LayoutDetection          *LayoutDetectionConfig   `json:"layout,omitempty"`
+	IncludeDocumentStructure *bool                    `json:"include_document_structure,omitempty"`
+	OutputFormat             string                   `json:"output_format,omitempty"`
+	ResultFormat             string                   `json:"result_format,omitempty"`
+}
+
+// FileItem represents a file path paired with an optional per-file extraction config override.
+type FileItem struct {
+	Path   string
+	Config *FileExtractionConfig
+}
+
+// BytesItem represents in-memory document data with MIME type and optional per-file config override.
+type BytesItem struct {
+	Data     []byte
+	MimeType string
+	Config   *FileExtractionConfig
+}

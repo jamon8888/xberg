@@ -7,7 +7,7 @@
 use crate::errors::convert_error;
 use crate::types::{parse_config, result_to_js_value, results_to_js_value};
 use js_sys::Uint8Array;
-use kreuzberg::{batch_extract_bytes_sync, extract_bytes, extract_bytes_sync};
+use kreuzberg::{batch_extract_bytes_sync, extract_bytes, extract_bytes_sync, utils::camel_to_snake};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{File, FileReader};
@@ -322,6 +322,124 @@ pub fn batch_extract_files_wasm(files: Vec<File>, config: Option<JsValue>) -> js
 
         results_to_js_value(&results)
     })
+}
+
+/// Batch extract from multiple byte arrays with per-item configs (synchronous).
+///
+/// Processes multiple document byte arrays where each document can have its own
+/// extraction configuration overrides.
+///
+/// # JavaScript Parameters
+///
+/// * `dataList: Uint8Array[]` - Array of document bytes
+/// * `mimeTypes: string[]` - Array of MIME types (must match dataList length)
+/// * `fileConfigs: (object | null)[]` - Array of per-file config overrides (must match dataList length)
+/// * `config?: object` - Optional batch-level extraction configuration
+///
+/// # Returns
+///
+/// `object[]` - Array of ExtractionResults in the same order as inputs
+///
+/// # Throws
+///
+/// Throws if array lengths don't match.
+#[wasm_bindgen(js_name = batchExtractBytesWithConfigsSync)]
+pub fn batch_extract_bytes_with_configs_sync_wasm(
+    data_list: Vec<Uint8Array>,
+    mime_types: Vec<String>,
+    file_configs: Vec<JsValue>,
+    config: Option<JsValue>,
+) -> Result<JsValue, JsValue> {
+    if data_list.len() != mime_types.len() || data_list.len() != file_configs.len() {
+        return Err(JsValue::from_str(&format!(
+            "data_list length ({}), mime_types length ({}), and file_configs length ({}) must all match",
+            data_list.len(),
+            mime_types.len(),
+            file_configs.len()
+        )));
+    }
+
+    let extraction_config = parse_config(config)?;
+
+    let items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> = data_list
+        .into_iter()
+        .zip(mime_types)
+        .zip(file_configs)
+        .map(|((data, mime), fc_js)| {
+            let fc = parse_file_config(fc_js)?;
+            Ok((data.to_vec(), mime, fc))
+        })
+        .collect::<Result<Vec<_>, JsValue>>()?;
+
+    let results = kreuzberg::batch_extract_bytes_with_configs_sync(items, &extraction_config).map_err(convert_error)?;
+
+    results_to_js_value(&results)
+}
+
+/// Batch extract from multiple byte arrays with per-item configs (asynchronous).
+///
+/// Asynchronously processes multiple document byte arrays where each document
+/// can have its own extraction configuration overrides.
+///
+/// # JavaScript Parameters
+///
+/// * `dataList: Uint8Array[]` - Array of document bytes
+/// * `mimeTypes: string[]` - Array of MIME types (must match dataList length)
+/// * `fileConfigs: (object | null)[]` - Array of per-file config overrides (must match dataList length)
+/// * `config?: object` - Optional batch-level extraction configuration
+///
+/// # Returns
+///
+/// `Promise<object[]>` - Promise resolving to array of ExtractionResults
+#[wasm_bindgen(js_name = batchExtractBytesWithConfigs)]
+pub fn batch_extract_bytes_with_configs_wasm(
+    data_list: Vec<Uint8Array>,
+    mime_types: Vec<String>,
+    file_configs: Vec<JsValue>,
+    config: Option<JsValue>,
+) -> js_sys::Promise {
+    wasm_bindgen_futures::future_to_promise(async move {
+        if data_list.len() != mime_types.len() || data_list.len() != file_configs.len() {
+            return Err(JsValue::from_str(&format!(
+                "data_list length ({}), mime_types length ({}), and file_configs length ({}) must all match",
+                data_list.len(),
+                mime_types.len(),
+                file_configs.len()
+            )));
+        }
+
+        let extraction_config = parse_config(config)?;
+
+        let items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> = data_list
+            .into_iter()
+            .zip(mime_types)
+            .zip(file_configs)
+            .map(|((data, mime), fc_js)| {
+                let fc = parse_file_config(fc_js)?;
+                Ok((data.to_vec(), mime, fc))
+            })
+            .collect::<Result<Vec<_>, JsValue>>()?;
+
+        // Fall back to sync since WASM doesn't have real async batch support
+        let results =
+            kreuzberg::batch_extract_bytes_with_configs_sync(items, &extraction_config).map_err(convert_error)?;
+
+        results_to_js_value(&results)
+    })
+}
+
+/// Parse a JsValue (null/undefined or object) into an `Option<FileExtractionConfig>`.
+fn parse_file_config(value: JsValue) -> Result<Option<kreuzberg::FileExtractionConfig>, JsValue> {
+    if value.is_null() || value.is_undefined() {
+        return Ok(None);
+    }
+
+    let json_value: serde_json::Value = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse file config: {e}")))?;
+    let snake_value = camel_to_snake(json_value);
+    let fc: kreuzberg::FileExtractionConfig = serde_json::from_value(snake_value)
+        .map_err(|e| JsValue::from_str(&format!("Failed to parse file config: {e}")))?;
+    Ok(Some(fc))
 }
 
 /// Extract content from a file (synchronous) - NOT AVAILABLE IN WASM.

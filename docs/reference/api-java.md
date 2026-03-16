@@ -233,6 +233,67 @@ public static CompletableFuture<List<ExtractionResult>> batchExtractFilesAsync(
 
 ---
 
+### batchExtractFilesWithConfigs() <span class="version-badge">v4.5.0</span>
+
+Extract multiple files in parallel with per-file configuration overrides (synchronous).
+
+**Signature:**
+
+```java title="Java"
+public static List<ExtractionResult> batchExtractFilesWithConfigs(
+    List<FileWithConfig> items,
+    ExtractionConfig config
+) throws KreuzbergException
+```
+
+**Parameters:**
+
+- `items` (List<FileWithConfig>): List of file path + per-file config pairs. `null` config uses batch defaults.
+- `config` (ExtractionConfig): Batch-level extraction configuration
+
+---
+
+### batchExtractBytesWithConfigs() <span class="version-badge">v4.5.0</span>
+
+Extract multiple byte arrays in parallel with per-file configuration overrides (synchronous).
+
+**Signature:**
+
+```java title="Java"
+public static List<ExtractionResult> batchExtractBytesWithConfigs(
+    List<BytesWithMimeAndConfig> items,
+    ExtractionConfig config
+) throws KreuzbergException
+```
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are `Optional<T>` — empty means "use the batch-level default."
+
+```java title="FileExtractionConfig.java"
+public record FileExtractionConfig(
+    Optional<Boolean> enableQualityProcessing,
+    Optional<OcrConfig> ocr,
+    Optional<Boolean> forceOcr,
+    Optional<ChunkingConfig> chunking,
+    Optional<ImageExtractionConfig> images,
+    Optional<PdfConfig> pdfOptions,
+    Optional<TokenReductionConfig> tokenReduction,
+    Optional<LanguageDetectionConfig> languageDetection,
+    Optional<PageConfig> pages,
+    Optional<PostProcessorConfig> postprocessor,
+    Optional<String> outputFormat,
+    Optional<String> resultFormat,
+    Optional<Boolean> includeDocumentStructure
+) {}
+```
+
+Batch-level fields (`maxConcurrentExtractions`, `useCache`, `acceleration`, `securityLimits`) cannot be overridden per file. See [Configuration Reference](configuration.md#fileextractionconfig) for details.
+
+---
+
 ### clearDocumentExtractors()
 
 Remove all registered custom document extractors.

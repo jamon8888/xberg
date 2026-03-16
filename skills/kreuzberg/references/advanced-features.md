@@ -264,6 +264,43 @@ Implement custom OCR engines by registering an OCR backend. This allows integrat
     const result = await extractFile("scanned.pdf", null, config);
     ```
 
+## Per-File Configuration in Batch Operations
+
+Use `FileExtractionConfig` to override extraction settings for individual files within a batch. This is useful for mixed-format batches where different documents need different OCR, output, or processing settings.
+
+=== "Python"
+
+    ```python
+    from kreuzberg import (
+        batch_extract_files_with_configs_sync,
+        ExtractionConfig, FileExtractionConfig, OcrConfig,
+    )
+
+    config = ExtractionConfig(output_format="markdown")
+    items = [
+        ("report.pdf", None),  # use batch defaults
+        ("scan.tiff", FileExtractionConfig(
+            force_ocr=True,
+            ocr=OcrConfig(backend="tesseract", language="deu"),
+        )),
+    ]
+    results = batch_extract_files_with_configs_sync(items, config)
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { batchExtractFilesWithConfigsSync } from '@kreuzberg/node';
+
+    const results = batchExtractFilesWithConfigsSync(
+      ['report.pdf', 'scan.tiff'],
+      [null, { forceOcr: true, ocr: { backend: 'tesseract', language: 'deu' } }],
+      { outputFormat: 'markdown' },
+    );
+    ```
+
+All `ExtractionConfig` fields except batch-level concerns (`max_concurrent_extractions`, `use_cache`, `acceleration`, `security_limits`) can be overridden. `None`/`null` fields inherit from the batch default.
+
 ## Embeddings
 
 Generate vector embeddings for text chunks using ONNX-based models. Embeddings enable semantic search, clustering, and similarity operations on extracted content.

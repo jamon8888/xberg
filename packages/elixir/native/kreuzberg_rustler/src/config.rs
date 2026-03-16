@@ -222,6 +222,26 @@ pub fn parse_extraction_config(_env: Env, options: Term) -> Result<kreuzberg::co
     Ok(config)
 }
 
+/// Parse an Elixir term (nil or map) into an `Option<kreuzberg::FileExtractionConfig>`.
+///
+/// - `nil` → `None` (use batch-level defaults)
+/// - map  → convert to JSON via `term_to_json`, then deserialize to `FileExtractionConfig`
+pub fn parse_file_extraction_config(_env: Env, term: Term) -> Result<Option<kreuzberg::FileExtractionConfig>, String> {
+    // Handle nil case
+    if let Ok(atom_str) = term.atom_to_string()
+        && atom_str == "nil"
+    {
+        return Ok(None);
+    }
+
+    let json_value =
+        term_to_json(term).map_err(|e| format!("Invalid file extraction config: failed to parse - {}", e))?;
+
+    let file_config: kreuzberg::FileExtractionConfig =
+        serde_json::from_value(json_value).map_err(|e| format!("Invalid file extraction config: {}", e))?;
+    Ok(Some(file_config))
+}
+
 /// Validate an ExtractionConfig for internal consistency
 ///
 /// Ensures that:

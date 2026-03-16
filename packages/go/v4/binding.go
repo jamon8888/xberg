@@ -19,6 +19,8 @@ CExtractionResult *kreuzberg_extract_bytes_sync(const uint8_t *data, uintptr_t d
 CExtractionResult *kreuzberg_extract_bytes_sync_with_config(const uint8_t *data, uintptr_t data_len, const char *mime_type, const char *config_json);
 CBatchResult *kreuzberg_batch_extract_files_sync(const char * const *paths, uintptr_t count, const char *config_json);
 CBatchResult *kreuzberg_batch_extract_bytes_sync(const CBytesWithMime *items, uintptr_t count, const char *config_json);
+CBatchResult *kreuzberg_batch_extract_files_with_configs_sync(const char * const *file_paths, const char * const *file_config_jsons, uintptr_t count, const char *config_json);
+CBatchResult *kreuzberg_batch_extract_bytes_with_configs_sync(const CBytesWithMime *items, const char * const *file_config_jsons, uintptr_t count, const char *config_json);
 char *kreuzberg_detect_mime_type_from_bytes(const uint8_t *data, uintptr_t data_len);
 char *kreuzberg_detect_mime_type_from_path(const char *path);
 char *kreuzberg_get_extensions_for_mime(const char *mime_type);
@@ -275,6 +277,166 @@ func BatchExtractBytesSync(items []BytesWithMime, config *ExtractionConfig) ([]*
 	defer ffiMutex.Unlock()
 
 	batch := C.kreuzberg_batch_extract_bytes_sync((*C.CBytesWithMime)(unsafe.Pointer(&cItems[0])), C.uintptr_t(len(items)), cfgPtr)
+	if batch == nil {
+		return nil, lastError()
+	}
+	defer C.kreuzberg_free_batch_result(batch)
+
+	return convertCBatchResult(batch)
+}
+
+// BatchExtractFilesWithConfigs extracts multiple files with per-file configuration overrides.
+// Each FileItem pairs a path with an optional FileExtractionConfig that overrides the batch-level config.
+func BatchExtractFilesWithConfigs(items []FileItem, config *ExtractionConfig) ([]*ExtractionResult, error) {
+	if len(items) == 0 {
+		return []*ExtractionResult{}, nil
+	}
+
+	// Validate chunking parameters if provided in config
+	if config != nil && config.Chunking != nil {
+		if err := validateChunkingConfig(config.Chunking); err != nil {
+			return nil, err
+		}
+	}
+
+	cPaths := make([]*C.char, len(items))
+	cFileConfigs := make([]*C.char, len(items))
+	var fileConfigCleanups []func()
+
+	for i, item := range items {
+		if item.Path == "" {
+			return nil, newValidationErrorWithContext(fmt.Sprintf("path at index %d is empty", i), nil, ErrorCodeValidation, nil)
+		}
+		cPaths[i] = C.CString(item.Path)
+
+		if item.Config != nil {
+			data, err := json.Marshal(item.Config)
+			if err != nil {
+				return nil, newSerializationErrorWithContext(fmt.Sprintf("failed to encode file config at index %d", i), err, ErrorCodeValidation, nil)
+			}
+			cStr := C.CString(string(data))
+			cFileConfigs[i] = cStr
+			fileConfigCleanups = append(fileConfigCleanups, func() {
+				C.free(unsafe.Pointer(cStr))
+			})
+		}
+		// nil Config leaves cFileConfigs[i] as nil (NULL)
+	}
+	defer func() {
+		for _, ptr := range cPaths {
+			C.free(unsafe.Pointer(ptr))
+		}
+		for _, cleanup := range fileConfigCleanups {
+			cleanup()
+		}
+	}()
+
+	cfgPtr, cfgCleanup, err := newConfigJSON(config)
+	if err != nil {
+		return nil, err
+	}
+	if cfgCleanup != nil {
+		defer cfgCleanup()
+	}
+
+	// Serialize FFI calls to prevent concurrent PDFium access
+	ffiMutex.Lock()
+	defer ffiMutex.Unlock()
+
+	batch := C.kreuzberg_batch_extract_files_with_configs_sync(
+		(**C.char)(unsafe.Pointer(&cPaths[0])),
+		(**C.char)(unsafe.Pointer(&cFileConfigs[0])),
+		C.uintptr_t(len(items)),
+		cfgPtr,
+	)
+	if batch == nil {
+		return nil, lastError()
+	}
+	defer C.kreuzberg_free_batch_result(batch)
+
+	return convertCBatchResult(batch)
+}
+
+// BatchExtractBytesWithConfigs processes multiple in-memory documents with per-file configuration overrides.
+// Each BytesItem pairs document data and MIME type with an optional FileExtractionConfig.
+func BatchExtractBytesWithConfigs(items []BytesItem, config *ExtractionConfig) ([]*ExtractionResult, error) {
+	if len(items) == 0 {
+		return []*ExtractionResult{}, nil
+	}
+
+	// Validate chunking parameters if provided in config
+	if config != nil && config.Chunking != nil {
+		if err := validateChunkingConfig(config.Chunking); err != nil {
+			return nil, err
+		}
+	}
+
+	cItems := make([]C.CBytesWithMime, len(items))
+	cBuffers := make([]unsafe.Pointer, len(items))
+	cFileConfigs := make([]*C.char, len(items))
+	var fileConfigCleanups []func()
+
+	for i, item := range items {
+		if len(item.Data) == 0 {
+			return nil, newValidationErrorWithContext(fmt.Sprintf("data at index %d is empty", i), nil, ErrorCodeValidation, nil)
+		}
+		if item.MimeType == "" {
+			return nil, newValidationErrorWithContext(fmt.Sprintf("mimeType at index %d is empty", i), nil, ErrorCodeValidation, nil)
+		}
+		buf := C.CBytes(item.Data)
+		cBuffers[i] = buf
+		mime := C.CString(item.MimeType)
+
+		cItems[i] = C.CBytesWithMime{
+			data:      (*C.uint8_t)(buf),
+			data_len:  C.uintptr_t(len(item.Data)),
+			mime_type: mime,
+		}
+
+		if item.Config != nil {
+			data, err := json.Marshal(item.Config)
+			if err != nil {
+				return nil, newSerializationErrorWithContext(fmt.Sprintf("failed to encode file config at index %d", i), err, ErrorCodeValidation, nil)
+			}
+			cStr := C.CString(string(data))
+			cFileConfigs[i] = cStr
+			fileConfigCleanups = append(fileConfigCleanups, func() {
+				C.free(unsafe.Pointer(cStr))
+			})
+		}
+	}
+	defer func() {
+		for i := range cItems {
+			if cItems[i].mime_type != nil {
+				C.free(unsafe.Pointer(cItems[i].mime_type))
+			}
+		}
+		for _, buf := range cBuffers {
+			C.free(buf)
+		}
+		for _, cleanup := range fileConfigCleanups {
+			cleanup()
+		}
+	}()
+
+	cfgPtr, cfgCleanup, err := newConfigJSON(config)
+	if err != nil {
+		return nil, err
+	}
+	if cfgCleanup != nil {
+		defer cfgCleanup()
+	}
+
+	// Serialize FFI calls to prevent concurrent PDFium access
+	ffiMutex.Lock()
+	defer ffiMutex.Unlock()
+
+	batch := C.kreuzberg_batch_extract_bytes_with_configs_sync(
+		(*C.CBytesWithMime)(unsafe.Pointer(&cItems[0])),
+		(**C.char)(unsafe.Pointer(&cFileConfigs[0])),
+		C.uintptr_t(len(items)),
+		cfgPtr,
+	)
 	if batch == nil {
 		return nil, lastError()
 	}

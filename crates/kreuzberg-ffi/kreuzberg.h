@@ -1595,6 +1595,56 @@ struct CBatchResult *kreuzberg_batch_extract_bytes_sync(const struct CBytesWithM
                                                         const char *config_json);
 
 /**
+ * Batch extract text and metadata from multiple files with per-file config overrides (synchronous).
+ *
+ * # Safety
+ *
+ * - `file_paths` must be a valid pointer to an array of null-terminated C strings
+ * - `file_config_jsons` must be a valid pointer to an array of `count` nullable C strings
+ *   (null entries use the base config, non-null entries are parsed as JSON `FileExtractionConfig`)
+ * - `count` must be the number of items in both arrays
+ * - `config_json` must be a valid null-terminated C string containing JSON, or NULL for default config
+ * - The returned pointer must be freed with `kreuzberg_free_batch_result`
+ * - Returns NULL on error (check `kreuzberg_last_error` for details)
+ *
+ * # Critical Memory Management
+ *
+ * This function shares the same critical memory management pattern as
+ * `kreuzberg_batch_extract_files_sync`. See that function's documentation
+ * for details on the Box/Vec/slice allocation pattern.
+ */
+KREUZBERG_EXPORT
+struct CBatchResult *kreuzberg_batch_extract_files_with_configs_sync(const char *const *file_paths,
+                                                                     const char *const *file_config_jsons,
+                                                                     uintptr_t count,
+                                                                     const char *config_json);
+
+/**
+ * Batch extract text and metadata from multiple byte arrays with per-file config overrides (synchronous).
+ *
+ * # Safety
+ *
+ * - `items` must be a valid pointer to an array of CBytesWithMime structures
+ * - `file_config_jsons` must be a valid pointer to an array of `count` nullable C strings
+ *   (null entries use the base config, non-null entries are parsed as JSON `FileExtractionConfig`)
+ * - `count` must be the number of items in both arrays
+ * - `config_json` must be a valid null-terminated C string containing JSON, or NULL for default config
+ * - The returned pointer must be freed with `kreuzberg_free_batch_result`
+ * - Returns NULL on error (check `kreuzberg_last_error` for details)
+ *
+ * # Critical Memory Management
+ *
+ * This function shares the same critical memory management pattern as
+ * `kreuzberg_batch_extract_files_sync`. See that function's documentation
+ * for details on the Box/Vec/slice allocation pattern.
+ */
+KREUZBERG_EXPORT
+struct CBatchResult *kreuzberg_batch_extract_bytes_with_configs_sync(const struct CBytesWithMime *items,
+                                                                     const char *const *file_config_jsons,
+                                                                     uintptr_t count,
+                                                                     const char *config_json);
+
+/**
  * Parse HeadingStyle from string to discriminant.
  *
  * Valid values: "atx", "underlined", "atx_closed" | "atx-closed"

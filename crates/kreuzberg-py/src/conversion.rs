@@ -217,3 +217,20 @@ impl From<kreuzberg::AccelerationConfig> for AccelerationConfig {
         Self { inner: config }
     }
 }
+
+/// Convert FileExtractionConfig to its inner Rust type
+impl From<FileExtractionConfig> for kreuzberg::FileExtractionConfig {
+    fn from(config: FileExtractionConfig) -> Self {
+        config.inner
+    }
+}
+
+/// Convert Rust FileExtractionConfig to Python wrapper
+impl From<kreuzberg::FileExtractionConfig> for FileExtractionConfig {
+    fn from(config: kreuzberg::FileExtractionConfig) -> Self {
+        Self {
+            inner: config,
+            html_options_dict: None,
+        }
+    }
+}

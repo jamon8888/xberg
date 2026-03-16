@@ -2995,6 +2995,124 @@ public sealed class PageConfig
 }
 
 /// <summary>
+/// Per-file extraction configuration overrides for batch processing.
+/// All fields are nullable — null means "use the batch-level default."
+/// Batch-level concerns (caching, concurrency, acceleration, security) are excluded.
+/// </summary>
+public sealed class FileExtractionConfig
+{
+    /// <summary>Override quality processing for this file.</summary>
+    [JsonPropertyName("enable_quality_processing")]
+    public bool? EnableQualityProcessing { get; init; }
+
+    /// <summary>Override OCR configuration for this file.</summary>
+    [JsonPropertyName("ocr")]
+    public OcrConfig? Ocr { get; init; }
+
+    /// <summary>Override force OCR for this file.</summary>
+    [JsonPropertyName("force_ocr")]
+    public bool? ForceOcr { get; init; }
+
+    /// <summary>Override chunking configuration for this file.</summary>
+    [JsonPropertyName("chunking")]
+    public ChunkingConfig? Chunking { get; init; }
+
+    /// <summary>Override image extraction configuration for this file.</summary>
+    [JsonPropertyName("images")]
+    public ImageExtractionConfig? Images { get; init; }
+
+    /// <summary>Override PDF options for this file.</summary>
+    [JsonPropertyName("pdf_options")]
+    public PdfConfig? PdfOptions { get; init; }
+
+    /// <summary>Override token reduction for this file.</summary>
+    [JsonPropertyName("token_reduction")]
+    public TokenReductionConfig? TokenReduction { get; init; }
+
+    /// <summary>Override language detection for this file.</summary>
+    [JsonPropertyName("language_detection")]
+    public LanguageDetectionConfig? LanguageDetection { get; init; }
+
+    /// <summary>Override page extraction for this file.</summary>
+    [JsonPropertyName("pages")]
+    public PageConfig? Pages { get; init; }
+
+    /// <summary>Override keyword extraction for this file.</summary>
+    [JsonPropertyName("keywords")]
+    public KeywordConfig? Keywords { get; init; }
+
+    /// <summary>Override post-processor for this file.</summary>
+    [JsonPropertyName("postprocessor")]
+    public PostProcessorConfig? Postprocessor { get; init; }
+
+    /// <summary>Override HTML conversion options for this file.</summary>
+    [JsonPropertyName("html_options")]
+    public HtmlConversionOptions? HtmlOptions { get; init; }
+
+    /// <summary>Override layout detection for this file.</summary>
+    [JsonPropertyName("layout")]
+    public LayoutDetectionConfig? Layout { get; init; }
+
+    /// <summary>Override document structure output for this file.</summary>
+    [JsonPropertyName("include_document_structure")]
+    public bool? IncludeDocumentStructure { get; init; }
+
+    /// <summary>Override content output format for this file.</summary>
+    [JsonPropertyName("output_format")]
+    public string? OutputFormat { get; init; }
+
+    /// <summary>Override result format for this file.</summary>
+    [JsonPropertyName("result_format")]
+    public string? ResultFormat { get; init; }
+}
+
+/// <summary>
+/// A file path paired with an optional per-file extraction config override.
+/// </summary>
+public sealed class FileItemWithConfig
+{
+    /// <summary>The file path to extract.</summary>
+    public string Path { get; }
+
+    /// <summary>Optional per-file config overrides (null = use batch default).</summary>
+    public FileExtractionConfig? Config { get; }
+
+    /// <summary>
+    /// Initializes a new instance with a file path and optional config override.
+    /// </summary>
+    public FileItemWithConfig(string path, FileExtractionConfig? config = null)
+    {
+        Path = path ?? throw new ArgumentNullException(nameof(path));
+        Config = config;
+    }
+}
+
+/// <summary>
+/// In-memory document data with MIME type and optional per-file config override.
+/// </summary>
+public sealed class BytesItemWithConfig
+{
+    /// <summary>The document bytes.</summary>
+    public byte[] Data { get; }
+
+    /// <summary>The MIME type of the document.</summary>
+    public string MimeType { get; }
+
+    /// <summary>Optional per-file config overrides (null = use batch default).</summary>
+    public FileExtractionConfig? Config { get; }
+
+    /// <summary>
+    /// Initializes a new instance with document data, MIME type, and optional config override.
+    /// </summary>
+    public BytesItemWithConfig(byte[] data, string mimeType, FileExtractionConfig? config = null)
+    {
+        Data = data ?? throw new ArgumentNullException(nameof(data));
+        MimeType = mimeType ?? throw new ArgumentNullException(nameof(mimeType));
+        Config = config;
+    }
+}
+
+/// <summary>
 /// Represents a document as bytes with its MIME type, used for batch extraction from in-memory data.
 /// </summary>
 public sealed class BytesWithMime

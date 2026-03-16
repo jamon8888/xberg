@@ -180,6 +180,52 @@ def batch_extract_bytes_sync(
 
 Extract content from multiple byte arrays in parallel (synchronous).
 
+### Per-File Config Batch Functions
+
+```python
+def batch_extract_files_with_configs_sync(
+    items: list[tuple[str | Path, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+Extract multiple files with per-file configuration overrides (synchronous). Each item is a `(path, per_file_config)` tuple. `None` config uses batch defaults.
+
+```python
+async def batch_extract_files_with_configs(
+    items: list[tuple[str | Path, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+Async variant.
+
+```python
+def batch_extract_bytes_with_configs_sync(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+Extract multiple byte arrays with per-file overrides (synchronous). Each item is `(data, mime_type, per_file_config)`.
+
+```python
+async def batch_extract_bytes_with_configs(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+Async variant.
+
 ## Configuration Classes
 
 ### ExtractionConfig
@@ -228,6 +274,21 @@ config = ExtractionConfig(
     enable_quality_processing=True,
     output_format="markdown",
     result_format="unified"
+)
+```
+
+### FileExtractionConfig
+
+Per-file extraction overrides for batch operations. All fields optional (`None` = use batch default).
+
+**Key fields:** `enable_quality_processing`, `ocr`, `force_ocr`, `chunking`, `images`, `pdf_options`, `token_reduction`, `language_detection`, `pages`, `keywords`, `postprocessor`, `html_options`, `result_format`, `output_format`, `include_document_structure`, `layout`.
+
+Excluded (batch-level only): `max_concurrent_extractions`, `use_cache`, `acceleration`, `security_limits`.
+
+```python
+per_file = FileExtractionConfig(
+    force_ocr=True,
+    ocr=OcrConfig(backend="tesseract", language="deu"),
 )
 ```
 

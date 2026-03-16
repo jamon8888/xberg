@@ -7,7 +7,7 @@ use ext_php_rs::binary_slice::BinarySlice;
 use ext_php_rs::prelude::*;
 use std::borrow::Cow;
 
-use crate::config::parse_config_from_json;
+use crate::config::{parse_config_from_json, parse_file_config_from_json};
 use crate::error::to_php_exception;
 use crate::types::ExtractionResult;
 
@@ -331,6 +331,149 @@ pub fn kreuzberg_batch_extract_bytes(
         .collect()
 }
 
+/// Batch extract content from multiple files with per-file config overrides.
+///
+/// # Parameters
+///
+/// - `paths` (array): Array of file paths (strings)
+/// - `file_configs_json` (array): Array of JSON-encoded per-file configs (string|null per element)
+/// - `config_json` (string|null): JSON-encoded base extraction configuration (uses defaults if null)
+///
+/// # Returns
+///
+/// Array of ExtractionResult objects (one per file)
+///
+/// # Throws
+///
+/// - ValidationException: Invalid configuration or list length mismatch
+/// - ParsingException: Document parsing failed
+/// - Exception: File access errors or runtime errors
+///
+/// # Example
+///
+/// ```php
+/// $paths = ["doc1.pdf", "doc2.docx", "doc3.txt"];
+/// $file_configs = [
+///     '{"force_ocr": true}',  // override for doc1
+///     null,                    // use defaults for doc2
+///     null,                    // use defaults for doc3
+/// ];
+/// $results = kreuzberg_batch_extract_files_with_configs($paths, $file_configs);
+/// ```
+#[php_function]
+pub fn kreuzberg_batch_extract_files_with_configs(
+    paths: Vec<String>,
+    file_configs_json: Vec<Option<String>>,
+    config_json: Option<String>,
+) -> PhpResult<Vec<ExtractionResult>> {
+    if paths.len() != file_configs_json.len() {
+        return Err(format!(
+            "paths and file_configs_json must have the same length (got {} and {})",
+            paths.len(),
+            file_configs_json.len()
+        )
+        .into());
+    }
+
+    let rust_config = match &config_json {
+        Some(json) => parse_config_from_json(json).map_err(PhpException::from)?,
+        None => Default::default(),
+    };
+
+    let extract_tables = should_extract_tables(&config_json)?;
+
+    let items: Vec<(std::path::PathBuf, Option<kreuzberg::FileExtractionConfig>)> = paths
+        .into_iter()
+        .zip(file_configs_json)
+        .map(|(path, fc_json)| {
+            let fc = parse_file_config_from_json(&fc_json).map_err(PhpException::from)?;
+            Ok((std::path::PathBuf::from(path), fc))
+        })
+        .collect::<PhpResult<Vec<_>>>()?;
+
+    let results = kreuzberg::batch_extract_file_with_configs_sync(items, &rust_config).map_err(to_php_exception)?;
+
+    results
+        .into_iter()
+        .map(|r| ExtractionResult::from_rust_with_config(r, extract_tables))
+        .collect()
+}
+
+/// Batch extract content from multiple byte arrays with per-file config overrides.
+///
+/// # Parameters
+///
+/// - `data_list` (array): Array of binary data (bytes)
+/// - `mime_types` (array): Array of MIME types (one per data element)
+/// - `file_configs_json` (array): Array of JSON-encoded per-file configs (string|null per element)
+/// - `config_json` (string|null): JSON-encoded base extraction configuration (uses defaults if null)
+///
+/// # Returns
+///
+/// Array of ExtractionResult objects (one per data element)
+///
+/// # Throws
+///
+/// - ValidationException: Invalid configuration or list length mismatch
+/// - ParsingException: Document parsing failed
+/// - Exception: Runtime errors
+///
+/// # Example
+///
+/// ```php
+/// $data1 = file_get_contents("doc1.pdf");
+/// $data2 = file_get_contents("doc2.pdf");
+/// $data_list = [$data1, $data2];
+/// $mime_types = ["application/pdf", "application/pdf"];
+/// $file_configs = [
+///     '{"force_ocr": true}',
+///     null,
+/// ];
+/// $results = kreuzberg_batch_extract_bytes_with_configs($data_list, $mime_types, $file_configs);
+/// ```
+#[php_function]
+pub fn kreuzberg_batch_extract_bytes_with_configs(
+    data_list: Vec<BinarySlice<u8>>,
+    mime_types: Vec<String>,
+    file_configs_json: Vec<Option<String>>,
+    config_json: Option<String>,
+) -> PhpResult<Vec<ExtractionResult>> {
+    if data_list.len() != mime_types.len() || data_list.len() != file_configs_json.len() {
+        return Err(format!(
+            "data_list, mime_types, and file_configs_json must have the same length (got {}, {}, and {})",
+            data_list.len(),
+            mime_types.len(),
+            file_configs_json.len()
+        )
+        .into());
+    }
+
+    let rust_config = match &config_json {
+        Some(json) => parse_config_from_json(json).map_err(PhpException::from)?,
+        None => Default::default(),
+    };
+
+    let extract_tables = should_extract_tables(&config_json)?;
+
+    let items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> = data_list
+        .into_iter()
+        .zip(mime_types)
+        .zip(file_configs_json)
+        .map(|((binary_slice, mime), fc_json)| {
+            let fc = parse_file_config_from_json(&fc_json).map_err(PhpException::from)?;
+            let bytes: &[u8] = binary_slice.as_ref();
+            Ok((bytes.to_vec(), mime, fc))
+        })
+        .collect::<PhpResult<Vec<_>>>()?;
+
+    let results = kreuzberg::batch_extract_bytes_with_configs_sync(items, &rust_config).map_err(to_php_exception)?;
+
+    results
+        .into_iter()
+        .map(|r| ExtractionResult::from_rust_with_config(r, extract_tables))
+        .collect()
+}
+
 /// Detect MIME type from file bytes.
 ///
 /// # Parameters
@@ -455,6 +598,8 @@ pub fn get_function_builders() -> Vec<ext_php_rs::builders::FunctionBuilder<'sta
         wrap_function!(kreuzberg_extract_bytes),
         wrap_function!(kreuzberg_batch_extract_files),
         wrap_function!(kreuzberg_batch_extract_bytes),
+        wrap_function!(kreuzberg_batch_extract_files_with_configs),
+        wrap_function!(kreuzberg_batch_extract_bytes_with_configs),
         wrap_function!(kreuzberg_detect_mime_type_from_bytes),
         wrap_function!(kreuzberg_detect_mime_type),
         wrap_function!(kreuzberg_detect_mime_type_from_path),

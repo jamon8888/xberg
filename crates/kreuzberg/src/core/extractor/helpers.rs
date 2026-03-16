@@ -3,8 +3,10 @@
 //! This module provides shared utilities used across extraction modules.
 
 use crate::plugins::DocumentExtractor;
+use crate::types::{ErrorMetadata, ExtractionResult, Metadata};
 use crate::utils::{PoolSizeHint, estimate_pool_size};
 use crate::{KreuzbergError, Result};
+use std::borrow::Cow;
 use std::sync::Arc;
 
 /// Get an extractor from the registry.
@@ -47,6 +49,41 @@ pub(in crate::core::extractor) fn get_extractor(mime_type: &str) -> Result<Arc<d
 /// let hint = get_pool_sizing_hint(5_000_000, "application/pdf");
 /// println!("Recommended string buffers: {}", hint.string_buffer_count);
 /// ```
+/// Build an error `ExtractionResult` for failed batch items.
+///
+/// Used by both tokio-based batch functions and WASM synchronous fallbacks
+/// to construct a uniform error result.
+pub(crate) fn error_extraction_result(e: &KreuzbergError, elapsed_ms: Option<u64>) -> ExtractionResult {
+    let metadata = Metadata {
+        error: Some(ErrorMetadata {
+            error_type: format!("{:?}", e),
+            message: e.to_string(),
+        }),
+        extraction_duration_ms: elapsed_ms,
+        ..Default::default()
+    };
+
+    ExtractionResult {
+        content: format!("Error: {}", e),
+        mime_type: Cow::Borrowed("text/plain"),
+        metadata,
+        tables: vec![],
+        detected_languages: None,
+        chunks: None,
+        images: None,
+        djot_content: None,
+        pages: None,
+        elements: None,
+        ocr_elements: None,
+        document: None,
+        #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
+        extracted_keywords: None,
+        quality_score: None,
+        processing_warnings: Vec::new(),
+        annotations: None,
+    }
+}
+
 #[inline]
 pub fn get_pool_sizing_hint(file_size: u64, mime_type: &str) -> PoolSizeHint {
     estimate_pool_size(file_size, mime_type)

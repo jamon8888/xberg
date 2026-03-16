@@ -14,7 +14,9 @@ pub mod processing;
 
 // Re-export main types for backward compatibility
 pub use acceleration::{AccelerationConfig, ExecutionProviderType};
-pub use extraction::{ExtractionConfig, ImageExtractionConfig, LanguageDetectionConfig, TokenReductionConfig};
+pub use extraction::{
+    ExtractionConfig, FileExtractionConfig, ImageExtractionConfig, LanguageDetectionConfig, TokenReductionConfig,
+};
 pub use formats::OutputFormat;
 #[cfg(feature = "layout-detection")]
 pub use layout::LayoutDetectionConfig;

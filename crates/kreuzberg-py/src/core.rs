@@ -2,11 +2,12 @@
 //!
 //! Provides both synchronous and asynchronous extraction functions for Python.
 
-use crate::config::ExtractionConfig;
+use crate::config::{ExtractionConfig, FileExtractionConfig};
 use crate::error::to_py_err;
 use crate::types::ExtractionResult;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
+use std::path::PathBuf;
 
 /// Extract format strings from ExtractionConfig before it's consumed.
 fn extract_format_strings(config: &ExtractionConfig) -> (Option<String>, Option<String>) {
@@ -449,6 +450,220 @@ pub fn batch_extract_bytes<'py>(
             .collect();
 
         let results = kreuzberg::batch_extract_bytes(owned_contents, &rust_config)
+            .await
+            .map_err(to_py_err)?;
+
+        Python::attach(|py| {
+            let converted: PyResult<Vec<_>> = results
+                .into_iter()
+                .map(|result| {
+                    ExtractionResult::from_rust(result, py, output_fmt.as_ref().cloned(), result_fmt.as_ref().cloned())
+                })
+                .collect();
+            let list = PyList::new(py, converted?)?;
+            Ok(list.unbind())
+        })
+    })
+}
+
+/// Batch extract content from multiple files with per-file config overrides (synchronous).
+///
+/// Args:
+///     items: List of (path, Optional[FileExtractionConfig]) tuples
+///     config: Base extraction configuration
+///
+/// Returns:
+///     List of ExtractionResult objects (one per file)
+#[pyfunction]
+#[pyo3(signature = (items, config=ExtractionConfig::default()))]
+pub fn batch_extract_files_with_configs_sync(
+    py: Python,
+    items: &Bound<'_, PyList>,
+    config: ExtractionConfig,
+) -> PyResult<Py<PyList>> {
+    let mut rust_items: Vec<(PathBuf, Option<kreuzberg::FileExtractionConfig>)> = Vec::with_capacity(items.len());
+
+    for item in items.iter() {
+        let tuple = item.cast::<pyo3::types::PyTuple>().map_err(|_| {
+            pyo3::exceptions::PyTypeError::new_err(
+                "Each item must be a tuple of (path, Optional[FileExtractionConfig])",
+            )
+        })?;
+        if tuple.len() != 2 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Each item must be a 2-tuple of (path, Optional[FileExtractionConfig])",
+            ));
+        }
+        let path_str = extract_path_string(&tuple.get_item(0)?)?;
+        let file_config: Option<FileExtractionConfig> = tuple.get_item(1)?.extract()?;
+        rust_items.push((PathBuf::from(path_str), file_config.map(Into::into)));
+    }
+
+    let (output_fmt, result_fmt) = extract_format_strings(&config);
+    let rust_config = config.into();
+
+    let results = Python::detach(py, || {
+        kreuzberg::batch_extract_file_with_configs_sync(rust_items, &rust_config)
+    })
+    .map_err(to_py_err)?;
+
+    let converted: PyResult<Vec<_>> = results
+        .into_iter()
+        .map(|result| {
+            ExtractionResult::from_rust(result, py, output_fmt.as_ref().cloned(), result_fmt.as_ref().cloned())
+        })
+        .collect();
+    let list = PyList::new(py, converted?)?;
+    Ok(list.unbind())
+}
+
+/// Batch extract content from multiple byte arrays with per-item config overrides (synchronous).
+///
+/// Args:
+///     items: List of (bytes, mime_type, Optional[FileExtractionConfig]) tuples
+///     config: Base extraction configuration
+///
+/// Returns:
+///     List of ExtractionResult objects (one per item)
+#[pyfunction]
+#[pyo3(signature = (items, config=ExtractionConfig::default()))]
+pub fn batch_extract_bytes_with_configs_sync(
+    py: Python,
+    items: &Bound<'_, PyList>,
+    config: ExtractionConfig,
+) -> PyResult<Py<PyList>> {
+    let mut rust_items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> =
+        Vec::with_capacity(items.len());
+
+    for item in items.iter() {
+        let tuple = item.cast::<pyo3::types::PyTuple>().map_err(|_| {
+            pyo3::exceptions::PyTypeError::new_err(
+                "Each item must be a tuple of (bytes, mime_type, Optional[FileExtractionConfig])",
+            )
+        })?;
+        if tuple.len() != 3 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Each item must be a 3-tuple of (bytes, mime_type, Optional[FileExtractionConfig])",
+            ));
+        }
+        let data: Vec<u8> = tuple.get_item(0)?.extract()?;
+        let mime_type: String = tuple.get_item(1)?.extract()?;
+        let file_config: Option<FileExtractionConfig> = tuple.get_item(2)?.extract()?;
+        rust_items.push((data, mime_type, file_config.map(Into::into)));
+    }
+
+    let (output_fmt, result_fmt) = extract_format_strings(&config);
+    let rust_config = config.into();
+
+    let results = Python::detach(py, || {
+        kreuzberg::batch_extract_bytes_with_configs_sync(rust_items, &rust_config)
+    })
+    .map_err(to_py_err)?;
+
+    let converted: PyResult<Vec<_>> = results
+        .into_iter()
+        .map(|result| {
+            ExtractionResult::from_rust(result, py, output_fmt.as_ref().cloned(), result_fmt.as_ref().cloned())
+        })
+        .collect();
+    let list = PyList::new(py, converted?)?;
+    Ok(list.unbind())
+}
+
+/// Batch extract content from multiple files with per-file config overrides (asynchronous).
+///
+/// Args:
+///     items: List of (path, Optional[FileExtractionConfig]) tuples
+///     config: Base extraction configuration
+///
+/// Returns:
+///     List of ExtractionResult objects (one per file)
+#[pyfunction]
+#[pyo3(signature = (items, config=ExtractionConfig::default()))]
+pub fn batch_extract_files_with_configs<'py>(
+    py: Python<'py>,
+    items: &Bound<'py, PyList>,
+    config: ExtractionConfig,
+) -> PyResult<Bound<'py, PyAny>> {
+    let mut rust_items: Vec<(PathBuf, Option<kreuzberg::FileExtractionConfig>)> = Vec::with_capacity(items.len());
+
+    for item in items.iter() {
+        let tuple = item.cast::<pyo3::types::PyTuple>().map_err(|_| {
+            pyo3::exceptions::PyTypeError::new_err(
+                "Each item must be a tuple of (path, Optional[FileExtractionConfig])",
+            )
+        })?;
+        if tuple.len() != 2 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Each item must be a 2-tuple of (path, Optional[FileExtractionConfig])",
+            ));
+        }
+        let path_str = extract_path_string(&tuple.get_item(0)?)?;
+        let file_config: Option<FileExtractionConfig> = tuple.get_item(1)?.extract()?;
+        rust_items.push((PathBuf::from(path_str), file_config.map(Into::into)));
+    }
+
+    let (output_fmt, result_fmt) = extract_format_strings(&config);
+    let rust_config: kreuzberg::ExtractionConfig = config.into();
+
+    pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        let results = kreuzberg::batch_extract_file_with_configs(rust_items, &rust_config)
+            .await
+            .map_err(to_py_err)?;
+
+        Python::attach(|py| {
+            let converted: PyResult<Vec<_>> = results
+                .into_iter()
+                .map(|result| {
+                    ExtractionResult::from_rust(result, py, output_fmt.as_ref().cloned(), result_fmt.as_ref().cloned())
+                })
+                .collect();
+            let list = PyList::new(py, converted?)?;
+            Ok(list.unbind())
+        })
+    })
+}
+
+/// Batch extract content from multiple byte arrays with per-item config overrides (asynchronous).
+///
+/// Args:
+///     items: List of (bytes, mime_type, Optional[FileExtractionConfig]) tuples
+///     config: Base extraction configuration
+///
+/// Returns:
+///     List of ExtractionResult objects (one per item)
+#[pyfunction]
+#[pyo3(signature = (items, config=ExtractionConfig::default()))]
+pub fn batch_extract_bytes_with_configs<'py>(
+    py: Python<'py>,
+    items: &Bound<'py, PyList>,
+    config: ExtractionConfig,
+) -> PyResult<Bound<'py, PyAny>> {
+    let mut rust_items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> =
+        Vec::with_capacity(items.len());
+
+    for item in items.iter() {
+        let tuple = item.cast::<pyo3::types::PyTuple>().map_err(|_| {
+            pyo3::exceptions::PyTypeError::new_err(
+                "Each item must be a tuple of (bytes, mime_type, Optional[FileExtractionConfig])",
+            )
+        })?;
+        if tuple.len() != 3 {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Each item must be a 3-tuple of (bytes, mime_type, Optional[FileExtractionConfig])",
+            ));
+        }
+        let data: Vec<u8> = tuple.get_item(0)?.extract()?;
+        let mime_type: String = tuple.get_item(1)?.extract()?;
+        let file_config: Option<FileExtractionConfig> = tuple.get_item(2)?.extract()?;
+        rust_items.push((data, mime_type, file_config.map(Into::into)));
+    }
+
+    let (output_fmt, result_fmt) = extract_format_strings(&config);
+    let rust_config: kreuzberg::ExtractionConfig = config.into();
+
+    pyo3_async_runtimes::tokio::future_into_py(py, async move {
+        let results = kreuzberg::batch_extract_bytes_with_configs(rust_items, &rust_config)
             .await
             .map_err(to_py_err)?;
 

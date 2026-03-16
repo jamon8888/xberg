@@ -465,6 +465,77 @@ Same as [`Kreuzberg::batchExtractBytes()`](#kreuzbergbatchextractbytes).
 
 ---
 
+### batch_extract_files_with_configs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple files with per-file configuration overrides (procedural API).
+
+**Signature:**
+
+```php title="PHP"
+function batch_extract_files_with_configs(
+    array $items,
+    ?ExtractionConfig $config = null
+): array
+```
+
+**Parameters:**
+
+- `$items` (array): Array of `[string $path, ?FileExtractionConfig $fileConfig]` tuples. `null` config uses batch defaults.
+- `$config` (?ExtractionConfig): Batch-level extraction configuration
+
+**Returns:**
+
+- `array<ExtractionResult>`: Array of extraction results
+
+---
+
+### batch_extract_bytes_with_configs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple byte arrays with per-file configuration overrides (procedural API).
+
+**Signature:**
+
+```php title="PHP"
+function batch_extract_bytes_with_configs(
+    array $items,
+    ?ExtractionConfig $config = null
+): array
+```
+
+**Parameters:**
+
+- `$items` (array): Array of `[string $data, string $mimeType, ?FileExtractionConfig $fileConfig]` tuples
+- `$config` (?ExtractionConfig): Batch-level extraction configuration
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All properties are nullable — `null` means "use the batch-level default."
+
+```php title="PHP"
+class FileExtractionConfig
+{
+    public ?bool $enableQualityProcessing = null;
+    public ?OcrConfig $ocr = null;
+    public ?bool $forceOcr = null;
+    public ?ChunkingConfig $chunking = null;
+    public ?ImageExtractionConfig $images = null;
+    public ?PdfConfig $pdfOptions = null;
+    public ?TokenReductionConfig $tokenReduction = null;
+    public ?LanguageDetectionConfig $languageDetection = null;
+    public ?PageConfig $pages = null;
+    public ?PostProcessorConfig $postprocessor = null;
+    public ?string $outputFormat = null;
+    public ?string $resultFormat = null;
+    public ?bool $includeDocumentStructure = null;
+}
+```
+
+Batch-level fields (`$maxConcurrentExtractions`, `$useCache`, `$securityLimits`) cannot be overridden per file. See [Configuration Reference](configuration.md#fileextractionconfig) for details.
+
+---
+
 ### detect_mime_type()
 
 Detect MIME type from file bytes.

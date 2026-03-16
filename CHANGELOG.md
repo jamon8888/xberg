@@ -27,8 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`ModelManager::ensure_all_models()` / `LayoutModelManager::ensure_all_models()`**: Eagerly download all models (all 11 PaddleOCR script families + layout models), unlike the lazy per-use defaults.
 - **`AccelerationConfig` for explicit GPU/execution provider control**: New config type enabling fine-grained control over ONNX execution providers (CPU, CoreML, CUDA, TensorRT). Allows users to pin specific acceleration backends for layout detection and table recognition.
 - **Acceleration config support across all 10 language bindings**: `AccelerationConfig` fully typed and tested across Python, TypeScript, Ruby, Go, Java, PHP, C#, Elixir, Node, and C FFI.
+- **Per-file extraction configuration (`FileExtractionConfig`)**: New type enabling per-file configuration overrides in batch operations. Each file in a batch can specify its own OCR, chunking, output format, and other extraction settings while sharing batch-level defaults (concurrency, caching, acceleration). Available as `batch_extract_file_with_configs` / `batch_extract_bytes_with_configs` (async + sync variants) across all language bindings: Rust, Python, TypeScript/Node, Go, Java, C#, PHP, Ruby, Elixir, R, WASM, and C FFI. CLI supports `--file-configs` flag for batch commands. MCP tool supports `file_configs` parameter.
 - **Embedding benchmark subcommand in benchmark harness**: New `embed-benchmark` CLI command for performance profiling of the embedding pipeline (`tools/benchmark-harness/src/embed_benchmark.rs`).
 - **E2E test fixture for acceleration config**: Comprehensive test coverage for `AccelerationConfig` serialization and cross-language binding parity.
+- **E2E test fixtures for per-file batch configs**: Four new contract fixtures (`api_batch_file_with_configs_sync`, `api_batch_file_with_configs_async`, `api_batch_bytes_with_configs_sync`, `api_batch_bytes_with_configs_async`) with `file_configs` support in the E2E generator `ExtractionSpec`.
 
 ### Fixed
 

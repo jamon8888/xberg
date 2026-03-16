@@ -270,6 +270,69 @@ for i, result := range results {
 
 ---
 
+### BatchExtractFilesWithConfigs <span class="version-badge">v4.5.0</span>
+
+Batch extract multiple files with per-file configuration overrides (asynchronous).
+
+**Signature:**
+
+```go title="Go"
+func BatchExtractFilesWithConfigs(ctx context.Context, items []FileWithConfig, config *ExtractionConfig) ([]*ExtractionResult, error)
+```
+
+**Parameters:**
+
+- `ctx` (context.Context): Context for cancellation
+- `items` ([]FileWithConfig): Slice of file path + per-file config pairs
+- `config` (*ExtractionConfig): Batch-level configuration
+
+---
+
+### BatchExtractFilesWithConfigsSync <span class="version-badge">v4.5.0</span>
+
+Synchronous variant of `BatchExtractFilesWithConfigs`.
+
+**Signature:**
+
+```go title="Go"
+func BatchExtractFilesWithConfigsSync(items []FileWithConfig, config *ExtractionConfig) ([]*ExtractionResult, error)
+```
+
+---
+
+### BatchExtractBytesWithConfigs / BatchExtractBytesWithConfigsSync <span class="version-badge">v4.5.0</span>
+
+Batch extract multiple byte arrays with per-file configuration overrides. Async and sync variants follow the same pattern.
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are pointers — `nil` means "use the batch-level default."
+
+```go title="Go"
+type FileExtractionConfig struct {
+	EnableQualityProcessing  *bool
+	OCR                      *OCRConfig
+	ForceOCR                 *bool
+	Chunking                 *ChunkingConfig
+	Images                   *ImageExtractionConfig
+	PDFOptions               *PDFConfig
+	TokenReduction           *TokenReductionConfig
+	LanguageDetection        *LanguageDetectionConfig
+	Pages                    *PageConfig
+	Keywords                 *KeywordConfig
+	PostProcessor            *PostProcessorConfig
+	OutputFormat             *string
+	ResultFormat             *string
+	IncludeDocumentStructure *bool
+}
+```
+
+Batch-level fields (`MaxConcurrentExtractions`, `UseCache`, `Acceleration`, `SecurityLimits`) cannot be overridden per file. See [Configuration Reference](configuration.md#fileextractionconfig) for details.
+
+---
+
 ### ExtractBytes
 
 Extract content from in-memory bytes asynchronously.

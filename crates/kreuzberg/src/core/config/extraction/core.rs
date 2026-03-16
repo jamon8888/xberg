@@ -10,6 +10,7 @@ use super::super::formats::OutputFormat;
 use super::super::ocr::OcrConfig;
 use super::super::page::PageConfig;
 use super::super::processing::{ChunkingConfig, PostProcessorConfig};
+use super::file_config::FileExtractionConfig;
 use super::types::{ImageExtractionConfig, LanguageDetectionConfig, TokenReductionConfig};
 
 /// Main extraction configuration.
@@ -190,6 +191,110 @@ impl Default for ExtractionConfig {
 }
 
 impl ExtractionConfig {
+    /// Create a new `ExtractionConfig` by applying per-file overrides from a
+    /// [`FileExtractionConfig`]. Fields that are `Some` in the override replace the
+    /// corresponding field in `self`; `None` fields keep the original value.
+    ///
+    /// Batch-level fields (`max_concurrent_extractions`, `use_cache`, `acceleration`,
+    /// `security_limits`) are never affected by overrides.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use kreuzberg::{ExtractionConfig, FileExtractionConfig};
+    ///
+    /// let base = ExtractionConfig::default();
+    /// let override_config = FileExtractionConfig {
+    ///     force_ocr: Some(true),
+    ///     ..Default::default()
+    /// };
+    /// let resolved = base.with_file_overrides(&override_config);
+    /// assert!(resolved.force_ocr);
+    /// ```
+    pub fn with_file_overrides(&self, overrides: &FileExtractionConfig) -> Self {
+        // Destructure to ensure compile-time exhaustiveness: adding a field to
+        // FileExtractionConfig without handling it here will produce a compile error.
+        let FileExtractionConfig {
+            ref enable_quality_processing,
+            ref ocr,
+            ref force_ocr,
+            ref chunking,
+            ref images,
+            #[cfg(feature = "pdf")]
+            ref pdf_options,
+            ref token_reduction,
+            ref language_detection,
+            ref pages,
+            #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
+            ref keywords,
+            ref postprocessor,
+            #[cfg(feature = "html")]
+            ref html_options,
+            ref result_format,
+            ref output_format,
+            ref include_document_structure,
+            #[cfg(feature = "layout-detection")]
+            ref layout,
+        } = *overrides;
+
+        let mut config = self.clone();
+
+        if let Some(v) = enable_quality_processing {
+            config.enable_quality_processing = *v;
+        }
+        if let Some(v) = ocr {
+            config.ocr = Some(v.clone());
+        }
+        if let Some(v) = force_ocr {
+            config.force_ocr = *v;
+        }
+        if let Some(v) = chunking {
+            config.chunking = Some(v.clone());
+        }
+        if let Some(v) = images {
+            config.images = Some(v.clone());
+        }
+        #[cfg(feature = "pdf")]
+        if let Some(v) = pdf_options {
+            config.pdf_options = Some(v.clone());
+        }
+        if let Some(v) = token_reduction {
+            config.token_reduction = Some(v.clone());
+        }
+        if let Some(v) = language_detection {
+            config.language_detection = Some(v.clone());
+        }
+        if let Some(v) = pages {
+            config.pages = Some(v.clone());
+        }
+        #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
+        if let Some(v) = keywords {
+            config.keywords = Some(v.clone());
+        }
+        if let Some(v) = postprocessor {
+            config.postprocessor = Some(v.clone());
+        }
+        #[cfg(feature = "html")]
+        if let Some(v) = html_options {
+            config.html_options = Some(v.clone());
+        }
+        if let Some(v) = result_format {
+            config.result_format = *v;
+        }
+        if let Some(v) = output_format {
+            config.output_format = *v;
+        }
+        if let Some(v) = include_document_structure {
+            config.include_document_structure = *v;
+        }
+        #[cfg(feature = "layout-detection")]
+        if let Some(v) = layout {
+            config.layout = Some(v.clone());
+        }
+
+        config
+    }
+
     /// Check if image processing is needed by examining OCR and image extraction settings.
     ///
     /// Returns `true` if either OCR is enabled or image extraction is configured,

@@ -766,6 +766,7 @@ module Kreuzberg
 
   type config_hash = Hash[Symbol, untyped]
   type config_input = config_hash | _ToH
+  type file_config_input = Hash[Symbol, untyped]?
 
   interface _ToH
     def to_h: () -> config_hash
@@ -1219,6 +1220,26 @@ module Kreuzberg
   def self.batch_extract_bytes: (
     data_array: Array[String],
     mime_types: Array[String],
+    ?config: config_input?
+  ) -> Array[Result]
+
+  def self.batch_extract_files_with_configs_sync: (
+    items: Array[[String | Pathname, file_config_input]],
+    ?config: config_input?
+  ) -> Array[Result]
+
+  def self.batch_extract_bytes_with_configs_sync: (
+    items: Array[[String, String, file_config_input]],
+    ?config: config_input?
+  ) -> Array[Result]
+
+  def self.batch_extract_files_with_configs: (
+    items: Array[[String | Pathname, file_config_input]],
+    ?config: config_input?
+  ) -> Array[Result]
+
+  def self.batch_extract_bytes_with_configs: (
+    items: Array[[String, String, file_config_input]],
     ?config: config_input?
   ) -> Array[Result]
 

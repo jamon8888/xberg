@@ -49,6 +49,8 @@ public final class KreuzbergFFI {
 	public static final MethodHandle KREUZBERG_EXTRACT_BYTES_SYNC_WITH_CONFIG;
 	public static final MethodHandle KREUZBERG_BATCH_EXTRACT_FILES_SYNC;
 	public static final MethodHandle KREUZBERG_BATCH_EXTRACT_BYTES_SYNC;
+	public static final MethodHandle KREUZBERG_BATCH_EXTRACT_FILES_WITH_CONFIGS_SYNC;
+	public static final MethodHandle KREUZBERG_BATCH_EXTRACT_BYTES_WITH_CONFIGS_SYNC;
 	public static final MethodHandle KREUZBERG_LOAD_EXTRACTION_CONFIG_FROM_FILE;
 	public static final MethodHandle KREUZBERG_FREE_STRING;
 	public static final MethodHandle KREUZBERG_FREE_RESULT;
@@ -210,6 +212,14 @@ public final class KreuzbergFFI {
 
 			KREUZBERG_BATCH_EXTRACT_BYTES_SYNC = linkFunction("kreuzberg_batch_extract_bytes_sync", FunctionDescriptor
 					.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.ADDRESS));
+
+			KREUZBERG_BATCH_EXTRACT_FILES_WITH_CONFIGS_SYNC = linkFunction(
+					"kreuzberg_batch_extract_files_with_configs_sync", FunctionDescriptor.of(ValueLayout.ADDRESS,
+							ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.ADDRESS));
+
+			KREUZBERG_BATCH_EXTRACT_BYTES_WITH_CONFIGS_SYNC = linkFunction(
+					"kreuzberg_batch_extract_bytes_with_configs_sync", FunctionDescriptor.of(ValueLayout.ADDRESS,
+							ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.ADDRESS));
 
 			KREUZBERG_LOAD_EXTRACTION_CONFIG_FROM_FILE = linkFunction("kreuzberg_load_extraction_config_from_file",
 					FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS));

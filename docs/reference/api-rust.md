@@ -369,6 +369,146 @@ Same as [`batch_extract_bytes_sync()`](#batch_extract_bytes_sync).
 
 ---
 
+### batch_extract_file_with_configs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple files in parallel, with per-file configuration overrides (asynchronous). **Requires the `tokio-runtime` feature.**
+
+**Signature:**
+
+```rust title="Rust"
+pub async fn batch_extract_file_with_configs(
+    items: Vec<(PathBuf, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig
+) -> Result<Vec<ExtractionResult>>
+```
+
+**Parameters:**
+
+- `items` (Vec<(PathBuf, Option<FileExtractionConfig>)>): Vector of (path, per-file config) pairs. `None` config uses batch defaults.
+- `config` (&ExtractionConfig): Batch-level extraction configuration (defaults for all files)
+
+**Returns:**
+
+- `Result<Vec<ExtractionResult>>`: Result containing vector of extraction results
+
+**Example:**
+
+```rust title="per_file_batch.rs"
+use kreuzberg::{
+    batch_extract_file_with_configs, ExtractionConfig, FileExtractionConfig, OcrConfig,
+};
+use std::path::PathBuf;
+
+#[tokio::main]
+async fn main() -> kreuzberg::Result<()> {
+    let config = ExtractionConfig::default();
+
+    let items = vec![
+        (PathBuf::from("report.pdf"), None),
+        (PathBuf::from("scanned.pdf"), Some(FileExtractionConfig {
+            force_ocr: Some(true),
+            ocr: Some(OcrConfig {
+                backend: "tesseract".to_string(),
+                language: "deu".to_string(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+    ];
+
+    let results = batch_extract_file_with_configs(items, &config).await?;
+    for result in &results {
+        println!("{} characters", result.content.len());
+    }
+    Ok(())
+}
+```
+
+---
+
+### batch_extract_file_with_configs_sync() <span class="version-badge">v4.5.0</span>
+
+Synchronous variant of [`batch_extract_file_with_configs()`](#batch_extract_file_with_configs). **Requires the `tokio-runtime` feature.**
+
+**Signature:**
+
+```rust title="Rust"
+pub fn batch_extract_file_with_configs_sync(
+    items: Vec<(PathBuf, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig
+) -> Result<Vec<ExtractionResult>>
+```
+
+**Parameters:**
+
+Same as [`batch_extract_file_with_configs()`](#batch_extract_file_with_configs).
+
+---
+
+### batch_extract_bytes_with_configs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple byte arrays in parallel, with per-file configuration overrides (asynchronous). **Requires the `tokio-runtime` feature.**
+
+**Signature:**
+
+```rust title="Rust"
+pub async fn batch_extract_bytes_with_configs(
+    items: Vec<(Vec<u8>, String, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig
+) -> Result<Vec<ExtractionResult>>
+```
+
+**Parameters:**
+
+- `items` (Vec<(Vec<u8>, String, Option<FileExtractionConfig>)>): Vector of (bytes, mime_type, per-file config) tuples
+- `config` (&ExtractionConfig): Batch-level extraction configuration
+
+---
+
+### batch_extract_bytes_with_configs_sync() <span class="version-badge">v4.5.0</span>
+
+Synchronous variant of [`batch_extract_bytes_with_configs()`](#batch_extract_bytes_with_configs).
+
+**Signature:**
+
+```rust title="Rust"
+pub fn batch_extract_bytes_with_configs_sync(
+    items: Vec<(Vec<u8>, String, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig
+) -> Result<Vec<ExtractionResult>>
+```
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are `Option<T>` — `None` means "use the batch-level default." See [Configuration Reference](configuration.md#fileextractionconfig) for full field documentation.
+
+**Definition:**
+
+```rust title="Rust"
+pub struct FileExtractionConfig {
+    pub enable_quality_processing: Option<bool>,
+    pub ocr: Option<OcrConfig>,
+    pub force_ocr: Option<bool>,
+    pub chunking: Option<ChunkingConfig>,
+    pub images: Option<ImageExtractionConfig>,
+    pub pdf_options: Option<PdfConfig>,          // requires "pdf" feature
+    pub token_reduction: Option<TokenReductionConfig>,
+    pub language_detection: Option<LanguageDetectionConfig>,
+    pub pages: Option<PageConfig>,
+    pub keywords: Option<KeywordConfig>,         // requires keywords feature
+    pub postprocessor: Option<PostProcessorConfig>,
+    pub html_options: Option<ConversionOptions>, // requires "html" feature
+    pub result_format: Option<OutputFormat>,
+    pub output_format: Option<OutputFormat>,
+    pub include_document_structure: Option<bool>,
+    pub layout: Option<LayoutDetectionConfig>,   // requires "layout-detection" feature
+}
+```
+
+---
+
 ## Configuration
 
 ### ExtractionConfig

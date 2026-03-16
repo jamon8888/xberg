@@ -1,8 +1,8 @@
 use crate::KNOWN_FORMAT_FIELDS;
-use crate::config::JsExtractionConfig;
+use crate::config::{JsExtractionConfig, JsFileExtractionConfig};
 use kreuzberg::{
     Chunk as RustChunk, ChunkMetadata as RustChunkMetadata, ExtractionConfig, ExtractionResult as RustExtractionResult,
-    ProcessingWarning as RustProcessingWarning, utils::snake_to_camel,
+    FileExtractionConfig, ProcessingWarning as RustProcessingWarning, utils::snake_to_camel,
 };
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
@@ -168,6 +168,13 @@ pub fn resolve_config(config: Option<JsExtractionConfig>) -> Result<ExtractionCo
     match config {
         Some(cfg) => ExtractionConfig::try_from(cfg),
         None => Ok(ExtractionConfig::default()),
+    }
+}
+
+pub fn resolve_file_config(config: Option<JsFileExtractionConfig>) -> Result<Option<FileExtractionConfig>> {
+    match config {
+        Some(cfg) => Ok(Some(FileExtractionConfig::try_from(cfg)?)),
+        None => Ok(None),
     }
 }
 

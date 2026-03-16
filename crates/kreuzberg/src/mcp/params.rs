@@ -47,6 +47,10 @@ pub struct BatchExtractFilesParams {
     /// Password for encrypted PDFs
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pdf_password: Option<String>,
+    /// Per-file extraction configuration overrides (parallel array to paths).
+    /// Each entry is either null (use default) or a FileExtractionConfig JSON object.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_configs: Option<Vec<Option<serde_json::Value>>>,
 }
 
 /// Request parameters for MIME type detection.
@@ -167,6 +171,7 @@ mod tests {
             paths: vec!["/a.pdf".to_string(), "/b.pdf".to_string()],
             config: Some(serde_json::json!({"use_cache": true})),
             pdf_password: None,
+            file_configs: None,
         };
 
         let json = serde_json::to_string(&params).unwrap();

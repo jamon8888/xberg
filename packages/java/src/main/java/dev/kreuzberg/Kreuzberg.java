@@ -1,6 +1,7 @@
 package dev.kreuzberg;
 
 import dev.kreuzberg.config.ExtractionConfig;
+import dev.kreuzberg.config.FileExtractionConfig;
 import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
@@ -225,6 +226,137 @@ public final class Kreuzberg {
 			throw e;
 		} catch (Throwable e) {
 			throw new KreuzbergException("Unexpected error during batch extraction", e);
+		} finally {
+			FFI_LOCK.unlock();
+		}
+	}
+
+	/**
+	 * Batch extract files with per-file configuration overrides.
+	 *
+	 * @param items
+	 *            list of FileItem instances pairing paths with optional per-file
+	 *            configs
+	 * @param config
+	 *            batch-level extraction configuration (optional)
+	 * @return list of extraction results
+	 * @throws KreuzbergException
+	 *             if extraction fails
+	 * @since 4.6.0
+	 */
+	public static List<ExtractionResult> batchExtractFilesWithConfigs(List<FileItem> items, ExtractionConfig config)
+			throws KreuzbergException {
+		Objects.requireNonNull(items, "items must not be null");
+		if (items.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		FFI_LOCK.lock();
+		try (Arena arena = Arena.ofConfined()) {
+			MemorySegment[] cPaths = new MemorySegment[items.size()];
+			MemorySegment[] cFileConfigs = new MemorySegment[items.size()];
+			for (int i = 0; i < items.size(); i++) {
+				FileItem item = items.get(i);
+				cPaths[i] = KreuzbergFFI.allocateCString(arena, item.path());
+				if (item.config() != null) {
+					cFileConfigs[i] = KreuzbergFFI.allocateCString(arena, item.config().toJson());
+				} else {
+					cFileConfigs[i] = MemorySegment.NULL;
+				}
+			}
+
+			MemorySegment pathArray = arena.allocate(ValueLayout.ADDRESS.byteSize() * cPaths.length,
+					ValueLayout.ADDRESS.byteAlignment());
+			MemorySegment configArray = arena.allocate(ValueLayout.ADDRESS.byteSize() * cFileConfigs.length,
+					ValueLayout.ADDRESS.byteAlignment());
+			for (int i = 0; i < cPaths.length; i++) {
+				pathArray.setAtIndex(ValueLayout.ADDRESS, i, cPaths[i]);
+				configArray.setAtIndex(ValueLayout.ADDRESS, i, cFileConfigs[i]);
+			}
+
+			MemorySegment configSegment = config == null ? MemorySegment.NULL : encodeConfig(arena, config);
+
+			MemorySegment batchPtr = (MemorySegment) KreuzbergFFI.KREUZBERG_BATCH_EXTRACT_FILES_WITH_CONFIGS_SYNC
+					.invoke(pathArray, configArray, (long) items.size(), configSegment);
+
+			if (batchPtr == null || batchPtr.address() == 0) {
+				throw KreuzbergFFI.createTypedException("Batch extraction with configs failed");
+			}
+
+			return parseAndFreeBatch(batchPtr);
+		} catch (KreuzbergException e) {
+			throw e;
+		} catch (Throwable e) {
+			throw new KreuzbergException("Unexpected error during batch extraction with configs", e);
+		} finally {
+			FFI_LOCK.unlock();
+		}
+	}
+
+	/**
+	 * Batch extract bytes with per-file configuration overrides.
+	 *
+	 * @param items
+	 *            list of BytesItemWithConfig instances pairing data/mime with
+	 *            optional per-file configs
+	 * @param config
+	 *            batch-level extraction configuration (optional)
+	 * @return list of extraction results
+	 * @throws KreuzbergException
+	 *             if extraction fails
+	 * @since 4.6.0
+	 */
+	public static List<ExtractionResult> batchExtractBytesWithConfigs(List<BytesItemWithConfig> items,
+			ExtractionConfig config) throws KreuzbergException {
+		Objects.requireNonNull(items, "items must not be null");
+		if (items.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		FFI_LOCK.lock();
+		try (Arena arena = Arena.ofConfined()) {
+			long structSize = KreuzbergFFI.C_BYTES_WITH_MIME_LAYOUT.byteSize();
+			MemorySegment bytesWithMimeArray = arena.allocate(structSize * items.size(),
+					KreuzbergFFI.BYTES_WITH_MIME_ALIGNMENT);
+			MemorySegment[] cFileConfigs = new MemorySegment[items.size()];
+
+			for (int i = 0; i < items.size(); i++) {
+				BytesItemWithConfig item = items.get(i);
+				MemorySegment element = bytesWithMimeArray.asSlice((long) i * structSize, structSize);
+				MemorySegment dataSeg = arena.allocate((long) item.data().length, 1);
+				MemorySegment.copy(item.data(), 0, dataSeg, ValueLayout.JAVA_BYTE, 0, item.data().length);
+				MemorySegment mimeSeg = KreuzbergFFI.allocateCString(arena, item.mimeType());
+				element.set(ValueLayout.ADDRESS, KreuzbergFFI.BYTES_DATA_OFFSET, dataSeg);
+				element.set(ValueLayout.JAVA_LONG, KreuzbergFFI.BYTES_LEN_OFFSET, item.data().length);
+				element.set(ValueLayout.ADDRESS, KreuzbergFFI.BYTES_MIME_OFFSET, mimeSeg);
+
+				if (item.config() != null) {
+					cFileConfigs[i] = KreuzbergFFI.allocateCString(arena, item.config().toJson());
+				} else {
+					cFileConfigs[i] = MemorySegment.NULL;
+				}
+			}
+
+			MemorySegment configArray = arena.allocate(ValueLayout.ADDRESS.byteSize() * cFileConfigs.length,
+					ValueLayout.ADDRESS.byteAlignment());
+			for (int i = 0; i < cFileConfigs.length; i++) {
+				configArray.setAtIndex(ValueLayout.ADDRESS, i, cFileConfigs[i]);
+			}
+
+			MemorySegment configSegment = config == null ? MemorySegment.NULL : encodeConfig(arena, config);
+
+			MemorySegment batchPtr = (MemorySegment) KreuzbergFFI.KREUZBERG_BATCH_EXTRACT_BYTES_WITH_CONFIGS_SYNC
+					.invoke(bytesWithMimeArray, configArray, (long) items.size(), configSegment);
+
+			if (batchPtr == null || batchPtr.address() == 0) {
+				throw KreuzbergFFI.createTypedException("Batch extraction with configs failed");
+			}
+
+			return parseAndFreeBatch(batchPtr);
+		} catch (KreuzbergException e) {
+			throw e;
+		} catch (Throwable e) {
+			throw new KreuzbergException("Unexpected error during batch extraction with configs", e);
 		} finally {
 			FFI_LOCK.unlock();
 		}

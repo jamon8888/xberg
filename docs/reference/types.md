@@ -2462,6 +2462,123 @@ type ExtractionConfig struct {
 }
 ```
 
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are optional — `None`/`null`/`undefined` means "use the batch-level default from `ExtractionConfig`." Used with `batch_extract_file_with_configs` and `batch_extract_bytes_with_configs`.
+
+Batch-level fields (`max_concurrent_extractions`, `use_cache`, `acceleration`, `security_limits`) are excluded and cannot be overridden per file.
+
+#### Rust
+
+```rust title="file_extraction_config.rs"
+pub struct FileExtractionConfig {
+    pub enable_quality_processing: Option<bool>,
+    pub ocr: Option<OcrConfig>,
+    pub force_ocr: Option<bool>,
+    pub chunking: Option<ChunkingConfig>,
+    pub images: Option<ImageExtractionConfig>,
+    pub pdf_options: Option<PdfConfig>,
+    pub token_reduction: Option<TokenReductionConfig>,
+    pub language_detection: Option<LanguageDetectionConfig>,
+    pub pages: Option<PageConfig>,
+    pub keywords: Option<KeywordConfig>,
+    pub postprocessor: Option<PostProcessorConfig>,
+    pub html_options: Option<ConversionOptions>,
+    pub result_format: Option<OutputFormat>,
+    pub output_format: Option<OutputFormat>,
+    pub include_document_structure: Option<bool>,
+    pub layout: Option<LayoutDetectionConfig>,
+}
+```
+
+#### Python
+
+```python title="file_extraction_config.py"
+@dataclass
+class FileExtractionConfig:
+    enable_quality_processing: bool | None = None
+    ocr: OcrConfig | None = None
+    force_ocr: bool | None = None
+    chunking: ChunkingConfig | None = None
+    images: ImageExtractionConfig | None = None
+    pdf_options: PdfConfig | None = None
+    token_reduction: TokenReductionConfig | None = None
+    language_detection: LanguageDetectionConfig | None = None
+    pages: PageConfig | None = None
+    keywords: KeywordConfig | None = None
+    postprocessor: PostProcessorConfig | None = None
+    html_options: HtmlConversionOptions | None = None
+    result_format: str | None = None
+    output_format: str | None = None
+    include_document_structure: bool | None = None
+    layout: LayoutDetectionConfig | None = None
+```
+
+#### TypeScript
+
+```typescript title="file_extraction_config.ts"
+export interface FileExtractionConfig {
+  enableQualityProcessing?: boolean;
+  ocr?: OcrConfig;
+  forceOcr?: boolean;
+  chunking?: ChunkingConfig;
+  images?: ImageExtractionConfig;
+  pdfOptions?: PdfConfig;
+  tokenReduction?: TokenReductionConfig;
+  languageDetection?: LanguageDetectionConfig;
+  pages?: PageConfig;
+  keywords?: KeywordConfig;
+  postprocessor?: PostProcessorConfig;
+  htmlOptions?: HtmlConversionOptions;
+  resultFormat?: string;
+  outputFormat?: string;
+  includeDocumentStructure?: boolean;
+  layout?: LayoutDetectionConfig;
+}
+```
+
+#### Java
+
+```java title="FileExtractionConfig.java"
+public record FileExtractionConfig(
+    Optional<Boolean> enableQualityProcessing,
+    Optional<OcrConfig> ocr,
+    Optional<Boolean> forceOcr,
+    Optional<ChunkingConfig> chunking,
+    Optional<ImageExtractionConfig> images,
+    Optional<PdfConfig> pdfOptions,
+    Optional<TokenReductionConfig> tokenReduction,
+    Optional<LanguageDetectionConfig> languageDetection,
+    Optional<PageConfig> pages,
+    Optional<KeywordConfig> keywords,
+    Optional<PostProcessorConfig> postprocessor,
+    Optional<String> resultFormat,
+    Optional<String> outputFormat,
+    Optional<Boolean> includeDocumentStructure
+) {}
+```
+
+#### Go
+
+```go title="file_extraction_config.go"
+type FileExtractionConfig struct {
+    EnableQualityProcessing *bool
+    OCR                     *OcrConfig
+    ForceOCR                *bool
+    Chunking                *ChunkingConfig
+    Images                  *ImageExtractionConfig
+    PDFOptions              *PdfConfig
+    TokenReduction          *TokenReductionConfig
+    LanguageDetection       *LanguageDetectionConfig
+    Pages                   *PageConfig
+    Keywords                *KeywordConfig
+    PostProcessor           *PostProcessorConfig
+    ResultFormat            *string
+    OutputFormat            *string
+    IncludeDocumentStructure *bool
+}
+```
+
 ### OcrConfig
 
 OCR engine selection and language configuration for Tesseract, EasyOCR, and PaddleOCR backends.

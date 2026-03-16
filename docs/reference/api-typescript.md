@@ -149,6 +149,97 @@ results.forEach((result, i) => {
 
 ---
 
+### batchExtractFilesWithConfigs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple files in parallel, with per-file configuration overrides (asynchronous).
+
+**Signature:**
+
+```typescript title="TypeScript"
+async function batchExtractFilesWithConfigs(
+  paths: string[],
+  fileConfigs: (FileExtractionConfig | null)[],
+  config: ExtractionConfig | null = null
+): Promise<ExtractionResult[]>
+```
+
+**Parameters:**
+
+- `paths` (string[]): Array of file paths
+- `fileConfigs` ((FileExtractionConfig | null)[]): Array of per-file configs (null = use batch defaults). Must match paths length.
+- `config` (ExtractionConfig | null): Batch-level extraction configuration
+
+**Returns:**
+
+- `Promise<ExtractionResult[]>`: Promise resolving to array of extraction results
+
+---
+
+### batchExtractFilesWithConfigsSync() <span class="version-badge">v4.5.0</span>
+
+Synchronous variant of [`batchExtractFilesWithConfigs()`](#batchextractfileswithconfigs).
+
+**Signature:**
+
+```typescript title="TypeScript"
+function batchExtractFilesWithConfigsSync(
+  paths: string[],
+  fileConfigs: (FileExtractionConfig | null)[],
+  config: ExtractionConfig | null = null
+): ExtractionResult[]
+```
+
+**Example:**
+
+```typescript title="per_file_config.ts"
+import { batchExtractFilesWithConfigsSync } from '@kreuzberg/node';
+
+const results = batchExtractFilesWithConfigsSync(
+  ['report.pdf', 'scanned.pdf', 'page.html'],
+  [
+    null,  // use batch defaults
+    { forceOcr: true, ocr: { backend: 'tesseract', language: 'deu' } },
+    { outputFormat: 'markdown' },
+  ],
+);
+```
+
+---
+
+### batchExtractBytesWithConfigs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple byte arrays in parallel, with per-file configuration overrides (asynchronous).
+
+**Signature:**
+
+```typescript title="TypeScript"
+async function batchExtractBytesWithConfigs(
+  dataList: Uint8Array[],
+  mimeTypes: string[],
+  fileConfigs: (FileExtractionConfig | null)[],
+  config: ExtractionConfig | null = null
+): Promise<ExtractionResult[]>
+```
+
+---
+
+### batchExtractBytesWithConfigsSync() <span class="version-badge">v4.5.0</span>
+
+Synchronous variant of [`batchExtractBytesWithConfigs()`](#batchextractbyteswithconfigs).
+
+**Signature:**
+
+```typescript title="TypeScript"
+function batchExtractBytesWithConfigsSync(
+  dataList: Uint8Array[],
+  mimeTypes: string[],
+  fileConfigs: (FileExtractionConfig | null)[],
+  config: ExtractionConfig | null = null
+): ExtractionResult[]
+```
+
+---
+
 ### extractBytes()
 
 Extract content from bytes (asynchronous).
@@ -455,6 +546,47 @@ if (config) {
   console.log(result.content);
 }
 ```
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are optional — `undefined` or omitted means "use the batch-level default."
+
+**Type Definition:**
+
+```typescript title="TypeScript"
+interface FileExtractionConfig {
+  enableQualityProcessing?: boolean;
+  ocr?: OcrConfig | null;
+  forceOcr?: boolean;
+  chunking?: ChunkingConfig | null;
+  imageExtraction?: ImageExtractionConfig | null;
+  pdfOptions?: PdfConfig | null;
+  tokenReduction?: TokenReductionConfig | null;
+  languageDetection?: LanguageDetectionConfig | null;
+  pages?: PageConfig | null;
+  keywords?: KeywordConfig | null;
+  postProcessor?: PostProcessorConfig | null;
+  htmlOptions?: HtmlConversionOptions | null;
+  resultFormat?: "unified" | "element_based";
+  outputFormat?: "plain" | "markdown" | "djot" | "html";
+  includeDocumentStructure?: boolean;
+}
+```
+
+**Example:**
+
+```typescript title="file_extraction_config.ts"
+import type { FileExtractionConfig } from '@kreuzberg/node';
+
+const perFileConfig: FileExtractionConfig = {
+  forceOcr: true,
+  ocr: { backend: 'tesseract', language: 'deu' },
+};
+```
+
+See [Configuration Reference](configuration.md#fileextractionconfig) for full details on merge semantics and excluded batch-level fields.
 
 ---
 
@@ -1139,6 +1271,7 @@ All types are exported for use in your TypeScript code:
 import type {
   ExtractionConfig,
   ExtractionResult,
+  FileExtractionConfig,
   OcrConfig,
   TesseractConfig,
   PdfConfig,

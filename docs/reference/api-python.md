@@ -149,6 +149,134 @@ for path, result in zip(paths, results):
 
 ---
 
+### batch_extract_files_with_configs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple files in parallel, with per-file configuration overrides (asynchronous).
+
+**Signature:**
+
+```python title="Python"
+async def batch_extract_files_with_configs(
+    items: list[tuple[str | Path, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+**Parameters:**
+
+Same as [`batch_extract_files_with_configs_sync()`](#batch_extract_files_with_configs_sync).
+
+**Returns:**
+
+- `list[ExtractionResult]`: List of extraction results (one per file)
+
+---
+
+### batch_extract_files_with_configs_sync() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple files in parallel, with per-file configuration overrides (synchronous).
+
+**Signature:**
+
+```python title="Python"
+def batch_extract_files_with_configs_sync(
+    items: list[tuple[str | Path, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+**Parameters:**
+
+- `items` (list[tuple[str | Path, FileExtractionConfig | None]]): List of (path, per-file config) tuples. `None` config uses batch defaults.
+- `config` (ExtractionConfig | None): Batch-level extraction configuration applied as the default
+- `easyocr_kwargs` (dict | None): EasyOCR initialization options
+
+**Returns:**
+
+- `list[ExtractionResult]`: List of extraction results (one per file)
+
+**Example:**
+
+```python title="per_file_config.py"
+from kreuzberg import (
+    batch_extract_files_with_configs_sync,
+    ExtractionConfig,
+    FileExtractionConfig,
+    OcrConfig,
+)
+
+config = ExtractionConfig()
+
+items = [
+    ("report.pdf", None),  # use batch defaults
+    ("scanned.pdf", FileExtractionConfig(
+        force_ocr=True,
+        ocr=OcrConfig(backend="tesseract", language="deu"),
+    )),
+    ("spreadsheet.xlsx", FileExtractionConfig(
+        output_format="markdown",
+    )),
+]
+
+results = batch_extract_files_with_configs_sync(items, config)
+for path_config, result in zip(items, results):
+    print(f"{path_config[0]}: {len(result.content)} characters")
+```
+
+---
+
+### batch_extract_bytes_with_configs() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple byte arrays in parallel, with per-file configuration overrides (asynchronous).
+
+**Signature:**
+
+```python title="Python"
+async def batch_extract_bytes_with_configs(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+**Parameters:**
+
+Same as [`batch_extract_bytes_with_configs_sync()`](#batch_extract_bytes_with_configs_sync).
+
+---
+
+### batch_extract_bytes_with_configs_sync() <span class="version-badge">v4.5.0</span>
+
+Extract content from multiple byte arrays in parallel, with per-file configuration overrides (synchronous).
+
+**Signature:**
+
+```python title="Python"
+def batch_extract_bytes_with_configs_sync(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]
+```
+
+**Parameters:**
+
+- `items` (list[tuple[bytes | bytearray, str, FileExtractionConfig | None]]): List of (data, mime_type, per-file config) tuples
+- `config` (ExtractionConfig | None): Batch-level extraction configuration
+- `easyocr_kwargs` (dict | None): EasyOCR initialization options
+
+**Returns:**
+
+- `list[ExtractionResult]`: List of extraction results (one per data item)
+
+---
+
 ### extract_bytes()
 
 Extract content from bytes (asynchronous).
@@ -402,6 +530,45 @@ Module-level:
 
 - `load_extraction_config_from_file(path)` → `ExtractionConfig`
 - `discover_extraction_config()` → `ExtractionConfig | None` (returns None if no config file found)
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are optional — `None` means "use the batch-level default."
+
+**Fields:**
+
+- `enable_quality_processing` (bool | None): Override quality post-processing
+- `ocr` (OcrConfig | None): Override OCR configuration
+- `force_ocr` (bool | None): Override force OCR
+- `chunking` (ChunkingConfig | None): Override chunking
+- `images` (ImageExtractionConfig | None): Override image extraction
+- `pdf_options` (PdfConfig | None): Override PDF options
+- `token_reduction` (TokenReductionConfig | None): Override token reduction
+- `language_detection` (LanguageDetectionConfig | None): Override language detection
+- `pages` (PageConfig | None): Override page extraction
+- `keywords` (KeywordConfig | None): Override keyword extraction
+- `postprocessor` (PostProcessorConfig | None): Override post-processing
+- `html_options` (HtmlConversionOptions | None): Override HTML conversion
+- `result_format` (str | None): Override result format
+- `output_format` (str | None): Override output format
+- `include_document_structure` (bool | None): Override document structure
+- `layout` (LayoutDetectionConfig | None): Override layout detection
+
+**Example:**
+
+```python title="file_extraction_config.py"
+from kreuzberg import FileExtractionConfig, OcrConfig
+
+# Override only OCR for a specific file
+per_file = FileExtractionConfig(
+    force_ocr=True,
+    ocr=OcrConfig(backend="tesseract", language="deu"),
+)
+```
+
+See [Configuration Reference](configuration.md#fileextractionconfig) for full details on merge semantics.
 
 ---
 

@@ -74,6 +74,26 @@ fn batch_extract_bytes_native(data_list: List, mime_types: Strings, config_json:
     batch::batch_extract_bytes_impl(data_list, mime_types, config_json)
 }
 
+#[extendr]
+fn batch_extract_files_with_configs_sync_native(paths: Strings, file_configs: List, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_files_with_configs_sync_impl(paths, file_configs, config_json)
+}
+
+#[extendr]
+fn batch_extract_files_with_configs_native(paths: Strings, file_configs: List, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_files_with_configs_impl(paths, file_configs, config_json)
+}
+
+#[extendr]
+fn batch_extract_bytes_with_configs_sync_native(data_list: List, mime_types: Strings, file_configs: List, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_bytes_with_configs_sync_impl(data_list, mime_types, file_configs, config_json)
+}
+
+#[extendr]
+fn batch_extract_bytes_with_configs_native(data_list: List, mime_types: Strings, file_configs: List, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_bytes_with_configs_impl(data_list, mime_types, file_configs, config_json)
+}
+
 // Metadata functions
 #[extendr]
 fn detect_mime_type_native(data: Raw) -> extendr_api::Result<String> {
@@ -213,6 +233,10 @@ extendr_module! {
     fn batch_extract_files_native;
     fn batch_extract_bytes_sync_native;
     fn batch_extract_bytes_native;
+    fn batch_extract_files_with_configs_sync_native;
+    fn batch_extract_files_with_configs_native;
+    fn batch_extract_bytes_with_configs_sync_native;
+    fn batch_extract_bytes_with_configs_native;
 
     fn detect_mime_type_native;
     fn detect_mime_type_from_path_native;

@@ -45,6 +45,32 @@ pub fn string_to_c_string(value: String) -> std::result::Result<*mut c_char, Str
         .map_err(|e| format!("Failed to create C string: {}", e))
 }
 
+/// Parse a nullable C string pointer into an `Option<FileExtractionConfig>`.
+///
+/// If `json_ptr` is null, returns `Ok(None)`. Otherwise parses the JSON string
+/// into a `FileExtractionConfig`.
+///
+/// # Safety
+///
+/// `json_ptr` must be either null or a valid pointer to a null-terminated C string.
+pub unsafe fn parse_file_config_from_json(
+    json_ptr: *const std::os::raw::c_char,
+) -> FfiResult<Option<kreuzberg::FileExtractionConfig>> {
+    if json_ptr.is_null() {
+        return Ok(None);
+    }
+
+    let json_str = match unsafe { std::ffi::CStr::from_ptr(json_ptr) }.to_str() {
+        Ok(s) => s,
+        Err(e) => return Err(format!("Invalid UTF-8 in file config JSON: {}", e)),
+    };
+
+    let config: kreuzberg::FileExtractionConfig =
+        serde_json::from_str(json_str).map_err(|e| format!("Failed to parse file config JSON: {}", e))?;
+
+    Ok(Some(config))
+}
+
 /// Parse extraction configuration from JSON string
 pub fn parse_extraction_config_from_json(config_str: &str) -> FfiResult<ExtractionConfig> {
     // html-to-markdown-rs v2.22.5+ has #[serde(default)] on ConversionOptions,

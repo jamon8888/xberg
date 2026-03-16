@@ -193,6 +193,34 @@ const results = batchExtractBytesSync(dataList, mimeTypes);
 
 **Returns**: `ExtractionResult[]`
 
+#### `batchExtractFilesWithConfigs(paths, fileConfigs, config?): Promise<ExtractionResult[]>`
+
+Extract multiple files with per-file configuration overrides (asynchronous).
+
+```typescript
+const results = await batchExtractFilesWithConfigs(
+  ['report.pdf', 'scanned.pdf'],
+  [null, { forceOcr: true, ocr: { backend: 'tesseract', language: 'deu' } }],
+);
+```
+
+**Parameters**:
+- `paths: string[]` — File paths
+- `fileConfigs: (FileExtractionConfig | null)[]` — Per-file configs (null = use batch defaults)
+- `config?: ExtractionConfig` — Batch-level configuration
+
+#### `batchExtractFilesWithConfigsSync(paths, fileConfigs, config?): ExtractionResult[]`
+
+Synchronous variant.
+
+#### `batchExtractBytesWithConfigs(dataList, mimeTypes, fileConfigs, config?): Promise<ExtractionResult[]>`
+
+Extract multiple byte arrays with per-file overrides (asynchronous).
+
+#### `batchExtractBytesWithConfigsSync(dataList, mimeTypes, fileConfigs, config?): ExtractionResult[]`
+
+Synchronous variant.
+
 ---
 
 ## Worker Pool APIs
@@ -354,6 +382,31 @@ interface ExtractionConfig {
   resultFormat?: 'unified' | 'element_based';  // Default: 'unified'
 }
 ```
+
+### `FileExtractionConfig`
+
+Per-file overrides for batch operations. All fields optional (omitted = use batch default).
+
+```typescript
+interface FileExtractionConfig {
+  enableQualityProcessing?: boolean;
+  ocr?: OcrConfig;
+  forceOcr?: boolean;
+  chunking?: ChunkingConfig;
+  images?: ImageExtractionConfig;
+  pdfOptions?: PdfConfig;
+  tokenReduction?: TokenReductionConfig;
+  languageDetection?: LanguageDetectionConfig;
+  pages?: PageExtractionConfig;
+  keywords?: KeywordConfig;
+  postprocessor?: PostProcessorConfig;
+  outputFormat?: 'plain' | 'markdown' | 'djot' | 'html';
+  resultFormat?: 'unified' | 'element_based';
+  includeDocumentStructure?: boolean;
+}
+```
+
+Excluded (batch-level only): `maxConcurrentExtractions`, `useCache`, `securityLimits`.
 
 ### `ChunkingConfig`
 

@@ -30,9 +30,13 @@ pub use sync::{batch_extract_bytes_sync, extract_bytes_sync};
 pub use sync::extract_file_sync;
 
 #[cfg(feature = "tokio-runtime")]
-pub use batch::{batch_extract_bytes, batch_extract_file};
+pub use batch::{
+    batch_extract_bytes, batch_extract_bytes_with_configs, batch_extract_file, batch_extract_file_with_configs,
+};
 #[cfg(feature = "tokio-runtime")]
-pub use sync::batch_extract_file_sync;
+pub use sync::{batch_extract_file_sync, batch_extract_file_with_configs_sync};
+
+pub use sync::batch_extract_bytes_with_configs_sync;
 
 #[cfg(test)]
 mod tests {
@@ -487,5 +491,137 @@ mod tests {
         }
 
         assert_eq!(success_count, 30);
+    }
+
+    #[tokio::test]
+    async fn test_batch_extract_file_with_configs_basic() {
+        let dir = tempdir().unwrap();
+
+        let file1 = dir.path().join("test1.txt");
+        let file2 = dir.path().join("test2.txt");
+        File::create(&file1).unwrap().write_all(b"content 1").unwrap();
+        File::create(&file2).unwrap().write_all(b"content 2").unwrap();
+
+        let config = ExtractionConfig::default();
+        let items = vec![(file1, Some(crate::FileExtractionConfig::default())), (file2, None)];
+        let results = batch_extract_file_with_configs(items, &config).await;
+
+        assert!(results.is_ok());
+        let results = results.unwrap();
+        assert_eq!(results.len(), 2);
+        assert_text_content(&results[0].content, "content 1");
+        assert_text_content(&results[1].content, "content 2");
+    }
+
+    #[tokio::test]
+    async fn test_batch_extract_file_with_configs_empty() {
+        let config = ExtractionConfig::default();
+        let items: Vec<(std::path::PathBuf, Option<crate::FileExtractionConfig>)> = vec![];
+        let results = batch_extract_file_with_configs(items, &config).await;
+
+        assert!(results.is_ok());
+        assert_eq!(results.unwrap().len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_batch_extract_bytes_with_configs_basic() {
+        let config = ExtractionConfig::default();
+        let items = vec![
+            (b"hello".to_vec(), "text/plain".to_string(), None),
+            (
+                b"world".to_vec(),
+                "text/plain".to_string(),
+                Some(crate::FileExtractionConfig::default()),
+            ),
+        ];
+        let results = batch_extract_bytes_with_configs(items, &config).await;
+
+        assert!(results.is_ok());
+        let results = results.unwrap();
+        assert_eq!(results.len(), 2);
+        assert_text_content(&results[0].content, "hello");
+        assert_text_content(&results[1].content, "world");
+    }
+
+    #[tokio::test]
+    async fn test_batch_extract_bytes_with_configs_error_handling() {
+        let config = ExtractionConfig::default();
+        let items = vec![
+            (b"valid".to_vec(), "text/plain".to_string(), None),
+            (
+                b"invalid".to_vec(),
+                "invalid/mime".to_string(),
+                Some(crate::FileExtractionConfig::default()),
+            ),
+        ];
+        let results = batch_extract_bytes_with_configs(items, &config).await;
+
+        assert!(results.is_ok());
+        let results = results.unwrap();
+        assert_eq!(results.len(), 2);
+        assert_text_content(&results[0].content, "valid");
+        assert!(results[1].metadata.error.is_some());
+    }
+
+    #[test]
+    fn test_batch_extract_file_with_configs_sync() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.txt");
+        File::create(&file_path).unwrap().write_all(b"sync test").unwrap();
+
+        let config = ExtractionConfig::default();
+        let items = vec![(file_path, None)];
+        let results = batch_extract_file_with_configs_sync(items, &config);
+
+        assert!(results.is_ok());
+        let results = results.unwrap();
+        assert_eq!(results.len(), 1);
+        assert_text_content(&results[0].content, "sync test");
+    }
+
+    #[test]
+    fn test_with_file_overrides_single_field() {
+        let base = ExtractionConfig::default();
+        assert!(!base.force_ocr);
+
+        let overrides = crate::FileExtractionConfig {
+            force_ocr: Some(true),
+            ..Default::default()
+        };
+        let resolved = base.with_file_overrides(&overrides);
+        assert!(resolved.force_ocr);
+        // Other fields unchanged
+        assert_eq!(resolved.use_cache, base.use_cache);
+        assert_eq!(resolved.enable_quality_processing, base.enable_quality_processing);
+    }
+
+    #[test]
+    fn test_with_file_overrides_none_keeps_default() {
+        let base = ExtractionConfig::default();
+        let overrides = crate::FileExtractionConfig::default(); // all None
+        let resolved = base.with_file_overrides(&overrides);
+        // All fields should match base
+        assert_eq!(resolved.use_cache, base.use_cache);
+        assert_eq!(resolved.force_ocr, base.force_ocr);
+        assert_eq!(resolved.enable_quality_processing, base.enable_quality_processing);
+        assert_eq!(resolved.include_document_structure, base.include_document_structure);
+    }
+
+    #[test]
+    fn test_with_file_overrides_batch_fields_unaffected() {
+        let mut base = ExtractionConfig::default();
+        base.max_concurrent_extractions = Some(42);
+        base.use_cache = false;
+
+        let overrides = crate::FileExtractionConfig {
+            force_ocr: Some(true),
+            ..Default::default()
+        };
+        let resolved = base.with_file_overrides(&overrides);
+        // Batch-level fields must be preserved from base
+        assert_eq!(resolved.max_concurrent_extractions, Some(42));
+        assert!(!resolved.use_cache);
+        // Override applied
+        assert!(resolved.force_ocr);
     }
 }

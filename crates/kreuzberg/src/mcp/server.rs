@@ -158,10 +158,44 @@ impl KreuzbergMcp {
         let config =
             build_config(&self.default_config, params.config).map_err(|e| rmcp::ErrorData::invalid_params(e, None))?;
 
-        // Always use async extraction - we're already in a Tokio runtime context.
-        let results = batch_extract_file(params.paths.clone(), &config)
-            .await
-            .map_err(map_kreuzberg_error_to_mcp)?;
+        let results = if let Some(file_configs) = params.file_configs {
+            use crate::{FileExtractionConfig, batch_extract_file_with_configs};
+
+            if file_configs.len() != params.paths.len() {
+                return Err(rmcp::ErrorData::invalid_params(
+                    format!(
+                        "file_configs length ({}) must match paths length ({})",
+                        file_configs.len(),
+                        params.paths.len()
+                    ),
+                    None,
+                ));
+            }
+
+            let items: Vec<(std::path::PathBuf, Option<FileExtractionConfig>)> = params
+                .paths
+                .iter()
+                .zip(file_configs.into_iter())
+                .map(|(path, fc)| {
+                    let file_config = fc
+                        .map(serde_json::from_value::<FileExtractionConfig>)
+                        .transpose()
+                        .map_err(|e| {
+                            rmcp::ErrorData::invalid_params(format!("Failed to parse file config: {}", e), None)
+                        })?;
+                    Ok((std::path::PathBuf::from(path), file_config))
+                })
+                .collect::<Result<Vec<_>, rmcp::ErrorData>>()?;
+
+            batch_extract_file_with_configs(items, &config)
+                .await
+                .map_err(map_kreuzberg_error_to_mcp)?
+        } else {
+            // Always use async extraction - we're already in a Tokio runtime context.
+            batch_extract_file(params.paths.clone(), &config)
+                .await
+                .map_err(map_kreuzberg_error_to_mcp)?
+        };
 
         let response = serde_json::to_string_pretty(&results).unwrap_or_default();
         Ok(CallToolResult::success(vec![Content::text(response)]))

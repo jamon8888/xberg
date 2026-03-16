@@ -80,6 +80,7 @@ fn _internal_bindings(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<config::ImagePreprocessingConfig>()?;
     m.add_class::<config::HierarchyConfig>()?;
     m.add_class::<config::LayoutDetectionConfig>()?;
+    m.add_class::<config::FileExtractionConfig>()?;
 
     m.add_class::<keywords::YakeParams>()?;
     m.add_class::<keywords::RakeParams>()?;
@@ -101,6 +102,10 @@ fn _internal_bindings(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(core::extract_bytes, m)?)?;
     m.add_function(wrap_pyfunction!(core::batch_extract_files, m)?)?;
     m.add_function(wrap_pyfunction!(core::batch_extract_bytes, m)?)?;
+    m.add_function(wrap_pyfunction!(core::batch_extract_files_with_configs_sync, m)?)?;
+    m.add_function(wrap_pyfunction!(core::batch_extract_bytes_with_configs_sync, m)?)?;
+    m.add_function(wrap_pyfunction!(core::batch_extract_files_with_configs, m)?)?;
+    m.add_function(wrap_pyfunction!(core::batch_extract_bytes_with_configs, m)?)?;
 
     m.add_function(wrap_pyfunction!(plugins::register_ocr_backend, m)?)?;
     m.add_function(wrap_pyfunction!(plugins::unregister_ocr_backend, m)?)?;

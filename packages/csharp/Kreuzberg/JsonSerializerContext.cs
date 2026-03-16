@@ -26,6 +26,7 @@ namespace Kreuzberg;
     GenerationMode = JsonSourceGenerationMode.Default)]
 [JsonSerializable(typeof(ExtractionResult))]
 [JsonSerializable(typeof(ExtractionConfig))]
+[JsonSerializable(typeof(FileExtractionConfig))]
 [JsonSerializable(typeof(OcrConfig))]
 [JsonSerializable(typeof(TesseractConfig))]
 [JsonSerializable(typeof(ImagePreprocessingConfig))]

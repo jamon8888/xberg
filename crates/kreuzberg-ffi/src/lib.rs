@@ -46,7 +46,8 @@ pub use error::{
     kreuzberg_error_code_unsupported_format, kreuzberg_error_code_validation, kreuzberg_get_error_details,
 };
 pub use extraction::{
-    kreuzberg_batch_extract_bytes_sync, kreuzberg_batch_extract_files_sync, kreuzberg_extract_bytes_sync,
+    kreuzberg_batch_extract_bytes_sync, kreuzberg_batch_extract_bytes_with_configs_sync,
+    kreuzberg_batch_extract_files_sync, kreuzberg_batch_extract_files_with_configs_sync, kreuzberg_extract_bytes_sync,
     kreuzberg_extract_bytes_sync_with_config, kreuzberg_extract_file_sync, kreuzberg_extract_file_sync_with_config,
 };
 pub use helpers::*;

@@ -395,6 +395,91 @@ flowchart TD
 !!! tip "Performance"
 Batch processing provides automatic parallelization. For large sets of files, this can be 2-5x faster than processing files sequentially.
 
+### Per-File Configuration <span class="version-badge">v4.5.0</span>
+
+When processing a mixed batch of documents that require different extraction settings, use `FileExtractionConfig` to override specific options per file while sharing a common batch-level configuration.
+
+This is useful when a batch contains a mix of document types — for example, scanned images that need OCR alongside text-based PDFs that do not:
+
+=== "Python"
+
+    ```python title="mixed_batch.py"
+    from kreuzberg import (
+        batch_extract_files_with_configs_sync,
+        ExtractionConfig,
+        FileExtractionConfig,
+        OcrConfig,
+    )
+
+    # Shared batch config: markdown output, caching enabled
+    config = ExtractionConfig(output_format="markdown")
+
+    items = [
+        ("report.pdf", None),  # text-based PDF, use defaults
+        ("scan.tiff", FileExtractionConfig(
+            force_ocr=True,
+            ocr=OcrConfig(backend="tesseract", language="deu"),
+        )),
+        ("notes.html", FileExtractionConfig(
+            output_format="plain",  # override output format for HTML
+        )),
+    ]
+
+    results = batch_extract_files_with_configs_sync(items, config)
+    ```
+
+=== "TypeScript"
+
+    ```typescript title="mixed_batch.ts"
+    import { batchExtractFilesWithConfigsSync } from '@kreuzberg/node';
+
+    const results = batchExtractFilesWithConfigsSync(
+      ['report.pdf', 'scan.tiff', 'notes.html'],
+      [
+        null,
+        { forceOcr: true, ocr: { backend: 'tesseract', language: 'deu' } },
+        { outputFormat: 'plain' },
+      ],
+      { outputFormat: 'markdown' },
+    );
+    ```
+
+=== "Rust"
+
+    ```rust title="mixed_batch.rs"
+    use kreuzberg::{
+        batch_extract_file_with_configs, ExtractionConfig, FileExtractionConfig,
+        OcrConfig, OutputFormat,
+    };
+    use std::path::PathBuf;
+
+    let config = ExtractionConfig {
+        output_format: OutputFormat::Markdown,
+        ..Default::default()
+    };
+
+    let items = vec![
+        (PathBuf::from("report.pdf"), None),
+        (PathBuf::from("scan.tiff"), Some(FileExtractionConfig {
+            force_ocr: Some(true),
+            ocr: Some(OcrConfig {
+                backend: "tesseract".to_string(),
+                language: "deu".to_string(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        })),
+        (PathBuf::from("notes.html"), Some(FileExtractionConfig {
+            output_format: Some(OutputFormat::Plain),
+            ..Default::default()
+        })),
+    ];
+
+    let results = batch_extract_file_with_configs(items, &config).await?;
+    ```
+
+Fields set to `None` in `FileExtractionConfig` inherit the batch default. Batch-level concerns like `max_concurrent_extractions`, `use_cache`, and `security_limits` cannot be overridden per file. See the [Configuration Reference](../reference/configuration.md#fileextractionconfig) for the full list of overridable fields.
+
 ## Supported Formats
 
 Kreuzberg supports 75 file formats across 8 categories:

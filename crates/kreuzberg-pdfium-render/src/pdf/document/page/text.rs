@@ -327,11 +327,7 @@ impl<'a> PdfPageText<'a> {
         let handle = self
             .bindings()
             .FPDFText_GetTextObject(self.text_page_handle(), index as std::ffi::c_int);
-        if handle.is_null() {
-            None
-        } else {
-            Some(handle as usize)
-        }
+        if handle.is_null() { None } else { Some(handle as usize) }
     }
 
     /// Returns all characters that lie within the bounds of the given [PdfPageAnnotation] in the

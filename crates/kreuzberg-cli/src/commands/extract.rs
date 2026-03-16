@@ -5,7 +5,8 @@
 
 use anyhow::{Context, Result};
 use kreuzberg::{
-    ChunkingConfig, ExtractionConfig, LanguageDetectionConfig, OcrConfig, batch_extract_file_sync, extract_file_sync,
+    ChunkingConfig, ExtractionConfig, FileExtractionConfig, LanguageDetectionConfig, OcrConfig,
+    batch_extract_file_sync, batch_extract_file_with_configs_sync, extract_file_sync,
 };
 use std::path::PathBuf;
 
@@ -65,6 +66,53 @@ pub fn batch_command(paths: Vec<PathBuf>, config: ExtractionConfig, format: Outp
         }
         OutputFormat::Json => {
             // Serialize the full ExtractionResult for each document
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&results)
+                    .context("Failed to serialize batch extraction results to JSON")?
+            );
+        }
+    }
+
+    Ok(())
+}
+
+/// Execute batch extraction with per-file configuration overrides
+pub fn batch_command_with_configs(
+    paths: Vec<PathBuf>,
+    file_configs_map: std::collections::HashMap<String, serde_json::Value>,
+    config: ExtractionConfig,
+    format: OutputFormat,
+) -> Result<()> {
+    let items: Vec<(PathBuf, Option<FileExtractionConfig>)> = paths
+        .into_iter()
+        .map(|p| {
+            let path_str = p.to_string_lossy().to_string();
+            let file_config = file_configs_map
+                .get(&path_str)
+                .map(|v| {
+                    serde_json::from_value::<FileExtractionConfig>(v.clone())
+                        .with_context(|| format!("Failed to parse file config for '{}'", path_str))
+                })
+                .transpose()?;
+            Ok((p, file_config))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    let results = batch_extract_file_with_configs_sync(items, &config).with_context(|| {
+        "Failed to batch extract documents with per-file configs. Check that all files are readable and formats are supported."
+    })?;
+
+    match format {
+        OutputFormat::Text => {
+            for (i, result) in results.iter().enumerate() {
+                println!("=== Document {} ===", i + 1);
+                println!("MIME Type: {}", result.mime_type);
+                println!("Content:\n{}", result.content);
+                println!();
+            }
+        }
+        OutputFormat::Json => {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&results)

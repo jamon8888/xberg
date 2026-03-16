@@ -50,6 +50,7 @@ from kreuzberg._internal_bindings import (
     ExtractedTable,
     ExtractionConfig,
     ExtractionResult,
+    FileExtractionConfig,
     HierarchyConfig,
     ImageExtractionConfig,
     ImagePreprocessingConfig,
@@ -110,10 +111,22 @@ from kreuzberg._internal_bindings import (
     batch_extract_bytes_sync as batch_extract_bytes_sync_impl,
 )
 from kreuzberg._internal_bindings import (
+    batch_extract_bytes_with_configs as batch_extract_bytes_with_configs_impl,
+)
+from kreuzberg._internal_bindings import (
+    batch_extract_bytes_with_configs_sync as batch_extract_bytes_with_configs_sync_impl,
+)
+from kreuzberg._internal_bindings import (
     batch_extract_files as batch_extract_files_impl,
 )
 from kreuzberg._internal_bindings import (
     batch_extract_files_sync as batch_extract_files_sync_impl,
+)
+from kreuzberg._internal_bindings import (
+    batch_extract_files_with_configs as batch_extract_files_with_configs_impl,
+)
+from kreuzberg._internal_bindings import (
+    batch_extract_files_with_configs_sync as batch_extract_files_with_configs_sync_impl,
 )
 from kreuzberg._internal_bindings import (
     classify_error as _classify_error_impl,
@@ -224,6 +237,7 @@ __all__ = [
     "ExtractedTable",
     "ExtractionConfig",
     "ExtractionResult",
+    "FileExtractionConfig",
     "HierarchyConfig",
     "ImageExtractionConfig",
     "ImagePreprocessingConfig",
@@ -254,8 +268,12 @@ __all__ = [
     "__version__",
     "batch_extract_bytes",
     "batch_extract_bytes_sync",
+    "batch_extract_bytes_with_configs",
+    "batch_extract_bytes_with_configs_sync",
     "batch_extract_files",
     "batch_extract_files_sync",
+    "batch_extract_files_with_configs",
+    "batch_extract_files_with_configs_sync",
     "classify_error",
     "clear_document_extractors",
     "clear_ocr_backends",
@@ -501,6 +519,54 @@ def batch_extract_bytes_sync(
     return batch_extract_bytes_sync_impl([bytes(d) for d in data_list], mime_types, config)
 
 
+def batch_extract_files_with_configs_sync(
+    items: list[tuple[str | Path, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]:
+    """Extract content from multiple files with per-file config overrides (synchronous).
+
+    Args:
+        items: List of (path, Optional[FileExtractionConfig]) tuples
+        config: Base extraction configuration (uses defaults if None)
+        easyocr_kwargs: EasyOCR initialization options
+
+    Returns:
+        List of ExtractionResults (one per file)
+    """
+    if config is None:
+        config = ExtractionConfig()
+
+    _ensure_ocr_backend_registered(config, easyocr_kwargs)
+
+    return batch_extract_files_with_configs_sync_impl([(str(p), fc) for p, fc in items], config)
+
+
+def batch_extract_bytes_with_configs_sync(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]:
+    """Extract content from multiple byte arrays with per-item config overrides (synchronous).
+
+    Args:
+        items: List of (bytes, mime_type, Optional[FileExtractionConfig]) tuples
+        config: Base extraction configuration (uses defaults if None)
+        easyocr_kwargs: EasyOCR initialization options
+
+    Returns:
+        List of ExtractionResults (one per item)
+    """
+    if config is None:
+        config = ExtractionConfig()
+
+    _ensure_ocr_backend_registered(config, easyocr_kwargs)
+
+    return batch_extract_bytes_with_configs_sync_impl([(bytes(d), m, fc) for d, m, fc in items], config)
+
+
 async def extract_file(
     file_path: str | Path,
     mime_type: str | None = None,
@@ -601,6 +667,54 @@ async def batch_extract_bytes(
     _ensure_ocr_backend_registered(config, easyocr_kwargs)
 
     return await batch_extract_bytes_impl([bytes(d) for d in data_list], mime_types, config)
+
+
+async def batch_extract_files_with_configs(
+    items: list[tuple[str | Path, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]:
+    """Extract content from multiple files with per-file config overrides (asynchronous).
+
+    Args:
+        items: List of (path, Optional[FileExtractionConfig]) tuples
+        config: Base extraction configuration (uses defaults if None)
+        easyocr_kwargs: EasyOCR initialization options
+
+    Returns:
+        List of ExtractionResults (one per file)
+    """
+    if config is None:
+        config = ExtractionConfig()
+
+    _ensure_ocr_backend_registered(config, easyocr_kwargs)
+
+    return await batch_extract_files_with_configs_impl([(str(p), fc) for p, fc in items], config)
+
+
+async def batch_extract_bytes_with_configs(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig | None = None,
+    *,
+    easyocr_kwargs: dict[str, Any] | None = None,
+) -> list[ExtractionResult]:
+    """Extract content from multiple byte arrays with per-item config overrides (asynchronous).
+
+    Args:
+        items: List of (bytes, mime_type, Optional[FileExtractionConfig]) tuples
+        config: Base extraction configuration (uses defaults if None)
+        easyocr_kwargs: EasyOCR initialization options
+
+    Returns:
+        List of ExtractionResults (one per item)
+    """
+    if config is None:
+        config = ExtractionConfig()
+
+    _ensure_ocr_backend_registered(config, easyocr_kwargs)
+
+    return await batch_extract_bytes_with_configs_impl([(bytes(d), m, fc) for d, m, fc in items], config)
 
 
 def detect_mime_type(data: bytes | bytearray) -> str:

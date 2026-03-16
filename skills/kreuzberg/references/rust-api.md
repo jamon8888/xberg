@@ -235,6 +235,75 @@ fn main() -> kreuzberg::Result<()> {
 }
 ```
 
+### `batch_extract_file_with_configs` (async, parallel)
+
+Extract multiple files with per-file configuration overrides.
+
+```rust
+pub async fn batch_extract_file_with_configs(
+    items: Vec<(PathBuf, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig,
+) -> Result<Vec<ExtractionResult>>
+```
+
+**Requires tokio-runtime feature.** Each item is a `(path, optional_per_file_config)` pair. `None` config uses batch defaults.
+
+### `batch_extract_file_with_configs_sync` (sync, parallel)
+
+Synchronous variant. **Requires tokio-runtime feature.**
+
+```rust
+pub fn batch_extract_file_with_configs_sync(
+    items: Vec<(PathBuf, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig,
+) -> Result<Vec<ExtractionResult>>
+```
+
+### `batch_extract_bytes_with_configs` (async, parallel)
+
+Extract multiple byte arrays with per-file configuration overrides.
+
+```rust
+pub async fn batch_extract_bytes_with_configs(
+    items: Vec<(Vec<u8>, String, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig,
+) -> Result<Vec<ExtractionResult>>
+```
+
+### `batch_extract_bytes_with_configs_sync` (sync, parallel)
+
+Synchronous variant.
+
+```rust
+pub fn batch_extract_bytes_with_configs_sync(
+    items: Vec<(Vec<u8>, String, Option<FileExtractionConfig>)>,
+    config: &ExtractionConfig,
+) -> Result<Vec<ExtractionResult>>
+```
+
+### `FileExtractionConfig`
+
+Per-file overrides for batch operations. All fields `Option<T>` — `None` = use batch default.
+
+```rust
+pub struct FileExtractionConfig {
+    pub enable_quality_processing: Option<bool>,
+    pub ocr: Option<OcrConfig>,
+    pub force_ocr: Option<bool>,
+    pub chunking: Option<ChunkingConfig>,
+    pub images: Option<ImageExtractionConfig>,
+    pub pdf_options: Option<PdfConfig>,
+    pub token_reduction: Option<TokenReductionConfig>,
+    pub language_detection: Option<LanguageDetectionConfig>,
+    pub pages: Option<PageConfig>,
+    pub postprocessor: Option<PostProcessorConfig>,
+    pub output_format: Option<OutputFormat>,
+    pub include_document_structure: Option<bool>,
+}
+```
+
+Excluded batch-level fields: `max_concurrent_extractions`, `use_cache`, `acceleration`, `security_limits`.
+
 ---
 
 ## Configuration

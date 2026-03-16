@@ -41,6 +41,7 @@ __all__ = [
     "ExtractedTable",
     "ExtractionConfig",
     "ExtractionResult",
+    "FileExtractionConfig",
     "Footnote",
     "FormattedBlock",
     "GridCell",
@@ -483,6 +484,52 @@ class ExtractionConfig:
     def from_file(path: str | Path) -> ExtractionConfig: ...
     @staticmethod
     def discover() -> ExtractionConfig: ...
+
+class FileExtractionConfig:
+    """Per-file extraction configuration overrides for batch processing.
+
+    All fields are optional — None means "use the batch-level default."
+    Used with batch_extract_files_with_configs and batch_extract_bytes_with_configs
+    to allow heterogeneous extraction settings within a single batch.
+    """
+
+    enable_quality_processing: bool | None
+    ocr: OcrConfig | None
+    force_ocr: bool | None
+    chunking: ChunkingConfig | None
+    images: ImageExtractionConfig | None
+    pdf_options: PdfConfig | None
+    token_reduction: TokenReductionConfig | None
+    language_detection: LanguageDetectionConfig | None
+    pages: PageConfig | None
+    keywords: KeywordConfig | None
+    postprocessor: PostProcessorConfig | None
+    html_options: HtmlConversionOptions | None
+    result_format: str | None
+    output_format: str | None
+    include_document_structure: bool | None
+    layout: LayoutDetectionConfig | None
+
+    def __init__(
+        self,
+        *,
+        enable_quality_processing: bool | None = None,
+        ocr: OcrConfig | None = None,
+        force_ocr: bool | None = None,
+        chunking: ChunkingConfig | None = None,
+        images: ImageExtractionConfig | None = None,
+        pdf_options: PdfConfig | None = None,
+        token_reduction: TokenReductionConfig | None = None,
+        language_detection: LanguageDetectionConfig | None = None,
+        pages: PageConfig | None = None,
+        keywords: KeywordConfig | None = None,
+        postprocessor: PostProcessorConfig | None = None,
+        html_options: HtmlConversionOptions | None = None,
+        result_format: str | None = None,
+        output_format: str | None = None,
+        include_document_structure: bool | None = None,
+        layout: LayoutDetectionConfig | None = None,
+    ) -> None: ...
 
 class OcrConfig:
     """OCR configuration for extracting text from images.
@@ -1960,6 +2007,22 @@ def batch_extract_files(
 def batch_extract_bytes(
     data_list: list[bytes | bytearray],
     mime_types: list[str],
+    config: ExtractionConfig = ...,
+) -> Awaitable[list[ExtractionResult]]: ...
+def batch_extract_files_with_configs_sync(
+    items: list[tuple[str | Path | bytes, FileExtractionConfig | None]],
+    config: ExtractionConfig = ...,
+) -> list[ExtractionResult]: ...
+def batch_extract_bytes_with_configs_sync(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
+    config: ExtractionConfig = ...,
+) -> list[ExtractionResult]: ...
+def batch_extract_files_with_configs(
+    items: list[tuple[str | Path | bytes, FileExtractionConfig | None]],
+    config: ExtractionConfig = ...,
+) -> Awaitable[list[ExtractionResult]]: ...
+def batch_extract_bytes_with_configs(
+    items: list[tuple[bytes | bytearray, str, FileExtractionConfig | None]],
     config: ExtractionConfig = ...,
 ) -> Awaitable[list[ExtractionResult]]: ...
 def register_ocr_backend(backend: OcrBackendProtocol) -> None: ...

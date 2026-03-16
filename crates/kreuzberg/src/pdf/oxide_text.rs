@@ -36,9 +36,7 @@ pub(crate) fn current_pdf_path() -> Option<PathBuf> {
 /// Returns segments per page (indexed by page number, 0-based).
 /// Returns `None` if pdf_oxide fails to open or extract the document.
 #[cfg(feature = "pdf")]
-pub(crate) fn extract_segments_with_oxide(
-    page_count: usize,
-) -> Option<Vec<Vec<SegmentData>>> {
+pub(crate) fn extract_segments_with_oxide(page_count: usize) -> Option<Vec<Vec<SegmentData>>> {
     let file_path = current_pdf_path()?;
     let mut pdf = match pdf_oxide::api::Pdf::open(&file_path) {
         Ok(pdf) => pdf,

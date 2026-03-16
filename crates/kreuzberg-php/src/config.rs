@@ -8,6 +8,7 @@
 //! This pattern matches the approach used in Go, Java, Ruby, and Elixir bindings.
 
 use ext_php_rs::prelude::*;
+use kreuzberg::FileExtractionConfig;
 use kreuzberg::core::config::ExtractionConfig as RustExtractionConfig;
 use serde_json;
 
@@ -66,6 +67,20 @@ pub fn validate_config_json(json: &str) -> bool {
 /// JSON string representation
 pub fn config_to_json(config: &RustExtractionConfig) -> Result<String, String> {
     serde_json::to_string_pretty(config).map_err(|e| format!("Failed to serialize config: {}", e))
+}
+
+/// Parse an optional JSON string into `Option<FileExtractionConfig>`.
+///
+/// If the input is `None` or an empty string, returns `Ok(None)`.
+/// Otherwise, deserializes the JSON into a `FileExtractionConfig`.
+pub fn parse_file_config_from_json(json: &Option<String>) -> Result<Option<FileExtractionConfig>, String> {
+    match json {
+        None => Ok(None),
+        Some(s) if s.is_empty() => Ok(None),
+        Some(s) => serde_json::from_str(s)
+            .map(Some)
+            .map_err(|e| format!("Failed to parse file config JSON: {}", e)),
+    }
 }
 
 // Note: PHP config classes in packages/php/src/Config/*.php are the source of truth.

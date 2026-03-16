@@ -205,6 +205,67 @@ foreach (var result in results)
 
 ---
 
+### BatchExtractFilesWithConfigsAsync() <span class="version-badge">v4.5.0</span>
+
+Asynchronously extracts multiple files with per-file configuration overrides.
+
+**Signature:**
+
+```csharp title="C#"
+public static Task<IReadOnlyList<ExtractionResult>> BatchExtractFilesWithConfigsAsync(
+    IReadOnlyList<FileWithConfig> items,
+    ExtractionConfig? config = null)
+```
+
+---
+
+### BatchExtractFilesWithConfigsSync() <span class="version-badge">v4.5.0</span>
+
+Synchronous variant of `BatchExtractFilesWithConfigsAsync`.
+
+**Signature:**
+
+```csharp title="C#"
+public static IReadOnlyList<ExtractionResult> BatchExtractFilesWithConfigsSync(
+    IReadOnlyList<FileWithConfig> items,
+    ExtractionConfig? config = null)
+```
+
+---
+
+### BatchExtractBytesWithConfigsAsync() / BatchExtractBytesWithConfigsSync() <span class="version-badge">v4.5.0</span>
+
+Batch extract byte arrays with per-file configuration overrides. Async and sync variants follow the same pattern.
+
+---
+
+### FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All properties are nullable — `null` means "use the batch-level default."
+
+```csharp title="C#"
+public class FileExtractionConfig
+{
+    public bool? EnableQualityProcessing { get; set; }
+    public OcrConfig? Ocr { get; set; }
+    public bool? ForceOcr { get; set; }
+    public ChunkingConfig? Chunking { get; set; }
+    public ImageExtractionConfig? Images { get; set; }
+    public PdfConfig? PdfOptions { get; set; }
+    public TokenReductionConfig? TokenReduction { get; set; }
+    public LanguageDetectionConfig? LanguageDetection { get; set; }
+    public PageConfig? Pages { get; set; }
+    public PostProcessorConfig? Postprocessor { get; set; }
+    public string? OutputFormat { get; set; }
+    public string? ResultFormat { get; set; }
+    public bool? IncludeDocumentStructure { get; set; }
+}
+```
+
+Batch-level fields (`MaxConcurrentExtractions`, `UseCache`, `Acceleration`, `SecurityLimits`) cannot be overridden per file. See [Configuration Reference](configuration.md#fileextractionconfig) for details.
+
+---
+
 ### DetectMimeType()
 
 Detects the MIME type of document bytes by examining file signatures.

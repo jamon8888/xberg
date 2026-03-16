@@ -1,0 +1,19 @@
+{
+	"id": "api_batch_file_with_configs_async",
+	"description": "Tests async batch file extraction with per-file configs (batch_extract_files_with_configs_async)",
+	"tags": ["contract", "api", "batch", "file_config"],
+	"document": {
+		"path": "pdf/fake_memo.pdf"
+	},
+	"extraction": {
+		"method": "batch_async",
+		"input_type": "file",
+		"config": {},
+		"file_configs": [{ "output_format": "markdown" }]
+	},
+	"assertions": {
+		"expected_mime": "application/pdf",
+		"min_content_length": 10,
+		"output_format_is": "markdown"
+	}
+}

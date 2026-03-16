@@ -1,10 +1,12 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
+use std::path::PathBuf;
+
 use crate::WORKER_POOL;
-use crate::config::JsExtractionConfig;
+use crate::config::{JsExtractionConfig, JsFileExtractionConfig};
 use crate::error_handling::convert_error;
-use crate::result::{JsExtractionResult, resolve_config};
+use crate::result::{JsExtractionResult, resolve_config, resolve_file_config};
 
 #[napi]
 pub fn batch_extract_files_sync(
@@ -190,6 +192,140 @@ pub async fn batch_extract_bytes(
                 .collect();
             kreuzberg::batch_extract_bytes_sync(owned_contents, &rust_config)
         })
+        .await
+        .map_err(|e| Error::from_reason(format!("Worker thread error: {}", e)))?
+        .map_err(convert_error)?;
+
+    results.into_iter().map(JsExtractionResult::try_from).collect()
+}
+
+#[napi]
+pub fn batch_extract_files_with_configs_sync(
+    paths: Vec<String>,
+    file_configs: Vec<Option<JsFileExtractionConfig>>,
+    config: Option<JsExtractionConfig>,
+) -> Result<Vec<JsExtractionResult>> {
+    if paths.len() != file_configs.len() {
+        return Err(Error::new(
+            Status::InvalidArg,
+            format!(
+                "paths length ({}) must match fileConfigs length ({})",
+                paths.len(),
+                file_configs.len()
+            ),
+        ));
+    }
+
+    let rust_config = resolve_config(config)?;
+
+    let items: Vec<(PathBuf, Option<kreuzberg::FileExtractionConfig>)> = paths
+        .into_iter()
+        .zip(file_configs)
+        .map(|(path, fc)| Ok((PathBuf::from(path), resolve_file_config(fc)?)))
+        .collect::<Result<Vec<_>>>()?;
+
+    kreuzberg::batch_extract_file_with_configs_sync(items, &rust_config)
+        .map_err(convert_error)
+        .and_then(|results| results.into_iter().map(JsExtractionResult::try_from).collect())
+}
+
+#[napi]
+pub async fn batch_extract_files_with_configs(
+    paths: Vec<String>,
+    file_configs: Vec<Option<JsFileExtractionConfig>>,
+    config: Option<JsExtractionConfig>,
+) -> Result<Vec<JsExtractionResult>> {
+    if paths.len() != file_configs.len() {
+        return Err(Error::new(
+            Status::InvalidArg,
+            format!(
+                "paths length ({}) must match fileConfigs length ({})",
+                paths.len(),
+                file_configs.len()
+            ),
+        ));
+    }
+
+    let rust_config = resolve_config(config)?;
+
+    let items: Vec<(PathBuf, Option<kreuzberg::FileExtractionConfig>)> = paths
+        .into_iter()
+        .zip(file_configs)
+        .map(|(path, fc)| Ok((PathBuf::from(path), resolve_file_config(fc)?)))
+        .collect::<Result<Vec<_>>>()?;
+
+    let results = WORKER_POOL
+        .spawn_blocking(move || kreuzberg::batch_extract_file_with_configs_sync(items, &rust_config))
+        .await
+        .map_err(|e| Error::from_reason(format!("Worker thread error: {}", e)))?
+        .map_err(convert_error)?;
+
+    results.into_iter().map(JsExtractionResult::try_from).collect()
+}
+
+#[napi]
+pub fn batch_extract_bytes_with_configs_sync(
+    data_list: Vec<Buffer>,
+    mime_types: Vec<String>,
+    file_configs: Vec<Option<JsFileExtractionConfig>>,
+    config: Option<JsExtractionConfig>,
+) -> Result<Vec<JsExtractionResult>> {
+    if data_list.len() != mime_types.len() || data_list.len() != file_configs.len() {
+        return Err(Error::new(
+            Status::InvalidArg,
+            format!(
+                "data_list length ({}), mime_types length ({}), and fileConfigs length ({}) must all match",
+                data_list.len(),
+                mime_types.len(),
+                file_configs.len()
+            ),
+        ));
+    }
+
+    let rust_config = resolve_config(config)?;
+
+    let items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> = data_list
+        .iter()
+        .zip(mime_types.into_iter())
+        .zip(file_configs)
+        .map(|((data, mime), fc)| Ok((data.to_vec(), mime, resolve_file_config(fc)?)))
+        .collect::<Result<Vec<_>>>()?;
+
+    kreuzberg::batch_extract_bytes_with_configs_sync(items, &rust_config)
+        .map_err(convert_error)
+        .and_then(|results| results.into_iter().map(JsExtractionResult::try_from).collect())
+}
+
+#[napi]
+pub async fn batch_extract_bytes_with_configs(
+    data_list: Vec<Buffer>,
+    mime_types: Vec<String>,
+    file_configs: Vec<Option<JsFileExtractionConfig>>,
+    config: Option<JsExtractionConfig>,
+) -> Result<Vec<JsExtractionResult>> {
+    if data_list.len() != mime_types.len() || data_list.len() != file_configs.len() {
+        return Err(Error::new(
+            Status::InvalidArg,
+            format!(
+                "data_list length ({}), mime_types length ({}), and fileConfigs length ({}) must all match",
+                data_list.len(),
+                mime_types.len(),
+                file_configs.len()
+            ),
+        ));
+    }
+
+    let rust_config = resolve_config(config)?;
+
+    let items: Vec<(Vec<u8>, String, Option<kreuzberg::FileExtractionConfig>)> = data_list
+        .iter()
+        .zip(mime_types.into_iter())
+        .zip(file_configs)
+        .map(|((data, mime), fc)| Ok((data.to_vec(), mime, resolve_file_config(fc)?)))
+        .collect::<Result<Vec<_>>>()?;
+
+    let results = WORKER_POOL
+        .spawn_blocking(move || kreuzberg::batch_extract_bytes_with_configs_sync(items, &rust_config))
         .await
         .map_err(|e| Error::from_reason(format!("Worker thread error: {}", e)))?
         .map_err(convert_error)?;

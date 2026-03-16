@@ -12,10 +12,10 @@ use kreuzberg::keywords::{
 use kreuzberg::pdf::HierarchyConfig as RustHierarchyConfig;
 use kreuzberg::{
     ChunkerType, ChunkingConfig as RustChunkingConfig, EmbeddingConfig as RustEmbeddingConfig,
-    EmbeddingModelType as RustEmbeddingModelType, ExtractionConfig, ImageExtractionConfig as RustImageExtractionConfig,
-    LanguageDetectionConfig as RustLanguageDetectionConfig, OcrConfig as RustOcrConfig, PdfConfig as RustPdfConfig,
-    PostProcessorConfig as RustPostProcessorConfig, TesseractConfig as RustTesseractConfig,
-    TokenReductionConfig as RustTokenReductionConfig,
+    EmbeddingModelType as RustEmbeddingModelType, ExtractionConfig, FileExtractionConfig,
+    ImageExtractionConfig as RustImageExtractionConfig, LanguageDetectionConfig as RustLanguageDetectionConfig,
+    OcrConfig as RustOcrConfig, PdfConfig as RustPdfConfig, PostProcessorConfig as RustPostProcessorConfig,
+    TesseractConfig as RustTesseractConfig, TokenReductionConfig as RustTokenReductionConfig,
 };
 use std::ffi::c_char;
 
@@ -1339,5 +1339,221 @@ pub fn discover_extraction_config() -> Result<Option<JsExtractionConfig>> {
     match rust_config {
         Some(config) => Ok(Some(JsExtractionConfig::try_from(config)?)),
         None => Ok(None),
+    }
+}
+
+#[napi(object)]
+pub struct JsFileExtractionConfig {
+    pub enable_quality_processing: Option<bool>,
+    pub ocr: Option<JsOcrConfig>,
+    pub force_ocr: Option<bool>,
+    pub chunking: Option<JsChunkingConfig>,
+    pub images: Option<JsImageExtractionConfig>,
+    pub pdf_options: Option<JsPdfConfig>,
+    pub token_reduction: Option<JsTokenReductionConfig>,
+    pub language_detection: Option<JsLanguageDetectionConfig>,
+    pub postprocessor: Option<JsPostProcessorConfig>,
+    pub keywords: Option<JsKeywordConfig>,
+    pub html_options: Option<JsHtmlOptions>,
+    pub pages: Option<JsPageConfig>,
+    /// Output text format: "plain" | "markdown" | "djot" | "html"
+    pub output_format: Option<String>,
+    /// Result structure format: "unified" | "element_based"
+    pub result_format: Option<String>,
+    /// Include document structure in extraction result
+    pub include_document_structure: Option<bool>,
+    /// Layout detection configuration (None = layout detection disabled)
+    pub layout: Option<JsLayoutDetectionConfig>,
+}
+
+impl TryFrom<JsFileExtractionConfig> for FileExtractionConfig {
+    type Error = Error;
+
+    fn try_from(val: JsFileExtractionConfig) -> Result<Self> {
+        let html_options = match val.html_options {
+            Some(options) => Some(ConversionOptions::try_from(options)?),
+            None => None,
+        };
+
+        let keywords = match val.keywords {
+            Some(config) => Some(RustKeywordConfig::try_from(config)?),
+            None => None,
+        };
+
+        Ok(FileExtractionConfig {
+            enable_quality_processing: val.enable_quality_processing,
+            ocr: val.ocr.map(Into::into),
+            force_ocr: val.force_ocr,
+            chunking: val.chunking.map(Into::into),
+            images: val.images.map(Into::into),
+            pdf_options: val.pdf_options.map(Into::into),
+            token_reduction: val.token_reduction.map(Into::into),
+            language_detection: val.language_detection.map(Into::into),
+            keywords,
+            postprocessor: val.postprocessor.map(Into::into),
+            html_options,
+            pages: val.pages.map(|p| p.try_into()).transpose()?,
+            output_format: val
+                .output_format
+                .map(|s| s.parse())
+                .transpose()
+                .map_err(|e: String| Error::new(Status::InvalidArg, e))?,
+            result_format: val
+                .result_format
+                .map(|s| match s.as_str() {
+                    "unified" => Ok(kreuzberg::types::OutputFormat::Unified),
+                    "element_based" => Ok(kreuzberg::types::OutputFormat::ElementBased),
+                    other => Err(Error::new(
+                        Status::InvalidArg,
+                        format!(
+                            "Invalid result_format: {}. Expected 'unified' or 'element_based'",
+                            other
+                        ),
+                    )),
+                })
+                .transpose()?,
+            include_document_structure: val.include_document_structure,
+            layout: val.layout.map(Into::into),
+        })
+    }
+}
+
+impl TryFrom<FileExtractionConfig> for JsFileExtractionConfig {
+    type Error = napi::Error;
+
+    fn try_from(val: FileExtractionConfig) -> Result<Self> {
+        Ok(JsFileExtractionConfig {
+            enable_quality_processing: val.enable_quality_processing,
+            ocr: val.ocr.map(|ocr| JsOcrConfig {
+                backend: ocr.backend,
+                language: Some(ocr.language),
+                tesseract_config: ocr.tesseract_config.map(|tc| JsTesseractConfig {
+                    psm: Some(tc.psm),
+                    enable_table_detection: Some(tc.enable_table_detection),
+                    tessedit_char_whitelist: if tc.tessedit_char_whitelist.is_empty() {
+                        None
+                    } else {
+                        Some(tc.tessedit_char_whitelist)
+                    },
+                }),
+                paddle_ocr_config: ocr
+                    .paddle_ocr_config
+                    .and_then(|v| serde_json::from_value::<kreuzberg::PaddleOcrConfig>(v).ok())
+                    .map(|p| JsPaddleOcrConfig {
+                        cache_dir: p.cache_dir.map(|p| p.to_string_lossy().into_owned()),
+                        use_angle_cls: Some(p.use_angle_cls),
+                        enable_table_detection: Some(p.enable_table_detection),
+                        det_db_thresh: Some(p.det_db_thresh as f64),
+                        det_db_box_thresh: Some(p.det_db_box_thresh as f64),
+                        det_db_unclip_ratio: Some(p.det_db_unclip_ratio as f64),
+                        det_limit_side_len: Some(p.det_limit_side_len),
+                        rec_batch_num: Some(p.rec_batch_num),
+                        min_confidence: None,
+                        output_format: None,
+                    }),
+                element_config: ocr.element_config.map(|ec| JsOcrElementConfig {
+                    include_elements: Some(ec.include_elements),
+                    min_level: Some(match ec.min_level {
+                        kreuzberg::OcrElementLevel::Word => "word".to_string(),
+                        kreuzberg::OcrElementLevel::Line => "line".to_string(),
+                        kreuzberg::OcrElementLevel::Block => "block".to_string(),
+                        kreuzberg::OcrElementLevel::Page => "page".to_string(),
+                    }),
+                    min_confidence: Some(ec.min_confidence),
+                    build_hierarchy: Some(ec.build_hierarchy),
+                }),
+            }),
+            force_ocr: val.force_ocr,
+            chunking: val.chunking.map(|chunk| JsChunkingConfig {
+                max_chars: Some(chunk.max_characters as u32),
+                max_overlap: Some(chunk.overlap as u32),
+                embedding: chunk.embedding.map(|emb| JsEmbeddingConfig {
+                    model: Some(JsEmbeddingModelType {
+                        model_type: match emb.model {
+                            RustEmbeddingModelType::Preset { .. } => "preset".to_string(),
+                            RustEmbeddingModelType::Custom { .. } => "custom".to_string(),
+                        },
+                        value: match &emb.model {
+                            RustEmbeddingModelType::Preset { name } => name.clone(),
+                            RustEmbeddingModelType::Custom { model_id, .. } => model_id.clone(),
+                        },
+                        dimensions: match emb.model {
+                            RustEmbeddingModelType::Custom { dimensions, .. } => Some(dimensions as u32),
+                            _ => None,
+                        },
+                    }),
+                    normalize: Some(emb.normalize),
+                    batch_size: Some(emb.batch_size as u32),
+                    show_download_progress: Some(emb.show_download_progress),
+                    cache_dir: emb.cache_dir.and_then(|p| p.to_str().map(String::from)),
+                }),
+                preset: chunk.preset,
+                chunker_type: match chunk.chunker_type {
+                    ChunkerType::Text => None,
+                    ChunkerType::Markdown => Some("markdown".to_string()),
+                },
+                sizing_type: match &chunk.sizing {
+                    kreuzberg::ChunkSizing::Characters => None,
+                    kreuzberg::ChunkSizing::Tokenizer { .. } => Some("tokenizer".to_string()),
+                },
+                sizing_model: match &chunk.sizing {
+                    kreuzberg::ChunkSizing::Tokenizer { model, .. } => Some(model.clone()),
+                    _ => None,
+                },
+                sizing_cache_dir: match &chunk.sizing {
+                    kreuzberg::ChunkSizing::Tokenizer { cache_dir, .. } => {
+                        cache_dir.as_ref().and_then(|p| p.to_str().map(String::from))
+                    }
+                    _ => None,
+                },
+            }),
+            images: val.images.map(|img| JsImageExtractionConfig {
+                extract_images: Some(img.extract_images),
+                target_dpi: Some(img.target_dpi),
+                max_image_dimension: Some(img.max_image_dimension),
+                inject_placeholders: Some(img.inject_placeholders),
+                auto_adjust_dpi: Some(img.auto_adjust_dpi),
+                min_dpi: Some(img.min_dpi),
+                max_dpi: Some(img.max_dpi),
+            }),
+            pdf_options: val.pdf_options.map(|pdf| JsPdfConfig {
+                extract_images: Some(pdf.extract_images),
+                passwords: pdf.passwords,
+                extract_metadata: Some(pdf.extract_metadata),
+                hierarchy: pdf.hierarchy.map(|h| JsHierarchyConfig {
+                    enabled: Some(h.enabled),
+                    k_clusters: Some(h.k_clusters as i32),
+                    include_bbox: Some(h.include_bbox),
+                    ocr_coverage_threshold: h.ocr_coverage_threshold.map(|v| v as f64),
+                }),
+                extract_annotations: Some(pdf.extract_annotations),
+                top_margin_fraction: pdf.top_margin_fraction.map(|v| v as f64),
+                bottom_margin_fraction: pdf.bottom_margin_fraction.map(|v| v as f64),
+            }),
+            token_reduction: val.token_reduction.map(|tr| JsTokenReductionConfig {
+                mode: Some(tr.mode),
+                preserve_important_words: Some(tr.preserve_important_words),
+            }),
+            language_detection: val.language_detection.map(|ld| JsLanguageDetectionConfig {
+                enabled: Some(ld.enabled),
+                min_confidence: Some(ld.min_confidence),
+                detect_multiple: Some(ld.detect_multiple),
+            }),
+            postprocessor: val.postprocessor.map(|pp| JsPostProcessorConfig {
+                enabled: Some(pp.enabled),
+                enabled_processors: pp.enabled_processors,
+                disabled_processors: pp.disabled_processors,
+            }),
+            keywords: val.keywords.map(JsKeywordConfig::from),
+            html_options: val.html_options.as_ref().map(JsHtmlOptions::from),
+            pages: val.pages.map(JsPageConfig::from),
+            output_format: val.output_format.map(|f| f.to_string()),
+            result_format: val.result_format.map(|f| match f {
+                kreuzberg::types::OutputFormat::Unified => "unified".to_string(),
+                kreuzberg::types::OutputFormat::ElementBased => "element_based".to_string(),
+            }),
+            include_document_structure: val.include_document_structure,
+            layout: val.layout.map(JsLayoutDetectionConfig::from),
+        })
     }
 }

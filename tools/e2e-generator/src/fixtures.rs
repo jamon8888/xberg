@@ -134,6 +134,14 @@ pub struct ExtractionSpec {
     pub method: ExtractionMethod,
     #[serde(default)]
     pub input_type: InputType,
+    #[serde(default)]
+    pub file_configs: Option<Vec<Option<Map<String, Value>>>>,
+}
+
+impl ExtractionSpec {
+    pub fn has_file_configs(&self) -> bool {
+        self.file_configs.as_ref().map_or(false, |fc| !fc.is_empty())
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]

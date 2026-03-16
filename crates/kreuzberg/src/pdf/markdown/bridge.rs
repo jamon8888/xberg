@@ -345,9 +345,8 @@ fn build_line_text(chars: &[CharInfo], repair_map: Option<&[(char, &str)]>) -> S
         // whether a space is needed.
         if idx > 0 && ci.ch != ' ' && chars[idx - 1].ch != ' ' {
             let prev = &chars[idx - 1];
-            let same_object = ci.text_object_id != 0
-                && prev.text_object_id != 0
-                && ci.text_object_id == prev.text_object_id;
+            let same_object =
+                ci.text_object_id != 0 && prev.text_object_id != 0 && ci.text_object_id == prev.text_object_id;
 
             if !same_object {
                 // Different text objects — use position-based gap detection.
@@ -875,6 +874,7 @@ mod tests {
             has_map_error: false,
             is_symbolic: false,
             is_hyphen: false,
+            text_object_id: 0,
         }
     }
 

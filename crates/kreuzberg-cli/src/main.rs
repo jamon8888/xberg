@@ -63,8 +63,8 @@ use commands::mcp_command;
 #[cfg(feature = "api")]
 use commands::serve_command;
 use commands::{
-    apply_extraction_overrides, batch_command, clear_command, extract_command, load_config, manifest_command,
-    stats_command, warm_command,
+    apply_extraction_overrides, batch_command, batch_command_with_configs, clear_command, extract_command, load_config,
+    manifest_command, stats_command, warm_command,
 };
 use kreuzberg::{OutputFormat as ContentOutputFormat, detect_mime_type};
 use serde_json::json;
@@ -243,6 +243,12 @@ enum Commands {
         /// Password(s) for encrypted PDFs. Can be specified multiple times.
         #[arg(long)]
         pdf_password: Vec<String>,
+
+        /// Path to a JSON file mapping file paths to per-file extraction config overrides.
+        /// The JSON should be an object where keys are file paths and values are FileExtractionConfig objects.
+        /// Example: {"doc1.pdf": {"force_ocr": true}, "doc2.pdf": {"output_format": "markdown"}}
+        #[arg(long)]
+        file_configs: Option<PathBuf>,
     },
 
     /// Detect MIME type of a file
@@ -646,6 +652,7 @@ fn main() -> Result<()> {
             output_format,
             content_format,
             pdf_password,
+            file_configs,
         } => {
             validate_batch_paths(&paths)?;
 
@@ -692,7 +699,20 @@ fn main() -> Result<()> {
                 pdf_opts.passwords = Some(pdf_password);
             }
 
-            batch_command(paths, config, format)?;
+            if let Some(file_configs_path) = file_configs {
+                let file_configs_json = std::fs::read_to_string(&file_configs_path)
+                    .with_context(|| format!("Failed to read file configs from '{}'", file_configs_path.display()))?;
+                let file_configs_map: std::collections::HashMap<String, serde_json::Value> =
+                    serde_json::from_str(&file_configs_json).with_context(|| {
+                        format!(
+                            "Failed to parse file configs JSON from '{}'",
+                            file_configs_path.display()
+                        )
+                    })?;
+                batch_command_with_configs(paths, file_configs_map, config, format)?;
+            } else {
+                batch_command(paths, config, format)?;
+            }
         }
 
         Commands::Detect { path, format } => {

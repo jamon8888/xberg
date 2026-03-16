@@ -339,6 +339,122 @@ Output format for extraction content. Controls how extracted text is formatted i
 
 ---
 
+## FileExtractionConfig <span class="version-badge">v4.5.0</span>
+
+Per-file extraction configuration overrides for batch operations. All fields are optional — `None` means "use the batch-level default from `ExtractionConfig`."
+
+When used with `batch_extract_file_with_configs` or `batch_extract_bytes_with_configs`, each file in the batch can specify its own overrides that are merged with the shared batch-level `ExtractionConfig`.
+
+### Overridable Fields
+
+| Field                        | Type                       | Description                                      |
+| ---------------------------- | -------------------------- | ------------------------------------------------ |
+| `enable_quality_processing`  | `bool?`                    | Override quality post-processing for this file    |
+| `ocr`                        | `OcrConfig?`               | Override OCR configuration                        |
+| `force_ocr`                  | `bool?`                    | Override force OCR                                |
+| `chunking`                   | `ChunkingConfig?`          | Override text chunking                            |
+| `images`                     | `ImageExtractionConfig?`   | Override image extraction                         |
+| `pdf_options`                | `PdfConfig?`               | Override PDF-specific options                     |
+| `token_reduction`            | `TokenReductionConfig?`    | Override token reduction                          |
+| `language_detection`         | `LanguageDetectionConfig?` | Override language detection                       |
+| `pages`                      | `PageConfig?`              | Override page extraction                          |
+| `keywords`                   | `KeywordConfig?`           | Override keyword extraction                       |
+| `postprocessor`              | `PostProcessorConfig?`     | Override post-processing                          |
+| `html_options`               | `ConversionOptions?`       | Override HTML conversion options                  |
+| `result_format`              | `OutputFormat?`            | Override result structure format                  |
+| `output_format`              | `OutputFormat?`            | Override output content format                    |
+| `include_document_structure` | `bool?`                    | Override document structure output                |
+| `layout`                     | `LayoutDetectionConfig?`   | Override layout detection                         |
+
+### Batch-Level Only Fields (Not Overridable)
+
+These `ExtractionConfig` fields cannot be overridden per file:
+
+- `max_concurrent_extractions` — controls batch parallelism
+- `use_cache` — global caching policy
+- `acceleration` — shared ONNX execution provider
+- `security_limits` — global archive security policy
+
+### Merge Semantics
+
+For each file in a batch, the effective configuration is computed by overlaying the per-file `FileExtractionConfig` onto the batch-level `ExtractionConfig`. A field set to `None` in `FileExtractionConfig` falls through to the batch default. A field set to `Some(value)` replaces the batch default entirely for that file.
+
+### Example
+
+=== "Rust"
+
+    ```rust title="per_file_config.rs"
+    use kreuzberg::{
+        batch_extract_file_with_configs, ExtractionConfig, FileExtractionConfig, OcrConfig,
+    };
+    use std::path::PathBuf;
+
+    #[tokio::main]
+    async fn main() -> kreuzberg::Result<()> {
+        let batch_config = ExtractionConfig::default();
+
+        let items = vec![
+            // Use batch defaults for this PDF
+            (PathBuf::from("report.pdf"), None),
+            // Force OCR for this scanned document
+            (PathBuf::from("scanned.pdf"), Some(FileExtractionConfig {
+                force_ocr: Some(true),
+                ocr: Some(OcrConfig {
+                    backend: "tesseract".to_string(),
+                    language: "deu".to_string(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            })),
+        ];
+
+        let results = batch_extract_file_with_configs(items, &batch_config).await?;
+        Ok(())
+    }
+    ```
+
+=== "Python"
+
+    ```python title="per_file_config.py"
+    from kreuzberg import (
+        batch_extract_files_with_configs_sync,
+        ExtractionConfig,
+        FileExtractionConfig,
+        OcrConfig,
+    )
+
+    config = ExtractionConfig()
+
+    items = [
+        ("report.pdf", None),  # use batch defaults
+        ("scanned.pdf", FileExtractionConfig(
+            force_ocr=True,
+            ocr=OcrConfig(backend="tesseract", language="deu"),
+        )),
+    ]
+
+    results = batch_extract_files_with_configs_sync(items, config)
+    ```
+
+=== "TypeScript"
+
+    ```typescript title="per_file_config.ts"
+    import { batchExtractFilesWithConfigsSync } from '@kreuzberg/node';
+
+    const results = batchExtractFilesWithConfigsSync(
+      ['report.pdf', 'scanned.pdf'],
+      [
+        null,  // use batch defaults
+        {      // per-file overrides
+          forceOcr: true,
+          ocr: { backend: 'tesseract', language: 'deu' },
+        },
+      ],
+    );
+    ```
+
+---
+
 ## OcrConfig
 
 Configuration for OCR (Optical Character Recognition) processing on images and scanned PDFs.
