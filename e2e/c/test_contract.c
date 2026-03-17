@@ -8,7 +8,7 @@ static void test_contract_api_batch_bytes_async(void) {
     char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
     if (!doc_path) return; /* document missing */
     const char *batch_paths[] = { doc_path };
-    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, 1, NULL);
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
     free(doc_path);
     if (!batch) {
         printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
@@ -35,7 +35,7 @@ static void test_contract_api_batch_bytes_sync(void) {
     char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
     if (!doc_path) return; /* document missing */
     const char *batch_paths[] = { doc_path };
-    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, 1, NULL);
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
     free(doc_path);
     if (!batch) {
         printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
@@ -58,11 +58,63 @@ static void test_contract_api_batch_bytes_sync(void) {
     kreuzberg_free_batch_result(batch);
 }
 
+static void test_contract_api_batch_bytes_with_configs_async(void) {
+    char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
+    if (!doc_path) return; /* document missing */
+    const char *batch_paths[] = { doc_path };
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
+    free(doc_path);
+    if (!batch) {
+        printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
+        return;
+    }
+    if (!batch->success || batch->count == 0) {
+        printf("SKIP: batch extraction unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    CExtractionResult *result = batch->results[0];
+    if (!result || !result->success) {
+        printf("SKIP: batch result[0] unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
+    assert_min_content_length(result, 10);
+    kreuzberg_free_batch_result(batch);
+}
+
+static void test_contract_api_batch_bytes_with_configs_sync(void) {
+    char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
+    if (!doc_path) return; /* document missing */
+    const char *batch_paths[] = { doc_path };
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
+    free(doc_path);
+    if (!batch) {
+        printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
+        return;
+    }
+    if (!batch->success || batch->count == 0) {
+        printf("SKIP: batch extraction unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    CExtractionResult *result = batch->results[0];
+    if (!result || !result->success) {
+        printf("SKIP: batch result[0] unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
+    assert_min_content_length(result, 10);
+    kreuzberg_free_batch_result(batch);
+}
+
 static void test_contract_api_batch_file_async(void) {
     char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
     if (!doc_path) return; /* document missing */
     const char *batch_paths[] = { doc_path };
-    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, 1, NULL);
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
     free(doc_path);
     if (!batch) {
         printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
@@ -89,7 +141,7 @@ static void test_contract_api_batch_file_sync(void) {
     char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
     if (!doc_path) return; /* document missing */
     const char *batch_paths[] = { doc_path };
-    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, 1, NULL);
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
     free(doc_path);
     if (!batch) {
         printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
@@ -109,6 +161,58 @@ static void test_contract_api_batch_file_sync(void) {
     assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
     assert_min_content_length(result, 10);
     assert_content_contains_any(result, (const char *[]){"May 5, 2023", "Mallori"}, 2);
+    kreuzberg_free_batch_result(batch);
+}
+
+static void test_contract_api_batch_file_with_configs_async(void) {
+    char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
+    if (!doc_path) return; /* document missing */
+    const char *batch_paths[] = { doc_path };
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
+    free(doc_path);
+    if (!batch) {
+        printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
+        return;
+    }
+    if (!batch->success || batch->count == 0) {
+        printf("SKIP: batch extraction unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    CExtractionResult *result = batch->results[0];
+    if (!result || !result->success) {
+        printf("SKIP: batch result[0] unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
+    assert_min_content_length(result, 10);
+    kreuzberg_free_batch_result(batch);
+}
+
+static void test_contract_api_batch_file_with_configs_sync(void) {
+    char *doc_path = ensure_document("pdf/fake_memo.pdf", 1);
+    if (!doc_path) return; /* document missing */
+    const char *batch_paths[] = { doc_path };
+    CBatchResult *batch = kreuzberg_batch_extract_files_sync(batch_paths, NULL, 1, NULL);
+    free(doc_path);
+    if (!batch) {
+        printf("SKIP: batch extraction returned NULL for %s\n", "pdf/fake_memo.pdf");
+        return;
+    }
+    if (!batch->success || batch->count == 0) {
+        printf("SKIP: batch extraction unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    CExtractionResult *result = batch->results[0];
+    if (!result || !result->success) {
+        printf("SKIP: batch result[0] unsuccessful for %s\n", "pdf/fake_memo.pdf");
+        kreuzberg_free_batch_result(batch);
+        return;
+    }
+    assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
+    assert_min_content_length(result, 10);
     kreuzberg_free_batch_result(batch);
 }
 
@@ -279,6 +383,14 @@ static void test_contract_config_element_types(void) {
     if (!result) return; /* skipped */
     assert_expected_mime(result, (const char *[]){"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}, 1);
     assert_elements(result, 1, 1);
+    kreuzberg_free_result(result);
+}
+
+static void test_contract_config_email_msg_fallback_codepage(void) {
+    CExtractionResult *result = run_extraction("email/fake_email.msg", "{\"email\":{\"msg_fallback_codepage\":1251}}");
+    if (!result) return; /* skipped */
+    assert_expected_mime(result, (const char *[]){"application/vnd.ms-outlook"}, 1);
+    assert_min_content_length(result, 10);
     kreuzberg_free_result(result);
 }
 
@@ -559,8 +671,12 @@ static void test_contract_result_format_unified(void) {
 int main(void) {
     test_contract_api_batch_bytes_async();
     test_contract_api_batch_bytes_sync();
+    test_contract_api_batch_bytes_with_configs_async();
+    test_contract_api_batch_bytes_with_configs_sync();
     test_contract_api_batch_file_async();
     test_contract_api_batch_file_sync();
+    test_contract_api_batch_file_with_configs_async();
+    test_contract_api_batch_file_with_configs_sync();
     test_contract_api_extract_bytes_async();
     test_contract_api_extract_bytes_sync();
     test_contract_api_extract_file_async();
@@ -580,6 +696,7 @@ int main(void) {
     test_contract_config_document_structure_headings();
     test_contract_config_document_structure_with_headings();
     test_contract_config_element_types();
+    test_contract_config_email_msg_fallback_codepage();
     test_contract_config_force_ocr();
     test_contract_config_html_options();
     test_contract_config_images();

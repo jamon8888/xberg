@@ -85,6 +85,66 @@ describe("contract fixtures", () => {
 	);
 
 	it(
+		"api_batch_bytes_with_configs_async",
+		async () => {
+			const documentPath = resolveDocument("pdf/fake_memo.pdf");
+			if (!existsSync(documentPath)) {
+				console.warn("Skipping api_batch_bytes_with_configs_async: missing document at", documentPath);
+				return;
+			}
+			const config = buildConfig(undefined);
+			let result: ExtractionResult | null = null;
+			try {
+				const fileBytes = readFileSync(documentPath);
+				const mimeType = detectMimeTypeFromPath(documentPath);
+				const results = await batchExtractBytes([fileBytes], [mimeType], config);
+				result = results[0];
+			} catch (error) {
+				if (shouldSkipFixture(error, "api_batch_bytes_with_configs_async", [], undefined)) {
+					return;
+				}
+				throw error;
+			}
+			if (result === null) {
+				return;
+			}
+			assertions.assertExpectedMime(result, ["application/pdf"]);
+			assertions.assertMinContentLength(result, 10);
+		},
+		TEST_TIMEOUT_MS,
+	);
+
+	it(
+		"api_batch_bytes_with_configs_sync",
+		() => {
+			const documentPath = resolveDocument("pdf/fake_memo.pdf");
+			if (!existsSync(documentPath)) {
+				console.warn("Skipping api_batch_bytes_with_configs_sync: missing document at", documentPath);
+				return;
+			}
+			const config = buildConfig(undefined);
+			let result: ExtractionResult | null = null;
+			try {
+				const fileBytes = readFileSync(documentPath);
+				const mimeType = detectMimeTypeFromPath(documentPath);
+				const results = batchExtractBytesSync([fileBytes], [mimeType], config);
+				result = results[0];
+			} catch (error) {
+				if (shouldSkipFixture(error, "api_batch_bytes_with_configs_sync", [], undefined)) {
+					return;
+				}
+				throw error;
+			}
+			if (result === null) {
+				return;
+			}
+			assertions.assertExpectedMime(result, ["application/pdf"]);
+			assertions.assertMinContentLength(result, 10);
+		},
+		TEST_TIMEOUT_MS,
+	);
+
+	it(
 		"api_batch_file_async",
 		async () => {
 			const documentPath = resolveDocument("pdf/fake_memo.pdf");
@@ -138,6 +198,62 @@ describe("contract fixtures", () => {
 			assertions.assertExpectedMime(result, ["application/pdf"]);
 			assertions.assertMinContentLength(result, 10);
 			assertions.assertContentContainsAny(result, ["May 5, 2023", "Mallori"]);
+		},
+		TEST_TIMEOUT_MS,
+	);
+
+	it(
+		"api_batch_file_with_configs_async",
+		async () => {
+			const documentPath = resolveDocument("pdf/fake_memo.pdf");
+			if (!existsSync(documentPath)) {
+				console.warn("Skipping api_batch_file_with_configs_async: missing document at", documentPath);
+				return;
+			}
+			const config = buildConfig(undefined);
+			let result: ExtractionResult | null = null;
+			try {
+				const results = await batchExtractFiles([documentPath], config);
+				result = results[0];
+			} catch (error) {
+				if (shouldSkipFixture(error, "api_batch_file_with_configs_async", [], undefined)) {
+					return;
+				}
+				throw error;
+			}
+			if (result === null) {
+				return;
+			}
+			assertions.assertExpectedMime(result, ["application/pdf"]);
+			assertions.assertMinContentLength(result, 10);
+		},
+		TEST_TIMEOUT_MS,
+	);
+
+	it(
+		"api_batch_file_with_configs_sync",
+		() => {
+			const documentPath = resolveDocument("pdf/fake_memo.pdf");
+			if (!existsSync(documentPath)) {
+				console.warn("Skipping api_batch_file_with_configs_sync: missing document at", documentPath);
+				return;
+			}
+			const config = buildConfig(undefined);
+			let result: ExtractionResult | null = null;
+			try {
+				const results = batchExtractFilesSync([documentPath], config);
+				result = results[0];
+			} catch (error) {
+				if (shouldSkipFixture(error, "api_batch_file_with_configs_sync", [], undefined)) {
+					return;
+				}
+				throw error;
+			}
+			if (result === null) {
+				return;
+			}
+			assertions.assertExpectedMime(result, ["application/pdf"]);
+			assertions.assertMinContentLength(result, 10);
 		},
 		TEST_TIMEOUT_MS,
 	);
@@ -682,6 +798,33 @@ describe("contract fixtures", () => {
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 			]);
 			chunkAssertions.assertElements(result, 1, ["narrative_text"]);
+		},
+		TEST_TIMEOUT_MS,
+	);
+
+	it(
+		"config_email_msg_fallback_codepage",
+		() => {
+			const documentPath = resolveDocument("email/fake_email.msg");
+			if (!existsSync(documentPath)) {
+				console.warn("Skipping config_email_msg_fallback_codepage: missing document at", documentPath);
+				return;
+			}
+			const config = buildConfig({ email: { msg_fallback_codepage: 1251 } });
+			let result: ExtractionResult | null = null;
+			try {
+				result = extractFileSync(documentPath, null, config);
+			} catch (error) {
+				if (shouldSkipFixture(error, "config_email_msg_fallback_codepage", [], undefined)) {
+					return;
+				}
+				throw error;
+			}
+			if (result === null) {
+				return;
+			}
+			assertions.assertExpectedMime(result, ["application/vnd.ms-outlook"]);
+			assertions.assertMinContentLength(result, 10);
 		},
 		TEST_TIMEOUT_MS,
 	);

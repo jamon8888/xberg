@@ -327,6 +327,13 @@ export function buildConfig(raw: unknown): ExtractionConfig {
         };
     }
 
+    if (isPlainRecord(source.email)) {
+        const email = source.email as PlainRecord;
+        target.email = {
+            ...(typeof email.msg_fallback_codepage === "number" ? { msgFallbackCodepage: email.msg_fallback_codepage } : {}),
+        };
+    }
+
     if (typeof source.output_format === "string") {
         result.outputFormat = source.output_format as string;
     }

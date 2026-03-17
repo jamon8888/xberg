@@ -59,6 +59,54 @@ defmodule E2E.ContractTest do
       end
     end
 
+    test "api_batch_bytes_with_configs_async" do
+      case E2E.Helpers.run_fixture_with_method(
+             "api_batch_bytes_with_configs_async",
+             "pdf/fake_memo.pdf",
+             nil,
+             :batch_async,
+             :bytes,
+             requirements: [],
+             notes: nil,
+             skip_if_missing: true
+           ) do
+        {:ok, result} ->
+          result
+          |> E2E.Helpers.assert_expected_mime(["application/pdf"])
+          |> E2E.Helpers.assert_min_content_length(10)
+
+        {:skipped, reason} ->
+          IO.puts("SKIPPED: #{reason}")
+
+        {:error, reason} ->
+          flunk("Extraction failed: #{inspect(reason)}")
+      end
+    end
+
+    test "api_batch_bytes_with_configs_sync" do
+      case E2E.Helpers.run_fixture_with_method(
+             "api_batch_bytes_with_configs_sync",
+             "pdf/fake_memo.pdf",
+             nil,
+             :batch_sync,
+             :bytes,
+             requirements: [],
+             notes: nil,
+             skip_if_missing: true
+           ) do
+        {:ok, result} ->
+          result
+          |> E2E.Helpers.assert_expected_mime(["application/pdf"])
+          |> E2E.Helpers.assert_min_content_length(10)
+
+        {:skipped, reason} ->
+          IO.puts("SKIPPED: #{reason}")
+
+        {:error, reason} ->
+          flunk("Extraction failed: #{inspect(reason)}")
+      end
+    end
+
     test "api_batch_file_async" do
       case E2E.Helpers.run_fixture_with_method(
              "api_batch_file_async",
@@ -100,6 +148,54 @@ defmodule E2E.ContractTest do
           |> E2E.Helpers.assert_expected_mime(["application/pdf"])
           |> E2E.Helpers.assert_min_content_length(10)
           |> E2E.Helpers.assert_content_contains_any(["May 5, 2023", "Mallori"])
+
+        {:skipped, reason} ->
+          IO.puts("SKIPPED: #{reason}")
+
+        {:error, reason} ->
+          flunk("Extraction failed: #{inspect(reason)}")
+      end
+    end
+
+    test "api_batch_file_with_configs_async" do
+      case E2E.Helpers.run_fixture_with_method(
+             "api_batch_file_with_configs_async",
+             "pdf/fake_memo.pdf",
+             nil,
+             :batch_async,
+             :file,
+             requirements: [],
+             notes: nil,
+             skip_if_missing: true
+           ) do
+        {:ok, result} ->
+          result
+          |> E2E.Helpers.assert_expected_mime(["application/pdf"])
+          |> E2E.Helpers.assert_min_content_length(10)
+
+        {:skipped, reason} ->
+          IO.puts("SKIPPED: #{reason}")
+
+        {:error, reason} ->
+          flunk("Extraction failed: #{inspect(reason)}")
+      end
+    end
+
+    test "api_batch_file_with_configs_sync" do
+      case E2E.Helpers.run_fixture_with_method(
+             "api_batch_file_with_configs_sync",
+             "pdf/fake_memo.pdf",
+             nil,
+             :batch_sync,
+             :file,
+             requirements: [],
+             notes: nil,
+             skip_if_missing: true
+           ) do
+        {:ok, result} ->
+          result
+          |> E2E.Helpers.assert_expected_mime(["application/pdf"])
+          |> E2E.Helpers.assert_min_content_length(10)
 
         {:skipped, reason} ->
           IO.puts("SKIPPED: #{reason}")
@@ -545,6 +641,28 @@ defmodule E2E.ContractTest do
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           ])
           |> E2E.Helpers.assert_elements(min_count: 1, types_include: ["narrative_text"])
+
+        {:skipped, reason} ->
+          IO.puts("SKIPPED: #{reason}")
+
+        {:error, reason} ->
+          flunk("Extraction failed: #{inspect(reason)}")
+      end
+    end
+
+    test "config_email_msg_fallback_codepage" do
+      case E2E.Helpers.run_fixture(
+             "config_email_msg_fallback_codepage",
+             "email/fake_email.msg",
+             %{email: %{msg_fallback_codepage: 1_251}},
+             requirements: [],
+             notes: nil,
+             skip_if_missing: true
+           ) do
+        {:ok, result} ->
+          result
+          |> E2E.Helpers.assert_expected_mime(["application/vnd.ms-outlook"])
+          |> E2E.Helpers.assert_min_content_length(10)
 
         {:skipped, reason} ->
           IO.puts("SKIPPED: #{reason}")

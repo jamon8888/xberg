@@ -62,6 +62,48 @@ Deno.test("api_batch_bytes_sync", { permissions: { read: true, net: true } }, as
 	assertions.assertContentContainsAny(result, ["May 5, 2023", "Mallori"]);
 });
 
+Deno.test("api_batch_bytes_with_configs_async", { permissions: { read: true, net: true } }, async () => {
+	const config = buildConfig(undefined);
+	let result: ExtractionResult | null = null;
+	try {
+		const documentBytes = await resolveDocument("pdf/fake_memo.pdf");
+		// Batch async extraction - WASM simulates with single extraction
+		const results = [await extractBytes(documentBytes, "application/octet-stream", config)];
+		result = results[0];
+	} catch (error) {
+		if (shouldSkipFixture(error, "api_batch_bytes_with_configs_async", [], undefined)) {
+			return;
+		}
+		throw error;
+	}
+	if (result === null) {
+		return;
+	}
+	assertions.assertExpectedMime(result, ["application/pdf"]);
+	assertions.assertMinContentLength(result, 10);
+});
+
+Deno.test("api_batch_bytes_with_configs_sync", { permissions: { read: true, net: true } }, async () => {
+	const config = buildConfig(undefined);
+	let result: ExtractionResult | null = null;
+	try {
+		const documentBytes = await resolveDocument("pdf/fake_memo.pdf");
+		// Batch sync extraction - WASM simulates with single extraction
+		const results = [await extractBytes(documentBytes, "application/octet-stream", config)];
+		result = results[0];
+	} catch (error) {
+		if (shouldSkipFixture(error, "api_batch_bytes_with_configs_sync", [], undefined)) {
+			return;
+		}
+		throw error;
+	}
+	if (result === null) {
+		return;
+	}
+	assertions.assertExpectedMime(result, ["application/pdf"]);
+	assertions.assertMinContentLength(result, 10);
+});
+
 Deno.test("api_batch_file_async", { permissions: { read: true, net: true } }, async () => {
 	const config = buildConfig(undefined);
 	let result: ExtractionResult | null = null;
@@ -104,6 +146,48 @@ Deno.test("api_batch_file_sync", { permissions: { read: true, net: true } }, asy
 	assertions.assertExpectedMime(result, ["application/pdf"]);
 	assertions.assertMinContentLength(result, 10);
 	assertions.assertContentContainsAny(result, ["May 5, 2023", "Mallori"]);
+});
+
+Deno.test("api_batch_file_with_configs_async", { permissions: { read: true, net: true } }, async () => {
+	const config = buildConfig(undefined);
+	let result: ExtractionResult | null = null;
+	try {
+		const documentBytes = await resolveDocument("pdf/fake_memo.pdf");
+		// Batch async extraction - WASM simulates with single extraction
+		const results = [await extractBytes(documentBytes, "application/octet-stream", config)];
+		result = results[0];
+	} catch (error) {
+		if (shouldSkipFixture(error, "api_batch_file_with_configs_async", [], undefined)) {
+			return;
+		}
+		throw error;
+	}
+	if (result === null) {
+		return;
+	}
+	assertions.assertExpectedMime(result, ["application/pdf"]);
+	assertions.assertMinContentLength(result, 10);
+});
+
+Deno.test("api_batch_file_with_configs_sync", { permissions: { read: true, net: true } }, async () => {
+	const config = buildConfig(undefined);
+	let result: ExtractionResult | null = null;
+	try {
+		const documentBytes = await resolveDocument("pdf/fake_memo.pdf");
+		// Batch sync extraction - WASM simulates with single extraction
+		const results = [await extractBytes(documentBytes, "application/octet-stream", config)];
+		result = results[0];
+	} catch (error) {
+		if (shouldSkipFixture(error, "api_batch_file_with_configs_sync", [], undefined)) {
+			return;
+		}
+		throw error;
+	}
+	if (result === null) {
+		return;
+	}
+	assertions.assertExpectedMime(result, ["application/pdf"]);
+	assertions.assertMinContentLength(result, 10);
 });
 
 Deno.test("api_extract_bytes_async", { permissions: { read: true, net: true } }, async () => {
@@ -473,6 +557,26 @@ Deno.test("config_element_types", { permissions: { read: true, net: true } }, as
 	}
 	assertions.assertExpectedMime(result, ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
 	assertions.assertElements(result, 1, ["narrative_text"]);
+});
+
+Deno.test("config_email_msg_fallback_codepage", { permissions: { read: true, net: true } }, async () => {
+	const config = buildConfig({ email: { msg_fallback_codepage: 1251 } });
+	let result: ExtractionResult | null = null;
+	try {
+		const documentBytes = await resolveDocument("email/fake_email.msg");
+		// Sync file extraction - WASM uses extractBytes with pre-read bytes
+		result = await extractBytes(documentBytes, "application/vnd.ms-outlook", config);
+	} catch (error) {
+		if (shouldSkipFixture(error, "config_email_msg_fallback_codepage", [], undefined)) {
+			return;
+		}
+		throw error;
+	}
+	if (result === null) {
+		return;
+	}
+	assertions.assertExpectedMime(result, ["application/vnd.ms-outlook"]);
+	assertions.assertMinContentLength(result, 10);
 });
 
 Deno.test("config_force_ocr", { permissions: { read: true, net: true } }, async () => {

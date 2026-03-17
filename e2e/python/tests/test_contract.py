@@ -63,6 +63,47 @@ def test_api_batch_bytes_sync() -> None:
 
 
 @pytest.mark.asyncio
+async def test_api_batch_bytes_with_configs_async() -> None:
+    """Tests async batch bytes extraction with per-file configs (batch_extract_bytes with file_configs parameter)"""
+
+    document_path = helpers.resolve_document("pdf/fake_memo.pdf")
+    if not document_path.exists():
+        pytest.skip(f"Skipping api_batch_bytes_with_configs_async: missing document at {document_path}")
+
+    config = helpers.build_config(None)
+
+    file_bytes = document_path.read_bytes()
+    mime_type = detect_mime_type_from_path(str(document_path))
+
+    results = await batch_extract_bytes([file_bytes], [mime_type], config=config)
+    result = results[0]
+
+    helpers.assert_expected_mime(result, ["application/pdf"])
+    helpers.assert_min_content_length(result, 10)
+    helpers.assert_output_format(result, "markdown")
+
+
+def test_api_batch_bytes_with_configs_sync() -> None:
+    """Tests sync batch bytes extraction with per-file configs (batch_extract_bytes_sync with file_configs parameter)"""
+
+    document_path = helpers.resolve_document("pdf/fake_memo.pdf")
+    if not document_path.exists():
+        pytest.skip(f"Skipping api_batch_bytes_with_configs_sync: missing document at {document_path}")
+
+    config = helpers.build_config(None)
+
+    file_bytes = document_path.read_bytes()
+    mime_type = detect_mime_type_from_path(str(document_path))
+
+    results = batch_extract_bytes_sync([file_bytes], [mime_type], config=config)
+    result = results[0]
+
+    helpers.assert_expected_mime(result, ["application/pdf"])
+    helpers.assert_min_content_length(result, 10)
+    helpers.assert_output_format(result, "markdown")
+
+
+@pytest.mark.asyncio
 async def test_api_batch_file_async() -> None:
     """Tests async batch file extraction API (batch_extract_file)"""
 
@@ -95,6 +136,41 @@ def test_api_batch_file_sync() -> None:
     helpers.assert_expected_mime(result, ["application/pdf"])
     helpers.assert_min_content_length(result, 10)
     helpers.assert_content_contains_any(result, ["May 5, 2023", "Mallori"])
+
+
+@pytest.mark.asyncio
+async def test_api_batch_file_with_configs_async() -> None:
+    """Tests async batch file extraction with per-file configs (batch_extract_files with file_configs parameter)"""
+
+    document_path = helpers.resolve_document("pdf/fake_memo.pdf")
+    if not document_path.exists():
+        pytest.skip(f"Skipping api_batch_file_with_configs_async: missing document at {document_path}")
+
+    config = helpers.build_config(None)
+
+    results = await batch_extract_files([document_path], config=config)
+    result = results[0]
+
+    helpers.assert_expected_mime(result, ["application/pdf"])
+    helpers.assert_min_content_length(result, 10)
+    helpers.assert_output_format(result, "markdown")
+
+
+def test_api_batch_file_with_configs_sync() -> None:
+    """Tests sync batch file extraction with per-file configs (batch_extract_files_sync with file_configs parameter)"""
+
+    document_path = helpers.resolve_document("pdf/fake_memo.pdf")
+    if not document_path.exists():
+        pytest.skip(f"Skipping api_batch_file_with_configs_sync: missing document at {document_path}")
+
+    config = helpers.build_config(None)
+
+    results = batch_extract_files_sync([document_path], config=config)
+    result = results[0]
+
+    helpers.assert_expected_mime(result, ["application/pdf"])
+    helpers.assert_min_content_length(result, 10)
+    helpers.assert_output_format(result, "markdown")
 
 
 @pytest.mark.asyncio
@@ -401,6 +477,21 @@ def test_config_element_types() -> None:
     helpers.assert_expected_mime(result, ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"])
     helpers.assert_elements(result, min_count=1, types_include=["narrative_text"])
     helpers.assert_result_format(result, "element_based")
+
+
+def test_config_email_msg_fallback_codepage() -> None:
+    """Tests MSG extraction with custom fallback codepage for Cyrillic"""
+
+    document_path = helpers.resolve_document("email/fake_email.msg")
+    if not document_path.exists():
+        pytest.skip(f"Skipping config_email_msg_fallback_codepage: missing document at {document_path}")
+
+    config = helpers.build_config({"email": {"msg_fallback_codepage": 1251}})
+
+    result = extract_file_sync(document_path, None, config)
+
+    helpers.assert_expected_mime(result, ["application/vnd.ms-outlook"])
+    helpers.assert_min_content_length(result, 10)
 
 
 def test_config_force_ocr() -> None:

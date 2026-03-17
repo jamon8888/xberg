@@ -63,6 +63,51 @@ class ContractTest extends TestCase
     }
 
     /**
+     * Tests async batch bytes extraction with per-file configs (batch_extract_bytes with file_configs parameter)
+     */
+    public function test_api_batch_bytes_with_configs_async(): void
+    {
+        $documentPath = Helpers::resolveDocument('pdf/fake_memo.pdf');
+        if (!file_exists($documentPath)) {
+            $this->markTestSkipped('Skipping api_batch_bytes_with_configs_async: missing document at ' . $documentPath);
+        }
+
+        $config = Helpers::buildConfig(null);
+
+        $kreuzberg = new Kreuzberg($config);
+        $bytes = file_get_contents($documentPath);
+        $mimeType = Kreuzberg::detectMimeType($bytes);
+        $deferred = $kreuzberg->batchExtractBytesAsync([$bytes], [$mimeType]);
+        $results = $deferred->getResults();
+        $result = $results[0];
+
+        Helpers::assertExpectedMime($result, ['application/pdf']);
+        Helpers::assertMinContentLength($result, 10);
+    }
+
+    /**
+     * Tests sync batch bytes extraction with per-file configs (batch_extract_bytes_sync with file_configs parameter)
+     */
+    public function test_api_batch_bytes_with_configs_sync(): void
+    {
+        $documentPath = Helpers::resolveDocument('pdf/fake_memo.pdf');
+        if (!file_exists($documentPath)) {
+            $this->markTestSkipped('Skipping api_batch_bytes_with_configs_sync: missing document at ' . $documentPath);
+        }
+
+        $config = Helpers::buildConfig(null);
+
+        $kreuzberg = new Kreuzberg($config);
+        $bytes = file_get_contents($documentPath);
+        $mimeType = Kreuzberg::detectMimeType($bytes);
+        $results = $kreuzberg->batchExtractBytes([$bytes], [$mimeType]);
+        $result = $results[0];
+
+        Helpers::assertExpectedMime($result, ['application/pdf']);
+        Helpers::assertMinContentLength($result, 10);
+    }
+
+    /**
      * Tests async batch file extraction API (batch_extract_file)
      */
     public function test_api_batch_file_async(): void
@@ -103,6 +148,47 @@ class ContractTest extends TestCase
         Helpers::assertExpectedMime($result, ['application/pdf']);
         Helpers::assertMinContentLength($result, 10);
         Helpers::assertContentContainsAny($result, ['May 5, 2023', 'Mallori']);
+    }
+
+    /**
+     * Tests async batch file extraction with per-file configs (batch_extract_files with file_configs parameter)
+     */
+    public function test_api_batch_file_with_configs_async(): void
+    {
+        $documentPath = Helpers::resolveDocument('pdf/fake_memo.pdf');
+        if (!file_exists($documentPath)) {
+            $this->markTestSkipped('Skipping api_batch_file_with_configs_async: missing document at ' . $documentPath);
+        }
+
+        $config = Helpers::buildConfig(null);
+
+        $kreuzberg = new Kreuzberg($config);
+        $deferred = $kreuzberg->batchExtractFilesAsync([$documentPath]);
+        $results = $deferred->getResults();
+        $result = $results[0];
+
+        Helpers::assertExpectedMime($result, ['application/pdf']);
+        Helpers::assertMinContentLength($result, 10);
+    }
+
+    /**
+     * Tests sync batch file extraction with per-file configs (batch_extract_files_sync with file_configs parameter)
+     */
+    public function test_api_batch_file_with_configs_sync(): void
+    {
+        $documentPath = Helpers::resolveDocument('pdf/fake_memo.pdf');
+        if (!file_exists($documentPath)) {
+            $this->markTestSkipped('Skipping api_batch_file_with_configs_sync: missing document at ' . $documentPath);
+        }
+
+        $config = Helpers::buildConfig(null);
+
+        $kreuzberg = new Kreuzberg($config);
+        $results = $kreuzberg->batchExtractFiles([$documentPath]);
+        $result = $results[0];
+
+        Helpers::assertExpectedMime($result, ['application/pdf']);
+        Helpers::assertMinContentLength($result, 10);
     }
 
     /**
@@ -497,6 +583,25 @@ class ContractTest extends TestCase
 
         Helpers::assertExpectedMime($result, ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
         Helpers::assertElements($result, 1, ['narrative_text']);
+    }
+
+    /**
+     * Tests MSG extraction with custom fallback codepage for Cyrillic
+     */
+    public function test_config_email_msg_fallback_codepage(): void
+    {
+        $documentPath = Helpers::resolveDocument('email/fake_email.msg');
+        if (!file_exists($documentPath)) {
+            $this->markTestSkipped('Skipping config_email_msg_fallback_codepage: missing document at ' . $documentPath);
+        }
+
+        $config = Helpers::buildConfig(['email' => ['msg_fallback_codepage' => 1251]]);
+
+        $kreuzberg = new Kreuzberg($config);
+        $result = $kreuzberg->extractFile($documentPath);
+
+        Helpers::assertExpectedMime($result, ['application/vnd.ms-outlook']);
+        Helpers::assertMinContentLength($result, 10);
     }
 
     /**

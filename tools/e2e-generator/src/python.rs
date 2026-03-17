@@ -21,6 +21,7 @@ import pytest
 from kreuzberg import (
     AccelerationConfig,
     ChunkingConfig,
+    EmailConfig,
     EmbeddingConfig,
     EmbeddingModelType,
     ExtractionConfig,
@@ -106,6 +107,8 @@ def _build_config_objects(config: dict[str, Any], kwargs: dict[str, Any]) -> Non
         kwargs["pages"] = PageConfig(**pages_data)
     if (accel_data := config.get("acceleration")) is not None and isinstance(accel_data, dict):
         kwargs["acceleration"] = AccelerationConfig(**accel_data)
+    if (email_data := config.get("email")) is not None and isinstance(email_data, dict):
+        kwargs["email"] = EmailConfig(**email_data)
 
 
 def build_config(config: dict[str, Any] | None) -> ExtractionConfig:

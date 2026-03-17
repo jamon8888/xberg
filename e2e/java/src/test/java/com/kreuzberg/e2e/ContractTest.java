@@ -110,6 +110,92 @@ public class ContractTest {
   }
 
   @Test
+  public void apiBatchBytesWithConfigsAsync() throws Exception {
+    JsonNode config = null;
+    Path documentPath = E2EHelpers.resolveDocument("pdf/fake_memo.pdf");
+
+    if (true && !Files.exists(documentPath)) {
+      String msg =
+          String.format(
+              "Skipping api_batch_bytes_with_configs_async: missing document at %s", documentPath);
+      System.err.println(msg);
+      org.junit.jupiter.api.Assumptions.assumeTrue(false, msg);
+      return;
+    }
+
+    byte[] documentBytes = Files.readAllBytes(documentPath);
+    String mimeType = Kreuzberg.detectMimeType(documentBytes);
+    ExtractionConfig extractionConfig = E2EHelpers.buildConfig(config);
+    List<BytesWithMime> items = Arrays.asList(new BytesWithMime(documentBytes, mimeType));
+    java.util.concurrent.CompletableFuture<List<ExtractionResult>> future =
+        Kreuzberg.batchExtractBytesAsync(items, extractionConfig);
+    List<ExtractionResult> results;
+    try {
+      results = future.get();
+    } catch (java.util.concurrent.ExecutionException e) {
+      Throwable cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof Exception) {
+        String skipReason =
+            E2EHelpers.skipReasonFor(
+                (Exception) cause,
+                "api_batch_bytes_with_configs_async",
+                Collections.emptyList(),
+                null);
+        if (skipReason != null) {
+          org.junit.jupiter.api.Assumptions.assumeTrue(false, skipReason);
+          return;
+        }
+      }
+      throw e;
+    }
+
+    assertTrue(results.size() == 1, "Expected exactly 1 result from batch extraction");
+    ExtractionResult result = results.get(0);
+
+    E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
+    E2EHelpers.Assertions.assertMinContentLength(result, 10);
+  }
+
+  @Test
+  public void apiBatchBytesWithConfigsSync() throws Exception {
+    JsonNode config = null;
+    Path documentPath = E2EHelpers.resolveDocument("pdf/fake_memo.pdf");
+
+    if (true && !Files.exists(documentPath)) {
+      String msg =
+          String.format(
+              "Skipping api_batch_bytes_with_configs_sync: missing document at %s", documentPath);
+      System.err.println(msg);
+      org.junit.jupiter.api.Assumptions.assumeTrue(false, msg);
+      return;
+    }
+
+    byte[] documentBytes = Files.readAllBytes(documentPath);
+    String mimeType = Kreuzberg.detectMimeType(documentBytes);
+    ExtractionConfig extractionConfig = E2EHelpers.buildConfig(config);
+    List<BytesWithMime> items = Arrays.asList(new BytesWithMime(documentBytes, mimeType));
+    List<ExtractionResult> results;
+    try {
+      results = Kreuzberg.batchExtractBytes(items, extractionConfig);
+    } catch (Exception e) {
+      String skipReason =
+          E2EHelpers.skipReasonFor(
+              e, "api_batch_bytes_with_configs_sync", Collections.emptyList(), null);
+      if (skipReason != null) {
+        org.junit.jupiter.api.Assumptions.assumeTrue(false, skipReason);
+        return;
+      }
+      throw e;
+    }
+
+    assertTrue(results.size() == 1, "Expected exactly 1 result from batch extraction");
+    ExtractionResult result = results.get(0);
+
+    E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
+    E2EHelpers.Assertions.assertMinContentLength(result, 10);
+  }
+
+  @Test
   public void apiBatchFileAsync() throws Exception {
     JsonNode config = null;
     Path documentPath = E2EHelpers.resolveDocument("pdf/fake_memo.pdf");
@@ -185,6 +271,88 @@ public class ContractTest {
     E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
     E2EHelpers.Assertions.assertMinContentLength(result, 10);
     E2EHelpers.Assertions.assertContentContainsAny(result, Arrays.asList("May 5, 2023", "Mallori"));
+  }
+
+  @Test
+  public void apiBatchFileWithConfigsAsync() throws Exception {
+    JsonNode config = null;
+    Path documentPath = E2EHelpers.resolveDocument("pdf/fake_memo.pdf");
+
+    if (true && !Files.exists(documentPath)) {
+      String msg =
+          String.format(
+              "Skipping api_batch_file_with_configs_async: missing document at %s", documentPath);
+      System.err.println(msg);
+      org.junit.jupiter.api.Assumptions.assumeTrue(false, msg);
+      return;
+    }
+
+    ExtractionConfig extractionConfig = E2EHelpers.buildConfig(config);
+    List<String> paths = Arrays.asList(documentPath.toString());
+    java.util.concurrent.CompletableFuture<List<ExtractionResult>> future =
+        Kreuzberg.batchExtractFilesAsync(paths, extractionConfig);
+    List<ExtractionResult> results;
+    try {
+      results = future.get();
+    } catch (java.util.concurrent.ExecutionException e) {
+      Throwable cause = e.getCause() != null ? e.getCause() : e;
+      if (cause instanceof Exception) {
+        String skipReason =
+            E2EHelpers.skipReasonFor(
+                (Exception) cause,
+                "api_batch_file_with_configs_async",
+                Collections.emptyList(),
+                null);
+        if (skipReason != null) {
+          org.junit.jupiter.api.Assumptions.assumeTrue(false, skipReason);
+          return;
+        }
+      }
+      throw e;
+    }
+
+    assertTrue(results.size() == 1, "Expected exactly 1 result from batch extraction");
+    ExtractionResult result = results.get(0);
+
+    E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
+    E2EHelpers.Assertions.assertMinContentLength(result, 10);
+  }
+
+  @Test
+  public void apiBatchFileWithConfigsSync() throws Exception {
+    JsonNode config = null;
+    Path documentPath = E2EHelpers.resolveDocument("pdf/fake_memo.pdf");
+
+    if (true && !Files.exists(documentPath)) {
+      String msg =
+          String.format(
+              "Skipping api_batch_file_with_configs_sync: missing document at %s", documentPath);
+      System.err.println(msg);
+      org.junit.jupiter.api.Assumptions.assumeTrue(false, msg);
+      return;
+    }
+
+    ExtractionConfig extractionConfig = E2EHelpers.buildConfig(config);
+    List<String> paths = Arrays.asList(documentPath.toString());
+    List<ExtractionResult> results;
+    try {
+      results = Kreuzberg.batchExtractFiles(paths, extractionConfig);
+    } catch (Exception e) {
+      String skipReason =
+          E2EHelpers.skipReasonFor(
+              e, "api_batch_file_with_configs_sync", Collections.emptyList(), null);
+      if (skipReason != null) {
+        org.junit.jupiter.api.Assumptions.assumeTrue(false, skipReason);
+        return;
+      }
+      throw e;
+    }
+
+    assertTrue(results.size() == 1, "Expected exactly 1 result from batch extraction");
+    ExtractionResult result = results.get(0);
+
+    E2EHelpers.Assertions.assertExpectedMime(result, Arrays.asList("application/pdf"));
+    E2EHelpers.Assertions.assertMinContentLength(result, 10);
   }
 
   @Test
@@ -583,6 +751,23 @@ public class ContractTest {
               Arrays.asList(
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
           E2EHelpers.Assertions.assertElements(result, 1, Arrays.asList("narrative_text"));
+        });
+  }
+
+  @Test
+  public void configEmailMsgFallbackCodepage() throws Exception {
+    JsonNode config = MAPPER.readTree("{\"email\":{\"msg_fallback_codepage\":1251}}");
+    E2EHelpers.runFixture(
+        "config_email_msg_fallback_codepage",
+        "email/fake_email.msg",
+        config,
+        Collections.emptyList(),
+        null,
+        true,
+        result -> {
+          E2EHelpers.Assertions.assertExpectedMime(
+              result, Arrays.asList("application/vnd.ms-outlook"));
+          E2EHelpers.Assertions.assertMinContentLength(result, 10);
         });
   }
 

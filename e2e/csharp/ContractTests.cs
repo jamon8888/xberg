@@ -46,6 +46,38 @@ namespace Kreuzberg.E2E.Contract
         }
 
         [SkippableFact]
+        public async Task ApiBatchBytesWithConfigsAsync()
+        {
+            TestHelpers.SkipIfLegacyOfficeDisabled("pdf/fake_memo.pdf");
+            TestHelpers.SkipIfOfficeTestOnWindows("pdf/fake_memo.pdf");
+            var documentPath = TestHelpers.EnsureDocument("pdf/fake_memo.pdf", true);
+            var config = TestHelpers.BuildConfig(null);
+
+            var fileBytes = await File.ReadAllBytesAsync(documentPath);
+            var mimeType = KreuzbergClient.DetectMimeType(fileBytes);
+            var results = await KreuzbergClient.BatchExtractBytesAsync(new[] { new BytesWithMime(fileBytes, mimeType) }, config);
+            var result = results[0];
+            TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
+            TestHelpers.AssertMinContentLength(result, 10);
+        }
+
+        [SkippableFact]
+        public void ApiBatchBytesWithConfigsSync()
+        {
+            TestHelpers.SkipIfLegacyOfficeDisabled("pdf/fake_memo.pdf");
+            TestHelpers.SkipIfOfficeTestOnWindows("pdf/fake_memo.pdf");
+            var documentPath = TestHelpers.EnsureDocument("pdf/fake_memo.pdf", true);
+            var config = TestHelpers.BuildConfig(null);
+
+            var fileBytes = File.ReadAllBytes(documentPath);
+            var mimeType = KreuzbergClient.DetectMimeType(fileBytes);
+            var results = KreuzbergClient.BatchExtractBytesSync(new[] { new BytesWithMime(fileBytes, mimeType) }, config);
+            var result = results[0];
+            TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
+            TestHelpers.AssertMinContentLength(result, 10);
+        }
+
+        [SkippableFact]
         public async Task ApiBatchFileAsync()
         {
             TestHelpers.SkipIfLegacyOfficeDisabled("pdf/fake_memo.pdf");
@@ -73,6 +105,34 @@ namespace Kreuzberg.E2E.Contract
             TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
             TestHelpers.AssertMinContentLength(result, 10);
             TestHelpers.AssertContentContainsAny(result, new[] { "May 5, 2023", "Mallori" });
+        }
+
+        [SkippableFact]
+        public async Task ApiBatchFileWithConfigsAsync()
+        {
+            TestHelpers.SkipIfLegacyOfficeDisabled("pdf/fake_memo.pdf");
+            TestHelpers.SkipIfOfficeTestOnWindows("pdf/fake_memo.pdf");
+            var documentPath = TestHelpers.EnsureDocument("pdf/fake_memo.pdf", true);
+            var config = TestHelpers.BuildConfig(null);
+
+            var results = await KreuzbergClient.BatchExtractFilesAsync(new[] { documentPath }, config);
+            var result = results[0];
+            TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
+            TestHelpers.AssertMinContentLength(result, 10);
+        }
+
+        [SkippableFact]
+        public void ApiBatchFileWithConfigsSync()
+        {
+            TestHelpers.SkipIfLegacyOfficeDisabled("pdf/fake_memo.pdf");
+            TestHelpers.SkipIfOfficeTestOnWindows("pdf/fake_memo.pdf");
+            var documentPath = TestHelpers.EnsureDocument("pdf/fake_memo.pdf", true);
+            var config = TestHelpers.BuildConfig(null);
+
+            var results = KreuzbergClient.BatchExtractFilesSync(new[] { documentPath }, config);
+            var result = results[0];
+            TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
+            TestHelpers.AssertMinContentLength(result, 10);
         }
 
         [SkippableFact]
@@ -342,6 +402,19 @@ namespace Kreuzberg.E2E.Contract
             var result = KreuzbergClient.ExtractFileSync(documentPath, config);
             TestHelpers.AssertExpectedMime(result, new[] { "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
             TestHelpers.AssertElements(result, 1, new[] { "narrative_text" });
+        }
+
+        [SkippableFact]
+        public void ConfigEmailMsgFallbackCodepage()
+        {
+            TestHelpers.SkipIfLegacyOfficeDisabled("email/fake_email.msg");
+            TestHelpers.SkipIfOfficeTestOnWindows("email/fake_email.msg");
+            var documentPath = TestHelpers.EnsureDocument("email/fake_email.msg", true);
+            var config = TestHelpers.BuildConfig("{\"email\":{\"msg_fallback_codepage\":1251}}");
+
+            var result = KreuzbergClient.ExtractFileSync(documentPath, config);
+            TestHelpers.AssertExpectedMime(result, new[] { "application/vnd.ms-outlook" });
+            TestHelpers.AssertMinContentLength(result, 10);
         }
 
         [SkippableFact]

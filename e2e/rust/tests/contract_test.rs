@@ -24,11 +24,10 @@ async fn test_api_batch_bytes_async() {
     let file_bytes = std::fs::read(&document_path).expect("Failed to read document file");
     let mime_type = kreuzberg::detect_mime_type(&document_path, true).expect("Failed to detect MIME type");
 
-    let result =
-        match kreuzberg::batch_extract_bytes(vec![(file_bytes.clone(), mime_type.clone(), None)], &config).await {
-            Err(err) => panic!("Extraction failed for api_batch_bytes_async: {err:?}"),
-            Ok(results) => results.into_iter().next().expect("Expected at least one result"),
-        };
+    let result = match kreuzberg::batch_extract_bytes(vec![(file_bytes.clone(), mime_type.clone())], &config).await {
+        Err(err) => panic!("Extraction failed for api_batch_bytes_async: {err:?}"),
+        Ok(results) => results.into_iter().next().expect("Expected at least one result"),
+    };
 
     assertions::assert_expected_mime(&result, &["application/pdf"]);
     assertions::assert_min_content_length(&result, 10);
@@ -52,8 +51,7 @@ fn test_api_batch_bytes_sync() {
     let file_bytes = std::fs::read(&document_path).expect("Failed to read document file");
     let mime_type = kreuzberg::detect_mime_type(&document_path, true).expect("Failed to detect MIME type");
 
-    let result = match kreuzberg::batch_extract_bytes_sync(vec![(file_bytes.clone(), mime_type.clone(), None)], &config)
-    {
+    let result = match kreuzberg::batch_extract_bytes_sync(vec![(file_bytes.clone(), mime_type.clone())], &config) {
         Err(err) => panic!("Extraction failed for api_batch_bytes_sync: {err:?}"),
         Ok(results) => results.into_iter().next().expect("Expected at least one result"),
     };
@@ -61,6 +59,58 @@ fn test_api_batch_bytes_sync() {
     assertions::assert_expected_mime(&result, &["application/pdf"]);
     assertions::assert_min_content_length(&result, 10);
     assertions::assert_content_contains_any(&result, &["May 5, 2023", "Mallori"]);
+}
+
+#[tokio::test]
+async fn test_api_batch_bytes_with_configs_async() {
+    // Tests async batch bytes extraction with per-file configs (batch_extract_bytes with file_configs parameter)
+
+    let document_path = resolve_document("pdf/fake_memo.pdf");
+    if !document_path.exists() {
+        println!(
+            "Skipping api_batch_bytes_with_configs_async: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let file_bytes = std::fs::read(&document_path).expect("Failed to read document file");
+    let mime_type = kreuzberg::detect_mime_type(&document_path, true).expect("Failed to detect MIME type");
+
+    let result = match kreuzberg::batch_extract_bytes(vec![(file_bytes.clone(), mime_type.clone())], &config).await {
+        Err(err) => panic!("Extraction failed for api_batch_bytes_with_configs_async: {err:?}"),
+        Ok(results) => results.into_iter().next().expect("Expected at least one result"),
+    };
+
+    assertions::assert_expected_mime(&result, &["application/pdf"]);
+    assertions::assert_min_content_length(&result, 10);
+}
+
+#[test]
+fn test_api_batch_bytes_with_configs_sync() {
+    // Tests sync batch bytes extraction with per-file configs (batch_extract_bytes_sync with file_configs parameter)
+
+    let document_path = resolve_document("pdf/fake_memo.pdf");
+    if !document_path.exists() {
+        println!(
+            "Skipping api_batch_bytes_with_configs_sync: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let file_bytes = std::fs::read(&document_path).expect("Failed to read document file");
+    let mime_type = kreuzberg::detect_mime_type(&document_path, true).expect("Failed to detect MIME type");
+
+    let result = match kreuzberg::batch_extract_bytes_sync(vec![(file_bytes.clone(), mime_type.clone())], &config) {
+        Err(err) => panic!("Extraction failed for api_batch_bytes_with_configs_sync: {err:?}"),
+        Ok(results) => results.into_iter().next().expect("Expected at least one result"),
+    };
+
+    assertions::assert_expected_mime(&result, &["application/pdf"]);
+    assertions::assert_min_content_length(&result, 10);
 }
 
 #[tokio::test]
@@ -77,7 +127,7 @@ async fn test_api_batch_file_async() {
     }
     let config = ExtractionConfig::default();
 
-    let result = match kreuzberg::batch_extract_file(vec![(document_path.clone(), None)], &config).await {
+    let result = match kreuzberg::batch_extract_file(vec![document_path.clone()], &config).await {
         Err(err) => panic!("Extraction failed for api_batch_file_async: {err:?}"),
         Ok(results) => results.into_iter().next().expect("Expected at least one result"),
     };
@@ -101,7 +151,7 @@ fn test_api_batch_file_sync() {
     }
     let config = ExtractionConfig::default();
 
-    let result = match kreuzberg::batch_extract_file_sync(vec![(document_path.clone(), None)], &config) {
+    let result = match kreuzberg::batch_extract_file_sync(vec![document_path.clone()], &config) {
         Err(err) => panic!("Extraction failed for api_batch_file_sync: {err:?}"),
         Ok(results) => results.into_iter().next().expect("Expected at least one result"),
     };
@@ -109,6 +159,52 @@ fn test_api_batch_file_sync() {
     assertions::assert_expected_mime(&result, &["application/pdf"]);
     assertions::assert_min_content_length(&result, 10);
     assertions::assert_content_contains_any(&result, &["May 5, 2023", "Mallori"]);
+}
+
+#[tokio::test]
+async fn test_api_batch_file_with_configs_async() {
+    // Tests async batch file extraction with per-file configs (batch_extract_files with file_configs parameter)
+
+    let document_path = resolve_document("pdf/fake_memo.pdf");
+    if !document_path.exists() {
+        println!(
+            "Skipping api_batch_file_with_configs_async: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let result = match kreuzberg::batch_extract_file(vec![document_path.clone()], &config).await {
+        Err(err) => panic!("Extraction failed for api_batch_file_with_configs_async: {err:?}"),
+        Ok(results) => results.into_iter().next().expect("Expected at least one result"),
+    };
+
+    assertions::assert_expected_mime(&result, &["application/pdf"]);
+    assertions::assert_min_content_length(&result, 10);
+}
+
+#[test]
+fn test_api_batch_file_with_configs_sync() {
+    // Tests sync batch file extraction with per-file configs (batch_extract_files_sync with file_configs parameter)
+
+    let document_path = resolve_document("pdf/fake_memo.pdf");
+    if !document_path.exists() {
+        println!(
+            "Skipping api_batch_file_with_configs_sync: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config = ExtractionConfig::default();
+
+    let result = match kreuzberg::batch_extract_file_sync(vec![document_path.clone()], &config) {
+        Err(err) => panic!("Extraction failed for api_batch_file_with_configs_sync: {err:?}"),
+        Ok(results) => results.into_iter().next().expect("Expected at least one result"),
+    };
+
+    assertions::assert_expected_mime(&result, &["application/pdf"]);
+    assertions::assert_min_content_length(&result, 10);
 }
 
 #[tokio::test]
@@ -789,6 +885,36 @@ fn test_config_element_types() {
         &["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
     );
     assertions::assert_elements(&result, Some(1), Some(&["narrative_text"]));
+}
+
+#[test]
+fn test_config_email_msg_fallback_codepage() {
+    // Tests MSG extraction with custom fallback codepage for Cyrillic
+
+    let document_path = resolve_document("email/fake_email.msg");
+    if !document_path.exists() {
+        println!(
+            "Skipping config_email_msg_fallback_codepage: missing document at {}",
+            document_path.display()
+        );
+        return;
+    }
+    let config: ExtractionConfig = serde_json::from_str(
+        r#"{
+  "email": {
+    "msg_fallback_codepage": 1251
+  }
+}"#,
+    )
+    .expect("Fixture config should deserialize");
+
+    let result = match kreuzberg::extract_file_sync(&document_path, None, &config) {
+        Err(err) => panic!("Extraction failed for config_email_msg_fallback_codepage: {err:?}"),
+        Ok(result) => result,
+    };
+
+    assertions::assert_expected_mime(&result, &["application/vnd.ms-outlook"]);
+    assertions::assert_min_content_length(&result, 10);
 }
 
 #[test]

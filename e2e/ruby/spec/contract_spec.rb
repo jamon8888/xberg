@@ -48,6 +48,44 @@ RSpec.describe 'contract fixtures' do
     end
   end
 
+  it 'api_batch_bytes_with_configs_async' do
+    E2ERuby.run_fixture_with_method(
+      'api_batch_bytes_with_configs_async',
+      'pdf/fake_memo.pdf',
+      nil,
+      :batch_async,
+      :bytes,
+      requirements: [],
+      notes: nil,
+      skip_if_missing: true
+    ) do |result|
+      E2ERuby::Assertions.assert_expected_mime(
+        result,
+        ['application/pdf']
+      )
+      E2ERuby::Assertions.assert_min_content_length(result, 10)
+    end
+  end
+
+  it 'api_batch_bytes_with_configs_sync' do
+    E2ERuby.run_fixture_with_method(
+      'api_batch_bytes_with_configs_sync',
+      'pdf/fake_memo.pdf',
+      nil,
+      :batch_sync,
+      :bytes,
+      requirements: [],
+      notes: nil,
+      skip_if_missing: true
+    ) do |result|
+      E2ERuby::Assertions.assert_expected_mime(
+        result,
+        ['application/pdf']
+      )
+      E2ERuby::Assertions.assert_min_content_length(result, 10)
+    end
+  end
+
   it 'api_batch_file_async' do
     E2ERuby.run_fixture_with_method(
       'api_batch_file_async',
@@ -85,6 +123,44 @@ RSpec.describe 'contract fixtures' do
       )
       E2ERuby::Assertions.assert_min_content_length(result, 10)
       E2ERuby::Assertions.assert_content_contains_any(result, ['May 5, 2023', 'Mallori'])
+    end
+  end
+
+  it 'api_batch_file_with_configs_async' do
+    E2ERuby.run_fixture_with_method(
+      'api_batch_file_with_configs_async',
+      'pdf/fake_memo.pdf',
+      nil,
+      :batch_async,
+      :file,
+      requirements: [],
+      notes: nil,
+      skip_if_missing: true
+    ) do |result|
+      E2ERuby::Assertions.assert_expected_mime(
+        result,
+        ['application/pdf']
+      )
+      E2ERuby::Assertions.assert_min_content_length(result, 10)
+    end
+  end
+
+  it 'api_batch_file_with_configs_sync' do
+    E2ERuby.run_fixture_with_method(
+      'api_batch_file_with_configs_sync',
+      'pdf/fake_memo.pdf',
+      nil,
+      :batch_sync,
+      :file,
+      requirements: [],
+      notes: nil,
+      skip_if_missing: true
+    ) do |result|
+      E2ERuby::Assertions.assert_expected_mime(
+        result,
+        ['application/pdf']
+      )
+      E2ERuby::Assertions.assert_min_content_length(result, 10)
     end
   end
 
@@ -425,6 +501,23 @@ RSpec.describe 'contract fixtures' do
         ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']
       )
       E2ERuby::Assertions.assert_elements(result, min_count: 1, types_include: %w[narrative_text])
+    end
+  end
+
+  it 'config_email_msg_fallback_codepage' do
+    E2ERuby.run_fixture(
+      'config_email_msg_fallback_codepage',
+      'email/fake_email.msg',
+      { email: { msg_fallback_codepage: 1_251 } },
+      requirements: [],
+      notes: nil,
+      skip_if_missing: true
+    ) do |result|
+      E2ERuby::Assertions.assert_expected_mime(
+        result,
+        ['application/vnd.ms-outlook']
+      )
+      E2ERuby::Assertions.assert_min_content_length(result, 10)
     end
   end
 

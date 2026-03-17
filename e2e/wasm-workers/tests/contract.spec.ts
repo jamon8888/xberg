@@ -64,6 +64,59 @@ describe("contract", () => {
 		assertions.assertContentContainsAny(result, ["May 5, 2023", "Mallori"]);
 	});
 
+	it("api_batch_bytes_with_configs_async", async () => {
+		const documentBytes = getFixture("pdf/fake_memo.pdf");
+		if (documentBytes === null) {
+			console.warn("[SKIP] Test skipped: fixture not available in Cloudflare Workers environment");
+			return;
+		}
+
+		const config = buildConfig(undefined);
+		let result: ExtractionResult | null = null;
+		try {
+			const results = await batchExtractBytes([{ data: documentBytes, mimeType: "application/octet-stream" }], config);
+			result = results[0] ?? null;
+		} catch (error) {
+			if (shouldSkipFixture(error, "api_batch_bytes_with_configs_async", [], undefined)) {
+				return;
+			}
+			throw error;
+		}
+		if (result === null) {
+			return;
+		}
+		assertions.assertExpectedMime(result, ["application/pdf"]);
+		assertions.assertMinContentLength(result, 10);
+	});
+
+	it("api_batch_bytes_with_configs_sync", async () => {
+		const documentBytes = getFixture("pdf/fake_memo.pdf");
+		if (documentBytes === null) {
+			console.warn("[SKIP] Test skipped: fixture not available in Cloudflare Workers environment");
+			return;
+		}
+
+		const config = buildConfig(undefined);
+		let result: ExtractionResult | null = null;
+		try {
+			const results = await batchExtractBytesSync(
+				[{ data: documentBytes, mimeType: "application/octet-stream" }],
+				config,
+			);
+			result = results[0] ?? null;
+		} catch (error) {
+			if (shouldSkipFixture(error, "api_batch_bytes_with_configs_sync", [], undefined)) {
+				return;
+			}
+			throw error;
+		}
+		if (result === null) {
+			return;
+		}
+		assertions.assertExpectedMime(result, ["application/pdf"]);
+		assertions.assertMinContentLength(result, 10);
+	});
+
 	it("api_batch_file_async", async () => {
 		const documentBytes = getFixture("pdf/fake_memo.pdf");
 		if (documentBytes === null) {
@@ -117,6 +170,59 @@ describe("contract", () => {
 		assertions.assertExpectedMime(result, ["application/pdf"]);
 		assertions.assertMinContentLength(result, 10);
 		assertions.assertContentContainsAny(result, ["May 5, 2023", "Mallori"]);
+	});
+
+	it("api_batch_file_with_configs_async", async () => {
+		const documentBytes = getFixture("pdf/fake_memo.pdf");
+		if (documentBytes === null) {
+			console.warn("[SKIP] Test skipped: fixture not available in Cloudflare Workers environment");
+			return;
+		}
+
+		const config = buildConfig(undefined);
+		let result: ExtractionResult | null = null;
+		try {
+			const results = await batchExtractBytes([{ data: documentBytes, mimeType: "application/octet-stream" }], config);
+			result = results[0] ?? null;
+		} catch (error) {
+			if (shouldSkipFixture(error, "api_batch_file_with_configs_async", [], undefined)) {
+				return;
+			}
+			throw error;
+		}
+		if (result === null) {
+			return;
+		}
+		assertions.assertExpectedMime(result, ["application/pdf"]);
+		assertions.assertMinContentLength(result, 10);
+	});
+
+	it("api_batch_file_with_configs_sync", async () => {
+		const documentBytes = getFixture("pdf/fake_memo.pdf");
+		if (documentBytes === null) {
+			console.warn("[SKIP] Test skipped: fixture not available in Cloudflare Workers environment");
+			return;
+		}
+
+		const config = buildConfig(undefined);
+		let result: ExtractionResult | null = null;
+		try {
+			const results = await batchExtractBytesSync(
+				[{ data: documentBytes, mimeType: "application/octet-stream" }],
+				config,
+			);
+			result = results[0] ?? null;
+		} catch (error) {
+			if (shouldSkipFixture(error, "api_batch_file_with_configs_sync", [], undefined)) {
+				return;
+			}
+			throw error;
+		}
+		if (result === null) {
+			return;
+		}
+		assertions.assertExpectedMime(result, ["application/pdf"]);
+		assertions.assertMinContentLength(result, 10);
 	});
 
 	it("api_extract_bytes_async", async () => {
@@ -558,6 +664,30 @@ describe("contract", () => {
 		}
 		assertions.assertExpectedMime(result, ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
 		assertions.assertElements(result, 1, ["narrative_text"]);
+	});
+
+	it("config_email_msg_fallback_codepage", async () => {
+		const documentBytes = getFixture("email/fake_email.msg");
+		if (documentBytes === null) {
+			console.warn("[SKIP] Test skipped: fixture not available in Cloudflare Workers environment");
+			return;
+		}
+
+		const config = buildConfig({ email: { msg_fallback_codepage: 1251 } });
+		let result: ExtractionResult | null = null;
+		try {
+			result = await extractBytes(documentBytes, "application/vnd.ms-outlook", config);
+		} catch (error) {
+			if (shouldSkipFixture(error, "config_email_msg_fallback_codepage", [], undefined)) {
+				return;
+			}
+			throw error;
+		}
+		if (result === null) {
+			return;
+		}
+		assertions.assertExpectedMime(result, ["application/vnd.ms-outlook"]);
+		assertions.assertMinContentLength(result, 10);
 	});
 
 	it("config_force_ocr", async () => {

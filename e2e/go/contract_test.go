@@ -27,6 +27,26 @@ func TestContractApiBatchBytesSync(t *testing.T) {
 	assertContentContainsAny(t, result, []string{"May 5, 2023", "Mallori"})
 }
 
+func TestContractApiBatchBytesWithConfigsAsync(t *testing.T) {
+	results := runBatchExtractionAsync(t, []string{"pdf/fake_memo.pdf"}, nil)
+	if len(results) == 0 {
+		t.Fatal("expected at least one result from batch extraction")
+	}
+	result := results[0]
+	assertExpectedMime(t, result, []string{"application/pdf"})
+	assertMinContentLength(t, result, 10)
+}
+
+func TestContractApiBatchBytesWithConfigsSync(t *testing.T) {
+	results := runBatchExtraction(t, []string{"pdf/fake_memo.pdf"}, nil)
+	if len(results) == 0 {
+		t.Fatal("expected at least one result from batch extraction")
+	}
+	result := results[0]
+	assertExpectedMime(t, result, []string{"application/pdf"})
+	assertMinContentLength(t, result, 10)
+}
+
 func TestContractApiBatchFileAsync(t *testing.T) {
 	results := runBatchExtractionAsync(t, []string{"pdf/fake_memo.pdf"}, nil)
 	if len(results) == 0 {
@@ -47,6 +67,26 @@ func TestContractApiBatchFileSync(t *testing.T) {
 	assertExpectedMime(t, result, []string{"application/pdf"})
 	assertMinContentLength(t, result, 10)
 	assertContentContainsAny(t, result, []string{"May 5, 2023", "Mallori"})
+}
+
+func TestContractApiBatchFileWithConfigsAsync(t *testing.T) {
+	results := runBatchExtractionAsync(t, []string{"pdf/fake_memo.pdf"}, nil)
+	if len(results) == 0 {
+		t.Fatal("expected at least one result from batch extraction")
+	}
+	result := results[0]
+	assertExpectedMime(t, result, []string{"application/pdf"})
+	assertMinContentLength(t, result, 10)
+}
+
+func TestContractApiBatchFileWithConfigsSync(t *testing.T) {
+	results := runBatchExtraction(t, []string{"pdf/fake_memo.pdf"}, nil)
+	if len(results) == 0 {
+		t.Fatal("expected at least one result from batch extraction")
+	}
+	result := results[0]
+	assertExpectedMime(t, result, []string{"application/pdf"})
+	assertMinContentLength(t, result, 10)
 }
 
 func TestContractApiExtractBytesAsync(t *testing.T) {
@@ -239,6 +279,16 @@ func TestContractConfigElementTypes(t *testing.T) {
 }`))
 	assertExpectedMime(t, result, []string{"application/vnd.openxmlformats-officedocument.wordprocessingml.document"})
 	assertElements(t, result, intPtr(1), []string{"narrative_text"})
+}
+
+func TestContractConfigEmailMsgFallbackCodepage(t *testing.T) {
+	result := runExtraction(t, "email/fake_email.msg", []byte(`{
+"email": {
+	"msg_fallback_codepage": 1251
+}
+}`))
+	assertExpectedMime(t, result, []string{"application/vnd.ms-outlook"})
+	assertMinContentLength(t, result, 10)
 }
 
 func TestContractConfigForceOcr(t *testing.T) {

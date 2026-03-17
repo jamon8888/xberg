@@ -85,8 +85,12 @@ function mapPaddleOcrConfig(raw: PlainRecord): PlainRecord {
 	assignNumberField(config, raw, "det_limit_side_len", "detLimitSideLen");
 	assignNumberField(config, raw, "rec_batch_num", "recBatchNum");
 	assignNumberField(config, raw, "min_confidence", "minConfidence");
+	assignNumberField(config, raw, "padding", "padding");
 	if (typeof raw.output_format === "string") {
 		config.outputFormat = raw.output_format;
+	}
+	if (typeof raw.model_tier === "string") {
+		config.modelTier = raw.model_tier;
 	}
 	return config;
 }
@@ -349,6 +353,13 @@ export function buildConfig(raw: unknown): ExtractionConfig {
 		target.acceleration = {
 			...(typeof accel.provider === "string" ? { provider: accel.provider } : {}),
 			...(typeof accel.device_id === "number" ? { deviceId: accel.device_id } : {}),
+		};
+	}
+
+	if (isPlainRecord(source.email)) {
+		const email = source.email as PlainRecord;
+		target.email = {
+			...(typeof email.msg_fallback_codepage === "number" ? { msgFallbackCodepage: email.msg_fallback_codepage } : {}),
 		};
 	}
 
