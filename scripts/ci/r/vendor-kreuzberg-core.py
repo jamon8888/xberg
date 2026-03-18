@@ -215,7 +215,7 @@ members = [{members_str}]
 version = "{core_version}"
 edition = "2024"
 rust-version = "1.91"
-authors = ["Na'aman Hirschfeld <nhirschfeld@gmail.com>"]
+authors = ["Na'aman Hirschfeld <naaman@kreuzberg.dev>"]
 license = "MIT"
 repository = "https://github.com/kreuzberg-dev/kreuzberg"
 homepage = "https://kreuzberg.dev"
@@ -310,7 +310,7 @@ def main() -> None:
             content = re.sub(r'^version\.workspace = true$', f'version = "{core_version}"', content, flags=re.MULTILINE)
             content = re.sub(r'^edition\.workspace = true$', 'edition = "2024"', content, flags=re.MULTILINE)
             content = re.sub(r'^rust-version\.workspace = true$', 'rust-version = "1.91"', content, flags=re.MULTILINE)
-            content = re.sub(r'^authors\.workspace = true$', 'authors = ["Na\'aman Hirschfeld <nhirschfeld@gmail.com>"]', content, flags=re.MULTILINE)
+            content = re.sub(r'^authors\.workspace = true$', 'authors = ["Na\'aman Hirschfeld <naaman@kreuzberg.dev>"]', content, flags=re.MULTILINE)
             content = re.sub(r'^license\.workspace = true$', 'license = "MIT"', content, flags=re.MULTILINE)
 
             with open(crate_toml, "w") as f:
