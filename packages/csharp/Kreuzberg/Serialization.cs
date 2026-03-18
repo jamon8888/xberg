@@ -252,8 +252,8 @@ internal class KeywordConfigConverter : JsonConverter<KeywordConfig>
         double? minScore = null;
         List<int>? ngramRange = null;
         string? language = null;
-        Dictionary<string, object?>? yakeParams = null;
-        Dictionary<string, object?>? rakeParams = null;
+        YakeParamsConfig? yakeParams = null;
+        RakeParamsConfig? rakeParams = null;
 
         while (reader.Read())
         {
@@ -288,10 +288,10 @@ internal class KeywordConfigConverter : JsonConverter<KeywordConfig>
                     language = reader.TokenType == JsonTokenType.Null ? null : reader.GetString();
                     break;
                 case "yake_params":
-                    yakeParams = reader.TokenType == JsonTokenType.Null ? null : JsonSerializer.Deserialize<Dictionary<string, object?>>(ref reader, options);
+                    yakeParams = reader.TokenType == JsonTokenType.Null ? null : JsonSerializer.Deserialize<YakeParamsConfig>(ref reader, options);
                     break;
                 case "rake_params":
-                    rakeParams = reader.TokenType == JsonTokenType.Null ? null : JsonSerializer.Deserialize<Dictionary<string, object?>>(ref reader, options);
+                    rakeParams = reader.TokenType == JsonTokenType.Null ? null : JsonSerializer.Deserialize<RakeParamsConfig>(ref reader, options);
                     break;
             }
         }

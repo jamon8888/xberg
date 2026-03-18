@@ -166,16 +166,18 @@ fn render_test(fixture: &Fixture) -> Result<String> {
             "kreuzberg::extract_bytes(&file_bytes, &mime_type, &config).await".to_string()
         }
         (ExtractionMethod::BatchSync, InputType::File, true) => {
-            "kreuzberg::batch_extract_file_sync(vec![document_path.clone()], &config)".to_string()
+            "kreuzberg::batch_extract_file_sync(vec![(document_path.clone(), None)], &config)".to_string()
         }
         (ExtractionMethod::BatchSync, InputType::Bytes, true) => {
-            "kreuzberg::batch_extract_bytes_sync(vec![(file_bytes.clone(), mime_type.clone())], &config)".to_string()
+            "kreuzberg::batch_extract_bytes_sync(vec![(file_bytes.clone(), mime_type.clone(), None)], &config)"
+                .to_string()
         }
         (ExtractionMethod::BatchAsync, InputType::File, true) => {
-            "kreuzberg::batch_extract_file(vec![document_path.clone()], &config).await".to_string()
+            "kreuzberg::batch_extract_file(vec![(document_path.clone(), None)], &config).await".to_string()
         }
         (ExtractionMethod::BatchAsync, InputType::Bytes, true) => {
-            "kreuzberg::batch_extract_bytes(vec![(file_bytes.clone(), mime_type.clone())], &config).await".to_string()
+            "kreuzberg::batch_extract_bytes(vec![(file_bytes.clone(), mime_type.clone(), None)], &config).await"
+                .to_string()
         }
         _ => "kreuzberg::extract_file_sync(&document_path, None, &config)".to_string(),
     };
