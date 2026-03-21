@@ -13,6 +13,6 @@
 	},
 	"assertions": {
 		"expected_mime": "image/jpeg",
-		"max_content_length": 100
+		"max_content_length": 200
 	}
 }

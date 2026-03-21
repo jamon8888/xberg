@@ -577,6 +577,7 @@ pub(crate) async fn run_ocr_pipeline(
     stages.sort_by_key(|b| std::cmp::Reverse(b.priority));
 
     // Filter to available backends
+    let requested_backends: Vec<String> = stages.iter().map(|s| s.backend.clone()).collect();
     let available_stages: Vec<_> = {
         let registry = get_ocr_backend_registry();
         let registry = registry.read().map_err(|e| crate::KreuzbergError::Plugin {
@@ -591,7 +592,10 @@ pub(crate) async fn run_ocr_pipeline(
 
     if available_stages.is_empty() {
         return Err(crate::KreuzbergError::Parsing {
-            message: "No available OCR backends for pipeline".to_string(),
+            message: format!(
+                "No available OCR backends for pipeline (requested: {})",
+                requested_backends.join(", ")
+            ),
             source: None,
         });
     }

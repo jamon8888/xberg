@@ -3036,7 +3036,18 @@ jobs:
 
       - name: Configure trusted publishing credentials
         if: ${{ needs.prepare.outputs.dry_run != 'true' && steps.recheck.outputs.exists != 'true' }}
-        uses: rubygems/configure-rubygems-credentials@v1
+        run: |
+          OIDC_TOKEN=$(curl --silent --fail \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=rubygems.org" \
+            | jq -r '.value')
+          GEM_API_KEY=$(curl --silent --fail \
+            -X POST "https://rubygems.org/api/v1/oidc/api_key_roles/exchange" \
+            -H "Authorization: Bearer ${OIDC_TOKEN}" \
+            | jq -r '.rubygems_api_key')
+          mkdir -p ~/.gem
+          printf -- "---\n:rubygems_api_key: %s\n" "${GEM_API_KEY}" > ~/.gem/credentials
+          chmod 0600 ~/.gem/credentials
 
       - name: Publish gems to RubyGems
         if: ${{ needs.prepare.outputs.dry_run != 'true' && steps.recheck.outputs.exists != 'true' }}

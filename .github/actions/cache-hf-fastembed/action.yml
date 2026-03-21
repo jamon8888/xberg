@@ -17,20 +17,23 @@ inputs:
     description: Whether to pre-download models
     required: false
     default: "true"
+  kreuzberg-cache-dir:
+    description: >
+      Root cache directory for kreuzberg (KREUZBERG_CACHE_DIR). Models are stored under
+      <kreuzberg-cache-dir>/embeddings. Must match KREUZBERG_CACHE_DIR used in test steps.
+    required: false
+    default: "${{ github.workspace }}/.kreuzberg-cache"
 runs:
   using: composite
   steps:
-    - name: Cache Hugging Face models
+    - name: Cache Hugging Face models (kreuzberg embeddings path)
       uses: actions/cache@v5
       with:
-        path: |
-          ~/.cache/huggingface
-          ~/Library/Caches/huggingface
-          ~\AppData\Local\huggingface
-        key: hf-models-v2-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-suffix }}
+        path: ${{ inputs.kreuzberg-cache-dir }}/embeddings
+        key: hf-models-v3-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-suffix }}
         restore-keys: |
-          hf-models-v2-${{ runner.os }}-${{ runner.arch }}-
-          hf-models-v2-${{ runner.os }}-
+          hf-models-v3-${{ runner.os }}-${{ runner.arch }}-
+          hf-models-v3-${{ runner.os }}-
 
     - name: Prefetch fastembed models
       if: inputs.prefetch == 'true'
@@ -38,4 +41,8 @@ runs:
       env:
         FASTEMBED_VERSION: ${{ inputs.fastembed-version }}
         MODELS: ${{ inputs.models }}
+        # HF_HUB_CACHE tells hf-hub (used by fastembed internally) where to store models.
+        # Setting it to KREUZBERG_CACHE_DIR/embeddings ensures the prefetch populates exactly
+        # the directory that kreuzberg's embedding engine reads from at runtime.
+        HF_HUB_CACHE: ${{ inputs.kreuzberg-cache-dir }}/embeddings
       run: scripts/ci/actions/cache-hf-fastembed/prefetch.sh

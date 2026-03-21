@@ -228,7 +228,9 @@ jobs:
           KREUZBERG_EMBEDDINGS_AVAILABLE: "1"
           KREUZBERG_KEYWORDS_RAKE_AVAILABLE: "1"
           KREUZBERG_KEYWORDS_YAKE_AVAILABLE: "1"
-          HF_HOME: ~/.cache/huggingface
+          # Must match the kreuzberg-cache-dir passed to cache-hf-fastembed so that
+          # kreuzberg's embedding engine finds the pre-fetched models at runtime.
+          KREUZBERG_CACHE_DIR: ${{ github.workspace }}/.kreuzberg-cache
         run: task elixir:e2e:test
 
       - name: Verify FFI build artifacts

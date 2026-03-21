@@ -1170,7 +1170,11 @@ impl FrameworkAdapter for SubprocessAdapter {
         // FFI library loading, model loading, etc.) is complete.
         // This ensures cold_start measures only framework extraction time, not
         // JVM startup, `dotnet run` compilation, `go run` compilation, etc.
-        let ready_timeout = std::time::Duration::from_secs(120);
+        let ready_timeout_secs: u64 = std::env::var("READY_TIMEOUT")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(300);
+        let ready_timeout = std::time::Duration::from_secs(ready_timeout_secs);
         let ready_result = tokio::time::timeout(ready_timeout, async {
             let mut line = String::new();
             loop {

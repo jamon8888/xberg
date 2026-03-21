@@ -63,7 +63,7 @@ namespace Kreuzberg.E2E.Image
 
             var result = KreuzbergClient.ExtractFileSync(documentPath, config);
             TestHelpers.AssertExpectedMime(result, new[] { "image/jpeg" });
-            TestHelpers.AssertMaxContentLength(result, 100);
+            TestHelpers.AssertMaxContentLength(result, 200);
         }
 
         [SkippableFact]

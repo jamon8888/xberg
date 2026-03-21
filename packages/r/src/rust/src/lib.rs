@@ -55,23 +55,23 @@ fn extract_bytes_native(data: Raw, mime_type: &str, config_json: Nullable<&str>)
 
 // Batch extraction functions
 #[extendr]
-fn batch_extract_files_sync_native(paths: Strings, file_configs: Nullable<List>, config_json: Nullable<&str>) -> extendr_api::Result<List> {
-    batch::batch_extract_files_sync_impl(paths, file_configs, config_json)
+fn batch_extract_files_sync_native(paths: Strings, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_files_sync_impl(paths, Nullable::Null, config_json)
 }
 
 #[extendr]
-fn batch_extract_files_native(paths: Strings, file_configs: Nullable<List>, config_json: Nullable<&str>) -> extendr_api::Result<List> {
-    batch::batch_extract_files_impl(paths, file_configs, config_json)
+fn batch_extract_files_native(paths: Strings, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_files_impl(paths, Nullable::Null, config_json)
 }
 
 #[extendr]
-fn batch_extract_bytes_sync_native(data_list: List, mime_types: Strings, file_configs: Nullable<List>, config_json: Nullable<&str>) -> extendr_api::Result<List> {
-    batch::batch_extract_bytes_sync_impl(data_list, mime_types, file_configs, config_json)
+fn batch_extract_bytes_sync_native(data_list: List, mime_types: Strings, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_bytes_sync_impl(data_list, mime_types, Nullable::Null, config_json)
 }
 
 #[extendr]
-fn batch_extract_bytes_native(data_list: List, mime_types: Strings, file_configs: Nullable<List>, config_json: Nullable<&str>) -> extendr_api::Result<List> {
-    batch::batch_extract_bytes_impl(data_list, mime_types, file_configs, config_json)
+fn batch_extract_bytes_native(data_list: List, mime_types: Strings, config_json: Nullable<&str>) -> extendr_api::Result<List> {
+    batch::batch_extract_bytes_impl(data_list, mime_types, Nullable::Null, config_json)
 }
 
 // Metadata functions

@@ -345,8 +345,6 @@ jobs:
         uses: kreuzberg-dev/actions/install-task@v1
 
       - name: Build Python bindings
-        env:
-          RUSTUP_TOOLCHAIN: stable
         run: task python:build:bindings
 
       - name: Run benchmark
@@ -507,7 +505,8 @@ jobs:
           FRAMEWORK: kreuzberg-wasm
           MODE: ${{ matrix.mode }}
           ITERATIONS: "1"
-          TIMEOUT: "120"
+          TIMEOUT: "600"
+          READY_TIMEOUT: "600"
         run: scripts/benchmarks/run-benchmark.sh
 
       - name: Upload artifacts

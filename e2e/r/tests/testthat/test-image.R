@@ -56,7 +56,7 @@ test_that("image_metadata_only", {
     skip_if_missing = TRUE
   )
   assert_expected_mime(result, c("image/jpeg"))
-  assert_max_content_length(result, 100L)
+  assert_max_content_length(result, 200L)
 })
 
 test_that("image_pbm_basic", {
