@@ -300,6 +300,138 @@ fn extract_mathml_text(math_node: roxmltree::Node) -> Option<String> {
     }
 }
 
+/// Build a `DocumentStructure` from ODT content.xml.
+///
+/// Walks the same XML tree as `process_document_elements` but emits structured
+/// nodes through the `DocumentStructureBuilder`.
+fn build_odt_document_structure(
+    archive: &mut zip::ZipArchive<Cursor<Vec<u8>>>,
+) -> crate::error::Result<crate::types::document_structure::DocumentStructure> {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let mut xml_content = String::new();
+
+    match archive.by_name("content.xml") {
+        Ok(mut file) => {
+            use std::io::Read;
+            file.read_to_string(&mut xml_content)
+                .map_err(|e| crate::error::KreuzbergError::parsing(format!("Failed to read content.xml: {}", e)))?;
+        }
+        Err(_) => {
+            return Ok(DocumentStructureBuilder::new().source_format("odt").build());
+        }
+    }
+
+    let doc = Document::parse(&xml_content)
+        .map_err(|e| crate::error::KreuzbergError::parsing(format!("Failed to parse content.xml: {}", e)))?;
+
+    let root = doc.root_element();
+    let mut builder = DocumentStructureBuilder::new().source_format("odt");
+
+    for body_child in root.children() {
+        if body_child.tag_name().name() == "body" {
+            for text_elem in body_child.children() {
+                if text_elem.tag_name().name() == "text" {
+                    build_structure_from_elements(text_elem, &mut builder);
+                }
+            }
+        }
+    }
+
+    Ok(builder.build())
+}
+
+/// Recursively walk ODT XML elements and populate the `DocumentStructureBuilder`.
+fn build_structure_from_elements(
+    parent: roxmltree::Node,
+    builder: &mut crate::types::builder::DocumentStructureBuilder,
+) {
+    for node in parent.children() {
+        match node.tag_name().name() {
+            "h" => {
+                if let Some(text) = extract_node_text(node) {
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        // Try to extract outline level; default to 1
+                        let level = node
+                            .attribute(("urn:oasis:names:tc:opendocument:xmlns:text:1.0", "outline-level"))
+                            .and_then(|v| v.parse::<u8>().ok())
+                            .unwrap_or(1);
+                        builder.push_heading(level, trimmed, None, None);
+                    }
+                }
+            }
+            "p" => {
+                if let Some(text) = extract_node_text(node) {
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        builder.push_paragraph(trimmed, vec![], None, None);
+                    }
+                }
+            }
+            "table" => {
+                let cells = extract_table_cells(node);
+                if !cells.is_empty() {
+                    builder.push_table_simple(&cells, None);
+                }
+            }
+            "list" => {
+                build_list_structure(node, builder);
+            }
+            "section" => {
+                build_structure_from_elements(node, builder);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Extract table cells as `Vec<Vec<String>>` from an ODT table element.
+fn extract_table_cells(table_node: roxmltree::Node) -> Vec<Vec<String>> {
+    let mut rows = Vec::new();
+    for row_node in table_node.children() {
+        if row_node.tag_name().name() == "table-row" {
+            let mut row_cells = Vec::new();
+            for cell_node in row_node.children() {
+                if cell_node.tag_name().name() == "table-cell" {
+                    let cell_text = extract_node_text(cell_node).unwrap_or_default();
+                    row_cells.push(cell_text.trim().to_string());
+                }
+            }
+            if !row_cells.is_empty() {
+                rows.push(row_cells);
+            }
+        }
+    }
+    rows
+}
+
+/// Build list structure from an ODT `text:list` element.
+fn build_list_structure(list_node: roxmltree::Node, builder: &mut crate::types::builder::DocumentStructureBuilder) {
+    let list_idx = builder.push_list(false, None);
+    for item in list_node.children() {
+        if item.tag_name().name() == "list-item" {
+            for child in item.children() {
+                match child.tag_name().name() {
+                    "p" | "h" => {
+                        if let Some(text) = extract_node_text(child) {
+                            let trimmed = text.trim();
+                            if !trimmed.is_empty() {
+                                builder.push_list_item(list_idx, trimmed, None);
+                            }
+                        }
+                    }
+                    "list" => {
+                        // Nested lists: add as separate list (builder doesn't support nested lists as children of list items)
+                        build_list_structure(child, builder);
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+}
+
 /// Extract text from embedded formula objects
 ///
 /// # Arguments
@@ -667,7 +799,7 @@ impl DocumentExtractor for OdtExtractor {
     #[cfg_attr(
         feature = "otel",
         tracing::instrument(
-            skip(self, content, _config),
+            skip(self, content, config),
             fields(
                 extractor.name = self.name(),
                 content.size_bytes = content.len(),
@@ -678,11 +810,11 @@ impl DocumentExtractor for OdtExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let content_owned = content.to_vec();
         let plain = matches!(
-            _config.output_format,
+            config.output_format,
             crate::core::config::OutputFormat::Plain | crate::core::config::OutputFormat::Structured
         );
 
@@ -858,6 +990,19 @@ impl DocumentExtractor for OdtExtractor {
             }
         }
 
+        let document = if config.include_document_structure {
+            let cursor = Cursor::new(content_owned.clone());
+            let mut doc_archive = zip::ZipArchive::new(cursor).map_err(|e| {
+                crate::error::KreuzbergError::parsing(format!(
+                    "Failed to open ZIP archive for document structure: {}",
+                    e
+                ))
+            })?;
+            Some(build_odt_document_structure(&mut doc_archive)?)
+        } else {
+            None
+        };
+
         Ok(ExtractionResult {
             content: text,
             mime_type: mime_type.to_string().into(),
@@ -873,7 +1018,7 @@ impl DocumentExtractor for OdtExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

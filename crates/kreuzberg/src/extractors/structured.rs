@@ -10,6 +10,36 @@ use std::borrow::Cow;
 #[cfg(feature = "tokio-runtime")]
 use std::path::Path;
 
+/// Build a `DocumentStructure` from a structured data result.
+///
+/// Maps the pretty-printed content into a code block since structured data
+/// is best represented as code. The source_format reflects the detected
+/// data format (json/yaml/toml).
+fn build_structured_document_structure(
+    result: &crate::extraction::structured::StructuredDataResult,
+    mime_type: &str,
+) -> crate::types::document_structure::DocumentStructure {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let source_format = match mime_type {
+        "application/json" | "text/json" | "application/csl+json" => "json",
+        "application/yaml" | "application/x-yaml" | "text/yaml" | "text/x-yaml" => "yaml",
+        "application/toml" | "text/toml" => "toml",
+        _ => "structured",
+    };
+
+    let language = match source_format {
+        "json" => Some("json"),
+        "yaml" => Some("yaml"),
+        "toml" => Some("toml"),
+        _ => None,
+    };
+
+    let mut builder = DocumentStructureBuilder::new().source_format(source_format);
+    builder.push_code(&result.content, language, None);
+    builder.build()
+}
+
 /// Structured data extractor supporting JSON, YAML, and TOML.
 pub struct StructuredExtractor;
 
@@ -47,7 +77,7 @@ impl Plugin for StructuredExtractor {
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DocumentExtractor for StructuredExtractor {
     #[cfg_attr(feature = "otel", tracing::instrument(
-        skip(self, content, _config),
+        skip(self, content, config),
         fields(
             extractor.name = self.name(),
             content.size_bytes = content.len(),
@@ -57,7 +87,7 @@ impl DocumentExtractor for StructuredExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let structured_result = match mime_type {
             "application/json" | "text/json" | "application/csl+json" => {
@@ -68,6 +98,12 @@ impl DocumentExtractor for StructuredExtractor {
             }
             "application/toml" | "text/toml" => crate::extraction::structured::parse_toml(content)?,
             _ => return Err(crate::KreuzbergError::UnsupportedFormat(mime_type.to_string())),
+        };
+
+        let document = if config.include_document_structure && !structured_result.content.trim().is_empty() {
+            Some(build_structured_document_structure(&structured_result, mime_type))
+        } else {
+            None
         };
 
         let mut additional = AHashMap::new();
@@ -99,7 +135,7 @@ impl DocumentExtractor for StructuredExtractor {
             elements: None,
             djot_content: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

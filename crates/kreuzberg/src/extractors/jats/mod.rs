@@ -22,10 +22,174 @@ use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::{ExtractionResult, Metadata};
 use async_trait::async_trait;
+use quick_xml::Reader;
+use quick_xml::events::Event;
 #[cfg(feature = "tokio-runtime")]
 use std::path::Path;
 
 use elements::extract_jats_all_in_one;
+use parser::extract_text_content as jats_extract_text;
+
+/// Build a `DocumentStructure` from JATS XML content.
+fn build_jats_document_structure(content: &str) -> crate::Result<crate::types::document_structure::DocumentStructure> {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let mut reader = Reader::from_str(content);
+    let mut builder = DocumentStructureBuilder::new().source_format("jats");
+
+    let mut in_article_meta = false;
+    let mut in_body = false;
+    let mut in_ref_list = false;
+    let mut in_table = false;
+    let mut in_thead = false;
+    let mut in_tbody = false;
+    let mut in_row = false;
+    let mut current_table: Vec<Vec<String>> = Vec::new();
+    let mut current_row: Vec<String> = Vec::new();
+
+    loop {
+        match reader.read_event() {
+            Ok(Event::Start(e)) => {
+                let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+
+                match tag.as_str() {
+                    "article-meta" => {
+                        in_article_meta = true;
+                    }
+                    "article-title" if in_article_meta => {
+                        let text = jats_extract_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_heading(1, &text, None, None);
+                        }
+                        continue;
+                    }
+                    "body" => {
+                        in_body = true;
+                    }
+                    "sec" if in_body => {
+                        // sections are handled via their title children
+                    }
+                    "title" if in_body && !in_article_meta => {
+                        let text = jats_extract_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_heading(2, &text, None, None);
+                        }
+                        continue;
+                    }
+                    "p" if in_body => {
+                        let text = jats_extract_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_paragraph(&text, vec![], None, None);
+                        }
+                        continue;
+                    }
+                    "fig" if in_body => {
+                        let text = jats_extract_text(&mut reader)?;
+                        let desc = if text.is_empty() { None } else { Some(text.as_str()) };
+                        builder.push_image(desc, None, None, None);
+                        continue;
+                    }
+                    "disp-formula" if in_body => {
+                        let text = jats_extract_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_formula(&text, None);
+                        }
+                        continue;
+                    }
+                    "table-wrap" if in_body => {
+                        // table-wrap contains <table>; let inner table handling deal with it
+                    }
+                    "table" => {
+                        in_table = true;
+                        current_table.clear();
+                    }
+                    "thead" if in_table => {
+                        in_thead = true;
+                    }
+                    "tbody" if in_table => {
+                        in_tbody = true;
+                    }
+                    "tr" if (in_thead || in_tbody) && in_table => {
+                        in_row = true;
+                        current_row.clear();
+                    }
+                    "td" | "th" if in_row => {
+                        let text = jats_extract_text(&mut reader)?;
+                        current_row.push(text);
+                        continue;
+                    }
+                    "ref-list" => {
+                        in_ref_list = true;
+                    }
+                    "ref" if in_ref_list => {
+                        // Extract citation key from id attribute
+                        let mut ref_id = String::new();
+                        for attr in e.attributes() {
+                            if let Ok(attr) = attr
+                                && String::from_utf8_lossy(attr.key.as_ref()) == "id"
+                            {
+                                ref_id = String::from_utf8_lossy(attr.value.as_ref()).to_string();
+                            }
+                        }
+                        let text = jats_extract_text(&mut reader)?;
+                        if !text.is_empty() {
+                            let key = if ref_id.is_empty() { "ref" } else { &ref_id };
+                            builder.push_citation(key, &text, None);
+                        }
+                        continue;
+                    }
+                    _ => {}
+                }
+            }
+            Ok(Event::End(e)) => {
+                let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+
+                match tag.as_str() {
+                    "article-meta" => {
+                        in_article_meta = false;
+                    }
+                    "body" => {
+                        in_body = false;
+                    }
+                    "ref-list" => {
+                        in_ref_list = false;
+                    }
+                    "table" if in_table => {
+                        if !current_table.is_empty() {
+                            builder.push_table_simple(&current_table, None);
+                            current_table.clear();
+                        }
+                        in_table = false;
+                    }
+                    "thead" if in_thead => {
+                        in_thead = false;
+                    }
+                    "tbody" if in_tbody => {
+                        in_tbody = false;
+                    }
+                    "tr" if in_row => {
+                        if !current_row.is_empty() {
+                            current_table.push(current_row.clone());
+                            current_row.clear();
+                        }
+                        in_row = false;
+                    }
+                    _ => {}
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(e) => {
+                return Err(crate::error::KreuzbergError::parsing(format!(
+                    "XML parsing error: {}",
+                    e
+                )));
+            }
+            _ => {}
+        }
+    }
+
+    Ok(builder.build())
+}
 
 /// JATS document extractor.
 ///
@@ -82,7 +246,6 @@ impl DocumentExtractor for JatsExtractor {
         mime_type: &str,
         config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
-        let _ = config;
         let jats_content = std::str::from_utf8(content)
             .map(|s| s.to_string())
             .unwrap_or_else(|_| String::from_utf8_lossy(content).to_string());
@@ -158,6 +321,12 @@ impl DocumentExtractor for JatsExtractor {
             metadata.subject = Some(subject_parts.join(" | "));
         }
 
+        let document = if config.include_document_structure {
+            Some(build_jats_document_structure(&jats_content)?)
+        } else {
+            None
+        };
+
         Ok(ExtractionResult {
             content: extracted_content,
             mime_type: mime_type.to_string().into(),
@@ -170,7 +339,7 @@ impl DocumentExtractor for JatsExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,
@@ -189,7 +358,6 @@ impl DocumentExtractor for JatsExtractor {
             )
         )
     )]
-    #[cfg(feature = "tokio-runtime")]
     async fn extract_file(&self, path: &Path, mime_type: &str, config: &ExtractionConfig) -> Result<ExtractionResult> {
         let bytes = tokio::fs::read(path).await?;
         self.extract_bytes(&bytes, mime_type, config).await

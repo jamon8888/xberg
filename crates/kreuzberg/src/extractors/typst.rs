@@ -24,6 +24,10 @@ use crate::core::config::ExtractionConfig;
 #[cfg(feature = "office")]
 use crate::plugins::{DocumentExtractor, Plugin};
 #[cfg(feature = "office")]
+use crate::types::builder::DocumentStructureBuilder;
+#[cfg(feature = "office")]
+use crate::types::document_structure::DocumentStructure;
+#[cfg(feature = "office")]
 use crate::types::{ExtractionResult, Metadata};
 #[cfg(feature = "office")]
 use async_trait::async_trait;
@@ -48,6 +52,178 @@ impl TypstExtractor {
         let metadata = extractor.metadata;
 
         (text, metadata)
+    }
+
+    /// Build a `DocumentStructure` from Typst source text.
+    fn build_document_structure(content: &str) -> DocumentStructure {
+        let mut builder = DocumentStructureBuilder::new().source_format("typst");
+        let mut in_code_block = false;
+        let mut code_text = String::new();
+        let mut code_lang: Option<String> = None;
+        let mut in_set_document = false;
+        let mut paren_depth: i32 = 0;
+        let mut paragraph_buf = String::new();
+        // Track active list: (node_index, is_ordered) — read across loop iterations
+        #[allow(unused_assignments)]
+        let mut active_list: Option<(crate::types::document_structure::NodeIndex, bool)> = None;
+
+        let flush_paragraph = |buf: &mut String, b: &mut DocumentStructureBuilder| {
+            let text = buf.trim().to_string();
+            if !text.is_empty() {
+                b.push_paragraph(&text, vec![], None, None);
+            }
+            buf.clear();
+        };
+
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            // Skip multi-line #set document(...) blocks
+            if in_set_document {
+                for ch in trimmed.chars() {
+                    match ch {
+                        '(' => paren_depth += 1,
+                        ')' => paren_depth -= 1,
+                        _ => {}
+                    }
+                }
+                if paren_depth <= 0 {
+                    in_set_document = false;
+                    paren_depth = 0;
+                }
+                continue;
+            }
+
+            // Code block handling
+            if trimmed.starts_with("```") {
+                if in_code_block {
+                    if trimmed == "```" {
+                        in_code_block = false;
+                        let text = code_text.trim_end().to_string();
+                        if !text.is_empty() {
+                            builder.push_code(&text, code_lang.as_deref(), None);
+                        }
+                        code_text.clear();
+                        code_lang = None;
+                        continue;
+                    }
+                } else {
+                    flush_paragraph(&mut paragraph_buf, &mut builder);
+                    in_code_block = true;
+                    code_text.clear();
+                    code_lang = trimmed.strip_prefix("```").and_then(|l| {
+                        let l = l.trim();
+                        if l.is_empty() { None } else { Some(l.to_string()) }
+                    });
+                    continue;
+                }
+            }
+
+            if in_code_block {
+                code_text.push_str(line);
+                code_text.push('\n');
+                continue;
+            }
+
+            // Skip #set document(...)
+            if trimmed.starts_with("#set document(") {
+                flush_paragraph(&mut paragraph_buf, &mut builder);
+                paren_depth = 0;
+                for ch in trimmed.chars() {
+                    match ch {
+                        '(' => paren_depth += 1,
+                        ')' => paren_depth -= 1,
+                        _ => {}
+                    }
+                }
+                if paren_depth > 0 {
+                    in_set_document = true;
+                }
+                continue;
+            }
+
+            // Skip directives
+            if trimmed.starts_with("#set ")
+                || trimmed.starts_with("#let ")
+                || trimmed.starts_with("#import ")
+                || trimmed.starts_with("#include ")
+                || trimmed.starts_with("#pagebreak")
+                || trimmed.starts_with("#colbreak")
+                || trimmed.starts_with("#v(")
+                || trimmed.starts_with("#h(")
+            {
+                continue;
+            }
+
+            // List items — check before headings so `= ...` isn't mistaken for list
+            if (trimmed.starts_with('+') || trimmed.starts_with('-'))
+                && trimmed.len() > 1
+                && trimmed.chars().nth(1).is_some_and(|c| !c.is_alphanumeric())
+            {
+                flush_paragraph(&mut paragraph_buf, &mut builder);
+                let ordered = trimmed.starts_with('+');
+
+                // Reuse active list if it matches the same type, otherwise start a new one
+                let list_idx = match active_list {
+                    Some((idx, prev_ordered)) if prev_ordered == ordered => idx,
+                    _ => {
+                        let idx = builder.push_list(ordered, None);
+                        active_list = Some((idx, ordered));
+                        idx
+                    }
+                };
+                builder.push_list_item(list_idx, trimmed[1..].trim(), None);
+                continue;
+            }
+
+            // Any non-list line ends the active list
+            active_list = None;
+
+            // Headings
+            if trimmed.starts_with('=') {
+                let heading_level = trimmed.chars().take_while(|&c| c == '=').count();
+                let heading_text = trimmed[heading_level..].trim();
+                if !heading_text.is_empty() {
+                    flush_paragraph(&mut paragraph_buf, &mut builder);
+                    builder.push_heading(heading_level as u8, heading_text, None, None);
+                }
+                continue;
+            }
+
+            // Math blocks (display math: $ ... $)
+            if trimmed.starts_with('$') && trimmed.ends_with('$') && trimmed.len() > 1 {
+                flush_paragraph(&mut paragraph_buf, &mut builder);
+                let math = trimmed.trim_matches('$').trim();
+                if !math.is_empty() {
+                    builder.push_formula(math, None);
+                }
+                continue;
+            }
+
+            // Empty lines flush paragraph
+            if trimmed.is_empty() {
+                flush_paragraph(&mut paragraph_buf, &mut builder);
+                continue;
+            }
+
+            // Skip #table() for now (complex multi-line), accumulate as paragraph
+            if trimmed.starts_with("#table(") {
+                flush_paragraph(&mut paragraph_buf, &mut builder);
+                // Table content is complex; the text extractor handles it separately
+                continue;
+            }
+
+            // Regular text: accumulate into paragraph
+            if !paragraph_buf.is_empty() {
+                paragraph_buf.push(' ');
+            }
+            paragraph_buf.push_str(trimmed);
+        }
+
+        // Flush any remaining paragraph
+        flush_paragraph(&mut paragraph_buf, &mut builder);
+
+        builder.build()
     }
 }
 
@@ -90,7 +266,7 @@ impl Plugin for TypstExtractor {
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DocumentExtractor for TypstExtractor {
     #[cfg_attr(feature = "otel", tracing::instrument(
-        skip(self, content, _config),
+        skip(self, content, config),
         fields(
             extractor.name = self.name(),
             content.size_bytes = content.len(),
@@ -100,10 +276,16 @@ impl DocumentExtractor for TypstExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let typst_str = String::from_utf8_lossy(content).to_string();
         let (text, metadata) = Self::extract_from_typst(&typst_str);
+
+        let document = if config.include_document_structure {
+            Some(Self::build_document_structure(&typst_str))
+        } else {
+            None
+        };
 
         Ok(ExtractionResult {
             content: text,
@@ -117,7 +299,7 @@ impl DocumentExtractor for TypstExtractor {
             pages: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

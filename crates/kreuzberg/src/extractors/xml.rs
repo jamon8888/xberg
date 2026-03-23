@@ -53,11 +53,26 @@ impl Plugin for XmlExtractor {
 }
 
 impl SyncExtractor for XmlExtractor {
-    fn extract_sync(&self, content: &[u8], mime_type: &str, _config: &ExtractionConfig) -> Result<ExtractionResult> {
+    fn extract_sync(&self, content: &[u8], mime_type: &str, config: &ExtractionConfig) -> Result<ExtractionResult> {
         let xml_result = if mime_type == "image/svg+xml" {
             parse_xml_svg(content, false)?
         } else {
             parse_xml(content, false)?
+        };
+
+        let document = if config.include_document_structure && !xml_result.content.trim().is_empty() {
+            use crate::types::builder::DocumentStructureBuilder;
+
+            let mut builder = DocumentStructureBuilder::new().source_format("xml");
+            for line in xml_result.content.lines() {
+                let trimmed = line.trim();
+                if !trimmed.is_empty() {
+                    builder.push_paragraph(trimmed, vec![], None, None);
+                }
+            }
+            Some(builder.build())
+        } else {
+            None
         };
 
         Ok(ExtractionResult {
@@ -78,7 +93,7 @@ impl SyncExtractor for XmlExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

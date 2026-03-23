@@ -65,7 +65,7 @@ impl Plugin for CitationExtractor {
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DocumentExtractor for CitationExtractor {
     #[cfg_attr(feature = "otel", tracing::instrument(
-        skip(self, content, _config),
+        skip(self, content, config),
         fields(
             extractor.name = self.name(),
             content.size_bytes = content.len(),
@@ -75,7 +75,7 @@ impl DocumentExtractor for CitationExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let citation_str = String::from_utf8_lossy(content);
 
@@ -262,6 +262,25 @@ impl DocumentExtractor for CitationExtractor {
 
         additional.insert(Cow::Borrowed("format"), serde_json::json!(format_string));
 
+        let document = if config.include_document_structure && !citations_vec.is_empty() {
+            use crate::types::builder::DocumentStructureBuilder;
+
+            let mut builder = DocumentStructureBuilder::new().source_format("citation");
+            for (i, title) in citations_vec.iter().enumerate() {
+                let key = if title.is_empty() {
+                    format!("citation_{}", i + 1)
+                } else {
+                    title.clone()
+                };
+                // Build a formatted text for this citation from the formatted_content
+                // Use the title as the citation key and title as text
+                builder.push_citation(&key, title, None);
+            }
+            Some(builder.build())
+        } else {
+            None
+        };
+
         Ok(ExtractionResult {
             content: formatted_content,
             mime_type: mime_type.to_string().into(),
@@ -277,7 +296,7 @@ impl DocumentExtractor for CitationExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

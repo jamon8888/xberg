@@ -68,49 +68,81 @@ fn field_value_to_string(value: &dbase::FieldValue) -> String {
     }
 }
 
-fn extract_dbf_content(content: &[u8]) -> Result<String> {
+/// Parsed dBASE data: field names and rows of string values.
+struct DbfParsed {
+    field_names: Vec<String>,
+    rows: Vec<Vec<String>>,
+}
+
+/// Parse a dBASE file once, returning field names and row data.
+fn parse_dbf(content: &[u8]) -> Result<DbfParsed> {
     let cursor = Cursor::new(content);
     let mut reader = dbase::Reader::new(cursor)
         .map_err(|e| crate::KreuzbergError::parsing(format!("Failed to open dBASE file: {e}")))?;
 
     let field_names: Vec<String> = reader.fields().iter().map(|f| f.name().to_string()).collect();
 
-    if field_names.is_empty() {
-        return Ok(String::new());
+    let records = reader
+        .iter_records()
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .map_err(|e| crate::KreuzbergError::parsing(format!("Failed to read dBASE records: {e}")))?;
+
+    let rows: Vec<Vec<String>> = records
+        .into_iter()
+        .map(|record| record.into_iter().map(|(_, v)| field_value_to_string(&v)).collect())
+        .collect();
+
+    Ok(DbfParsed { field_names, rows })
+}
+
+fn build_dbf_document_structure(parsed: &DbfParsed) -> crate::types::document_structure::DocumentStructure {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let mut builder = DocumentStructureBuilder::new().source_format("dbf");
+
+    if parsed.field_names.is_empty() {
+        return builder.build();
+    }
+
+    let mut table_rows: Vec<Vec<String>> = Vec::with_capacity(parsed.rows.len() + 1);
+    table_rows.push(parsed.field_names.clone());
+    table_rows.extend(parsed.rows.iter().cloned());
+
+    builder.push_table_simple(&table_rows, None);
+    builder.build()
+}
+
+fn format_dbf_content(parsed: &DbfParsed) -> String {
+    if parsed.field_names.is_empty() {
+        return String::new();
     }
 
     let mut output = String::new();
 
     // Header row
     output.push('|');
-    for name in &field_names {
+    for name in &parsed.field_names {
         output.push_str(&format!(" {name} |"));
     }
     output.push('\n');
 
     // Separator row
     output.push('|');
-    for _ in &field_names {
+    for _ in &parsed.field_names {
         output.push_str(" --- |");
     }
     output.push('\n');
 
     // Data rows
-    let records = reader
-        .iter_records()
-        .collect::<std::result::Result<Vec<_>, _>>()
-        .map_err(|e| crate::KreuzbergError::parsing(format!("Failed to read dBASE records: {e}")))?;
-
-    for record in records {
+    for row in &parsed.rows {
         output.push('|');
-        for (_, value) in record {
-            let s = field_value_to_string(&value);
+        for s in row {
             output.push_str(&format!(" {s} |"));
         }
         output.push('\n');
     }
 
-    Ok(output)
+    output
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
@@ -120,9 +152,16 @@ impl DocumentExtractor for DbfExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
-        let text = extract_dbf_content(content)?;
+        let parsed = parse_dbf(content)?;
+        let text = format_dbf_content(&parsed);
+
+        let document = if config.include_document_structure {
+            Some(build_dbf_document_structure(&parsed))
+        } else {
+            None
+        };
 
         Ok(ExtractionResult {
             content: text,
@@ -136,7 +175,7 @@ impl DocumentExtractor for DbfExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

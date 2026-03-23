@@ -63,7 +63,7 @@ impl DocumentExtractor for DocExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let result = {
             #[cfg(feature = "tokio-runtime")]
@@ -111,6 +111,20 @@ impl DocumentExtractor for DocExtractor {
             serde_json::Value::String("native_ole".to_string()),
         );
 
+        let document = if config.include_document_structure {
+            use crate::types::builder::DocumentStructureBuilder;
+            let mut builder = DocumentStructureBuilder::new().source_format("doc");
+            for paragraph in result.text.split("\n\n") {
+                let trimmed = paragraph.trim();
+                if !trimmed.is_empty() {
+                    builder.push_paragraph(trimmed, vec![], None, None);
+                }
+            }
+            Some(builder.build())
+        } else {
+            None
+        };
+
         Ok(ExtractionResult {
             content: result.text,
             mime_type: mime_type.to_string().into(),
@@ -126,7 +140,7 @@ impl DocumentExtractor for DocExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

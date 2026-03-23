@@ -6,9 +6,11 @@ use super::parsing::{extract_complete_djot_content, extract_tables_from_events};
 use crate::Result;
 use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
+use crate::types::builder::DocumentStructureBuilder;
+use crate::types::document_structure::DocumentStructure;
 use crate::types::{ExtractionResult, Metadata};
 use async_trait::async_trait;
-use jotdown::{Event, Parser};
+use jotdown::{Container, Event, Parser};
 use std::borrow::Cow;
 
 /// Djot markup extractor with metadata and table support.
@@ -25,6 +27,191 @@ impl DjotExtractor {
     /// Create a new Djot extractor.
     pub fn new() -> Self {
         Self
+    }
+}
+
+impl DjotExtractor {
+    /// Build a `DocumentStructure` from jotdown events.
+    fn build_document_structure(events: &[Event]) -> DocumentStructure {
+        let mut builder = DocumentStructureBuilder::new().source_format("djot");
+
+        let mut paragraph_text = String::new();
+        let mut in_paragraph = false;
+        let mut heading_text = String::new();
+        let mut heading_level: u8 = 0;
+        let mut in_heading = false;
+        let mut code_text = String::new();
+        let mut code_lang: Option<String> = None;
+        let mut in_code_block = false;
+        let mut blockquote_depth: u32 = 0;
+        let mut in_math = false;
+        let mut math_text = String::new();
+        let mut list_stack: Vec<(crate::types::document_structure::NodeIndex, bool)> = Vec::new();
+        let mut list_item_text = String::new();
+        let mut in_list_item = false;
+        let mut in_raw_block = false;
+        let mut raw_format: Option<String> = None;
+        let mut raw_text = String::new();
+
+        for event in events {
+            match event {
+                Event::Start(Container::Heading { level, .. }, _) => {
+                    heading_text.clear();
+                    heading_level = *level as u8;
+                    in_heading = true;
+                }
+                Event::End(Container::Heading { .. }) => {
+                    in_heading = false;
+                    let text = heading_text.trim().to_string();
+                    if !text.is_empty() {
+                        builder.push_heading(heading_level, &text, None, None);
+                    }
+                    heading_text.clear();
+                }
+                Event::Start(Container::Paragraph, _) => {
+                    if !in_heading && !in_list_item {
+                        paragraph_text.clear();
+                        in_paragraph = true;
+                    }
+                }
+                Event::End(Container::Paragraph) => {
+                    if in_paragraph {
+                        in_paragraph = false;
+                        let text = paragraph_text.trim().to_string();
+                        if !text.is_empty() {
+                            builder.push_paragraph(&text, vec![], None, None);
+                        }
+                        paragraph_text.clear();
+                    } else if in_list_item {
+                        // paragraph inside list item — text already accumulated
+                    }
+                }
+                Event::Start(Container::CodeBlock { language }, _) => {
+                    code_text.clear();
+                    code_lang = if language.is_empty() {
+                        None
+                    } else {
+                        Some(language.to_string())
+                    };
+                    in_code_block = true;
+                }
+                Event::End(Container::CodeBlock { .. }) => {
+                    in_code_block = false;
+                    let text = code_text.trim_end().to_string();
+                    if !text.is_empty() {
+                        builder.push_code(&text, code_lang.as_deref(), None);
+                    }
+                    code_text.clear();
+                    code_lang = None;
+                }
+                Event::Start(Container::RawBlock { format }, _) => {
+                    in_raw_block = true;
+                    raw_format = Some(format.to_string());
+                    raw_text.clear();
+                }
+                Event::End(Container::RawBlock { .. }) => {
+                    in_raw_block = false;
+                    let text = raw_text.trim().to_string();
+                    if !text.is_empty() {
+                        builder.push_raw_block(raw_format.as_deref().unwrap_or("unknown"), &text, None);
+                    }
+                    raw_text.clear();
+                    raw_format = None;
+                }
+                Event::Start(Container::Blockquote, _) => {
+                    builder.push_quote(None);
+                    blockquote_depth += 1;
+                }
+                Event::End(Container::Blockquote) => {
+                    if blockquote_depth > 0 {
+                        builder.exit_container();
+                        blockquote_depth -= 1;
+                    }
+                }
+                Event::Start(Container::List { kind, .. }, _) => {
+                    let ordered = matches!(kind, jotdown::ListKind::Ordered { .. });
+                    let list_idx = builder.push_list(ordered, None);
+                    list_stack.push((list_idx, ordered));
+                }
+                Event::End(Container::List { .. }) => {
+                    list_stack.pop();
+                }
+                Event::Start(Container::ListItem | Container::TaskListItem { .. }, _) => {
+                    list_item_text.clear();
+                    in_list_item = true;
+                }
+                Event::End(Container::ListItem | Container::TaskListItem { .. }) => {
+                    in_list_item = false;
+                    let text = list_item_text.trim().to_string();
+                    if let Some((list_idx, _)) = list_stack.last()
+                        && !text.is_empty()
+                    {
+                        builder.push_list_item(*list_idx, &text, None);
+                    }
+                    list_item_text.clear();
+                }
+                Event::Start(Container::Math { display }, _) => {
+                    if *display {
+                        in_math = true;
+                        math_text.clear();
+                    }
+                    // Inline math (display: false): text will be accumulated into
+                    // the surrounding context (paragraph, heading, list item) via Str events.
+                }
+                Event::End(Container::Math { display }) => {
+                    if *display {
+                        in_math = false;
+                        let text = math_text.trim().to_string();
+                        if !text.is_empty() {
+                            builder.push_formula(&text, None);
+                        }
+                        math_text.clear();
+                    }
+                }
+                Event::Start(Container::Image(..), _) => {
+                    // Images in djot — push an image node
+                }
+                Event::End(Container::Image(..)) => {
+                    builder.push_image(None, None, None, None);
+                }
+                Event::Str(s) => {
+                    if in_code_block {
+                        code_text.push_str(s);
+                    } else if in_raw_block {
+                        raw_text.push_str(s);
+                    } else if in_math {
+                        math_text.push_str(s);
+                    } else if in_heading {
+                        heading_text.push_str(s);
+                    } else if in_list_item {
+                        list_item_text.push_str(s);
+                    } else if in_paragraph {
+                        paragraph_text.push_str(s);
+                    }
+                }
+                Event::Softbreak => {
+                    if in_code_block {
+                        code_text.push('\n');
+                    } else if in_heading {
+                        heading_text.push(' ');
+                    } else if in_list_item {
+                        list_item_text.push(' ');
+                    } else if in_paragraph {
+                        paragraph_text.push(' ');
+                    }
+                }
+                Event::Hardbreak => {
+                    if in_code_block {
+                        code_text.push('\n');
+                    } else if in_paragraph {
+                        paragraph_text.push('\n');
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        builder.build()
     }
 }
 
@@ -66,7 +253,7 @@ impl DocumentExtractor for DjotExtractor {
     #[cfg_attr(
         feature = "otel",
         tracing::instrument(
-            skip(self, content, _config),
+            skip(self, content, config),
             fields(
                 extractor.name = self.name(),
                 content.size_bytes = content.len(),
@@ -77,7 +264,7 @@ impl DocumentExtractor for DjotExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let text = String::from_utf8_lossy(content).into_owned();
 
@@ -107,6 +294,12 @@ impl DocumentExtractor for DjotExtractor {
         // Extract complete djot content with all features
         let djot_content = extract_complete_djot_content(&events, metadata.clone(), tables.clone());
 
+        let document = if config.include_document_structure {
+            Some(Self::build_document_structure(&events))
+        } else {
+            None
+        };
+
         // Use the raw source (after frontmatter stripping) as content to preserve
         // table structures, formatting, and all original text verbatim.
         // Structured extraction goes into djot_content.
@@ -122,7 +315,7 @@ impl DocumentExtractor for DjotExtractor {
             djot_content: Some(djot_content),
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

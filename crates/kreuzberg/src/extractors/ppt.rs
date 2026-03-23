@@ -63,7 +63,7 @@ impl DocumentExtractor for PptExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let result = {
             #[cfg(feature = "tokio-runtime")]
@@ -135,6 +135,25 @@ impl DocumentExtractor for PptExtractor {
             None
         };
 
+        let document = if config.include_document_structure {
+            use crate::types::builder::DocumentStructureBuilder;
+            let mut builder = DocumentStructureBuilder::new().source_format("ppt");
+
+            // Split text by double-newlines; each block corresponds to a slide.
+            let slide_blocks: Vec<&str> = result.text.split("\n\n").collect();
+            for (i, block) in slide_blocks.iter().enumerate() {
+                let trimmed = block.trim();
+                if !trimmed.is_empty() {
+                    builder.push_slide((i + 1) as u32, None);
+                    builder.push_paragraph(trimmed, vec![], None, None);
+                    builder.exit_container();
+                }
+            }
+            Some(builder.build())
+        } else {
+            None
+        };
+
         Ok(ExtractionResult {
             content: result.text,
             mime_type: mime_type.to_string().into(),
@@ -151,7 +170,7 @@ impl DocumentExtractor for PptExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

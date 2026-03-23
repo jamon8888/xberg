@@ -71,6 +71,173 @@ impl DocbookExtractor {
 /// Type alias for DocBook parsing results: (content, title, author, date, tables)
 type DocBookParseResult = (String, String, Option<String>, Option<String>, Vec<Table>);
 
+/// Build a `DocumentStructure` from DocBook XML content.
+fn build_docbook_document_structure(content: &str) -> Result<crate::types::document_structure::DocumentStructure> {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let mut reader = Reader::from_str(content);
+    let mut builder = DocumentStructureBuilder::new().source_format("docbook");
+
+    let mut title_extracted = false;
+    let mut in_info = false;
+    let mut in_table = false;
+    let mut in_tgroup = false;
+    let mut in_thead = false;
+    let mut in_tbody = false;
+    let mut in_row = false;
+    let mut current_table: Vec<Vec<String>> = Vec::new();
+    let mut current_row: Vec<String> = Vec::new();
+    let mut section_depth: u8 = 0;
+
+    loop {
+        match reader.read_event() {
+            Ok(Event::Start(e)) => {
+                let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                let tag = strip_namespace(&tag);
+
+                match tag {
+                    "info" | "articleinfo" | "bookinfo" | "chapterinfo" => {
+                        in_info = true;
+                    }
+                    "chapter" | "sect1" | "sect2" | "sect3" | "sect4" | "sect5" | "section" => {
+                        section_depth = section_depth.saturating_add(1);
+                    }
+                    "title" if !title_extracted && in_info => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_heading(1, &text, None, None);
+                            title_extracted = true;
+                        }
+                    }
+                    "title" if !title_extracted => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_heading(1, &text, None, None);
+                            title_extracted = true;
+                        }
+                    }
+                    "title" if title_extracted => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            let level = std::cmp::min(section_depth.saturating_add(1), 6);
+                            builder.push_heading(level, &text, None, None);
+                        }
+                    }
+                    "para" => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_paragraph(&text, vec![], None, None);
+                        }
+                    }
+                    "programlisting" | "screen" => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_code(&text, None, None);
+                        }
+                    }
+                    "itemizedlist" => {
+                        // handled via listitem children
+                    }
+                    "orderedlist" => {
+                        // handled via listitem children
+                    }
+                    "listitem" => {
+                        // We need to peek at the parent to know ordered/unordered.
+                        // For simplicity, extract text and push as list item.
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_paragraph(&text, vec![], None, None);
+                        }
+                    }
+                    "blockquote" => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_quote(None);
+                            builder.push_paragraph(&text, vec![], None, None);
+                            builder.exit_container();
+                        }
+                    }
+                    "footnote" => {
+                        let text = extract_element_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_footnote(&text, None);
+                        }
+                    }
+                    "table" | "informaltable" => {
+                        in_table = true;
+                        current_table.clear();
+                    }
+                    "tgroup" if in_table => {
+                        in_tgroup = true;
+                    }
+                    "thead" if in_tgroup => {
+                        in_thead = true;
+                    }
+                    "tbody" if in_tgroup => {
+                        in_tbody = true;
+                    }
+                    "row" if (in_thead || in_tbody) && in_tgroup => {
+                        in_row = true;
+                        current_row.clear();
+                    }
+                    "entry" if in_row => {
+                        let text = extract_element_text(&mut reader)?;
+                        current_row.push(text);
+                    }
+                    _ => {}
+                }
+            }
+            Ok(Event::End(e)) => {
+                let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                let tag = strip_namespace(&tag);
+
+                match tag {
+                    "info" | "articleinfo" | "bookinfo" | "chapterinfo" => {
+                        in_info = false;
+                    }
+                    "chapter" | "sect1" | "sect2" | "sect3" | "sect4" | "sect5" | "section" => {
+                        section_depth = section_depth.saturating_sub(1);
+                    }
+                    "table" | "informaltable" if in_table => {
+                        if !current_table.is_empty() {
+                            builder.push_table_simple(&current_table, None);
+                            current_table.clear();
+                        }
+                        in_table = false;
+                    }
+                    "tgroup" if in_tgroup => {
+                        in_tgroup = false;
+                    }
+                    "thead" if in_thead => {
+                        in_thead = false;
+                    }
+                    "tbody" if in_tbody => {
+                        in_tbody = false;
+                    }
+                    "row" if in_row => {
+                        if !current_row.is_empty() {
+                            current_table.push(current_row.clone());
+                            current_row.clear();
+                        }
+                        in_row = false;
+                    }
+                    _ => {}
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(e) => {
+                return Err(crate::error::KreuzbergError::parsing(format!(
+                    "XML parsing error: {}",
+                    e
+                )));
+            }
+            _ => {}
+        }
+    }
+
+    Ok(builder.build())
+}
+
 /// Single-pass DocBook parser that extracts all content in one document traversal.
 /// Returns: (content, title, author, date, tables)
 fn parse_docbook_single_pass(content: &str, plain: bool) -> Result<DocBookParseResult> {
@@ -422,6 +589,12 @@ impl DocumentExtractor for DocbookExtractor {
             metadata.created_at = Some(date_val);
         }
 
+        let document = if config.include_document_structure {
+            Some(build_docbook_document_structure(&docbook_content)?)
+        } else {
+            None
+        };
+
         Ok(ExtractionResult {
             content: extracted_content,
             mime_type: mime_type.to_string().into(),
@@ -434,7 +607,7 @@ impl DocumentExtractor for DocbookExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

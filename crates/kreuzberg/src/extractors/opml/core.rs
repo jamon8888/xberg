@@ -63,7 +63,7 @@ impl DocumentExtractor for OpmlExtractor {
     #[cfg_attr(
         feature = "otel",
         tracing::instrument(
-            skip(self, content, _config),
+            skip(self, content, config),
             fields(
                 extractor.name = self.name(),
                 content.size_bytes = content.len(),
@@ -74,9 +74,15 @@ impl DocumentExtractor for OpmlExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let (extracted_content, metadata_map) = parser::extract_content_and_metadata(content)?;
+
+        let document = if config.include_document_structure {
+            Some(parser::build_document_structure(content)?)
+        } else {
+            None
+        };
 
         Ok(ExtractionResult {
             content: extracted_content,
@@ -93,7 +99,7 @@ impl DocumentExtractor for OpmlExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

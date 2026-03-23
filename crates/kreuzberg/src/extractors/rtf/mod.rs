@@ -77,7 +77,7 @@ impl Plugin for RtfExtractor {
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DocumentExtractor for RtfExtractor {
     #[cfg_attr(feature = "otel", tracing::instrument(
-        skip(self, content, _config),
+        skip(self, content, config),
         fields(
             extractor.name = self.name(),
             content.size_bytes = content.len(),
@@ -87,16 +87,50 @@ impl DocumentExtractor for RtfExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let rtf_content = String::from_utf8_lossy(content);
         let plain = matches!(
-            _config.output_format,
+            config.output_format,
             crate::core::config::OutputFormat::Plain | crate::core::config::OutputFormat::Structured
         );
 
         let (extracted_text, tables) = extract_text_from_rtf(&rtf_content, plain);
         let metadata_map = extract_rtf_metadata(&rtf_content, &extracted_text);
+
+        let document = if config.include_document_structure {
+            use crate::types::builder::DocumentStructureBuilder;
+            let mut builder = DocumentStructureBuilder::new().source_format("rtf");
+
+            // Build structure from extracted text paragraphs and tables.
+            // Tables are emitted separately; text paragraphs come from double-newline splitting.
+            let mut table_idx = 0;
+            for paragraph in extracted_text.split("\n\n") {
+                let trimmed = paragraph.trim();
+                if trimmed.is_empty() {
+                    continue;
+                }
+                // Check if this paragraph looks like a table (contains pipe separators on multiple lines)
+                let lines: Vec<&str> = trimmed.lines().collect();
+                let is_table_like = lines.len() >= 2 && lines.iter().all(|l| l.contains('|'));
+                if is_table_like && table_idx < tables.len() {
+                    builder.push_table_simple(&tables[table_idx].cells, None);
+                    table_idx += 1;
+                } else {
+                    builder.push_paragraph(trimmed, vec![], None, None);
+                }
+            }
+
+            // Push any remaining tables that weren't matched inline
+            while table_idx < tables.len() {
+                builder.push_table_simple(&tables[table_idx].cells, None);
+                table_idx += 1;
+            }
+
+            Some(builder.build())
+        } else {
+            None
+        };
 
         Ok(ExtractionResult {
             content: extracted_text,
@@ -113,7 +147,7 @@ impl DocumentExtractor for RtfExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

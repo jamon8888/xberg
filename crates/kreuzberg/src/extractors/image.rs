@@ -257,6 +257,22 @@ impl ImageExtractor {
     }
 }
 
+/// Build a simple `DocumentStructure` for an image extraction result.
+///
+/// If OCR text is available, pushes it as a paragraph. Always pushes
+/// the image itself as an `Image` node.
+fn build_image_document_structure(ocr_text: Option<&str>) -> crate::types::document_structure::DocumentStructure {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let mut builder = DocumentStructureBuilder::new().source_format("image");
+    if let Some(text) = ocr_text
+        && !text.trim().is_empty() {
+            builder.push_paragraph(text.trim(), vec![], None, None);
+        }
+    builder.push_image(None, Some(0), None, None);
+    builder.build()
+}
+
 impl Default for ImageExtractor {
     fn default() -> Self {
         Self::new()
@@ -324,6 +340,9 @@ impl DocumentExtractor for ImageExtractor {
                     Ok(mut result) => {
                         result.metadata.format = Some(crate::types::FormatMetadata::Image(image_metadata));
                         result.mime_type = mime_type.to_string().into();
+                        if config.include_document_structure && result.document.is_none() {
+                            result.document = Some(build_image_document_structure(Some(&result.content)));
+                        }
                         return Ok(result);
                     }
                     Err(e) => {
@@ -340,6 +359,10 @@ impl DocumentExtractor for ImageExtractor {
                 ocr_result.metadata.format = Some(crate::types::FormatMetadata::Image(image_metadata));
                 ocr_result.mime_type = mime_type.to_string().into();
 
+                if config.include_document_structure && ocr_result.document.is_none() {
+                    ocr_result.document = Some(build_image_document_structure(Some(&ocr_result.content)));
+                }
+
                 return Ok(ocr_result);
             }
             #[cfg(not(any(feature = "ocr", feature = "ocr-wasm")))]
@@ -348,6 +371,12 @@ impl DocumentExtractor for ImageExtractor {
                     "Image: {} {}x{}",
                     extraction_metadata.format, extraction_metadata.width, extraction_metadata.height
                 );
+
+                let document = if config.include_document_structure {
+                    Some(build_image_document_structure(None))
+                } else {
+                    None
+                };
 
                 return Ok(ExtractionResult {
                     content: content_text,
@@ -364,7 +393,7 @@ impl DocumentExtractor for ImageExtractor {
                     djot_content: None,
                     elements: None,
                     ocr_elements: None,
-                    document: None,
+                    document,
                     #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
                     extracted_keywords: None,
                     quality_score: None,
@@ -373,6 +402,12 @@ impl DocumentExtractor for ImageExtractor {
                 });
             }
         }
+
+        let document = if config.include_document_structure {
+            Some(build_image_document_structure(None))
+        } else {
+            None
+        };
 
         Ok(ExtractionResult {
             content: format!(
@@ -392,7 +427,7 @@ impl DocumentExtractor for ImageExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

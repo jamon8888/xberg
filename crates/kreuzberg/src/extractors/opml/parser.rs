@@ -120,6 +120,64 @@ pub(crate) fn process_outline(node: Node, depth: usize, output: &mut String) {
     }
 }
 
+/// Build a `DocumentStructure` from OPML content.
+///
+/// Maps the outline hierarchy to heading-driven groups:
+/// - Top-level outlines become h1 headings
+/// - Nested outlines increase heading level (up to h6)
+/// - Leaf outlines with text become paragraphs
+#[cfg(feature = "office")]
+pub(crate) fn build_document_structure(content: &[u8]) -> Result<crate::types::document_structure::DocumentStructure> {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let doc = roxmltree::Document::parse(
+        std::str::from_utf8(content)
+            .map_err(|e| crate::KreuzbergError::Other(format!("Invalid UTF-8 in OPML: {}", e)))?,
+    )
+    .map_err(|e| crate::KreuzbergError::Other(format!("Failed to parse OPML: {}", e)))?;
+
+    let mut builder = DocumentStructureBuilder::new().source_format("opml");
+
+    if let Some(opml) = doc.root().children().find(|n| n.tag_name().name() == "opml")
+        && let Some(body) = opml.children().find(|n| n.tag_name().name() == "body") {
+            for outline in body.children().filter(|n| n.tag_name().name() == "outline") {
+                build_outline_structure(outline, 1, &mut builder);
+            }
+        }
+
+    Ok(builder.build())
+}
+
+/// Recursively build document structure from outline nodes.
+///
+/// Outlines with children become heading groups; leaf outlines become paragraphs.
+#[cfg(feature = "office")]
+fn build_outline_structure(node: Node, depth: u8, builder: &mut crate::types::builder::DocumentStructureBuilder) {
+    let text = node.attribute("text").unwrap_or("").trim();
+
+    let child_outlines: Vec<Node> = node.children().filter(|n| n.tag_name().name() == "outline").collect();
+
+    if text.is_empty() {
+        // Skip empty nodes but process children
+        for child in child_outlines {
+            build_outline_structure(child, depth, builder);
+        }
+        return;
+    }
+
+    if child_outlines.is_empty() {
+        // Leaf node: push as paragraph
+        builder.push_paragraph(text, vec![], None, None);
+    } else {
+        // Branch node: push as heading group, recurse children
+        let level = depth.min(6);
+        builder.push_heading(level, text, None, None);
+        for child in child_outlines {
+            build_outline_structure(child, depth + 1, builder);
+        }
+    }
+}
+
 #[cfg(all(test, feature = "office"))]
 mod tests {
     use super::*;

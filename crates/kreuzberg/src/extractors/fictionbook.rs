@@ -960,6 +960,226 @@ impl FictionBookExtractor {
 
         Ok(content.trim().to_string())
     }
+
+    /// Build a `DocumentStructure` from FictionBook XML content.
+    fn build_document_structure(data: &[u8]) -> Result<crate::types::document_structure::DocumentStructure> {
+        use crate::types::builder::DocumentStructureBuilder;
+
+        let mut reader = Reader::from_reader(data);
+        let mut builder = DocumentStructureBuilder::new().source_format("fictionbook");
+
+        let mut in_body = false;
+        let mut is_notes_body = false;
+        let mut section_depth: u8 = 0;
+
+        loop {
+            match reader.read_event() {
+                Ok(Event::Start(e)) => {
+                    let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+
+                    if tag == "body" {
+                        let mut is_notes = false;
+                        for a in e.attributes().flatten() {
+                            let attr_name = String::from_utf8_lossy(a.key.as_ref()).to_string();
+                            if attr_name == "name" {
+                                let val = String::from_utf8_lossy(a.value.as_ref());
+                                if val == "notes" {
+                                    is_notes = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if is_notes {
+                            is_notes_body = true;
+                        } else {
+                            in_body = true;
+                        }
+                    } else if tag == "section" && in_body {
+                        section_depth = section_depth.saturating_add(1);
+                    } else if tag == "title" && in_body {
+                        match Self::extract_text_content(&mut reader) {
+                            Ok(text) if !text.is_empty() => {
+                                let level = std::cmp::min(section_depth.max(1), 6);
+                                builder.push_heading(level, &text, None, None);
+                            }
+                            _ => {}
+                        }
+                    } else if tag == "p" && in_body && !is_notes_body {
+                        // Extract paragraph with inline formatting info for annotations
+                        match Self::extract_paragraph_with_annotations(&mut reader) {
+                            Ok((text, annotations)) if !text.is_empty() => {
+                                builder.push_paragraph(&text, annotations, None, None);
+                            }
+                            _ => {}
+                        }
+                    } else if tag == "cite" && in_body {
+                        match Self::extract_text_content(&mut reader) {
+                            Ok(text) if !text.is_empty() => {
+                                builder.push_quote(None);
+                                builder.push_paragraph(&text, vec![], None, None);
+                                builder.exit_container();
+                            }
+                            _ => {}
+                        }
+                    } else if (tag == "programlisting" || tag == "code") && in_body {
+                        match Self::extract_text_content(&mut reader) {
+                            Ok(text) if !text.is_empty() => {
+                                builder.push_code(&text, None, None);
+                            }
+                            _ => {}
+                        }
+                    } else if tag == "section" && is_notes_body {
+                        // Extract footnote
+                        match Self::extract_footnote_text(&mut reader) {
+                            Ok(text) if !text.is_empty() => {
+                                builder.push_footnote(&text, None);
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                Ok(Event::End(e)) => {
+                    let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    if tag == "body" {
+                        if is_notes_body {
+                            is_notes_body = false;
+                        } else {
+                            in_body = false;
+                        }
+                    } else if tag == "section" && in_body {
+                        section_depth = section_depth.saturating_sub(1);
+                    }
+                }
+                Ok(Event::Eof) => break,
+                Err(_) => break,
+                _ => {}
+            }
+        }
+
+        Ok(builder.build())
+    }
+
+    /// Extract paragraph text with annotation tracking for inline formatting.
+    fn extract_paragraph_with_annotations(
+        reader: &mut Reader<&[u8]>,
+    ) -> Result<(String, Vec<crate::types::document_structure::TextAnnotation>)> {
+        use crate::types::document_structure::{AnnotationKind, TextAnnotation};
+
+        let mut text = String::new();
+        let mut annotations = Vec::new();
+        let mut depth = 0;
+        let mut format_stack: Vec<(String, u32)> = Vec::new(); // (tag, start_byte_offset)
+
+        loop {
+            match reader.read_event() {
+                Ok(Event::Start(e)) => {
+                    let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    depth += 1;
+                    match tag.as_str() {
+                        "emphasis" | "strong" | "strikethrough" | "code" => {
+                            format_stack.push((tag, text.len() as u32));
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(Event::End(e)) => {
+                    let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    if tag == "p" && depth <= 1 {
+                        break;
+                    }
+                    match tag.as_str() {
+                        "emphasis" | "strong" | "strikethrough" | "code" => {
+                            if let Some((fmt_tag, start)) = format_stack.pop() {
+                                let end = text.len() as u32;
+                                if end > start
+                                    && let Some(kind) = match fmt_tag.as_str() {
+                                        "emphasis" => Some(AnnotationKind::Italic),
+                                        "strong" => Some(AnnotationKind::Bold),
+                                        "strikethrough" => Some(AnnotationKind::Strikethrough),
+                                        "code" => Some(AnnotationKind::Code),
+                                        _ => None,
+                                    } {
+                                        annotations.push(TextAnnotation { start, end, kind });
+                                    }
+                            }
+                        }
+                        _ => {}
+                    }
+                    if depth > 0 {
+                        depth -= 1;
+                    }
+                }
+                Ok(Event::Text(t)) => {
+                    let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
+                    let normalized = decoded.split_whitespace().collect::<Vec<_>>().join(" ");
+                    let trimmed = normalized.as_str();
+                    if !trimmed.is_empty() {
+                        if !text.is_empty() && !text.ends_with(' ') {
+                            text.push(' ');
+                        }
+                        text.push_str(trimmed);
+                    }
+                }
+                Ok(Event::GeneralRef(r)) => {
+                    let resolved = resolve_general_ref(r.as_ref());
+                    if !resolved.is_empty() {
+                        text.push_str(&resolved);
+                    }
+                }
+                Ok(Event::Eof) => break,
+                Err(e) => {
+                    return Err(crate::error::KreuzbergError::parsing(format!(
+                        "XML parsing error: {}",
+                        e
+                    )));
+                }
+                _ => {}
+            }
+        }
+
+        Ok((text.trim().to_string(), annotations))
+    }
+
+    /// Extract footnote text from a notes-body section.
+    fn extract_footnote_text(reader: &mut Reader<&[u8]>) -> Result<String> {
+        let mut text = String::new();
+        let mut section_depth = 1;
+
+        loop {
+            match reader.read_event() {
+                Ok(Event::Start(e)) => {
+                    let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    if tag == "section" {
+                        section_depth += 1;
+                    }
+                }
+                Ok(Event::End(e)) => {
+                    let tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                    if tag == "section" {
+                        section_depth -= 1;
+                        if section_depth == 0 {
+                            break;
+                        }
+                    }
+                }
+                Ok(Event::Text(t)) => {
+                    let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
+                    let trimmed = decoded.trim();
+                    if !trimmed.is_empty() {
+                        if !text.is_empty() {
+                            text.push(' ');
+                        }
+                        text.push_str(trimmed);
+                    }
+                }
+                Ok(Event::Eof) => break,
+                Err(_) => break,
+                _ => {}
+            }
+        }
+
+        Ok(text.trim().to_string())
+    }
 }
 
 impl Plugin for FictionBookExtractor {
@@ -995,15 +1215,21 @@ impl DocumentExtractor for FictionBookExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let metadata = Self::extract_metadata(content)?;
         let plain = matches!(
-            _config.output_format,
+            config.output_format,
             crate::core::config::OutputFormat::Plain | crate::core::config::OutputFormat::Structured
         );
 
         let extracted_content = Self::extract_body_content(content, plain)?;
+
+        let document = if config.include_document_structure {
+            Some(Self::build_document_structure(content)?)
+        } else {
+            None
+        };
 
         Ok(ExtractionResult {
             content: extracted_content,
@@ -1017,7 +1243,7 @@ impl DocumentExtractor for FictionBookExtractor {
             pages: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

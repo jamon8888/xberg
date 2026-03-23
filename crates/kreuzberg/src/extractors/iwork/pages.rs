@@ -105,7 +105,7 @@ impl DocumentExtractor for PagesExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let text = {
             #[cfg(feature = "tokio-runtime")]
@@ -126,6 +126,12 @@ impl DocumentExtractor for PagesExtractor {
             parse_pages(content)?
         };
 
+        let document = if config.include_document_structure {
+            Some(build_pages_document_structure(&text))
+        } else {
+            None
+        };
+
         let additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
 
         Ok(ExtractionResult {
@@ -143,7 +149,7 @@ impl DocumentExtractor for PagesExtractor {
             djot_content: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,
@@ -159,6 +165,37 @@ impl DocumentExtractor for PagesExtractor {
     fn priority(&self) -> i32 {
         50
     }
+}
+
+/// Build a `DocumentStructure` from extracted Pages text.
+///
+/// Maps text content to paragraphs. If the text contains blank-line separators
+/// (`\n\n`), each block becomes a paragraph. Otherwise, each non-empty line
+/// becomes its own paragraph.
+fn build_pages_document_structure(text: &str) -> crate::types::document_structure::DocumentStructure {
+    use crate::types::builder::DocumentStructureBuilder;
+
+    let mut builder = DocumentStructureBuilder::new().source_format("pages");
+
+    if text.contains("\n\n") {
+        // Multi-paragraph content separated by blank lines
+        for paragraph in text.split("\n\n") {
+            let trimmed = paragraph.trim();
+            if !trimmed.is_empty() {
+                builder.push_paragraph(trimmed, vec![], None, None);
+            }
+        }
+    } else {
+        // Single-spaced content: each line becomes a paragraph
+        for line in text.lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                builder.push_paragraph(trimmed, vec![], None, None);
+            }
+        }
+    }
+
+    builder.build()
 }
 
 #[cfg(test)]

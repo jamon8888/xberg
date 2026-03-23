@@ -12,6 +12,8 @@ use super::frontmatter_utils::{
 use crate::Result;
 use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
+use crate::types::builder::DocumentStructureBuilder;
+use crate::types::document_structure::DocumentStructure;
 use crate::types::{ExtractedImage, ExtractionResult, Metadata, Table};
 use async_trait::async_trait;
 use base64::Engine;
@@ -58,7 +60,13 @@ impl MdxExtractor {
     /// - Content inside code fences (``` blocks)
     /// - Standard HTML tags (lowercase: `<div>`, `<p>`, etc.)
     /// - Text content between JSX component tags
+    #[cfg(test)]
     pub(crate) fn strip_mdx_syntax(content: &str) -> String {
+        Self::strip_mdx_syntax_collecting(content, None)
+    }
+
+    /// Strip MDX syntax, optionally collecting stripped JSX blocks into `jsx_blocks`.
+    fn strip_mdx_syntax_collecting(content: &str, mut jsx_blocks: Option<&mut Vec<String>>) -> String {
         let mut result = String::with_capacity(content.len());
         let mut in_code_fence = false;
         let mut skip_block_depth: i32 = 0;
@@ -120,8 +128,18 @@ impl MdxExtractor {
             let processed = JSX_TAG_RE.replace_all(&without_comments, "");
             let processed_trimmed = processed.trim();
 
-            // Skip lines that became empty after stripping (were pure JSX tag lines)
+            // Lines that became empty after stripping were pure JSX tag lines
             if processed_trimmed.is_empty() && !trimmed.is_empty() {
+                // Collect stripped JSX tags if requested
+                if let Some(ref mut blocks) = jsx_blocks {
+                    let tags: Vec<String> = JSX_TAG_RE
+                        .find_iter(&without_comments)
+                        .map(|m| m.as_str().to_string())
+                        .collect();
+                    for tag in tags {
+                        blocks.push(tag);
+                    }
+                }
                 continue;
             }
 
@@ -267,6 +285,236 @@ impl MdxExtractor {
         })
     }
 
+    /// Build a `DocumentStructure` from pulldown-cmark events after JSX stripping.
+    ///
+    /// JSX blocks that were stripped are recorded as raw blocks in the document structure.
+    fn build_document_structure(
+        events: &[Event],
+        yaml: &Option<serde_yaml_ng::Value>,
+        raw_jsx_blocks: &[String],
+    ) -> DocumentStructure {
+        let mut builder = DocumentStructureBuilder::new().source_format("mdx");
+
+        // Emit frontmatter as a metadata block
+        if let Some(serde_yaml_ng::Value::Mapping(map)) = yaml {
+            let entries: Vec<(String, String)> = map
+                .iter()
+                .filter_map(|(k, v)| {
+                    let key = k.as_str()?.to_string();
+                    let val = match v {
+                        serde_yaml_ng::Value::String(s) => s.clone(),
+                        other => format!("{other:?}"),
+                    };
+                    Some((key, val))
+                })
+                .collect();
+            if !entries.is_empty() {
+                builder.push_metadata_block(entries, None);
+            }
+        }
+
+        // Emit stripped JSX components as raw blocks
+        for jsx in raw_jsx_blocks {
+            if !jsx.trim().is_empty() {
+                builder.push_raw_block("jsx", jsx, None);
+            }
+        }
+
+        Self::walk_events_into_builder(events, &mut builder);
+        builder.build()
+    }
+
+    /// Walk pulldown-cmark events and push nodes into the builder.
+    fn walk_events_into_builder(events: &[Event], builder: &mut DocumentStructureBuilder) {
+        let mut paragraph_text = String::new();
+        let mut in_paragraph = false;
+        let mut heading_text = String::new();
+        let mut heading_level: u8 = 0;
+        let mut in_heading = false;
+        let mut code_text = String::new();
+        let mut code_lang: Option<String> = None;
+        let mut in_code_block = false;
+        let mut blockquote_depth: u32 = 0;
+        let mut table_rows: Vec<Vec<String>> = Vec::new();
+        let mut current_row: Vec<String> = Vec::new();
+        let mut current_cell = String::new();
+        let mut in_table_cell = false;
+        let mut list_stack: Vec<(crate::types::document_structure::NodeIndex, bool)> = Vec::new();
+        let mut list_item_text = String::new();
+        let mut in_list_item = false;
+        let mut in_image = false;
+        let mut image_alt = String::new();
+
+        for event in events {
+            match event {
+                Event::Start(Tag::Heading { level, .. }) => {
+                    heading_text.clear();
+                    heading_level = match *level {
+                        pulldown_cmark::HeadingLevel::H1 => 1,
+                        pulldown_cmark::HeadingLevel::H2 => 2,
+                        pulldown_cmark::HeadingLevel::H3 => 3,
+                        pulldown_cmark::HeadingLevel::H4 => 4,
+                        pulldown_cmark::HeadingLevel::H5 => 5,
+                        pulldown_cmark::HeadingLevel::H6 => 6,
+                    };
+                    in_heading = true;
+                }
+                Event::End(TagEnd::Heading(_)) => {
+                    in_heading = false;
+                    let text = heading_text.trim().to_string();
+                    if !text.is_empty() {
+                        builder.push_heading(heading_level, &text, None, None);
+                    }
+                    heading_text.clear();
+                }
+                Event::Start(Tag::Paragraph) => {
+                    if !in_heading && !in_list_item {
+                        paragraph_text.clear();
+                        in_paragraph = true;
+                    }
+                }
+                Event::End(TagEnd::Paragraph) => {
+                    if in_paragraph {
+                        in_paragraph = false;
+                        let text = paragraph_text.trim().to_string();
+                        if !text.is_empty() {
+                            builder.push_paragraph(&text, vec![], None, None);
+                        }
+                        paragraph_text.clear();
+                    }
+                }
+                Event::Start(Tag::CodeBlock(pulldown_cmark::CodeBlockKind::Fenced(lang))) => {
+                    code_text.clear();
+                    code_lang = if lang.is_empty() { None } else { Some(lang.to_string()) };
+                    in_code_block = true;
+                }
+                Event::Start(Tag::CodeBlock(_)) => {
+                    code_text.clear();
+                    code_lang = None;
+                    in_code_block = true;
+                }
+                Event::End(TagEnd::CodeBlock) => {
+                    in_code_block = false;
+                    let text = code_text.trim_end().to_string();
+                    if !text.is_empty() {
+                        builder.push_code(&text, code_lang.as_deref(), None);
+                    }
+                    code_text.clear();
+                    code_lang = None;
+                }
+                Event::Start(Tag::BlockQuote(_)) => {
+                    builder.push_quote(None);
+                    blockquote_depth += 1;
+                }
+                Event::End(TagEnd::BlockQuote(_)) => {
+                    if blockquote_depth > 0 {
+                        builder.exit_container();
+                        blockquote_depth -= 1;
+                    }
+                }
+                Event::Start(Tag::List(start)) => {
+                    let ordered = start.is_some();
+                    let list_idx = builder.push_list(ordered, None);
+                    list_stack.push((list_idx, ordered));
+                }
+                Event::End(TagEnd::List(_)) => {
+                    list_stack.pop();
+                }
+                Event::Start(Tag::Item) => {
+                    list_item_text.clear();
+                    in_list_item = true;
+                }
+                Event::End(TagEnd::Item) => {
+                    in_list_item = false;
+                    let text = list_item_text.trim().to_string();
+                    if let Some((list_idx, _)) = list_stack.last()
+                        && !text.is_empty()
+                    {
+                        builder.push_list_item(*list_idx, &text, None);
+                    }
+                    list_item_text.clear();
+                }
+                Event::Start(Tag::Table(_)) => {
+                    table_rows.clear();
+                }
+                Event::End(TagEnd::Table) => {
+                    if !table_rows.is_empty() {
+                        builder.push_table_simple(&table_rows, None);
+                    }
+                    table_rows.clear();
+                }
+                Event::Start(Tag::TableHead | Tag::TableRow) => {
+                    current_row.clear();
+                }
+                Event::End(TagEnd::TableHead | TagEnd::TableRow) => {
+                    if !current_row.is_empty() {
+                        table_rows.push(std::mem::take(&mut current_row));
+                    }
+                }
+                Event::Start(Tag::TableCell) => {
+                    current_cell.clear();
+                    in_table_cell = true;
+                }
+                Event::End(TagEnd::TableCell) => {
+                    in_table_cell = false;
+                    current_row.push(current_cell.trim().to_string());
+                    current_cell.clear();
+                }
+                Event::Start(Tag::Image { .. }) => {
+                    in_image = true;
+                    image_alt.clear();
+                }
+                Event::End(TagEnd::Image) => {
+                    in_image = false;
+                    let desc = if image_alt.trim().is_empty() {
+                        None
+                    } else {
+                        Some(image_alt.trim().to_string())
+                    };
+                    builder.push_image(desc.as_deref(), None, None, None);
+                    image_alt.clear();
+                }
+                Event::Text(s) | Event::Code(s) => {
+                    if in_code_block {
+                        code_text.push_str(s);
+                    } else if in_heading {
+                        heading_text.push_str(s);
+                    } else if in_image {
+                        image_alt.push_str(s);
+                    } else if in_table_cell {
+                        current_cell.push_str(s);
+                    } else if in_list_item {
+                        list_item_text.push_str(s);
+                    } else if in_paragraph {
+                        paragraph_text.push_str(s);
+                    }
+                }
+                Event::SoftBreak | Event::HardBreak => {
+                    if in_code_block {
+                        code_text.push('\n');
+                    } else if in_heading {
+                        heading_text.push(' ');
+                    } else if in_list_item {
+                        list_item_text.push(' ');
+                    } else if in_paragraph {
+                        paragraph_text.push(' ');
+                    }
+                }
+                Event::Html(s) => {
+                    if in_paragraph {
+                        paragraph_text.push_str(s);
+                    }
+                }
+                Event::TaskListMarker(checked) => {
+                    if in_list_item {
+                        list_item_text.push_str(if *checked { "[x] " } else { "[ ] " });
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
     /// Extract tables from markdown AST.
     fn extract_tables_from_events(events: &[Event]) -> Vec<Table> {
         let mut tables = Vec::new();
@@ -387,7 +635,7 @@ impl Plugin for MdxExtractor {
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl DocumentExtractor for MdxExtractor {
     #[cfg_attr(feature = "otel", tracing::instrument(
-        skip(self, content, _config),
+        skip(self, content, config),
         fields(
             extractor.name = self.name(),
             content.size_bytes = content.len(),
@@ -397,7 +645,7 @@ impl DocumentExtractor for MdxExtractor {
         &self,
         content: &[u8],
         mime_type: &str,
-        _config: &ExtractionConfig,
+        config: &ExtractionConfig,
     ) -> Result<ExtractionResult> {
         let text = String::from_utf8_lossy(content).into_owned();
 
@@ -410,8 +658,15 @@ impl DocumentExtractor for MdxExtractor {
             Metadata::default()
         };
 
-        // Strip MDX-specific syntax from the remaining content
-        let clean_markdown = Self::strip_mdx_syntax(&remaining_content);
+        // Strip MDX-specific syntax from the remaining content,
+        // collecting JSX blocks when document structure is requested.
+        let mut jsx_blocks_buf = if config.include_document_structure {
+            Some(Vec::new())
+        } else {
+            None
+        };
+        let clean_markdown =
+            Self::strip_mdx_syntax_collecting(&remaining_content, jsx_blocks_buf.as_mut());
 
         if metadata.title.is_none()
             && !metadata.additional.contains_key("title")
@@ -430,11 +685,17 @@ impl DocumentExtractor for MdxExtractor {
 
         let tables = Self::extract_tables_from_events(&events);
 
+        let document = if config.include_document_structure {
+            let raw_jsx = jsx_blocks_buf.unwrap_or_default();
+            Some(Self::build_document_structure(&events, &yaml, &raw_jsx))
+        } else {
+            None
+        };
+
         let images = if !extracted_images.is_empty() {
             #[cfg(all(feature = "ocr", feature = "tokio-runtime"))]
             {
-                let processed =
-                    crate::extraction::image_ocr::process_images_with_ocr(extracted_images, _config).await?;
+                let processed = crate::extraction::image_ocr::process_images_with_ocr(extracted_images, config).await?;
                 Some(processed)
             }
             #[cfg(not(all(feature = "ocr", feature = "tokio-runtime")))]
@@ -457,7 +718,7 @@ impl DocumentExtractor for MdxExtractor {
             pages: None,
             elements: None,
             ocr_elements: None,
-            document: None,
+            document,
             #[cfg(any(feature = "keywords-yake", feature = "keywords-rake"))]
             extracted_keywords: None,
             quality_score: None,

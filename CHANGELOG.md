@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Unified DocumentStructure DTO**: Extended the `DocumentStructure` model with 7 new node types (`Slide`, `DefinitionList`, `DefinitionItem`, `Citation`, `Admonition`, `RawBlock`, `MetadataBlock`), 4 new annotation kinds (`Highlight`, `Color`, `FontSize`, `Custom`), and format-specific `attributes` bag on every node.
+- **DocumentStructureBuilder**: Ergonomic builder with heading-driven section nesting, container stack (Quote/Admonition/Slide auto-parenting), and annotation helpers. Replaces hand-constructed `DocumentNode` structs across all extractors.
+- **Unified rendering module**: `render_to_markdown()` and `render_to_plain()` renderers that walk a `DocumentStructure` tree to produce consistent output with inline annotation rendering, table pipe escaping, and nested list depth support.
+- **DocumentStructure support for all extractors**: Every extractor (35 formats) now natively produces a `DocumentStructure` when `include_document_structure` is enabled:
+  - Office: DOCX (with TextAnnotation from Run formatting, Formula from OMML), PPTX (Slide containers), ODT, DOC, PPT
+  - Markup: HTML (1,100-line tag parser with inline annotations), LaTeX, RST (admonitions, definition lists), OrgMode, Markdown, MDX, Djot, Typst
+  - Books: EPUB (chapter structure from spine), FictionBook (inline formatting annotations)
+  - Scientific: JATS (article structure), DocBook (section hierarchy)
+  - Data: Excel (sheet headings + tables), CSV, DBF, JSON/YAML/TOML, BibTeX (citations), Jupyter (code + markdown cells)
+  - Other: Email (metadata headers), RTF, OPML (outline hierarchy), HWP, iWork (Keynote/Numbers/Pages), XML, Image (OCR text)
+- **Integration tests**: 44 tests verifying DocumentStructure output for every migrated extractor using real fixture files.
+
+### Fixed
+
+- **Chunking preset tests**: Gated `test_resolve_preset_balanced` and `test_resolve_preset_preserves_explicit_embedding` on `embeddings` feature — they depend on preset resolution which requires the embeddings module.
+
+---
+
 ## [4.5.4] - 2026-03-23
 
 ### Added

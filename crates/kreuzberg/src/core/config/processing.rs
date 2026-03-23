@@ -507,6 +507,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "embeddings")]
     fn test_resolve_preset_balanced() {
         let config = ChunkingConfig {
             preset: Some("balanced".to_string()),
@@ -523,6 +524,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "embeddings")]
     fn test_resolve_preset_preserves_explicit_embedding() {
         let explicit_embedding = EmbeddingConfig {
             model: EmbeddingModelType::Custom {
