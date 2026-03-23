@@ -483,14 +483,14 @@ const RUBY_GEMFILE_TEMPLATE: &str = r#"# frozen_string_literal: true
 
 source 'https://rubygems.org'
 
-gem 'kreuzberg', path: '../../../../packages/ruby'
+gem 'kreuzberg', path: '../../packages/ruby'
 gem 'rspec', '~> 3.12'
 gem 'rubocop', '~> 1.66'
 gem 'rubocop-performance', '~> 1.21'
 gem 'rubocop-rspec', '~> 3.0'
 "#;
 
-const RUBY_RUBOCOP_TEMPLATE: &str = r#"inherit_from: ../../../../packages/ruby/.rubocop.yaml
+const RUBY_RUBOCOP_TEMPLATE: &str = r#"inherit_from: ../../packages/ruby/.rubocop.yaml
 
 plugins:
   - rubocop-rspec

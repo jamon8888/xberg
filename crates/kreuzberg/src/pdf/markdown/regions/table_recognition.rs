@@ -376,6 +376,7 @@ fn render_grid_as_markdown(grid: &[Vec<String>]) -> String {
 /// the cropped table region (works on crops), then we run full-page inference
 /// with the selected model.
 #[cfg(feature = "layout-detection")]
+#[allow(clippy::too_many_arguments)]
 pub(in crate::pdf::markdown) fn recognize_tables_slanet(
     page_image: &image::DynamicImage,
     hints: &[LayoutHint],

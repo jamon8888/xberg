@@ -55,7 +55,7 @@ license = "MIT"
 ignored = ["kreuzberg", "serde_json", "tokio"]
 
 [dependencies]
-kreuzberg = { path = "../../crates/kreuzberg", features = ["default", "ocr", "paddle-ocr"] }
+kreuzberg = { path = "../../crates/kreuzberg", features = ["default", "ocr", "paddle-ocr", "keywords"] }
 serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 

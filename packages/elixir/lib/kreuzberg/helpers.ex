@@ -213,24 +213,25 @@ defmodule Kreuzberg.Helpers do
 
       true ->
         # Use ExtractionResult.new to properly normalize nested structures
-        result = ExtractionResult.new(
-          normalized["content"],
-          normalized["mime_type"],
-          normalized["metadata"] || %{},
-          normalized["tables"] || [],
-          detected_languages: normalized["detected_languages"],
-          chunks: normalized["chunks"],
-          images: normalized["images"],
-          pages: normalized["pages"],
-          elements: normalized["elements"],
-          ocr_elements: normalized["ocr_elements"],
-          djot_content: normalized["djot_content"],
-          document: normalized["document"],
-          extracted_keywords: normalized["extracted_keywords"],
-          quality_score: normalized["quality_score"],
-          processing_warnings: normalized["processing_warnings"],
-          annotations: normalized["annotations"]
-        )
+        result =
+          ExtractionResult.new(
+            normalized["content"],
+            normalized["mime_type"],
+            normalized["metadata"] || %{},
+            normalized["tables"] || [],
+            detected_languages: normalized["detected_languages"],
+            chunks: normalized["chunks"],
+            images: normalized["images"],
+            pages: normalized["pages"],
+            elements: normalized["elements"],
+            ocr_elements: normalized["ocr_elements"],
+            djot_content: normalized["djot_content"],
+            document: normalized["document"],
+            extracted_keywords: normalized["extracted_keywords"],
+            quality_score: normalized["quality_score"],
+            processing_warnings: normalized["processing_warnings"],
+            annotations: normalized["annotations"]
+          )
 
         {:ok, result}
     end

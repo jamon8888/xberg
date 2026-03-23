@@ -67,12 +67,14 @@ defmodule Kreuzberg.LegacyAPI do
   @deprecated "Use Kreuzberg.extract/3 with ExtractionConfig.ocr map instead. Removes in v2.0.0."
   @spec extract_with_ocr(binary(), String.t(), boolean()) ::
           {:ok, ExtractionResult.t()} | {:error, String.t()}
-  def extract_with_ocr(input, mime_type, enable_ocr) when is_binary(input) and is_binary(mime_type) do
-    config = if enable_ocr do
-      %ExtractionConfig{ocr: %{"enabled" => true, "backend" => "tesseract"}}
-    else
-      nil
-    end
+  def extract_with_ocr(input, mime_type, enable_ocr)
+      when is_binary(input) and is_binary(mime_type) do
+    config =
+      if enable_ocr do
+        %ExtractionConfig{ocr: %{"enabled" => true, "backend" => "tesseract"}}
+      else
+        nil
+      end
 
     Kreuzberg.extract(input, mime_type, config)
   end
@@ -124,7 +126,8 @@ defmodule Kreuzberg.LegacyAPI do
   @spec extract_with_chunking(binary(), String.t(), integer(), integer()) ::
           {:ok, ExtractionResult.t()} | {:error, String.t()}
   def extract_with_chunking(input, mime_type, chunk_size, overlap)
-      when is_binary(input) and is_binary(mime_type) and is_integer(chunk_size) and is_integer(overlap) do
+      when is_binary(input) and is_binary(mime_type) and is_integer(chunk_size) and
+             is_integer(overlap) do
     config = %ExtractionConfig{
       chunking: %{"max_chars" => chunk_size, "max_overlap" => overlap}
     }
@@ -262,10 +265,11 @@ defmodule Kreuzberg.LegacyAPI do
       output_format: Keyword.get(opts, :output_format, "plain"),
       result_format: Keyword.get(opts, :result_format, "unified"),
       ocr: convert_ocr_opts(Keyword.get(opts, :ocr, nil)),
-      chunking: convert_chunking_opts(
-        Keyword.get(opts, :chunk_size, nil),
-        Keyword.get(opts, :overlap, nil)
-      ),
+      chunking:
+        convert_chunking_opts(
+          Keyword.get(opts, :chunk_size, nil),
+          Keyword.get(opts, :overlap, nil)
+        ),
       language_detection: Keyword.get(opts, :language_detection, nil),
       postprocessor: Keyword.get(opts, :postprocessor, nil),
       images: Keyword.get(opts, :images, nil),
@@ -281,12 +285,15 @@ defmodule Kreuzberg.LegacyAPI do
 
   @doc false
   defp convert_chunking_opts(nil, nil), do: nil
+
   defp convert_chunking_opts(size, nil) when is_integer(size) do
     %{"max_chars" => size}
   end
+
   defp convert_chunking_opts(nil, overlap) when is_integer(overlap) do
     %{"max_overlap" => overlap}
   end
+
   defp convert_chunking_opts(size, overlap) when is_integer(size) and is_integer(overlap) do
     %{"max_chars" => size, "max_overlap" => overlap}
   end

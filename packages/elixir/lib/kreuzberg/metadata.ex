@@ -32,12 +32,26 @@ defmodule Kreuzberg.Metadata do
 
   # Known top-level metadata keys (non-format, non-additional)
   @known_keys MapSet.new([
-    "title", "subject", "authors", "keywords", "language",
-    "created_at", "modified_at", "created_by", "modified_by",
-    "pages", "image_preprocessing", "json_schema", "error",
-    "category", "tags", "document_version", "abstract_text", "output_format",
-    "extraction_duration_ms"
-  ])
+                "title",
+                "subject",
+                "authors",
+                "keywords",
+                "language",
+                "created_at",
+                "modified_at",
+                "created_by",
+                "modified_by",
+                "pages",
+                "image_preprocessing",
+                "json_schema",
+                "error",
+                "category",
+                "tags",
+                "document_version",
+                "abstract_text",
+                "output_format",
+                "extraction_duration_ms"
+              ])
 
   @type t :: %__MODULE__{
           title: String.t() | nil,
@@ -198,7 +212,9 @@ defmodule Kreuzberg.Metadata do
 
   defp normalize_image_preprocessing(nil), do: nil
   defp normalize_image_preprocessing(%Kreuzberg.ImagePreprocessingMetadata{} = m), do: m
-  defp normalize_image_preprocessing(map) when is_map(map), do: Kreuzberg.ImagePreprocessingMetadata.from_map(map)
+
+  defp normalize_image_preprocessing(map) when is_map(map),
+    do: Kreuzberg.ImagePreprocessingMetadata.from_map(map)
 
   defp normalize_error(nil), do: nil
   defp normalize_error(%Kreuzberg.ErrorMetadata{} = e), do: e
@@ -209,7 +225,10 @@ defmodule Kreuzberg.Metadata do
   defp serialize_pages(other), do: other
 
   defp serialize_image_preprocessing(nil), do: nil
-  defp serialize_image_preprocessing(%Kreuzberg.ImagePreprocessingMetadata{} = m), do: Kreuzberg.ImagePreprocessingMetadata.to_map(m)
+
+  defp serialize_image_preprocessing(%Kreuzberg.ImagePreprocessingMetadata{} = m),
+    do: Kreuzberg.ImagePreprocessingMetadata.to_map(m)
+
   defp serialize_image_preprocessing(other), do: other
 
   defp serialize_error(nil), do: nil

@@ -13,6 +13,7 @@ import java.util.List;
 public final class KreuzbergExtractJava {
     private static final double NANOS_IN_MILLISECOND = 1_000_000.0;
     private static final int WARMUP_ITERATIONS = 10;
+    private static final char LAST_CONTROL_CHAR = 0x1F;
 
     private KreuzbergExtractJava() { }
 
@@ -213,7 +214,7 @@ public final class KreuzbergExtractJava {
             } else {
                 System.out.print("[");
                 for (int i = 0; i < results.size(); i++) {
-                    if (i > 0) System.out.print(",");
+                    if (i > 0) { System.out.print(","); }
                     System.out.print(toJsonWithBatch(results.get(i), perFileMs, totalMs, ocrEnabled));
                 }
                 System.out.print("]");
@@ -322,6 +323,7 @@ public final class KreuzbergExtractJava {
         return value.isPresent() ? quote(value.get()) : "null";
     }
 
+    // CPD-OFF: quote() is intentionally duplicated in standalone benchmark scripts (no shared classpath)
     private static String quote(String value) {
         if (value == null) {
             return "null";
@@ -339,7 +341,7 @@ public final class KreuzbergExtractJava {
                 case '\b': sb.append("\\b");  break;
                 case '\f': sb.append("\\f");  break;
                 default:
-                    if (c < 0x20) {
+                    if (c <= LAST_CONTROL_CHAR) {
                         sb.append(String.format("\\u%04x", (int) c));
                     } else {
                         sb.append(c);
@@ -349,6 +351,7 @@ public final class KreuzbergExtractJava {
         sb.append('"');
         return sb.toString();
     }
+    // CPD-ON
 
     private static String fullMessage(Throwable e) {
         StringBuilder sb = new StringBuilder();

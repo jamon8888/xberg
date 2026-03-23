@@ -7,7 +7,7 @@
  */
 
 import { wrapWasmError } from "../adapters/wasm-adapter.js";
-import { hasWasm, isEdgeEnvironment, isNode } from "../runtime.js";
+import { hasWasm, isDeno, isEdgeEnvironment, isNode } from "../runtime.js";
 import { initializePdfiumAsync } from "./pdfium-loader.js";
 
 /**
@@ -17,9 +17,9 @@ export interface InitWasmOptions {
 	/**
 	 * A pre-loaded WebAssembly.Module for the Kreuzberg WASM binary.
 	 *
-	 * Required in edge environments (Cloudflare Workers, Vercel Edge) where
-	 * the runtime cannot fetch `file://` URLs. Import the `.wasm` file as a
-	 * static import in your worker and pass it here.
+	 * Required in restricted edge environments (Cloudflare Workers, Vercel Edge,
+	 * Supabase edge functions) where the runtime cannot fetch `file://` URLs.
+	 * Import the `.wasm` file as a static import and pass it here.
 	 *
 	 * @example Cloudflare Workers
 	 * ```typescript
@@ -33,37 +33,72 @@ export interface InitWasmOptions {
 	 *   }
 	 * };
 	 * ```
+	 *
+	 * @example Supabase Edge Functions (Deno)
+	 * ```typescript
+	 * import wasmModule from '@kreuzberg/wasm/kreuzberg_wasm_bg.wasm';
+	 * import { initWasm, extractBytes } from '@kreuzberg/wasm';
+	 *
+	 * Deno.serve(async (req: Request) => {
+	 *   await initWasm({ wasmModule });
+	 *   // ... use extraction functions
+	 * });
+	 * ```
 	 */
 	wasmModule?: WebAssembly.Module;
 }
 
 /**
- * Load WASM binary from file system in Node.js environment.
- * Returns undefined in browser environments (fetch will be used instead).
+ * Load WASM binary from file system in Node.js or Deno environment.
+ * Returns undefined in browser/edge environments (fetch or explicit module will be used instead).
  */
 async function loadWasmBinaryForNode(): Promise<Uint8Array | undefined> {
-	if (!isNode()) {
-		return undefined;
+	if (isNode()) {
+		try {
+			// Dynamic import to avoid bundling Node.js modules
+			const fs = await import(/* @vite-ignore */ "node:fs/promises");
+			const path = await import(/* @vite-ignore */ "node:path");
+			const url = await import(/* @vite-ignore */ "node:url");
+
+			// Resolve the WASM file path relative to this module
+			// The module is in dist/initialization/wasm-loader.js
+			// The WASM file is in dist/pkg/kreuzberg_wasm_bg.wasm
+			const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+			const wasmPath = path.join(__dirname, "..", "pkg", "kreuzberg_wasm_bg.wasm");
+
+			const wasmBuffer = await fs.readFile(wasmPath);
+			return new Uint8Array(wasmBuffer);
+		} catch {
+			// Fall back to fetch-based loading if file system access fails
+			return undefined;
+		}
 	}
 
-	try {
-		// Dynamic import to avoid bundling Node.js modules
-		const fs = await import(/* @vite-ignore */ "node:fs/promises");
-		const path = await import(/* @vite-ignore */ "node:path");
-		const url = await import(/* @vite-ignore */ "node:url");
+	if (isDeno()) {
+		try {
+			// In Deno, use Deno.readFile to load the WASM binary from disk.
+			// import.meta.url is a file:// URL pointing to the current module.
+			// Construct the path to dist/pkg/kreuzberg_wasm_bg.wasm relative to this module.
+			// This works in regular Deno but will throw in restricted environments
+			// (e.g. Supabase edge) where file:// access is blocked — the caller
+			// then falls through to the edge-environment error with instructions.
+			const denoGlobal = globalThis as unknown as Record<string, unknown>;
+			const DenoNs = denoGlobal.Deno as Record<string, unknown>;
+			const readFile = DenoNs.readFile as (path: URL) => Promise<Uint8Array>;
 
-		// Resolve the WASM file path relative to this module
-		// The module is in dist/initialization/wasm-loader.js
-		// The WASM file is in dist/pkg/kreuzberg_wasm_bg.wasm
-		const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-		const wasmPath = path.join(__dirname, "..", "pkg", "kreuzberg_wasm_bg.wasm");
+			const moduleUrl = new URL(import.meta.url);
+			const wasmUrl = new URL("../pkg/kreuzberg_wasm_bg.wasm", moduleUrl);
 
-		const wasmBuffer = await fs.readFile(wasmPath);
-		return new Uint8Array(wasmBuffer);
-	} catch {
-		// Fall back to fetch-based loading if file system access fails
-		return undefined;
+			const wasmBuffer = await readFile(wasmUrl);
+			return wasmBuffer;
+		} catch {
+			// Supabase edge and other restricted Deno environments block file:// reads.
+			// Fall through to let the caller handle the edge environment case.
+			return undefined;
+		}
 	}
+
+	return undefined;
 }
 
 import {
@@ -231,14 +266,16 @@ export async function initWasm(options?: InitWasmOptions): Promise<void> {
 				if (options?.wasmModule) {
 					await loadedModule.default(options.wasmModule);
 				} else {
-					// In Node.js, load WASM binary from file system to avoid fetch issues
-					// In browsers, the default() function uses fetch with import.meta.url
+					// In Node.js / Deno, load WASM binary from file system to avoid fetch issues.
+					// In restricted Deno environments (Supabase edge) file:// access fails and
+					// loadWasmBinaryForNode() returns undefined — we then require an explicit module.
+					// In browsers, the default() function uses fetch with import.meta.url.
 					const wasmBinary = await loadWasmBinaryForNode();
 					if (wasmBinary) {
 						await loadedModule.default(wasmBinary);
-					} else if (isEdgeEnvironment()) {
+					} else if (isEdgeEnvironment() || isDeno()) {
 						throw new Error(
-							"Edge environment detected (Cloudflare Workers / Vercel Edge). " +
+							"Edge/restricted environment detected (Cloudflare Workers / Vercel Edge / Supabase). " +
 								"Cannot automatically load .wasm file because fetch() does not support file:// URLs. " +
 								"Pass the WASM module explicitly:\n\n" +
 								"  import wasmModule from '@kreuzberg/wasm/kreuzberg_wasm_bg.wasm';\n" +

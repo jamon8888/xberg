@@ -53,9 +53,11 @@ readonly class LayoutDetectionConfig
     public static function fromArray(array $data): self
     {
         $preset = $data['preset'] ?? 'accurate';
-        $confidenceThreshold = isset($data['confidence_threshold']) ? (float) $data['confidence_threshold'] : null;
+        $rawThreshold = $data['confidence_threshold'] ?? null;
+        $confidenceThreshold = is_numeric($rawThreshold) ? (float) $rawThreshold : null;
         $applyHeuristics = isset($data['apply_heuristics']) ? (bool) $data['apply_heuristics'] : true;
-        $tableModel = isset($data['table_model']) ? (string) $data['table_model'] : null;
+        $rawTableModel = $data['table_model'] ?? null;
+        $tableModel = is_string($rawTableModel) ? $rawTableModel : null;
 
         return new self(
             preset: is_string($preset) ? $preset : 'accurate',

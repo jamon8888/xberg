@@ -53,7 +53,11 @@ defmodule Kreuzberg.ChunkMetadata do
     heading_context =
       case data["heading_context"] do
         %{"headings" => headings} when is_list(headings) ->
-          %{headings: Enum.map(headings, fn h -> %{level: h["level"] || 0, text: h["text"] || ""} end)}
+          %{
+            headings:
+              Enum.map(headings, fn h -> %{level: h["level"] || 0, text: h["text"] || ""} end)
+          }
+
         _ ->
           nil
       end

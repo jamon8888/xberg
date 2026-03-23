@@ -194,8 +194,14 @@ defmodule KreuzbergTest.Unit.ExtractionResultTest do
 
     test "adds images from options" do
       images = [
-        %{"path" => "/image1.png", "ocr_result" => %{"content" => "text in image 1", "mime_type" => ""}},
-        %{"path" => "/image2.jpg", "ocr_result" => %{"content" => "text in image 2", "mime_type" => ""}}
+        %{
+          "path" => "/image1.png",
+          "ocr_result" => %{"content" => "text in image 1", "mime_type" => ""}
+        },
+        %{
+          "path" => "/image2.jpg",
+          "ocr_result" => %{"content" => "text in image 2", "mime_type" => ""}
+        }
       ]
 
       opts = [images: images]
@@ -403,5 +409,4 @@ defmodule KreuzbergTest.Unit.ExtractionResultTest do
       assert Enum.uniq(contents) == contents
     end
   end
-
 end

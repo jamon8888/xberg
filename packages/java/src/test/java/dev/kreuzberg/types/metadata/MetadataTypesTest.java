@@ -4,10 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.kreuzberg.types.metadata.ImageType;
-import dev.kreuzberg.types.metadata.LinkType;
-import dev.kreuzberg.types.metadata.StructuredDataType;
-import dev.kreuzberg.types.metadata.TextDirection;
 import dev.kreuzberg.ExtractionResult;
 import dev.kreuzberg.Kreuzberg;
 import dev.kreuzberg.KreuzbergException;

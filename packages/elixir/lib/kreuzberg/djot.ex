@@ -120,7 +120,8 @@ defmodule Kreuzberg.DjotFormattedBlock do
     %__MODULE__{
       block_type: data["block_type"] || "paragraph",
       level: data["level"],
-      inline_content: normalize_list(data["inline_content"], &Kreuzberg.DjotInlineElement.from_map/1),
+      inline_content:
+        normalize_list(data["inline_content"], &Kreuzberg.DjotInlineElement.from_map/1),
       attributes: maybe_attrs(data["attributes"]),
       language: data["language"],
       code: data["code"],
@@ -306,16 +307,14 @@ defmodule Kreuzberg.DjotContent do
           attributes: list({String.t(), Kreuzberg.DjotAttributes.t()})
         }
 
-  defstruct [
-    plain_text: "",
-    blocks: [],
-    metadata: %Kreuzberg.Metadata{},
-    tables: [],
-    images: [],
-    links: [],
-    footnotes: [],
-    attributes: []
-  ]
+  defstruct plain_text: "",
+            blocks: [],
+            metadata: %Kreuzberg.Metadata{},
+            tables: [],
+            images: [],
+            links: [],
+            footnotes: [],
+            attributes: []
 
   @spec from_map(map()) :: t()
   def from_map(data) when is_map(data) do
@@ -341,7 +340,8 @@ defmodule Kreuzberg.DjotContent do
       "images" => Enum.map(djot.images, &Kreuzberg.DjotImage.to_map/1),
       "links" => Enum.map(djot.links, &Kreuzberg.DjotLink.to_map/1),
       "footnotes" => Enum.map(djot.footnotes, &Kreuzberg.DjotFootnote.to_map/1),
-      "attributes" => Enum.map(djot.attributes, fn {k, a} -> [k, Kreuzberg.DjotAttributes.to_map(a)] end)
+      "attributes" =>
+        Enum.map(djot.attributes, fn {k, a} -> [k, Kreuzberg.DjotAttributes.to_map(a)] end)
     }
   end
 

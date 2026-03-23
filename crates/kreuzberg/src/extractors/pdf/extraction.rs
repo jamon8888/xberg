@@ -123,7 +123,10 @@ pub(crate) fn extract_all_from_document(
             #[cfg(not(feature = "layout-detection"))]
             None,
             allow_single_column,
+            #[cfg(feature = "layout-detection")]
             config.layout.as_ref().and_then(|l| l.table_model.as_deref()),
+            #[cfg(not(feature = "layout-detection"))]
+            None,
         ) {
             Ok((md, has_encoding_issues)) if !md.trim().is_empty() => {
                 tracing::debug!(

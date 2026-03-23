@@ -15,6 +15,9 @@ import java.util.List;
 
 public final class TikaExtract {
     private static final double NANOS_IN_MILLISECOND = 1_000_000.0;
+    /** Length of the JSON key {@code "path"} including surrounding quotes. */
+    private static final int PATH_KEY_LENGTH = 6;
+    private static final char LAST_CONTROL_CHAR = 0x1F;
 
     private TikaExtract() {
     }
@@ -314,7 +317,7 @@ public final class TikaExtract {
             return json;
         }
         // Skip past "path" key, colon, optional whitespace, and opening quote
-        idx = json.indexOf(':', idx + 6);
+        idx = json.indexOf(':', idx + PATH_KEY_LENGTH);
         if (idx < 0) {
             return json;
         }
@@ -330,6 +333,7 @@ public final class TikaExtract {
         return json.substring(start, end);
     }
 
+    // CPD-OFF: quote() is intentionally duplicated in standalone benchmark scripts (no shared classpath)
     private static String quote(String value) {
         if (value == null) {
             return "null";
@@ -347,7 +351,7 @@ public final class TikaExtract {
                 case '\b': sb.append("\\b");  break;
                 case '\f': sb.append("\\f");  break;
                 default:
-                    if (c < 0x20) {
+                    if (c <= LAST_CONTROL_CHAR) {
                         sb.append(String.format("\\u%04x", (int) c));
                     } else {
                         sb.append(c);

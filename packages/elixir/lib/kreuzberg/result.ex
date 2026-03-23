@@ -134,8 +134,7 @@ defmodule Kreuzberg.ExtractionResult do
       "quality_score" => result.quality_score,
       "processing_warnings" =>
         maybe_map_list(result.processing_warnings, &Kreuzberg.ProcessingWarning.to_map/1),
-      "annotations" =>
-        maybe_map_list(result.annotations, &Kreuzberg.PdfAnnotation.to_map/1)
+      "annotations" => maybe_map_list(result.annotations, &Kreuzberg.PdfAnnotation.to_map/1)
     }
   end
 

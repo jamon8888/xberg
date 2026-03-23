@@ -157,12 +157,12 @@ defmodule Kreuzberg.DocumentTextAnnotation do
   ## Examples
 
       iex> annotation = %Kreuzberg.DocumentTextAnnotation{kind: "link", url: "https://example.com"}
-      iex> Kreuzberg.DocumentTextAnnotation.is_link?(annotation)
+      iex> Kreuzberg.DocumentTextAnnotation.link?(annotation)
       true
   """
-  @spec is_link?(t()) :: boolean()
-  def is_link?(%__MODULE__{kind: "link"}), do: true
-  def is_link?(%__MODULE__{}), do: false
+  @spec link?(t()) :: boolean()
+  def link?(%__MODULE__{kind: "link"}), do: true
+  def link?(%__MODULE__{}), do: false
 end
 
 defmodule Kreuzberg.DocumentNode do
@@ -283,7 +283,9 @@ defmodule Kreuzberg.DocumentNode do
 
     annotations =
       case data["annotations"] do
-        nil -> []
+        nil ->
+          []
+
         list when is_list(list) ->
           Enum.map(list, fn
             %Kreuzberg.DocumentTextAnnotation{} = ann -> ann
@@ -292,7 +294,8 @@ defmodule Kreuzberg.DocumentNode do
           end)
           |> Enum.reject(&is_nil/1)
 
-        _ -> []
+        _ ->
+          []
       end
 
     content_map = data["content"] || %{}
@@ -369,12 +372,12 @@ defmodule Kreuzberg.DocumentNode do
   ## Examples
 
       iex> node = %Kreuzberg.DocumentNode{parent: nil}
-      iex> Kreuzberg.DocumentNode.is_root?(node)
+      iex> Kreuzberg.DocumentNode.root?(node)
       true
   """
-  @spec is_root?(t()) :: boolean()
-  def is_root?(%__MODULE__{parent: nil}), do: true
-  def is_root?(%__MODULE__{}), do: false
+  @spec root?(t()) :: boolean()
+  def root?(%__MODULE__{parent: nil}), do: true
+  def root?(%__MODULE__{}), do: false
 
   @doc """
   Check if this node has children.
@@ -394,7 +397,7 @@ defmodule Kreuzberg.DocumentNode do
       true
   """
   @spec has_children?(t()) :: boolean()
-  def has_children?(%__MODULE__{children: children}), do: length(children) > 0
+  def has_children?(%__MODULE__{children: children}), do: children != []
 
   @doc """
   Get node type with readable formatting.
@@ -502,7 +505,9 @@ defmodule Kreuzberg.DocumentStructure do
   def from_map(data) when is_map(data) do
     nodes =
       case data["nodes"] do
-        nil -> []
+        nil ->
+          []
+
         nodes_list when is_list(nodes_list) ->
           Enum.map(nodes_list, fn
             %Kreuzberg.DocumentNode{} = node -> node
@@ -511,7 +516,8 @@ defmodule Kreuzberg.DocumentStructure do
           end)
           |> Enum.reject(&is_nil/1)
 
-        _ -> []
+        _ ->
+          []
       end
 
     %__MODULE__{
@@ -583,7 +589,7 @@ defmodule Kreuzberg.DocumentStructure do
       true
   """
   @spec empty?(t()) :: boolean()
-  def empty?(%__MODULE__{nodes: nodes}), do: length(nodes) === 0
+  def empty?(%__MODULE__{nodes: nodes}), do: nodes == []
 
   @doc """
   Get a node by index (0-based).

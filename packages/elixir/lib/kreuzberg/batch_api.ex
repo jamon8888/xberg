@@ -226,7 +226,9 @@ defmodule Kreuzberg.BatchAPI do
   defp call_native_batch_files(paths, mime_type, config) do
     Helpers.call_native(
       fn -> Native.batch_extract_files(paths, mime_type) end,
-      fn config_map -> Native.batch_extract_files_with_options(paths, mime_type, config_map, nil) end,
+      fn config_map ->
+        Native.batch_extract_files_with_options(paths, mime_type, config_map, nil)
+      end,
       config
     )
   end

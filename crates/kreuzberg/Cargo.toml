@@ -334,7 +334,7 @@ unicode-normalization = { version = "0.1.25", optional = true }
 utoipa = { version = "5.4", features = ["axum_extras"], optional = true }
 whatlang = { version = "0.18.0", optional = true }
 yake-rust = { version = "1.0.3", optional = true }
-zip = { version = "8.3.1", optional = true, default-features = false, features = [
+zip = { version = ">=2.0.0, <7.4.0", optional = true, default-features = false, features = [
     "deflate-flate2",
 ] }
 
@@ -378,4 +378,4 @@ tempfile = { workspace = true }
 tokio = { workspace = true, features = ["macros", "time"] }
 tokio-test = "0.4"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-zip = { version = "8.3.1", default-features = false, features = ["deflate-flate2"] }
+zip = { version = ">=2.0.0, <7.4.0", default-features = false, features = ["deflate-flate2"] }

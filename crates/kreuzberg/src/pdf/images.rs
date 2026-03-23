@@ -166,6 +166,19 @@ fn decode_flate_to_png(
         _ => image::ColorType::Rgb8,
     };
 
+    // Validate buffer length before encoding to prevent a panic inside the image
+    // crate, which asserts `data.len() == width * height * channels * bytes_per_channel`.
+    // Malformed PDF image streams can produce buffers that violate this (bug #552).
+    let expected_len = (w * h * channels * bytes_per_channel) as usize;
+    if pixel_data.len() != expected_len {
+        return Err(format!(
+            "PDF image buffer length mismatch: expected {expected_len} bytes \
+             ({w}x{h} px, {channels} ch) but got {} bytes — skipping malformed image",
+            pixel_data.len()
+        )
+        .into());
+    }
+
     // Encode to PNG in memory.
     let mut png_bytes: Vec<u8> = Vec::new();
     let mut cursor = std::io::Cursor::new(&mut png_bytes);

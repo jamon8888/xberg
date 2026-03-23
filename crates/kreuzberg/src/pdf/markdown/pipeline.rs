@@ -516,7 +516,8 @@ pub fn render_document_as_markdown_with_tables(
     #[cfg(feature = "layout-detection")] layout_results: Option<&[crate::pdf::layout_runner::PageLayoutResult]>,
     #[cfg(not(feature = "layout-detection"))] _layout_results: Option<()>,
     allow_single_column: bool,
-    table_model: Option<&str>,
+    #[cfg(feature = "layout-detection")] table_model: Option<&str>,
+    #[cfg(not(feature = "layout-detection"))] _table_model: Option<()>,
 ) -> Result<(String, bool)> {
     let pages = document.pages();
     let page_count = pages.len();

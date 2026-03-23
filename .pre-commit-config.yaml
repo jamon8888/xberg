@@ -173,10 +173,10 @@ repos:
     rev: v0.6.36
     hooks:
       - id: cpd
-        exclude: ^\.mvn/wrapper/
+        exclude: ^(\.mvn/wrapper/|e2e/|tests/test_apps/|tools/e2e-generator/e2e/|crates/kreuzberg-wasm/e2e/)
       - id: checkstyle
         args: ["-c", "packages/java/checkstyle.xml", "-p", "packages/java/checkstyle.properties"]
-        exclude: ^\.mvn/wrapper/
+        exclude: ^(\.mvn/wrapper/|e2e/|tests/test_apps/|tools/e2e-generator/e2e/|crates/kreuzberg-wasm/e2e/)
 
   # Local hooks for unsupported languages (Ruby, Java, C#, PHP, Elixir, R) and custom configurations
   - repo: local

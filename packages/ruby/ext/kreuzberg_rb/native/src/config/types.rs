@@ -819,10 +819,19 @@ pub fn parse_layout_detection_config(ruby: &Ruby, hash: RHash) -> Result<LayoutD
         true
     };
 
+    let table_model = if let Some(val) = get_kw(ruby, hash, "table_model")
+        && val.equal(ruby.qnil()).ok() != Some(true)
+    {
+        Some(String::try_convert(val)?)
+    } else {
+        None
+    };
+
     let config = LayoutDetectionConfig {
         preset,
         confidence_threshold,
         apply_heuristics,
+        table_model,
     };
 
     Ok(config)

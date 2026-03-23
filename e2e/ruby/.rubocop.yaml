@@ -1,4 +1,4 @@
-inherit_from: ../../../../packages/ruby/.rubocop.yaml
+inherit_from: ../../packages/ruby/.rubocop.yaml
 
 plugins:
   - rubocop-rspec

@@ -434,8 +434,11 @@ defmodule KreuzbergTest.E2E.NIFIntegrationTest do
     # Verify each result is valid
     successful_results =
       Enum.filter(results, fn
-        {:ok, result} -> match?(%Kreuzberg.ExtractionResult{}, result) and is_binary(result.content)
-        _ -> false
+        {:ok, result} ->
+          match?(%Kreuzberg.ExtractionResult{}, result) and is_binary(result.content)
+
+        _ ->
+          false
       end)
 
     assert length(successful_results) == num_concurrent,

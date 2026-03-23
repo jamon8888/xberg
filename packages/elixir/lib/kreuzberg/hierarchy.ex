@@ -70,7 +70,9 @@ defmodule Kreuzberg.PageHierarchy do
   def from_map(data) when is_map(data) do
     blocks =
       case data["blocks"] do
-        nil -> []
+        nil ->
+          []
+
         list when is_list(list) ->
           Enum.map(list, fn
             %Kreuzberg.HierarchicalBlock{} = b -> b

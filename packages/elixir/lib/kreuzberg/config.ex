@@ -247,11 +247,13 @@ defmodule Kreuzberg.ExtractionConfig do
       opts
       |> Enum.reduce(%{}, fn
         {key, value}, acc when is_binary(key) ->
-          atom_key = try do
-            String.to_existing_atom(key)
-          rescue
-            ArgumentError -> key
-          end
+          atom_key =
+            try do
+              String.to_existing_atom(key)
+            rescue
+              ArgumentError -> key
+            end
+
           Map.put(acc, atom_key, value)
 
         {key, value}, acc ->
@@ -915,9 +917,8 @@ defmodule Kreuzberg.ExtractionConfig do
   @doc false
   defp validate_chunking_config(config) when is_map(config) do
     with :ok <- validate_positive_integer(config, "max_chars"),
-         :ok <- validate_positive_integer(config, "max_overlap"),
-         :ok <- validate_overlap_not_exceeding_max_chars(config) do
-      :ok
+         :ok <- validate_positive_integer(config, "max_overlap") do
+      validate_overlap_not_exceeding_max_chars(config)
     end
   end
 
@@ -926,9 +927,8 @@ defmodule Kreuzberg.ExtractionConfig do
 
   @doc false
   defp validate_ocr_config(config) when is_map(config) do
-    with :ok <- validate_confidence_range(config),
-         :ok <- validate_dpi_range(config) do
-      :ok
+    with :ok <- validate_confidence_range(config) do
+      validate_dpi_range(config)
     end
   end
 
@@ -1015,9 +1015,8 @@ defmodule Kreuzberg.ExtractionConfig do
   defp validate_layout_config(config) when is_map(config) do
     with :ok <- validate_layout_preset(config),
          :ok <- validate_layout_confidence_threshold(config),
-         :ok <- validate_layout_apply_heuristics(config),
-         :ok <- validate_layout_table_model(config) do
-      :ok
+         :ok <- validate_layout_apply_heuristics(config) do
+      validate_layout_table_model(config)
     end
   end
 
@@ -1031,9 +1030,14 @@ defmodule Kreuzberg.ExtractionConfig do
 
       value when is_binary(value) ->
         case String.downcase(value) do
-          "fast" -> :ok
-          "accurate" -> :ok
-          _invalid -> {:error, "Field 'layout.preset' must be one of: fast, accurate, got: #{value}"}
+          "fast" ->
+            :ok
+
+          "accurate" ->
+            :ok
+
+          _invalid ->
+            {:error, "Field 'layout.preset' must be one of: fast, accurate, got: #{value}"}
         end
 
       value ->
@@ -1099,11 +1103,21 @@ defmodule Kreuzberg.ExtractionConfig do
 
       value when is_binary(value) ->
         case String.downcase(value) do
-          "tatr" -> :ok
-          "slanet_wired" -> :ok
-          "slanet_wireless" -> :ok
-          "slanet_plus" -> :ok
-          "slanet_auto" -> :ok
+          "tatr" ->
+            :ok
+
+          "slanet_wired" ->
+            :ok
+
+          "slanet_wireless" ->
+            :ok
+
+          "slanet_plus" ->
+            :ok
+
+          "slanet_auto" ->
+            :ok
+
           _invalid ->
             {:error,
              "Field 'layout.table_model' must be one of: tatr, slanet_wired, slanet_wireless, slanet_plus, slanet_auto, got: #{value}"}
@@ -1119,9 +1133,8 @@ defmodule Kreuzberg.ExtractionConfig do
 
   @doc false
   defp validate_acceleration_config(config) when is_map(config) do
-    with :ok <- validate_acceleration_provider(config),
-         :ok <- validate_acceleration_device_id(config) do
-      :ok
+    with :ok <- validate_acceleration_provider(config) do
+      validate_acceleration_device_id(config)
     end
   end
 
@@ -1135,11 +1148,21 @@ defmodule Kreuzberg.ExtractionConfig do
 
       value when is_binary(value) ->
         case String.downcase(value) do
-          "auto" -> :ok
-          "cpu" -> :ok
-          "coreml" -> :ok
-          "cuda" -> :ok
-          "tensorrt" -> :ok
+          "auto" ->
+            :ok
+
+          "cpu" ->
+            :ok
+
+          "coreml" ->
+            :ok
+
+          "cuda" ->
+            :ok
+
+          "tensorrt" ->
+            :ok
+
           _invalid ->
             {:error,
              "Field 'acceleration.provider' must be one of: auto, cpu, coreml, cuda, tensorrt, got: #{value}"}
@@ -1165,7 +1188,8 @@ defmodule Kreuzberg.ExtractionConfig do
         {:error, "Field 'acceleration.device_id' must be a non-negative integer, got: #{value}"}
 
       value ->
-        {:error, "Field 'acceleration.device_id' must be a non-negative integer, got: #{type_name(value)}"}
+        {:error,
+         "Field 'acceleration.device_id' must be a non-negative integer, got: #{type_name(value)}"}
     end
   end
 
@@ -1208,7 +1232,8 @@ defmodule Kreuzberg.ExtractionConfig do
         :ok
 
       value when is_integer(value) ->
-        {:error, "Field 'email.msg_fallback_codepage' must be a non-negative integer, got: #{value}"}
+        {:error,
+         "Field 'email.msg_fallback_codepage' must be a non-negative integer, got: #{value}"}
 
       value ->
         {:error,

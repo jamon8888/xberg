@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **PDF image extraction panic on mismatched buffer lengths** (#552): Replaced `assert!` in `pdf/images.rs` with graceful error handling. Malformed PDF images with wrong buffer sizes are now skipped instead of panicking. Regression from v4.5.0.
+- **`pdf` feature compilation without `layout-detection`** (#550): `config.layout` reference in `extraction.rs` was not behind a `#[cfg(feature = "layout-detection")]` gate, causing compilation errors when `pdf` was enabled without `layout-detection`.
+- **Unused `table_model` variable warning**: Fixed cfg-gating in `pipeline.rs` so `table_model` parameter is properly handled when `layout-detection` feature is disabled.
+- **Clippy `too_many_arguments` on `recognize_tables_slanet`**: Added allow attribute for the 8-parameter function in `table_recognition.rs`.
+- **Ruby binding missing `table_model` field**: Added `table_model` parsing to `LayoutDetectionConfig` initializer in Ruby native extension.
+- **WASM module resolution in Supabase/Deno edge functions** (#551): Added explicit `package.json` exports for `pkg/kreuzberg_wasm.js` and WASM binary. Extended `wasm-loader.ts` with Deno detection and clear error messaging for restricted edge runtimes.
+
 ---
 
 ## [4.5.3] - 2026-03-22
