@@ -67,25 +67,63 @@ impl JupyterExtractor {
             }
 
             if let Some(language_info) = notebook_metadata.get("language_info") {
+                // Store the full language_info object
                 metadata.insert(Cow::Borrowed("language_info"), language_info.clone());
+
+                // Extract individual fields for convenience
+                if let Some(obj) = language_info.as_object() {
+                    if let Some(name) = obj.get("name") {
+                        metadata.insert(Cow::Borrowed("language_name"), name.clone());
+                    }
+                    if let Some(version) = obj.get("version") {
+                        metadata.insert(Cow::Borrowed("language_version"), version.clone());
+                    }
+                    if let Some(mimetype) = obj.get("mimetype") {
+                        metadata.insert(Cow::Borrowed("language_mimetype"), mimetype.clone());
+                    }
+                }
             }
         }
 
         if let Some(nbformat) = notebook.get("nbformat") {
             metadata.insert(Cow::Borrowed("nbformat"), nbformat.clone());
         }
+        if let Some(nbformat_minor) = notebook.get("nbformat_minor") {
+            metadata.insert(Cow::Borrowed("nbformat_minor"), nbformat_minor.clone());
+        }
+
+        // Count cells by type
+        if let Some(cells) = notebook.get("cells").and_then(|c| c.as_array()) {
+            metadata.insert(Cow::Borrowed("cell_count"), json!(cells.len()));
+        }
 
         if let Some(cells) = notebook.get("cells").and_then(|c| c.as_array()) {
+            let mut cells_meta: Vec<Value> = Vec::with_capacity(cells.len());
             for (cell_idx, cell) in cells.iter().enumerate() {
-                Self::extract_cell(
-                    cell,
-                    cell_idx,
-                    &mut extracted_content,
-                    &mut metadata,
-                    &mut images,
-                    plain,
-                )?;
+                let cell_type = cell.get("cell_type").and_then(|t| t.as_str()).unwrap_or("unknown");
+                let mut cell_entry = serde_json::Map::new();
+                cell_entry.insert("index".into(), json!(cell_idx));
+                cell_entry.insert("cell_type".into(), json!(cell_type));
+
+                if cell_type == "code" {
+                    if let Some(exec_count) = cell.get("execution_count") {
+                        cell_entry.insert("execution_count".into(), exec_count.clone());
+                    }
+                }
+                if let Some(tags) = cell
+                    .get("metadata")
+                    .and_then(|m| m.get("tags"))
+                    .and_then(|t| t.as_array())
+                {
+                    if !tags.is_empty() {
+                        cell_entry.insert("tags".into(), Value::Array(tags.clone()));
+                    }
+                }
+                cells_meta.push(Value::Object(cell_entry));
+
+                Self::extract_cell(cell, cell_idx, &mut extracted_content, &mut images, plain)?;
             }
+            metadata.insert(Cow::Borrowed("cells"), json!(cells_meta));
         }
 
         Ok((extracted_content, metadata, images, notebook))
@@ -96,7 +134,6 @@ impl JupyterExtractor {
         cell: &Value,
         cell_idx: usize,
         content: &mut String,
-        _metadata: &mut AHashMap<Cow<'static, str>, Value>,
         images: &mut Vec<ExtractedImage>,
         plain: bool,
     ) -> Result<()> {
@@ -327,7 +364,33 @@ impl JupyterExtractor {
                     builder.push_paragraph(trimmed, vec![], None, None);
                 }
                 "code" => {
-                    builder.push_code(trimmed, kernel_lang, None);
+                    let node_idx = builder.push_code(trimmed, kernel_lang, None);
+                    // Store execution_count and tags as node attributes
+                    let mut attrs = AHashMap::new();
+                    if let Some(exec_count) = cell.get("execution_count") {
+                        match exec_count {
+                            Value::Number(n) => {
+                                attrs.insert("execution_count".to_string(), n.to_string());
+                            }
+                            Value::Null => {
+                                attrs.insert("execution_count".to_string(), "null".to_string());
+                            }
+                            _ => {}
+                        }
+                    }
+                    if let Some(tags) = cell
+                        .get("metadata")
+                        .and_then(|m| m.get("tags"))
+                        .and_then(|t| t.as_array())
+                    {
+                        if !tags.is_empty() {
+                            let tag_strs: Vec<&str> = tags.iter().filter_map(|v| v.as_str()).collect();
+                            attrs.insert("tags".to_string(), tag_strs.join(","));
+                        }
+                    }
+                    if !attrs.is_empty() {
+                        builder.set_attributes(node_idx, attrs);
+                    }
                 }
                 _ => {
                     builder.push_paragraph(trimmed, vec![], None, None);
@@ -338,17 +401,15 @@ impl JupyterExtractor {
         Some(builder.build())
     }
 
-    /// Extract error output.
+    /// Extract error output, preserving ename, evalue, and traceback in content.
     fn extract_error_output(output: &Value, content: &mut String) -> Result<()> {
-        if let Some(ename) = output.get("ename").and_then(|e| e.as_str()) {
-            content.push_str(&format!("Error: {}\n", ename));
-        }
+        let ename = output.get("ename").and_then(|e| e.as_str()).unwrap_or("Unknown");
+        let evalue = output.get("evalue").and_then(|e| e.as_str()).unwrap_or("");
 
-        if let Some(evalue) = output.get("evalue").and_then(|e| e.as_str()) {
-            content.push_str(&format!("Value: {}\n", evalue));
-        }
+        content.push_str(&format!("Error ({}): {}\n", ename, evalue));
 
         if let Some(traceback) = output.get("traceback").and_then(|t| t.as_array()) {
+            content.push_str("Traceback:\n");
             for line in traceback {
                 if let Some(line_str) = line.as_str() {
                     content.push_str(line_str);
@@ -494,5 +555,87 @@ mod tests {
         assert_eq!(extractor.version(), env!("CARGO_PKG_VERSION"));
         assert_eq!(extractor.priority(), 50);
         assert!(extractor.supported_mime_types().contains(&"application/x-ipynb+json"));
+    }
+
+    #[test]
+    fn test_extract_execution_count_and_tags() {
+        let notebook_json = r#"{
+            "cells": [
+                {
+                    "cell_type": "code",
+                    "source": ["print('hello')"],
+                    "execution_count": 5,
+                    "outputs": [],
+                    "metadata": {"tags": ["test-tag", "important"]}
+                }
+            ],
+            "metadata": {
+                "kernelspec": {"name": "python3", "language": "python"},
+                "language_info": {"name": "python", "version": "3.10.0", "mimetype": "text/x-python"}
+            },
+            "nbformat": 4,
+            "nbformat_minor": 5
+        }"#;
+
+        let (_, metadata, _, _) = JupyterExtractor::extract_notebook(notebook_json.as_bytes(), false).unwrap();
+
+        // Check cells array metadata
+        let cells = metadata.get(&Cow::Borrowed("cells"));
+        assert!(cells.is_some(), "Should have cells metadata array");
+        let cells_arr = cells.unwrap().as_array().expect("cells should be an array");
+        assert_eq!(cells_arr.len(), 1);
+        let cell0 = &cells_arr[0];
+        assert_eq!(cell0["index"], json!(0));
+        assert_eq!(cell0["cell_type"], json!("code"));
+        assert_eq!(cell0["execution_count"], json!(5));
+        assert_eq!(cell0["tags"], json!(["test-tag", "important"]));
+
+        // Check cell_count
+        assert_eq!(metadata.get(&Cow::Borrowed("cell_count")), Some(&json!(1)));
+
+        // Check language_info fields
+        assert_eq!(metadata.get(&Cow::Borrowed("language_name")), Some(&json!("python")));
+        assert_eq!(metadata.get(&Cow::Borrowed("language_version")), Some(&json!("3.10.0")));
+        assert_eq!(
+            metadata.get(&Cow::Borrowed("language_mimetype")),
+            Some(&json!("text/x-python"))
+        );
+
+        // Check nbformat_minor
+        assert_eq!(metadata.get(&Cow::Borrowed("nbformat_minor")), Some(&json!(5)));
+    }
+
+    #[test]
+    fn test_extract_error_output_content() {
+        let notebook_json = r#"{
+            "cells": [
+                {
+                    "cell_type": "code",
+                    "source": ["1/0"],
+                    "execution_count": 1,
+                    "outputs": [
+                        {
+                            "output_type": "error",
+                            "ename": "ZeroDivisionError",
+                            "evalue": "division by zero",
+                            "traceback": ["Traceback line 1", "Traceback line 2"]
+                        }
+                    ],
+                    "metadata": {}
+                }
+            ],
+            "metadata": {},
+            "nbformat": 4,
+            "nbformat_minor": 0
+        }"#;
+
+        let (content, _, _, _) = JupyterExtractor::extract_notebook(notebook_json.as_bytes(), false).unwrap();
+
+        assert!(
+            content.contains("Error (ZeroDivisionError): division by zero"),
+            "Should contain error name and value"
+        );
+        assert!(content.contains("Traceback:"), "Should contain traceback header");
+        assert!(content.contains("Traceback line 1"), "Should contain traceback lines");
     }
 }

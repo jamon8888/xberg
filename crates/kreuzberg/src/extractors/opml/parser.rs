@@ -46,8 +46,15 @@ pub(crate) fn extract_content_and_metadata(
                 extracted_content.push('\n');
             }
 
+            // Collect feed URLs from outline attributes
+            let mut feed_urls = Vec::new();
             for outline in body.children().filter(|n| n.tag_name().name() == "outline") {
                 process_outline(outline, 0, &mut extracted_content);
+                collect_feed_urls(outline, &mut feed_urls);
+            }
+
+            if !feed_urls.is_empty() {
+                metadata.insert(Cow::Borrowed("feed_urls"), serde_json::json!(feed_urls));
             }
         }
     }
@@ -120,6 +127,40 @@ pub(crate) fn process_outline(node: Node, depth: usize, output: &mut String) {
     }
 }
 
+/// Recursively collect feed URLs (xmlUrl) from outline elements into metadata.
+#[cfg(feature = "office")]
+fn collect_feed_urls(node: Node, urls: &mut Vec<serde_json::Value>) {
+    if let Some(xml_url) = node.attribute("xmlUrl") {
+        let trimmed = xml_url.trim();
+        if !trimmed.is_empty() {
+            let mut entry = serde_json::Map::new();
+            entry.insert("xmlUrl".to_string(), serde_json::json!(trimmed));
+            if let Some(text) = node.attribute("text") {
+                let t = text.trim();
+                if !t.is_empty() {
+                    entry.insert("text".to_string(), serde_json::json!(t));
+                }
+            }
+            if let Some(html_url) = node.attribute("htmlUrl") {
+                let h = html_url.trim();
+                if !h.is_empty() {
+                    entry.insert("htmlUrl".to_string(), serde_json::json!(h));
+                }
+            }
+            if let Some(feed_type) = node.attribute("type") {
+                let ft = feed_type.trim();
+                if !ft.is_empty() {
+                    entry.insert("type".to_string(), serde_json::json!(ft));
+                }
+            }
+            urls.push(serde_json::Value::Object(entry));
+        }
+    }
+    for child in node.children().filter(|n| n.tag_name().name() == "outline") {
+        collect_feed_urls(child, urls);
+    }
+}
+
 /// Build a `DocumentStructure` from OPML content.
 ///
 /// Maps the outline hierarchy to heading-driven groups:
@@ -149,9 +190,25 @@ pub(crate) fn build_document_structure(content: &[u8]) -> Result<crate::types::d
     Ok(builder.build())
 }
 
+/// Extract OPML outline attributes (xmlUrl, htmlUrl, type, description) into a HashMap.
+#[cfg(feature = "office")]
+fn extract_outline_attributes(node: Node) -> AHashMap<String, String> {
+    let mut attrs = AHashMap::new();
+    for attr_name in &["xmlUrl", "htmlUrl", "type", "description"] {
+        if let Some(val) = node.attribute(*attr_name) {
+            let trimmed = val.trim();
+            if !trimmed.is_empty() {
+                attrs.insert(attr_name.to_string(), trimmed.to_string());
+            }
+        }
+    }
+    attrs
+}
+
 /// Recursively build document structure from outline nodes.
 ///
 /// Outlines with children become heading groups; leaf outlines become paragraphs.
+/// Extracts xmlUrl, htmlUrl, type, and description as node attributes.
 #[cfg(feature = "office")]
 fn build_outline_structure(node: Node, depth: u8, builder: &mut crate::types::builder::DocumentStructureBuilder) {
     let text = node.attribute("text").unwrap_or("").trim();
@@ -166,13 +223,21 @@ fn build_outline_structure(node: Node, depth: u8, builder: &mut crate::types::bu
         return;
     }
 
+    let attrs = extract_outline_attributes(node);
+
     if child_outlines.is_empty() {
         // Leaf node: push as paragraph
-        builder.push_paragraph(text, vec![], None, None);
+        let node_idx = builder.push_paragraph(text, vec![], None, None);
+        if !attrs.is_empty() {
+            builder.set_attributes(node_idx, attrs);
+        }
     } else {
         // Branch node: push as heading group, recurse children
         let level = depth.min(6);
-        builder.push_heading(level, text, None, None);
+        let node_idx = builder.push_heading(level, text, None, None);
+        if !attrs.is_empty() {
+            builder.set_attributes(node_idx, attrs);
+        }
         for child in child_outlines {
             build_outline_structure(child, depth + 1, builder);
         }
@@ -523,6 +588,66 @@ mod tests {
 
         assert_eq!(metadata.get("title").and_then(|v| v.as_str()), Some("No Body"));
         assert!(content.is_empty() || content.trim() == "No Body");
+    }
+
+    #[test]
+    fn test_feed_url_extraction() {
+        let opml = br#"<?xml version="1.0"?>
+<opml version="2.0">
+  <head>
+    <title>Feeds</title>
+  </head>
+  <body>
+    <outline text="Tech">
+      <outline text="Hacker News" type="rss" xmlUrl="https://news.ycombinator.com/rss" htmlUrl="https://news.ycombinator.com/" />
+      <outline text="TechCrunch" type="rss" xmlUrl="https://techcrunch.com/feed/" />
+    </outline>
+  </body>
+</opml>"#;
+
+        let (_content, metadata) = extract_content_and_metadata(opml).expect("Should parse RSS OPML");
+
+        let feed_urls = metadata.get("feed_urls");
+        assert!(feed_urls.is_some(), "Should have feed_urls metadata");
+        let urls_array = feed_urls
+            .expect("feed_urls key should be present")
+            .as_array()
+            .expect("feed_urls should be an array");
+        assert_eq!(urls_array.len(), 2, "Should have 2 feed URLs");
+
+        let first_feed = &urls_array[0];
+        assert_eq!(
+            first_feed
+                .get("text")
+                .expect("text key")
+                .as_str()
+                .expect("text should be string"),
+            "Hacker News"
+        );
+        assert_eq!(
+            first_feed
+                .get("xmlUrl")
+                .expect("xmlUrl key")
+                .as_str()
+                .expect("xmlUrl should be string"),
+            "https://news.ycombinator.com/rss"
+        );
+        assert_eq!(
+            first_feed
+                .get("htmlUrl")
+                .expect("htmlUrl key")
+                .as_str()
+                .expect("htmlUrl should be string"),
+            "https://news.ycombinator.com/"
+        );
+        assert_eq!(
+            first_feed
+                .get("type")
+                .expect("type key")
+                .as_str()
+                .expect("type should be string"),
+            "rss"
+        );
     }
 
     #[test]

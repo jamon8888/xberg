@@ -97,6 +97,13 @@ fn build_jats_document_structure(content: &str) -> crate::Result<crate::types::d
                         }
                         continue;
                     }
+                    "inline-formula" if in_body => {
+                        let text = jats_extract_text(&mut reader)?;
+                        if !text.is_empty() {
+                            builder.push_formula(&text, None);
+                        }
+                        continue;
+                    }
                     "table-wrap" if in_body => {
                         // table-wrap contains <table>; let inner table handling deal with it
                     }
@@ -316,6 +323,48 @@ impl DocumentExtractor for JatsExtractor {
 
         if let Some(corresp_author) = &jats_metadata.corresponding_author {
             subject_parts.push(format!("Corresponding Author: {}", corresp_author));
+        }
+
+        // History dates
+        if !jats_metadata.history_dates.is_empty() {
+            for (date_type, date_val) in &jats_metadata.history_dates {
+                subject_parts.push(format!(
+                    "{}: {}",
+                    date_type[..1].to_uppercase() + &date_type[1..],
+                    date_val
+                ));
+                metadata.additional.insert(
+                    std::borrow::Cow::Owned(format!("date_{}", date_type)),
+                    serde_json::json!(date_val),
+                );
+            }
+        }
+
+        // Permissions
+        if let Some(copyright) = &jats_metadata.copyright_statement {
+            subject_parts.push(format!("Copyright: {}", copyright));
+            metadata
+                .additional
+                .insert(std::borrow::Cow::Borrowed("copyright"), serde_json::json!(copyright));
+        }
+
+        if let Some(license) = &jats_metadata.license {
+            metadata
+                .additional
+                .insert(std::borrow::Cow::Borrowed("license"), serde_json::json!(license));
+        }
+
+        // Contributor roles
+        if !jats_metadata.contributor_roles.is_empty() {
+            let roles: Vec<serde_json::Value> = jats_metadata
+                .contributor_roles
+                .iter()
+                .map(|(name, role)| serde_json::json!({"name": name, "role": role}))
+                .collect();
+            metadata.additional.insert(
+                std::borrow::Cow::Borrowed("contributor_roles"),
+                serde_json::json!(roles),
+            );
         }
 
         if !subject_parts.is_empty() {
@@ -588,7 +637,7 @@ mod tests {
 
         let (metadata, _content, _title, _tables) = extract_jats_all_in_one(jats).expect("Metadata extraction failed");
         assert!(metadata.abstract_text.is_some());
-        let abstract_text = metadata.abstract_text.unwrap();
+        let abstract_text = metadata.abstract_text.expect("abstract_text should be present");
         assert!(abstract_text.contains("background"));
         assert!(abstract_text.contains("quantitative"));
     }
@@ -641,7 +690,9 @@ mod tests {
 
         let (metadata, _content, _title, _tables) = extract_jats_all_in_one(jats).expect("Metadata extraction failed");
         assert!(metadata.corresponding_author.is_some());
-        let corresp = metadata.corresponding_author.unwrap();
+        let corresp = metadata
+            .corresponding_author
+            .expect("corresponding_author should be present");
         assert!(corresp.contains("rwilliams"));
     }
 
@@ -825,5 +876,127 @@ mod tests {
         assert_eq!(metadata.article_type, Some("research-article".to_string()));
         assert!(metadata.abstract_text.is_some());
         assert!(metadata.corresponding_author.is_some());
+    }
+
+    #[test]
+    fn test_extract_jats_history_dates() {
+        let jats = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <front>
+    <article-meta>
+      <article-title>Test Article</article-title>
+      <history>
+        <date date-type="received">
+          <day>15</day>
+          <month>01</month>
+          <year>2024</year>
+        </date>
+        <date date-type="accepted">
+          <day>20</day>
+          <month>03</month>
+          <year>2024</year>
+        </date>
+      </history>
+    </article-meta>
+  </front>
+</article>"#;
+
+        let (metadata, _content, _title, _tables) = extract_jats_all_in_one(jats).expect("Parse failed");
+        assert_eq!(metadata.history_dates.len(), 2);
+        assert_eq!(metadata.history_dates[0].0, "received");
+        assert!(metadata.history_dates[0].1.contains("2024"));
+        assert_eq!(metadata.history_dates[1].0, "accepted");
+    }
+
+    #[test]
+    fn test_extract_jats_permissions() {
+        let jats = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <front>
+    <article-meta>
+      <article-title>Test Article</article-title>
+      <permissions>
+        <copyright-statement>Copyright 2024 The Authors</copyright-statement>
+        <license>
+          <license-p>This is an open-access article distributed under the CC BY 4.0 license.</license-p>
+        </license>
+      </permissions>
+    </article-meta>
+  </front>
+</article>"#;
+
+        let (metadata, _content, _title, _tables) = extract_jats_all_in_one(jats).expect("Parse failed");
+        assert_eq!(
+            metadata.copyright_statement,
+            Some("Copyright 2024 The Authors".to_string())
+        );
+        assert!(metadata.license.is_some());
+        assert!(
+            metadata
+                .license
+                .expect("license should be present")
+                .contains("CC BY 4.0")
+        );
+    }
+
+    #[test]
+    fn test_extract_jats_inline_formula() {
+        let jats = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <front>
+    <article-meta>
+      <article-title>Formula Test</article-title>
+    </article-meta>
+  </front>
+  <body>
+    <p>The equation <inline-formula>E = mc^2</inline-formula> is famous.</p>
+  </body>
+</article>"#;
+
+        let (_metadata, content, _title, _tables) = extract_jats_all_in_one(jats).expect("Parse failed");
+        assert!(content.contains("E = mc^2"), "expected inline formula, got: {content}");
+    }
+
+    #[test]
+    fn test_extract_jats_contributor_roles() {
+        let jats = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <front>
+    <article-meta>
+      <article-title>Test Article</article-title>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <name>
+            <surname>Smith</surname>
+            <given-names>John</given-names>
+          </name>
+        </contrib>
+        <contrib contrib-type="editor">
+          <name>
+            <surname>Jones</surname>
+            <given-names>Mary</given-names>
+          </name>
+        </contrib>
+      </contrib-group>
+    </article-meta>
+  </front>
+</article>"#;
+
+        let (metadata, _content, _title, _tables) = extract_jats_all_in_one(jats).expect("Parse failed");
+        assert_eq!(metadata.contributor_roles.len(), 2);
+
+        let author_role = metadata
+            .contributor_roles
+            .iter()
+            .find(|(_, role)| role == "author")
+            .expect("expected author role");
+        assert!(author_role.0.contains("Smith"));
+
+        let editor_role = metadata
+            .contributor_roles
+            .iter()
+            .find(|(_, role)| role == "editor")
+            .expect("expected editor role");
+        assert!(editor_role.0.contains("Jones"));
     }
 }

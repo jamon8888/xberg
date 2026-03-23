@@ -34,7 +34,7 @@ repository = "https://github.com/kreuzberg-dev/kreuzberg"
 homepage = "https://kreuzberg.dev"
 
 [workspace.dependencies]
-ahash = "0.8.12"
+ahash = { version = "0.8.12", features = ["serde"] }
 anyhow = "1.0"
 async-trait = "0.1.89"
 base64 = "0.22.1"

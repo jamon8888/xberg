@@ -2,6 +2,7 @@
 
 use super::state::ExtractionState;
 use crate::types::{DjotImage, DjotLink, InlineElement, InlineType};
+use ahash::AHashMap;
 use jotdown::Container;
 
 /// Handle start of inline elements.
@@ -122,7 +123,7 @@ pub(super) fn handle_math_end(state: &mut ExtractionState, display: bool) {
     let math_text = std::mem::take(&mut state.math_content);
     state.inline_type_stack.pop();
 
-    let mut meta: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+    let mut meta: AHashMap<String, String> = AHashMap::new();
     meta.insert("display".to_string(), display.to_string());
 
     state.current_inline_elements.push(InlineElement {
@@ -143,7 +144,7 @@ pub(super) fn finalize_inline_element(state: &mut ExtractionState, container: &C
         if matches!(container, Container::RawInline { .. })
             && let Some(fmt) = state.raw_format.take()
         {
-            let mut m: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+            let mut m: AHashMap<String, String> = AHashMap::new();
             m.insert("format".to_string(), fmt);
             meta = Some(m);
         }
@@ -166,7 +167,7 @@ pub(super) fn handle_link_end(state: &mut ExtractionState, url: &str, links: &mu
         }
         state.inline_type_stack.pop();
 
-        let mut meta: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+        let mut meta: AHashMap<String, String> = AHashMap::new();
         meta.insert("href".to_string(), url.to_string());
 
         state.current_inline_elements.push(InlineElement {
@@ -187,7 +188,7 @@ pub(super) fn handle_image_end(state: &mut ExtractionState, src: &str, images: &
         }
         state.inline_type_stack.pop();
 
-        let mut meta: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+        let mut meta: AHashMap<String, String> = AHashMap::new();
         meta.insert("src".to_string(), src.to_string());
 
         state.current_inline_elements.push(InlineElement {

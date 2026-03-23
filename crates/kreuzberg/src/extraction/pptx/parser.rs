@@ -205,9 +205,30 @@ fn parse_pic(pic_node: &Node) -> Result<ImageReference> {
         .or_else(|| blip_node.attribute("r:embed"))
         .ok_or_else(|| KreuzbergError::parsing("Image embed attribute not found".to_string()))?;
 
+    // Extract alt text from nvPicPr > cNvPr descr attribute
+    let description = pic_node
+        .descendants()
+        .find(|n| {
+            n.is_element()
+                && n.tag_name().name() == "cNvPr"
+                && n.tag_name().namespace() == Some(PRESENTATIONML_NAMESPACE)
+        })
+        .or_else(|| {
+            // Also check for non-namespaced cNvPr (common in pic elements)
+            pic_node.descendants().find(|n| {
+                n.is_element()
+                    && n.tag_name().name() == "cNvPr"
+                    && n.parent().is_some_and(|p| p.tag_name().name() == "nvPicPr")
+            })
+        })
+        .and_then(|cnv| cnv.attribute("descr"))
+        .filter(|d| !d.is_empty())
+        .map(|d| d.to_string());
+
     let image_ref = ImageReference {
         id: embed_attr.to_string(),
         target: String::new(),
+        description,
     };
 
     Ok(image_ref)
@@ -293,6 +314,12 @@ fn parse_run(r_node: &Node) -> Result<Run> {
         if let Some(u_attr) = r_pr_node.attribute("u") {
             formatting.underlined = u_attr != "none";
         }
+        if let Some(strike_attr) = r_pr_node.attribute("strike") {
+            formatting.strikethrough = matches!(strike_attr, "sngStrike" | "dblStrike");
+        }
+        if let Some(sz_attr) = r_pr_node.attribute("sz") {
+            formatting.font_size = sz_attr.parse::<u32>().ok();
+        }
         if let Some(lang_attr) = r_pr_node.attribute("lang") {
             formatting.lang = lang_attr.to_string();
         }
@@ -324,7 +351,18 @@ pub(super) fn extract_position(node: &Node) -> ElementPosition {
                 .find(|n| n.tag_name().name() == "off" && n.tag_name().namespace() == Some(DRAWINGML_NAMESPACE))
                 .and_then(|off| off.attribute("y")?.parse::<i64>().ok())?;
 
-            Some(ElementPosition { x, y })
+            // Extract extent (cx, cy) from a:ext element
+            let (cx, cy) = xfrm
+                .children()
+                .find(|n| n.tag_name().name() == "ext" && n.tag_name().namespace() == Some(DRAWINGML_NAMESPACE))
+                .map(|ext| {
+                    let cx = ext.attribute("cx").and_then(|v| v.parse::<i64>().ok()).unwrap_or(0);
+                    let cy = ext.attribute("cy").and_then(|v| v.parse::<i64>().ok()).unwrap_or(0);
+                    (cx, cy)
+                })
+                .unwrap_or((0, 0));
+
+            Some(ElementPosition { x, y, cx, cy })
         })
         .unwrap_or(default)
 }
@@ -347,6 +385,7 @@ pub(super) fn parse_slide_rels(rels_data: &[u8]) -> Result<Vec<ImageReference>> 
             images.push(ImageReference {
                 id: id.to_string(),
                 target: target.to_string(),
+                description: None,
             });
         }
     }

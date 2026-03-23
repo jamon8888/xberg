@@ -85,7 +85,7 @@ impl DocumentExtractor for BibtexExtractor {
         let mut years_set = HashSet::new();
         let mut entry_types_map: AHashMap<String, i32> = AHashMap::new();
         let mut formatted_entries = String::new();
-        let mut citation_pairs: Vec<(String, String)> = Vec::new();
+        let mut citation_pairs: Vec<(String, String, AHashMap<String, String>)> = Vec::new();
 
         match Bibliography::parse(&bibtex_str) {
             Ok(bib) => {
@@ -96,12 +96,19 @@ impl DocumentExtractor for BibtexExtractor {
                     // Track start position for document structure citation text
                     let entry_start = formatted_entries.len();
 
+                    // Collect all entry fields as attributes
+                    let mut entry_fields: AHashMap<String, String> = AHashMap::new();
+                    entry_fields.insert("entry_type".to_string(), entry_type.to_string());
+
                     // Format as @type{key, with key on the same line
                     formatted_entries.push_str(&format!("@{}{{{},\n", entry_type, key));
 
                     for (field_name, field_chunks) in &entry.fields {
                         let field_text = field_chunks.format_verbatim();
                         formatted_entries.push_str(&format!("  {} = {{{}}},\n", field_name, field_text));
+
+                        // Store every field as an attribute
+                        entry_fields.insert(field_name.to_lowercase(), field_text.clone());
 
                         if field_name.to_lowercase() == "author" {
                             for author in field_text.split(" and ") {
@@ -124,14 +131,24 @@ impl DocumentExtractor for BibtexExtractor {
                     // Reuse the already-formatted entry text for the citation node
                     if wants_structure {
                         let citation_text = formatted_entries[entry_start..].trim().to_string();
-                        citation_pairs.push((key.clone(), citation_text));
+                        citation_pairs.push((key.clone(), citation_text, entry_fields.clone()));
+                    }
+
+                    // Store per-entry fields in additional metadata
+                    let fields_json: serde_json::Map<String, serde_json::Value> = entry_fields
+                        .iter()
+                        .map(|(k, v)| (k.clone(), serde_json::json!(v)))
+                        .collect();
+                    // Only add non-empty field maps
+                    if !fields_json.is_empty() {
+                        // We'll aggregate these into "entries" below
                     }
 
                     *entry_types_map
                         .entry(entry_type.to_string().to_lowercase())
                         .or_insert(0) += 1;
 
-                    entries_vec.push(key);
+                    entries_vec.push((key, fields_json));
                 }
             }
             Err(_err) => {
@@ -144,6 +161,24 @@ impl DocumentExtractor for BibtexExtractor {
         let mut additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
 
         additional.insert(Cow::Borrowed("entry_count"), serde_json::json!(entries_vec.len()));
+
+        // Collect citation keys (just the key strings)
+        let citation_keys: Vec<&str> = entries_vec.iter().map(|(k, _)| k.as_str()).collect();
+        additional.insert(Cow::Borrowed("citation_keys"), serde_json::json!(citation_keys));
+
+        // Store per-entry field maps as structured metadata
+        let entries_metadata: Vec<serde_json::Value> = entries_vec
+            .iter()
+            .map(|(key, fields)| {
+                let mut entry_obj = serde_json::Map::new();
+                entry_obj.insert("key".to_string(), serde_json::json!(key));
+                for (k, v) in fields {
+                    entry_obj.insert(k.clone(), v.clone());
+                }
+                serde_json::Value::Object(entry_obj)
+            })
+            .collect();
+        additional.insert(Cow::Borrowed("entries"), serde_json::json!(entries_metadata));
 
         let mut authors_list: Vec<String> = authors_set.into_iter().collect();
         authors_list.sort();
@@ -170,13 +205,15 @@ impl DocumentExtractor for BibtexExtractor {
             additional.insert(Cow::Borrowed("entry_types"), entry_types_json);
         }
 
-        additional.insert(Cow::Borrowed("citation_keys"), serde_json::json!(entries_vec));
-
         let document = if wants_structure && !citation_pairs.is_empty() {
             use crate::types::builder::DocumentStructureBuilder;
             let mut builder = DocumentStructureBuilder::new().source_format("bibtex");
-            for (key, citation_text) in &citation_pairs {
-                builder.push_citation(key, citation_text, None);
+            for (key, citation_text, fields) in &citation_pairs {
+                let node_idx = builder.push_citation(key, citation_text, None);
+                // Set all entry fields as node attributes
+                if !fields.is_empty() {
+                    builder.set_attributes(node_idx, fields.clone());
+                }
             }
             Some(builder.build())
         } else {
@@ -514,5 +551,86 @@ Some random text that's not valid BibTeX"#;
         let extractor = BibtexExtractor::new();
         assert!(extractor.initialize().is_ok());
         assert!(extractor.shutdown().is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_bibtex_entry_fields_extraction() {
+        let extractor = BibtexExtractor::new();
+        let bibtex_content = br#"@article{einstein1905,
+    author = {Albert Einstein},
+    title = {On the Electrodynamics of Moving Bodies},
+    journal = {Annalen der Physik},
+    year = {1905},
+    volume = {17},
+    pages = {891-921},
+    doi = {10.1002/andp.19053220806},
+    publisher = {Wiley}
+}"#;
+
+        let config = ExtractionConfig::default();
+        let result = extractor
+            .extract_bytes(bibtex_content, "application/x-bibtex", &config)
+            .await
+            .expect("Should extract entry fields");
+
+        let metadata = &result.metadata;
+
+        // Check that entries metadata contains all fields
+        let entries = metadata.additional.get(&Cow::Borrowed("entries"));
+        assert!(entries.is_some(), "Should have entries metadata");
+        let entries_array = entries
+            .expect("entries key should be present")
+            .as_array()
+            .expect("entries should be an array");
+        assert_eq!(entries_array.len(), 1);
+
+        let entry = &entries_array[0];
+        assert_eq!(
+            entry
+                .get("key")
+                .expect("key field")
+                .as_str()
+                .expect("key should be string"),
+            "einstein1905"
+        );
+        assert_eq!(
+            entry
+                .get("entry_type")
+                .expect("entry_type field")
+                .as_str()
+                .expect("entry_type should be string"),
+            "article"
+        );
+        assert!(entry.get("journal").is_some(), "Should have journal field");
+        assert!(entry.get("volume").is_some(), "Should have volume field");
+        assert!(entry.get("pages").is_some(), "Should have pages field");
+        assert!(entry.get("doi").is_some(), "Should have doi field");
+        assert!(entry.get("publisher").is_some(), "Should have publisher field");
+    }
+
+    #[tokio::test]
+    async fn test_bibtex_document_structure_attributes() {
+        let extractor = BibtexExtractor::new();
+        let bibtex_content = br#"@book{knuth1984,
+    author = {Donald E. Knuth},
+    title = {The TeXbook},
+    publisher = {Addison-Wesley},
+    year = {1984},
+    isbn = {0-201-13447-0}
+}"#;
+
+        let config = ExtractionConfig {
+            include_document_structure: true,
+            ..Default::default()
+        };
+        let result = extractor
+            .extract_bytes(bibtex_content, "application/x-bibtex", &config)
+            .await
+            .expect("Should extract with document structure");
+
+        assert!(result.document.is_some(), "Should have document structure");
+        let doc = result.document.expect("document structure should be present");
+        // The document should have citation nodes with attributes
+        assert!(!doc.nodes.is_empty(), "Document should have nodes");
     }
 }

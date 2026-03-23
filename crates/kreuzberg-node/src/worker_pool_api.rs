@@ -11,10 +11,9 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::sync::{Arc, Mutex};
 
-lazy_static::lazy_static! {
-    /// Global registry of worker pools
-    static ref WORKER_POOLS: Mutex<Vec<Arc<Mutex<Option<WorkerPool>>>>> = Mutex::new(Vec::new());
-}
+/// Global registry of worker pools
+static WORKER_POOLS: std::sync::LazyLock<Mutex<Vec<Arc<Mutex<Option<WorkerPool>>>>>> =
+    std::sync::LazyLock::new(|| Mutex::new(Vec::new()));
 
 /// Opaque handle to a worker pool
 #[napi]

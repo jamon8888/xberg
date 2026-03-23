@@ -71,6 +71,10 @@ impl SyncExtractor for EmailExtractor {
             "attachments",
             "subject",
             "date",
+            "email_from",
+            "email_to",
+            "email_cc",
+            "email_bcc",
         ];
         let mut additional = AHashMap::new();
         for (key, value) in &email_result.metadata {

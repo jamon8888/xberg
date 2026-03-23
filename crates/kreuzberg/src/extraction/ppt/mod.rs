@@ -16,6 +16,8 @@ pub struct PptExtractionResult {
     pub slide_count: usize,
     /// Document metadata.
     pub metadata: PptMetadata,
+    /// Speaker notes text per slide (if available).
+    pub speaker_notes: Vec<String>,
 }
 
 /// Metadata extracted from PPT files.
@@ -32,6 +34,7 @@ const RT_TEXT_CHARS_ATOM: u16 = 0x0FA0; // Unicode (UTF-16LE) text
 const RT_TEXT_BYTES_ATOM: u16 = 0x0FA8; // ANSI (CP1252) text
 const RT_SLIDE_LIST_WITH_TEXT: u16 = 0x0FF0; // Container for slide text
 const RT_MAIN_MASTER: u16 = 0x03F8; // Main master slide
+const RT_NOTES: u16 = 0x03F0; // Notes container
 
 /// Extract text from PPT bytes.
 ///
@@ -52,7 +55,7 @@ pub fn extract_ppt_text(content: &[u8]) -> Result<PptExtractionResult> {
     }
 
     // Extract text from the stream
-    let (texts, slide_count) = extract_texts_from_records(&ppt_stream)?;
+    let (texts, slide_count, speaker_notes) = extract_texts_from_records(&ppt_stream)?;
 
     let text = texts
         .into_iter()
@@ -64,16 +67,22 @@ pub fn extract_ppt_text(content: &[u8]) -> Result<PptExtractionResult> {
         text: text.trim().to_string(),
         slide_count,
         metadata,
+        speaker_notes,
     })
 }
 
 /// Parse PowerPoint record headers and extract text atoms.
-fn extract_texts_from_records(data: &[u8]) -> Result<(Vec<String>, usize)> {
+///
+/// Returns `(slide_texts, slide_count, speaker_notes)`.
+fn extract_texts_from_records(data: &[u8]) -> Result<(Vec<String>, usize, Vec<String>)> {
     let mut texts = Vec::new();
     let mut slide_count = 0;
     let mut pos = 0;
     let mut in_slide_text = false;
     let mut current_slide_texts: Vec<String> = Vec::new();
+    let mut speaker_notes = Vec::new();
+    let mut in_notes = false;
+    let mut current_notes_texts: Vec<String> = Vec::new();
 
     while pos + 8 <= data.len() {
         // Record header: 8 bytes
@@ -107,6 +116,20 @@ fn extract_texts_from_records(data: &[u8]) -> Result<(Vec<String>, usize)> {
                 pos += 8;
                 continue;
             }
+            RT_NOTES => {
+                // Notes container -- track it
+                if in_notes && !current_notes_texts.is_empty() {
+                    let notes_text = current_notes_texts.join("\n");
+                    let trimmed = notes_text.trim().to_string();
+                    if !trimmed.is_empty() {
+                        speaker_notes.push(trimmed);
+                    }
+                    current_notes_texts.clear();
+                }
+                in_notes = true;
+                pos += 8;
+                continue;
+            }
             RT_MAIN_MASTER => {
                 // Skip entire master slide container to avoid extracting
                 // placeholder text like "Click to edit Master title style"
@@ -124,9 +147,12 @@ fn extract_texts_from_records(data: &[u8]) -> Result<(Vec<String>, usize)> {
                     let text = String::from_utf16_lossy(&chars);
                     let cleaned = clean_ppt_text(&text);
                     if !cleaned.is_empty() {
+                        if in_notes {
+                            current_notes_texts.push(cleaned.clone());
+                        }
                         if in_slide_text {
                             current_slide_texts.push(cleaned);
-                        } else {
+                        } else if !in_notes {
                             texts.push(cleaned);
                         }
                     }
@@ -141,9 +167,12 @@ fn extract_texts_from_records(data: &[u8]) -> Result<(Vec<String>, usize)> {
                     let text: String = text_data.iter().map(|&b| cp1252_to_char(b)).collect();
                     let cleaned = clean_ppt_text(&text);
                     if !cleaned.is_empty() {
+                        if in_notes {
+                            current_notes_texts.push(cleaned.clone());
+                        }
                         if in_slide_text {
                             current_slide_texts.push(cleaned);
-                        } else {
+                        } else if !in_notes {
                             texts.push(cleaned);
                         }
                     }
@@ -168,12 +197,21 @@ fn extract_texts_from_records(data: &[u8]) -> Result<(Vec<String>, usize)> {
         texts.push(current_slide_texts.join("\n"));
     }
 
+    // Flush any remaining notes
+    if !current_notes_texts.is_empty() {
+        let notes_text = current_notes_texts.join("\n");
+        let trimmed = notes_text.trim().to_string();
+        if !trimmed.is_empty() {
+            speaker_notes.push(trimmed);
+        }
+    }
+
     // If no SlideListWithText containers found but we have text, count it
     if slide_count == 0 && !texts.is_empty() {
         slide_count = 1;
     }
 
-    Ok((texts, slide_count))
+    Ok((texts, slide_count, speaker_notes))
 }
 
 /// Clean PPT text: replace control characters and normalize whitespace.

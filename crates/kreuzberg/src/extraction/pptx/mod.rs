@@ -45,11 +45,13 @@ mod image_handling;
 mod metadata;
 mod parser;
 
+use ahash::AHashMap;
 use bytes::Bytes;
 
 use crate::error::Result;
 use crate::types::builder::{self, DocumentStructureBuilder};
 use crate::types::document_structure::TextAnnotation;
+use crate::types::extraction::BoundingBox;
 use crate::types::{ExtractedImage, PptxExtractionResult};
 
 use container::{PptxContainer, SlideIterator};
@@ -184,23 +186,47 @@ fn extract_pptx_from_container<R: std::io::Read + std::io::Seek>(
         if config.extract_images
             && let Ok(image_data) = iterator.get_slide_images(&slide)
         {
-            for (_, data) in image_data {
-                let format = detect_image_format(&data);
+            // Collect image element metadata for matching
+            let image_elements: Vec<_> = slide
+                .elements
+                .iter()
+                .filter_map(|e| {
+                    if let SlideElement::Image(img_ref, pos) = e {
+                        Some((img_ref, pos))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            for (img_idx_in_slide, (_, data)) in image_data.iter().enumerate() {
+                let format = detect_image_format(data);
                 let image_index = extracted_images.len();
 
+                // Try to get dimensions and description from corresponding element
+                // EMU to pixels at 96 DPI: 1 pixel = 9525 EMU
+                let (width, height, description, bbox) =
+                    if let Some((img_ref, pos)) = image_elements.get(img_idx_in_slide) {
+                        let w = if pos.cx > 0 { Some((pos.cx / 9525) as u32) } else { None };
+                        let h = if pos.cy > 0 { Some((pos.cy / 9525) as u32) } else { None };
+                        (w, h, img_ref.description.clone(), position_to_bbox(pos))
+                    } else {
+                        (None, None, None, None)
+                    };
+
                 extracted_images.push(ExtractedImage {
-                    data: Bytes::from(data),
-                    format, // Already a Cow<'static, str> from detect_image_format
+                    data: Bytes::from(data.clone()),
+                    format,
                     image_index,
                     page_number: Some(slide.slide_number as usize),
-                    width: None,
-                    height: None,
+                    width,
+                    height,
                     colorspace: None,
                     bits_per_component: None,
                     is_mask: false,
-                    description: None,
+                    description,
                     ocr_result: None,
-                    bounding_box: None,
+                    bounding_box: bbox,
                 });
             }
         }
@@ -294,9 +320,38 @@ fn runs_to_text_and_annotations(runs: &[Run]) -> (String, Vec<TextAnnotation>) {
         if run.formatting.underlined {
             annotations.push(builder::underline(start, end));
         }
+        if run.formatting.strikethrough {
+            annotations.push(builder::strikethrough(start, end));
+        }
+        if let Some(sz) = run.formatting.font_size {
+            // sz is in hundredths of a point; convert to "Xpt" string
+            let pts = sz as f64 / 100.0;
+            let value = if pts.fract() == 0.0 {
+                format!("{}pt", pts as u32)
+            } else {
+                format!("{:.1}pt", pts)
+            };
+            annotations.push(builder::font_size(start, end, &value));
+        }
     }
 
     (text, annotations)
+}
+
+/// Convert an `ElementPosition` with dimensions to a `BoundingBox`.
+///
+/// EMU coordinates are converted to points (1 inch = 914400 EMU = 72 pt).
+fn position_to_bbox(pos: &elements::ElementPosition) -> Option<BoundingBox> {
+    if pos.x == 0 && pos.y == 0 && pos.cx == 0 && pos.cy == 0 {
+        return None;
+    }
+    const EMU_PER_PT: f64 = 914_400.0 / 72.0;
+    Some(BoundingBox {
+        x0: pos.x as f64 / EMU_PER_PT,
+        y0: pos.y as f64 / EMU_PER_PT,
+        x1: (pos.x + pos.cx) as f64 / EMU_PER_PT,
+        y1: (pos.y + pos.cy) as f64 / EMU_PER_PT,
+    })
 }
 
 /// Populate the document structure builder for a single slide.
@@ -329,18 +384,31 @@ fn build_slide_structure(
     let mut first_title_seen = false;
 
     for &idx in &sorted_indices {
-        match &slide.elements[idx] {
+        let elem = &slide.elements[idx];
+        let pos = elem.position();
+        let bbox = position_to_bbox(&pos);
+
+        match elem {
             SlideElement::Text(text, _) => {
                 let (plain_text, annotations) = runs_to_text_and_annotations(&text.runs);
                 let normalized = plain_text.replace('\n', " ");
                 let is_title = normalized.len() < 100 && !normalized.trim().is_empty();
 
                 if is_title && !first_title_seen {
-                    // First short text becomes the slide heading
                     first_title_seen = true;
-                    doc_builder.push_heading(1, normalized.trim(), None, None);
+                    doc_builder.push_heading(1, normalized.trim(), None, bbox);
                 } else if !plain_text.trim().is_empty() {
-                    doc_builder.push_paragraph(&plain_text, annotations, None, None);
+                    let node_idx = doc_builder.push_paragraph(&plain_text, annotations, None, bbox);
+
+                    // Store language from first run with a non-empty lang
+                    if let Some(lang) = text.runs.iter().find_map(|r| {
+                        let l = &r.formatting.lang;
+                        if l.is_empty() { None } else { Some(l.clone()) }
+                    }) {
+                        let mut attrs = AHashMap::new();
+                        attrs.insert("lang".to_string(), lang);
+                        doc_builder.set_attributes(node_idx, attrs);
+                    }
                 }
             }
             SlideElement::Table(table, _) => {
@@ -371,12 +439,15 @@ fn build_slide_structure(
                 }
             }
             SlideElement::Image(img_ref, _) => {
-                let desc = if img_ref.target.is_empty() {
-                    None
-                } else {
-                    Some(img_ref.target.as_str())
-                };
-                doc_builder.push_image(desc, Some(*image_index_counter), None, None);
+                // Prefer alt text description, fall back to target path
+                let desc = img_ref.description.as_deref().or_else(|| {
+                    if img_ref.target.is_empty() {
+                        None
+                    } else {
+                        Some(img_ref.target.as_str())
+                    }
+                });
+                doc_builder.push_image(desc, Some(*image_index_counter), None, bbox);
                 *image_index_counter += 1;
             }
             SlideElement::Unknown => {}

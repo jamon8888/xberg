@@ -21,7 +21,7 @@ pub use encoding::{hex_digit_to_u8, parse_hex_byte, parse_rtf_control_word};
 pub use formatting::normalize_whitespace;
 pub use images::extract_image_metadata;
 pub use metadata::{extract_rtf_metadata, parse_rtf_datetime};
-pub use parser::extract_text_from_rtf;
+pub use parser::{extract_rtf_formatting, extract_text_from_rtf, spans_to_annotations};
 
 use crate::Result;
 use crate::core::config::ExtractionConfig;
@@ -102,12 +102,17 @@ impl DocumentExtractor for RtfExtractor {
             use crate::types::builder::DocumentStructureBuilder;
             let mut builder = DocumentStructureBuilder::new().source_format("rtf");
 
+            // Extract formatting metadata for annotations
+            let formatting = extract_rtf_formatting(&rtf_content);
+
             // Build structure from extracted text paragraphs and tables.
             // Tables are emitted separately; text paragraphs come from double-newline splitting.
             let mut table_idx = 0;
+            let mut byte_offset = 0usize;
             for paragraph in extracted_text.split("\n\n") {
                 let trimmed = paragraph.trim();
                 if trimmed.is_empty() {
+                    byte_offset += paragraph.len() + 2; // +2 for "\n\n"
                     continue;
                 }
                 // Check if this paragraph looks like a table (contains pipe separators on multiple lines)
@@ -117,14 +122,26 @@ impl DocumentExtractor for RtfExtractor {
                     builder.push_table_simple(&tables[table_idx].cells, None);
                     table_idx += 1;
                 } else {
-                    builder.push_paragraph(trimmed, vec![], None, None);
+                    // Find the byte position of trimmed within extracted_text
+                    let trim_offset = byte_offset + (paragraph.len() - paragraph.trim_start().len());
+                    let annotations = spans_to_annotations(trim_offset, trim_offset + trimmed.len(), &formatting);
+                    builder.push_paragraph(trimmed, annotations, None, None);
                 }
+                byte_offset += paragraph.len() + 2; // +2 for "\n\n"
             }
 
             // Push any remaining tables that weren't matched inline
             while table_idx < tables.len() {
                 builder.push_table_simple(&tables[table_idx].cells, None);
                 table_idx += 1;
+            }
+
+            // Push header/footer if present
+            if let Some(ref header) = formatting.header_text {
+                builder.push_header(header, None);
+            }
+            if let Some(ref footer) = formatting.footer_text {
+                builder.push_footer(footer, None);
             }
 
             Some(builder.build())
@@ -209,5 +226,72 @@ mod tests {
             "Plain text should use pipe delimiters for table cells"
         );
         assert!(!tables.is_empty(), "Tables should still be extracted");
+    }
+
+    #[test]
+    fn test_rtf_bold_formatting_extraction() {
+        let rtf_content = r#"{\rtf1 Normal {\b Bold text} more normal}"#;
+        let formatting = extract_rtf_formatting(rtf_content);
+        // Should have at least one bold span
+        let has_bold = formatting.spans.iter().any(|s| s.bold);
+        assert!(has_bold, "Should detect bold formatting in RTF");
+    }
+
+    #[test]
+    fn test_rtf_italic_formatting_extraction() {
+        let rtf_content = r#"{\rtf1 Normal {\i Italic text} more normal}"#;
+        let formatting = extract_rtf_formatting(rtf_content);
+        let has_italic = formatting.spans.iter().any(|s| s.italic);
+        assert!(has_italic, "Should detect italic formatting in RTF");
+    }
+
+    #[test]
+    fn test_rtf_underline_formatting_extraction() {
+        let rtf_content = r#"{\rtf1 Normal {\ul Underlined text} more normal}"#;
+        let formatting = extract_rtf_formatting(rtf_content);
+        let has_underline = formatting.spans.iter().any(|s| s.underline);
+        assert!(has_underline, "Should detect underline formatting in RTF");
+    }
+
+    #[test]
+    fn test_rtf_color_table_extraction() {
+        let rtf_content = r#"{\rtf1{\colortbl;\red255\green0\blue0;\red0\green255\blue0;}Normal {\cf1 Red text} more}"#;
+        let formatting = extract_rtf_formatting(rtf_content);
+        assert!(
+            formatting.color_table.len() >= 2,
+            "Should parse at least 2 color entries"
+        );
+        assert_eq!(formatting.color_table[1], "#ff0000", "First color should be red");
+    }
+
+    #[test]
+    fn test_rtf_header_footer_extraction() {
+        let rtf_content = r#"{\rtf1{\header My Header Text}{\footer My Footer Text}Body text}"#;
+        let formatting = extract_rtf_formatting(rtf_content);
+        assert!(formatting.header_text.is_some(), "Should extract header text");
+        assert!(formatting.footer_text.is_some(), "Should extract footer text");
+        assert!(
+            formatting.header_text.as_deref().unwrap_or("").contains("Header"),
+            "Header text should contain 'Header'"
+        );
+        assert!(
+            formatting.footer_text.as_deref().unwrap_or("").contains("Footer"),
+            "Footer text should contain 'Footer'"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_rtf_document_structure_with_annotations() {
+        let rtf_content = r#"{\rtf1 Normal text\par {\b Bold paragraph}\par More normal text}"#;
+        let extractor = RtfExtractor::new();
+        let mut config = ExtractionConfig::default();
+        config.include_document_structure = true;
+        let result = extractor
+            .extract_bytes(rtf_content.as_bytes(), "application/rtf", &config)
+            .await
+            .expect("RTF extraction failed");
+        assert!(result.document.is_some(), "Should produce document structure");
+        let doc = result.document.unwrap();
+        assert!(!doc.nodes.is_empty(), "Document structure should have nodes");
     }
 }

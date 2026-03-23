@@ -33,9 +33,13 @@ impl DjotExtractor {
 impl DjotExtractor {
     /// Build a `DocumentStructure` from jotdown events.
     fn build_document_structure(events: &[Event]) -> DocumentStructure {
-        let mut builder = DocumentStructureBuilder::new().source_format("djot");
+        use crate::types::builder;
+        use crate::types::document_structure::TextAnnotation;
+
+        let mut b = DocumentStructureBuilder::new().source_format("djot");
 
         let mut paragraph_text = String::new();
+        let mut paragraph_annotations: Vec<TextAnnotation> = Vec::new();
         let mut in_paragraph = false;
         let mut heading_text = String::new();
         let mut heading_level: u8 = 0;
@@ -52,6 +56,12 @@ impl DjotExtractor {
         let mut in_raw_block = false;
         let mut raw_format: Option<String> = None;
         let mut raw_text = String::new();
+        let mut in_verbatim = false;
+        let mut verbatim_start: u32 = 0;
+
+        // Annotation tracking: stack of (kind_tag, byte_start, optional link url).
+        // kind_tag: 0=bold/strong, 1=italic/emphasis, 2=delete/strikethrough, 4=link
+        let mut annotation_starts: Vec<(u8, u32, Option<String>)> = Vec::new();
 
         for event in events {
             match event {
@@ -64,13 +74,14 @@ impl DjotExtractor {
                     in_heading = false;
                     let text = heading_text.trim().to_string();
                     if !text.is_empty() {
-                        builder.push_heading(heading_level, &text, None, None);
+                        b.push_heading(heading_level, &text, None, None);
                     }
                     heading_text.clear();
                 }
                 Event::Start(Container::Paragraph, _) => {
                     if !in_heading && !in_list_item {
                         paragraph_text.clear();
+                        paragraph_annotations.clear();
                         in_paragraph = true;
                     }
                 }
@@ -79,11 +90,104 @@ impl DjotExtractor {
                         in_paragraph = false;
                         let text = paragraph_text.trim().to_string();
                         if !text.is_empty() {
-                            builder.push_paragraph(&text, vec![], None, None);
+                            let trim_offset = paragraph_text.len() - paragraph_text.trim_start().len();
+                            let trimmed_len = text.len() as u32;
+                            let annotations = if trim_offset > 0 {
+                                paragraph_annotations
+                                    .drain(..)
+                                    .map(|mut a| {
+                                        a.start = a.start.saturating_sub(trim_offset as u32);
+                                        a.end = a.end.saturating_sub(trim_offset as u32);
+                                        a
+                                    })
+                                    .filter(|a| a.start < a.end && a.end <= trimmed_len)
+                                    .collect()
+                            } else {
+                                paragraph_annotations
+                                    .drain(..)
+                                    .filter(|a| a.start < a.end && a.end <= trimmed_len)
+                                    .collect()
+                            };
+                            b.push_paragraph(&text, annotations, None, None);
                         }
                         paragraph_text.clear();
+                        paragraph_annotations.clear();
                     } else if in_list_item {
                         // paragraph inside list item — text already accumulated
+                    }
+                }
+                // Inline formatting — annotation tracking
+                Event::Start(Container::Strong, _) => {
+                    if in_paragraph {
+                        annotation_starts.push((0, paragraph_text.len() as u32, None));
+                    }
+                }
+                Event::End(Container::Strong) => {
+                    if in_paragraph && let Some(pos) = annotation_starts.iter().rposition(|(k, _, _)| *k == 0) {
+                        let (_, start, _) = annotation_starts.remove(pos);
+                        let end = paragraph_text.len() as u32;
+                        if start < end {
+                            paragraph_annotations.push(builder::bold(start, end));
+                        }
+                    }
+                }
+                Event::Start(Container::Emphasis, _) => {
+                    if in_paragraph {
+                        annotation_starts.push((1, paragraph_text.len() as u32, None));
+                    }
+                }
+                Event::End(Container::Emphasis) => {
+                    if in_paragraph && let Some(pos) = annotation_starts.iter().rposition(|(k, _, _)| *k == 1) {
+                        let (_, start, _) = annotation_starts.remove(pos);
+                        let end = paragraph_text.len() as u32;
+                        if start < end {
+                            paragraph_annotations.push(builder::italic(start, end));
+                        }
+                    }
+                }
+                Event::Start(Container::Delete, _) => {
+                    if in_paragraph {
+                        annotation_starts.push((2, paragraph_text.len() as u32, None));
+                    }
+                }
+                Event::End(Container::Delete) => {
+                    if in_paragraph && let Some(pos) = annotation_starts.iter().rposition(|(k, _, _)| *k == 2) {
+                        let (_, start, _) = annotation_starts.remove(pos);
+                        let end = paragraph_text.len() as u32;
+                        if start < end {
+                            paragraph_annotations.push(builder::strikethrough(start, end));
+                        }
+                    }
+                }
+                Event::Start(Container::Verbatim, _) => {
+                    if in_paragraph {
+                        in_verbatim = true;
+                        verbatim_start = paragraph_text.len() as u32;
+                    }
+                }
+                Event::End(Container::Verbatim) => {
+                    if in_paragraph && in_verbatim {
+                        in_verbatim = false;
+                        let end = paragraph_text.len() as u32;
+                        if verbatim_start < end {
+                            paragraph_annotations.push(builder::code(verbatim_start, end));
+                        }
+                    }
+                }
+                Event::Start(Container::Link(url, _), _) => {
+                    if in_paragraph {
+                        annotation_starts.push((4, paragraph_text.len() as u32, Some(url.to_string())));
+                    }
+                }
+                Event::End(Container::Link(..)) => {
+                    if in_paragraph && let Some(pos) = annotation_starts.iter().rposition(|(k, _, _)| *k == 4) {
+                        let (_, start, url_opt) = annotation_starts.remove(pos);
+                        let end = paragraph_text.len() as u32;
+                        if start < end
+                            && let Some(url) = url_opt
+                        {
+                            paragraph_annotations.push(builder::link(start, end, &url, None));
+                        }
                     }
                 }
                 Event::Start(Container::CodeBlock { language }, _) => {
@@ -99,7 +203,7 @@ impl DjotExtractor {
                     in_code_block = false;
                     let text = code_text.trim_end().to_string();
                     if !text.is_empty() {
-                        builder.push_code(&text, code_lang.as_deref(), None);
+                        b.push_code(&text, code_lang.as_deref(), None);
                     }
                     code_text.clear();
                     code_lang = None;
@@ -113,24 +217,24 @@ impl DjotExtractor {
                     in_raw_block = false;
                     let text = raw_text.trim().to_string();
                     if !text.is_empty() {
-                        builder.push_raw_block(raw_format.as_deref().unwrap_or("unknown"), &text, None);
+                        b.push_raw_block(raw_format.as_deref().unwrap_or("unknown"), &text, None);
                     }
                     raw_text.clear();
                     raw_format = None;
                 }
                 Event::Start(Container::Blockquote, _) => {
-                    builder.push_quote(None);
+                    b.push_quote(None);
                     blockquote_depth += 1;
                 }
                 Event::End(Container::Blockquote) => {
                     if blockquote_depth > 0 {
-                        builder.exit_container();
+                        b.exit_container();
                         blockquote_depth -= 1;
                     }
                 }
                 Event::Start(Container::List { kind, .. }, _) => {
                     let ordered = matches!(kind, jotdown::ListKind::Ordered { .. });
-                    let list_idx = builder.push_list(ordered, None);
+                    let list_idx = b.push_list(ordered, None);
                     list_stack.push((list_idx, ordered));
                 }
                 Event::End(Container::List { .. }) => {
@@ -146,7 +250,7 @@ impl DjotExtractor {
                     if let Some((list_idx, _)) = list_stack.last()
                         && !text.is_empty()
                     {
-                        builder.push_list_item(*list_idx, &text, None);
+                        b.push_list_item(*list_idx, &text, None);
                     }
                     list_item_text.clear();
                 }
@@ -163,7 +267,7 @@ impl DjotExtractor {
                         in_math = false;
                         let text = math_text.trim().to_string();
                         if !text.is_empty() {
-                            builder.push_formula(&text, None);
+                            b.push_formula(&text, None);
                         }
                         math_text.clear();
                     }
@@ -172,7 +276,10 @@ impl DjotExtractor {
                     // Images in djot — push an image node
                 }
                 Event::End(Container::Image(..)) => {
-                    builder.push_image(None, None, None, None);
+                    b.push_image(None, None, None, None);
+                }
+                Event::FootnoteReference(name) => {
+                    b.push_footnote(name, None);
                 }
                 Event::Str(s) => {
                     if in_code_block {
@@ -211,7 +318,7 @@ impl DjotExtractor {
             }
         }
 
-        builder.build()
+        b.build()
     }
 }
 

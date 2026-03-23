@@ -6,7 +6,116 @@ use crate::extraction::xml::{parse_xml, parse_xml_svg};
 use crate::extractors::SyncExtractor;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::ExtractionResult;
+use ahash::AHashMap;
 use async_trait::async_trait;
+
+/// Build a `DocumentStructure` from XML content by parsing element hierarchy.
+///
+/// Maps XML elements to groups (for parent elements with children) and
+/// paragraphs (for text content), preserving the element tree structure.
+/// Element attributes are stored as node attributes.
+fn build_xml_document_structure(
+    content: &[u8],
+    mime_type: &str,
+) -> crate::types::document_structure::DocumentStructure {
+    use crate::types::builder::DocumentStructureBuilder;
+    use quick_xml::Reader;
+    use quick_xml::events::Event;
+    use std::borrow::Cow;
+
+    let mut builder = DocumentStructureBuilder::new().source_format("xml");
+    let is_svg = mime_type == "image/svg+xml";
+
+    let mut reader = Reader::from_reader(content);
+    reader.config_mut().trim_text(true);
+    reader.config_mut().check_end_names = false;
+
+    let mut buf = Vec::new();
+    let mut depth = 0u8;
+    let mut element_stack: Vec<String> = Vec::new();
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(e)) => {
+                let name: Cow<str> = String::from_utf8_lossy(e.name().as_ref());
+                let name_owned = name.to_string();
+
+                // Extract element attributes
+                let mut attrs = AHashMap::new();
+                for attr in e.attributes().flatten() {
+                    let key: Cow<str> = String::from_utf8_lossy(attr.key.as_ref());
+                    let val: Cow<str> = String::from_utf8_lossy(&attr.value);
+                    let trimmed_val = val.trim();
+                    if !trimmed_val.is_empty() {
+                        attrs.insert(key.to_string(), trimmed_val.to_string());
+                    }
+                }
+
+                // Use heading for top-level structural elements
+                let level = (depth + 1).min(6);
+                let node_idx = builder.push_heading(level, &name_owned, None, None);
+                if !attrs.is_empty() {
+                    builder.set_attributes(node_idx, attrs);
+                }
+
+                element_stack.push(name_owned);
+                depth = depth.saturating_add(1);
+            }
+            Ok(Event::End(_)) => {
+                element_stack.pop();
+                depth = depth.saturating_sub(1);
+            }
+            Ok(Event::Text(e)) => {
+                if is_svg {
+                    // In SVG mode, only extract text from text-bearing elements
+                    let in_text_elem = element_stack
+                        .iter()
+                        .any(|n| matches!(n.as_str(), "text" | "tspan" | "title" | "desc" | "textPath"));
+                    if !in_text_elem {
+                        buf.clear();
+                        continue;
+                    }
+                }
+                let text: Cow<str> = String::from_utf8_lossy(e.as_ref());
+                let trimmed = text.trim();
+                if !trimmed.is_empty() {
+                    builder.push_paragraph(trimmed, vec![], None, None);
+                }
+            }
+            Ok(Event::Empty(e)) => {
+                let name: Cow<str> = String::from_utf8_lossy(e.name().as_ref());
+
+                let mut attrs = AHashMap::new();
+                for attr in e.attributes().flatten() {
+                    let key: Cow<str> = String::from_utf8_lossy(attr.key.as_ref());
+                    let val: Cow<str> = String::from_utf8_lossy(&attr.value);
+                    let trimmed_val = val.trim();
+                    if !trimmed_val.is_empty() {
+                        attrs.insert(key.to_string(), trimmed_val.to_string());
+                    }
+                }
+
+                let node_idx = builder.push_paragraph(&name, vec![], None, None);
+                if !attrs.is_empty() {
+                    builder.set_attributes(node_idx, attrs);
+                }
+            }
+            Ok(Event::CData(e)) => {
+                let text: Cow<str> = String::from_utf8_lossy(&e);
+                let trimmed = text.trim();
+                if !trimmed.is_empty() {
+                    builder.push_paragraph(trimmed, vec![], None, None);
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(_) => break,
+            _ => {}
+        }
+        buf.clear();
+    }
+
+    builder.build()
+}
 
 /// XML extractor.
 ///
@@ -61,16 +170,7 @@ impl SyncExtractor for XmlExtractor {
         };
 
         let document = if config.include_document_structure && !xml_result.content.trim().is_empty() {
-            use crate::types::builder::DocumentStructureBuilder;
-
-            let mut builder = DocumentStructureBuilder::new().source_format("xml");
-            for line in xml_result.content.lines() {
-                let trimmed = line.trim();
-                if !trimmed.is_empty() {
-                    builder.push_paragraph(trimmed, vec![], None, None);
-                }
-            }
-            Some(builder.build())
+            Some(build_xml_document_structure(content, mime_type))
         } else {
             None
         };

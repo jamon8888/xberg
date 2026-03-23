@@ -25,9 +25,12 @@ pub(super) fn extract_jats_all_in_one(content: &str) -> Result<(JatsMetadataExtr
     let mut in_abstract = false;
     let mut in_kwd_group = false;
     let mut in_kwd = false;
+    let mut in_history = false;
+    let mut in_permissions = false;
     let mut current_author = String::new();
     let mut current_aff = String::new();
     let mut abstract_content = String::new();
+    let mut current_contrib_type = String::new();
 
     let mut in_body = false;
     let mut in_section = false;
@@ -69,6 +72,15 @@ pub(super) fn extract_jats_all_in_one(content: &str) -> Result<(JatsMetadataExtr
                     "contrib" if in_article_meta => {
                         in_contrib = true;
                         current_author.clear();
+                        current_contrib_type.clear();
+                        // Extract contrib-type attribute
+                        for attr in e.attributes() {
+                            if let Ok(attr) = attr
+                                && String::from_utf8_lossy(attr.key.as_ref()) == "contrib-type"
+                            {
+                                current_contrib_type = String::from_utf8_lossy(attr.value.as_ref()).to_string();
+                            }
+                        }
                     }
                     "name" if in_contrib => {
                         in_name = true;
@@ -144,6 +156,42 @@ pub(super) fn extract_jats_all_in_one(content: &str) -> Result<(JatsMetadataExtr
                         metadata.corresponding_author = Some(corresp_text);
                         continue;
                     }
+                    "history" if in_article_meta => {
+                        in_history = true;
+                    }
+                    "date" if in_history => {
+                        // Extract date-type attribute
+                        let mut date_type = String::new();
+                        for attr in e.attributes() {
+                            if let Ok(attr) = attr
+                                && String::from_utf8_lossy(attr.key.as_ref()) == "date-type"
+                            {
+                                date_type = String::from_utf8_lossy(attr.value.as_ref()).to_string();
+                            }
+                        }
+                        let date_text = extract_text_content(&mut reader)?;
+                        if !date_text.is_empty() && !date_type.is_empty() {
+                            metadata.history_dates.push((date_type, date_text));
+                        }
+                        continue;
+                    }
+                    "permissions" if in_article_meta => {
+                        in_permissions = true;
+                    }
+                    "copyright-statement" if in_permissions => {
+                        let text = extract_text_content(&mut reader)?;
+                        if !text.is_empty() {
+                            metadata.copyright_statement = Some(text);
+                        }
+                        continue;
+                    }
+                    "license" if in_permissions => {
+                        let text = extract_text_content(&mut reader)?;
+                        if !text.is_empty() {
+                            metadata.license = Some(text);
+                        }
+                        continue;
+                    }
                     "body" => {
                         in_body = true;
                     }
@@ -161,6 +209,14 @@ pub(super) fn extract_jats_all_in_one(content: &str) -> Result<(JatsMetadataExtr
                     }
                     "p" if in_body || in_section => {
                         in_para = true;
+                    }
+                    "inline-formula" if in_body => {
+                        let formula_text = extract_text_content(&mut reader)?;
+                        if !formula_text.is_empty() {
+                            body_content.push_str(&formula_text);
+                            body_content.push(' ');
+                        }
+                        continue;
                     }
                     "table" => {
                         in_table = true;
@@ -235,9 +291,16 @@ pub(super) fn extract_jats_all_in_one(content: &str) -> Result<(JatsMetadataExtr
                     "contrib" if in_contrib => {
                         if !current_author.is_empty() {
                             metadata.authors.push(current_author.clone());
+                            // Track contributor role
+                            if !current_contrib_type.is_empty() {
+                                metadata
+                                    .contributor_roles
+                                    .push((current_author.clone(), current_contrib_type.clone()));
+                            }
                         }
                         in_contrib = false;
                         current_author.clear();
+                        current_contrib_type.clear();
                     }
                     "name" if in_name => {
                         in_name = false;
@@ -252,6 +315,12 @@ pub(super) fn extract_jats_all_in_one(content: &str) -> Result<(JatsMetadataExtr
                     "abstract" if in_abstract => {
                         in_abstract = false;
                         metadata.abstract_text = Some(abstract_content.trim().to_string());
+                    }
+                    "history" if in_history => {
+                        in_history = false;
+                    }
+                    "permissions" if in_permissions => {
+                        in_permissions = false;
                     }
                     "kwd-group" if in_kwd_group => {
                         in_kwd_group = false;

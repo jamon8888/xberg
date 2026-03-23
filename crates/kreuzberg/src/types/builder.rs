@@ -18,7 +18,7 @@
 //! assert!(doc.validate().is_ok());
 //! ```
 
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 use super::document_structure::{
     AnnotationKind, ContentLayer, DocumentNode, DocumentStructure, GridCell, NodeContent, NodeId, NodeIndex, TableGrid,
@@ -326,7 +326,7 @@ impl DocumentStructureBuilder {
     // ========================================================================
 
     /// Set format-specific attributes on an existing node.
-    pub fn set_attributes(&mut self, index: NodeIndex, attrs: HashMap<String, String>) {
+    pub fn set_attributes(&mut self, index: NodeIndex, attrs: AHashMap<String, String>) {
         if let Some(node) = self.doc.nodes.get_mut(index.0 as usize) {
             node.attributes = Some(attrs);
         }
@@ -539,6 +539,55 @@ pub fn strikethrough(start: u32, end: u32) -> TextAnnotation {
     }
 }
 
+/// Create a subscript annotation for the given byte range.
+pub fn subscript(start: u32, end: u32) -> TextAnnotation {
+    TextAnnotation {
+        start,
+        end,
+        kind: AnnotationKind::Subscript,
+    }
+}
+
+/// Create a superscript annotation for the given byte range.
+pub fn superscript(start: u32, end: u32) -> TextAnnotation {
+    TextAnnotation {
+        start,
+        end,
+        kind: AnnotationKind::Superscript,
+    }
+}
+
+/// Create a font size annotation for the given byte range.
+pub fn font_size(start: u32, end: u32, value: &str) -> TextAnnotation {
+    TextAnnotation {
+        start,
+        end,
+        kind: AnnotationKind::FontSize {
+            value: value.to_string(),
+        },
+    }
+}
+
+/// Create a color annotation for the given byte range.
+pub fn color(start: u32, end: u32, value: &str) -> TextAnnotation {
+    TextAnnotation {
+        start,
+        end,
+        kind: AnnotationKind::Color {
+            value: value.to_string(),
+        },
+    }
+}
+
+/// Create a highlight annotation for the given byte range.
+pub fn highlight(start: u32, end: u32) -> TextAnnotation {
+    TextAnnotation {
+        start,
+        end,
+        kind: AnnotationKind::Highlight,
+    }
+}
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -682,7 +731,7 @@ mod tests {
     fn test_attributes() {
         let mut b = DocumentStructureBuilder::new();
         let idx = b.push_paragraph("styled", vec![], None, None);
-        let mut attrs = HashMap::new();
+        let mut attrs = AHashMap::new();
         attrs.insert("class".to_string(), "highlight".to_string());
         b.set_attributes(idx, attrs);
         let doc = b.build();

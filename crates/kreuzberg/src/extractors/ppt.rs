@@ -112,6 +112,20 @@ impl DocumentExtractor for PptExtractor {
             serde_json::Value::String("native_ole".to_string()),
         );
 
+        // Store speaker notes if available
+        if !result.speaker_notes.is_empty() {
+            metadata_map.insert(
+                Cow::Borrowed("speaker_notes"),
+                serde_json::Value::Array(
+                    result
+                        .speaker_notes
+                        .iter()
+                        .map(|n| serde_json::Value::String(n.clone()))
+                        .collect(),
+                ),
+            );
+        }
+
         let page_structure = if result.slide_count > 0 {
             Some(PageStructure {
                 total_count: result.slide_count,
@@ -144,8 +158,35 @@ impl DocumentExtractor for PptExtractor {
             for (i, block) in slide_blocks.iter().enumerate() {
                 let trimmed = block.trim();
                 if !trimmed.is_empty() {
-                    builder.push_slide((i + 1) as u32, None);
-                    builder.push_paragraph(trimmed, vec![], None, None);
+                    let slide_num = (i + 1) as u32;
+                    // Use first line as slide title if it's short
+                    let mut lines = trimmed.lines();
+                    let first_line = lines.next().unwrap_or("");
+                    let title = if first_line.len() <= 80 && lines.clone().next().is_some() {
+                        Some(first_line)
+                    } else {
+                        None
+                    };
+                    builder.push_slide(slide_num, title);
+
+                    // Push remaining lines as paragraphs
+                    if title.is_some() {
+                        for line in lines {
+                            let lt = line.trim();
+                            if !lt.is_empty() {
+                                builder.push_paragraph(lt, vec![], None, None);
+                            }
+                        }
+                    } else {
+                        // Push whole block as paragraph
+                        builder.push_paragraph(trimmed, vec![], None, None);
+                    }
+
+                    // Add speaker notes as footnotes if available for this slide
+                    if let Some(notes) = result.speaker_notes.get(i) {
+                        builder.push_footnote(notes, None);
+                    }
+
                     builder.exit_container();
                 }
             }
@@ -223,5 +264,50 @@ mod tests {
             .expect("PPT extraction failed");
         assert!(!result.content.is_empty(), "Should extract text from PPT");
         assert_eq!(&*result.mime_type, "application/vnd.ms-powerpoint");
+    }
+
+    #[tokio::test]
+    async fn test_ppt_document_structure_slides() {
+        let test_file = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../test_documents/ppt/simple.ppt");
+        if !test_file.exists() {
+            return;
+        }
+        let content = std::fs::read(&test_file).expect("Failed to read test PPT");
+        let extractor = PptExtractor::new();
+        let mut config = ExtractionConfig::default();
+        config.include_document_structure = true;
+        let result = extractor
+            .extract_bytes(&content, "application/vnd.ms-powerpoint", &config)
+            .await
+            .expect("PPT extraction failed");
+        assert!(result.document.is_some(), "Should produce document structure for PPT");
+        let doc = result.document.unwrap();
+        // Should contain Slide nodes
+        let has_slide = doc
+            .nodes
+            .iter()
+            .any(|n| matches!(n.content, crate::types::document_structure::NodeContent::Slide { .. }));
+        assert!(has_slide, "PPT should produce Slide nodes in document structure");
+    }
+
+    #[tokio::test]
+    async fn test_ppt_slide_count_metadata() {
+        let test_file = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../test_documents/ppt/simple.ppt");
+        if !test_file.exists() {
+            return;
+        }
+        let content = std::fs::read(&test_file).expect("Failed to read test PPT");
+        let extractor = PptExtractor::new();
+        let config = ExtractionConfig::default();
+        let result = extractor
+            .extract_bytes(&content, "application/vnd.ms-powerpoint", &config)
+            .await
+            .expect("PPT extraction failed");
+        assert!(
+            result.metadata.additional.contains_key("slide_count"),
+            "Should have slide_count metadata"
+        );
+        let slide_count = result.metadata.additional.get("slide_count").unwrap();
+        assert!(slide_count.as_u64().unwrap_or(0) > 0, "Slide count should be > 0");
     }
 }

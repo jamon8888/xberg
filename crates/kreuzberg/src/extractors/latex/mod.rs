@@ -23,7 +23,7 @@ use crate::Result;
 use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::builder::DocumentStructureBuilder;
-use crate::types::document_structure::DocumentStructure;
+use crate::types::document_structure::{AnnotationKind, DocumentStructure, TextAnnotation};
 use crate::types::{ExtractionResult, Metadata, Table};
 use async_trait::async_trait;
 
@@ -79,6 +79,151 @@ impl LatexExtractor {
         parser.parse()
     }
 
+    /// Strip inline LaTeX formatting commands from text, returning the plain text
+    /// and a list of `TextAnnotation`s referencing byte offsets in the output.
+    ///
+    /// Handles: `\textbf`, `\emph`, `\textit`, `\underline`, `\texttt`, `\href`.
+    fn strip_inline_commands(input: &str) -> (String, Vec<TextAnnotation>) {
+        let mut output = String::with_capacity(input.len());
+        let mut annotations = Vec::new();
+        let bytes = input.as_bytes();
+        let len = bytes.len();
+        let mut pos = 0;
+
+        while pos < len {
+            if bytes[pos] == b'\\' {
+                // Try to match known inline commands
+                if let Some((kind, content, new_pos)) = Self::try_parse_inline_command(&input[pos..]) {
+                    let start = output.len() as u32;
+                    // Recursively strip inner commands
+                    let (inner_text, inner_anns) = Self::strip_inline_commands(&content);
+                    output.push_str(&inner_text);
+                    let end = output.len() as u32;
+                    // Adjust inner annotations to absolute offsets
+                    for mut ann in inner_anns {
+                        ann.start += start;
+                        ann.end += start;
+                        annotations.push(ann);
+                    }
+                    if start < end {
+                        annotations.push(TextAnnotation { start, end, kind });
+                    }
+                    pos += new_pos;
+                    continue;
+                }
+                // Not a recognized command, copy the backslash
+                output.push('\\');
+                pos += 1;
+            } else {
+                output.push(input[pos..].chars().next().unwrap());
+                pos += input[pos..].chars().next().unwrap().len_utf8();
+            }
+        }
+
+        (output, annotations)
+    }
+
+    /// Try to parse an inline formatting command at the start of `text`.
+    ///
+    /// Returns `Some((kind, braced_content, bytes_consumed))` on success.
+    fn try_parse_inline_command(text: &str) -> Option<(AnnotationKind, String, usize)> {
+        // Map command names to annotation kinds
+        let commands: &[(&str, AnnotationKind)] = &[
+            ("\\textbf{", AnnotationKind::Bold),
+            ("\\emph{", AnnotationKind::Italic),
+            ("\\textit{", AnnotationKind::Italic),
+            ("\\underline{", AnnotationKind::Underline),
+            ("\\texttt{", AnnotationKind::Code),
+        ];
+
+        for (prefix, kind) in commands {
+            if text.starts_with(prefix) {
+                let after = &text[prefix.len()..];
+                if let Some((content, consumed)) = Self::read_braced_content(after) {
+                    return Some((kind.clone(), content, prefix.len() + consumed));
+                }
+            }
+        }
+
+        // Handle \href{url}{text}
+        if text.starts_with("\\href{") {
+            let after_href = &text["\\href{".len()..];
+            if let Some((url, url_consumed)) = Self::read_braced_content(after_href) {
+                let after_url = &after_href[url_consumed..];
+                if after_url.starts_with('{') {
+                    let after_brace = &after_url[1..];
+                    if let Some((link_text, text_consumed)) = Self::read_braced_content(after_brace) {
+                        let total = "\\href{".len() + url_consumed + 1 + text_consumed;
+                        return Some((AnnotationKind::Link { url, title: None }, link_text, total));
+                    }
+                }
+            }
+        }
+
+        None
+    }
+
+    /// Read braced content starting after an opening `{` has already been consumed
+    /// by the prefix match. The input starts at the first character inside the braces.
+    ///
+    /// Returns `(content, bytes_consumed_including_closing_brace)`.
+    fn read_braced_content(input: &str) -> Option<(String, usize)> {
+        let mut depth: u32 = 1;
+        let mut content = String::new();
+        let mut pos = 0;
+        let bytes = input.as_bytes();
+
+        while pos < bytes.len() {
+            let ch = input[pos..].chars().next()?;
+            let ch_len = ch.len_utf8();
+            match ch {
+                '{' => {
+                    depth += 1;
+                    content.push(ch);
+                }
+                '}' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        return Some((content, pos + ch_len));
+                    }
+                    content.push(ch);
+                }
+                _ => content.push(ch),
+            }
+            pos += ch_len;
+        }
+        None
+    }
+
+    /// Extract the path from `\includegraphics[opts]{path}` or `\includegraphics{path}`.
+    fn extract_includegraphics_path(line: &str) -> Option<String> {
+        let prefix = "\\includegraphics";
+        let start = line.find(prefix)?;
+        let after = &line[start + prefix.len()..];
+        // Skip optional [...]
+        let rest = if after.starts_with('[') {
+            let bracket_end = after.find(']')?;
+            &after[bracket_end + 1..]
+        } else {
+            after
+        };
+        if !rest.starts_with('{') {
+            return None;
+        }
+        let inner = &rest[1..];
+        let end = inner.find('}')?;
+        let path = inner[..end].trim();
+        if path.is_empty() { None } else { Some(path.to_string()) }
+    }
+
+    /// Extract the text from `\caption{text}`.
+    fn extract_caption(content: &str) -> Option<String> {
+        let prefix = "\\caption{";
+        let start = content.find(prefix)?;
+        let after = &content[start + prefix.len()..];
+        Self::read_braced_content(after).map(|(text, _)| text)
+    }
+
     /// Build a `DocumentStructure` from LaTeX source via a lightweight second pass.
     fn build_document_structure(source: &str) -> DocumentStructure {
         let mut builder = DocumentStructureBuilder::new().source_format("latex");
@@ -97,6 +242,19 @@ impl LatexExtractor {
         } else {
             &*HEADING_LEVELS_NO_CHAPTERS
         };
+
+        // Extract metadata from preamble (\title, \author, \date)
+        let mut metadata_entries: Vec<(String, String)> = Vec::new();
+        for &cmd in &["title", "author", "date"] {
+            if let Some(value) = utilities::extract_braced(source, cmd) {
+                if !value.is_empty() {
+                    metadata_entries.push((cmd.to_string(), value));
+                }
+            }
+        }
+        if !metadata_entries.is_empty() {
+            builder.push_metadata_block(metadata_entries, None);
+        }
 
         let mut i = 0;
 
@@ -146,6 +304,8 @@ impl LatexExtractor {
                     }
                     "table" => {
                         let (env_content, new_i) = collect_environment(&lines, i, "table");
+                        // Extract caption from the table environment
+                        let caption = Self::extract_caption(&env_content);
                         // Extract tabular inside table environment
                         let end_tag = "\\end{tabular}";
                         if env_content.contains("\\begin{tabular}")
@@ -157,7 +317,27 @@ impl LatexExtractor {
                             let (inner_content, _) = collect_environment(&inner_lines, 0, "tabular");
                             let cells = Self::parse_tabular_cells(&inner_content);
                             if !cells.is_empty() {
-                                builder.push_table_simple(&cells, None);
+                                let idx = builder.push_table_simple(&cells, None);
+                                if let Some(cap) = caption {
+                                    let mut attrs = ahash::AHashMap::new();
+                                    attrs.insert("caption".to_string(), cap);
+                                    builder.set_attributes(idx, attrs);
+                                }
+                            }
+                        }
+                        i = new_i;
+                        continue;
+                    }
+                    "figure" => {
+                        let (env_content, new_i) = collect_environment(&lines, i, "figure");
+                        let caption = Self::extract_caption(&env_content);
+                        // Extract \includegraphics from figure content
+                        if let Some(path) = Self::extract_includegraphics_path(&env_content) {
+                            let idx = builder.push_image(Some(&path), None, None, None);
+                            if let Some(cap) = caption {
+                                let mut attrs = ahash::AHashMap::new();
+                                attrs.insert("caption".to_string(), cap);
+                                builder.set_attributes(idx, attrs);
                             }
                         }
                         i = new_i;
@@ -215,6 +395,15 @@ impl LatexExtractor {
             }
 
             if !handled && !trimmed.is_empty() && !trimmed.starts_with('%') {
+                // Handle standalone \includegraphics outside figure environments
+                if trimmed.contains("\\includegraphics") {
+                    if let Some(path) = Self::extract_includegraphics_path(trimmed) {
+                        builder.push_image(Some(&path), None, None, None);
+                        i += 1;
+                        continue;
+                    }
+                }
+
                 // Handle display math \[...\]
                 if trimmed.starts_with("\\[") {
                     let mut math_content = trimmed.to_string();
@@ -234,15 +423,40 @@ impl LatexExtractor {
                         builder.push_formula(formula, None);
                     }
                 } else if trimmed.contains('$') && !trimmed.starts_with('\\') {
-                    // Lines containing inline math - treat as paragraph
-                    builder.push_paragraph(trimmed, vec![], None, None);
+                    // Lines containing inline math - treat as paragraph with annotations
+                    let (text, annotations) = Self::strip_inline_commands(trimmed);
+                    builder.push_paragraph(&text, annotations, None, None);
                 } else if !trimmed.starts_with('\\')
                     || trimmed.starts_with("\\textbf")
                     || trimmed.starts_with("\\emph")
                     || trimmed.starts_with("\\textit")
+                    || trimmed.starts_with("\\underline")
+                    || trimmed.starts_with("\\texttt")
+                    || trimmed.starts_with("\\href")
                 {
-                    // Regular text content
-                    builder.push_paragraph(trimmed, vec![], None, None);
+                    // Extract footnotes before processing inline formatting.
+                    // Each \footnote{text} is emitted as a separate footnote node,
+                    // and the command is removed from the paragraph text.
+                    let mut line_text = trimmed.to_string();
+                    while let Some(fn_start) = line_text.find("\\footnote{") {
+                        let after = &line_text[fn_start + "\\footnote{".len()..];
+                        if let Some((fn_text, consumed)) = Self::read_braced_content(after) {
+                            let fn_stripped = utilities::clean_text(&fn_text);
+                            if !fn_stripped.is_empty() {
+                                builder.push_footnote(&fn_stripped, None);
+                            }
+                            let end = fn_start + "\\footnote{".len() + consumed;
+                            line_text = format!("{}{}", &line_text[..fn_start], &line_text[end..]);
+                        } else {
+                            break;
+                        }
+                    }
+
+                    let line_text = line_text.trim();
+                    if !line_text.is_empty() {
+                        let (text, annotations) = Self::strip_inline_commands(line_text);
+                        builder.push_paragraph(&text, annotations, None, None);
+                    }
                 }
             }
 
@@ -445,5 +659,170 @@ mod tests {
         let latex = r#"\begin{document}\section{Introduction}\end{document}"#;
         let (content, _, _) = LatexExtractor::extract_from_latex(latex);
         assert!(content.contains("Introduction"));
+    }
+
+    #[test]
+    fn test_strip_inline_bold() {
+        let (text, anns) = LatexExtractor::strip_inline_commands("hello \\textbf{world} end");
+        assert_eq!(text, "hello world end");
+        assert_eq!(anns.len(), 1);
+        assert!(matches!(anns[0].kind, AnnotationKind::Bold));
+        assert_eq!(&text[anns[0].start as usize..anns[0].end as usize], "world");
+    }
+
+    #[test]
+    fn test_strip_inline_italic_variants() {
+        let (text, anns) = LatexExtractor::strip_inline_commands("\\emph{a} and \\textit{b}");
+        assert_eq!(text, "a and b");
+        assert_eq!(anns.len(), 2);
+        assert!(anns.iter().all(|a| matches!(a.kind, AnnotationKind::Italic)));
+    }
+
+    #[test]
+    fn test_strip_inline_underline_code() {
+        let (text, anns) = LatexExtractor::strip_inline_commands("\\underline{u} \\texttt{c}");
+        assert_eq!(text, "u c");
+        assert!(anns.iter().any(|a| matches!(a.kind, AnnotationKind::Underline)));
+        assert!(anns.iter().any(|a| matches!(a.kind, AnnotationKind::Code)));
+    }
+
+    #[test]
+    fn test_strip_inline_nested() {
+        let (text, anns) = LatexExtractor::strip_inline_commands("\\textbf{\\emph{nested}}");
+        assert_eq!(text, "nested");
+        assert_eq!(anns.len(), 2);
+        // Both annotations should cover the same range
+        assert!(anns.iter().any(|a| matches!(a.kind, AnnotationKind::Bold)));
+        assert!(anns.iter().any(|a| matches!(a.kind, AnnotationKind::Italic)));
+    }
+
+    #[test]
+    fn test_strip_inline_href() {
+        let (text, anns) = LatexExtractor::strip_inline_commands("see \\href{https://example.com}{link text} here");
+        assert_eq!(text, "see link text here");
+        assert_eq!(anns.len(), 1);
+        match &anns[0].kind {
+            AnnotationKind::Link { url, .. } => assert_eq!(url, "https://example.com"),
+            _ => panic!("expected Link annotation"),
+        }
+        assert_eq!(&text[anns[0].start as usize..anns[0].end as usize], "link text");
+    }
+
+    #[test]
+    fn test_strip_no_commands() {
+        let (text, anns) = LatexExtractor::strip_inline_commands("plain text only");
+        assert_eq!(text, "plain text only");
+        assert!(anns.is_empty());
+    }
+
+    #[test]
+    fn test_extract_includegraphics_path() {
+        assert_eq!(
+            LatexExtractor::extract_includegraphics_path("\\includegraphics[width=5cm]{img/photo.png}"),
+            Some("img/photo.png".to_string())
+        );
+        assert_eq!(
+            LatexExtractor::extract_includegraphics_path("\\includegraphics{simple.jpg}"),
+            Some("simple.jpg".to_string())
+        );
+        assert_eq!(LatexExtractor::extract_includegraphics_path("no graphics here"), None);
+    }
+
+    #[test]
+    fn test_extract_caption() {
+        assert_eq!(
+            LatexExtractor::extract_caption("\\caption{A nice figure}"),
+            Some("A nice figure".to_string())
+        );
+        assert_eq!(LatexExtractor::extract_caption("no caption"), None);
+    }
+
+    #[test]
+    fn test_read_braced_content_nested() {
+        let (content, consumed) = LatexExtractor::read_braced_content("outer {inner} end}rest").unwrap();
+        assert_eq!(content, "outer {inner} end");
+        assert_eq!(&"outer {inner} end}rest"[consumed..], "rest");
+    }
+
+    #[test]
+    fn test_build_document_structure_with_metadata() {
+        let latex = r"\title{Test}
+\author{Author}
+\date{2024}
+\begin{document}
+Hello.
+\end{document}";
+        let doc = LatexExtractor::build_document_structure(latex);
+        assert!(doc.validate().is_ok());
+        let meta = doc.nodes.iter().find(|n| {
+            matches!(&n.content, NodeContent::MetadataBlock { entries } if entries.iter().any(|(k, _)| k == "title"))
+        });
+        assert!(meta.is_some(), "should have metadata block");
+    }
+
+    #[test]
+    fn test_build_document_structure_with_footnote() {
+        let latex = r"\begin{document}
+Text with\footnote{A note} more.
+\end{document}";
+        let doc = LatexExtractor::build_document_structure(latex);
+        assert!(doc.validate().is_ok());
+        let has_footnote = doc
+            .nodes
+            .iter()
+            .any(|n| matches!(&n.content, NodeContent::Footnote { text } if text.contains("A note")));
+        assert!(has_footnote);
+    }
+
+    #[test]
+    fn test_build_document_structure_with_figure() {
+        let latex = r"\begin{document}
+\begin{figure}
+\includegraphics{img.png}
+\caption{My caption}
+\end{figure}
+\end{document}";
+        let doc = LatexExtractor::build_document_structure(latex);
+        assert!(doc.validate().is_ok());
+        let img = doc
+            .nodes
+            .iter()
+            .find(|n| matches!(&n.content, NodeContent::Image { .. }));
+        assert!(img.is_some(), "should have image node");
+        let img = img.unwrap();
+        match &img.content {
+            NodeContent::Image { description, .. } => {
+                assert_eq!(description.as_deref(), Some("img.png"));
+            }
+            _ => unreachable!(),
+        }
+        assert_eq!(
+            img.attributes
+                .as_ref()
+                .and_then(|a| a.get("caption"))
+                .map(|s| s.as_str()),
+            Some("My caption")
+        );
+    }
+
+    #[test]
+    fn test_build_document_structure_inline_annotations() {
+        let latex = r"\begin{document}
+This is \textbf{bold} and \emph{italic}.
+\end{document}";
+        let doc = LatexExtractor::build_document_structure(latex);
+        assert!(doc.validate().is_ok());
+        let para = doc
+            .nodes
+            .iter()
+            .find(|n| matches!(&n.content, NodeContent::Paragraph { text } if text.contains("bold")))
+            .expect("should have paragraph");
+        assert!(!para.annotations.is_empty(), "should have annotations");
+        assert!(para.annotations.iter().any(|a| matches!(a.kind, AnnotationKind::Bold)));
+        assert!(
+            para.annotations
+                .iter()
+                .any(|a| matches!(a.kind, AnnotationKind::Italic))
+        );
     }
 }

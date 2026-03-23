@@ -68,13 +68,31 @@ fn field_value_to_string(value: &dbase::FieldValue) -> String {
     }
 }
 
-/// Parsed dBASE data: field names and rows of string values.
+/// Parsed dBASE data: field names, field types, and rows of string values.
 struct DbfParsed {
     field_names: Vec<String>,
+    field_types: Vec<String>,
     rows: Vec<Vec<String>>,
+    record_count: usize,
 }
 
-/// Parse a dBASE file once, returning field names and row data.
+/// Map a dbase FieldType to a descriptive string.
+fn field_type_name(value: &dbase::FieldValue) -> &'static str {
+    match value {
+        dbase::FieldValue::Character(_) => "Character",
+        dbase::FieldValue::Numeric(_) => "Numeric",
+        dbase::FieldValue::Logical(_) => "Logical",
+        dbase::FieldValue::Date(_) => "Date",
+        dbase::FieldValue::Float(_) => "Float",
+        dbase::FieldValue::Integer(_) => "Integer",
+        dbase::FieldValue::Currency(_) => "Currency",
+        dbase::FieldValue::Double(_) => "Double",
+        dbase::FieldValue::Memo(_) => "Memo",
+        _ => "Unknown",
+    }
+}
+
+/// Parse a dBASE file once, returning field names, types, and row data.
 fn parse_dbf(content: &[u8]) -> Result<DbfParsed> {
     let cursor = Cursor::new(content);
     let mut reader = dbase::Reader::new(cursor)
@@ -87,12 +105,31 @@ fn parse_dbf(content: &[u8]) -> Result<DbfParsed> {
         .collect::<std::result::Result<Vec<_>, _>>()
         .map_err(|e| crate::KreuzbergError::parsing(format!("Failed to read dBASE records: {e}")))?;
 
-    let rows: Vec<Vec<String>> = records
-        .into_iter()
-        .map(|record| record.into_iter().map(|(_, v)| field_value_to_string(&v)).collect())
-        .collect();
+    let record_count = records.len();
 
-    Ok(DbfParsed { field_names, rows })
+    // Detect field types from the first record and build rows simultaneously
+    let mut field_types: Vec<String> = vec!["Unknown".to_string(); field_names.len()];
+    let mut rows: Vec<Vec<String>> = Vec::with_capacity(records.len());
+    let mut first_row = true;
+
+    for record in records {
+        let mut row = Vec::with_capacity(field_names.len());
+        for (col_idx, (_, v)) in record.into_iter().enumerate() {
+            if first_row && col_idx < field_types.len() {
+                field_types[col_idx] = field_type_name(&v).to_string();
+            }
+            row.push(field_value_to_string(&v));
+        }
+        rows.push(row);
+        first_row = false;
+    }
+
+    Ok(DbfParsed {
+        field_names,
+        field_types,
+        rows,
+        record_count,
+    })
 }
 
 fn build_dbf_document_structure(parsed: &DbfParsed) -> crate::types::document_structure::DocumentStructure {
@@ -163,10 +200,31 @@ impl DocumentExtractor for DbfExtractor {
             None
         };
 
+        let mut additional = ahash::AHashMap::new();
+        additional.insert(
+            std::borrow::Cow::Borrowed("record_count"),
+            serde_json::json!(parsed.record_count),
+        );
+        additional.insert(
+            std::borrow::Cow::Borrowed("field_count"),
+            serde_json::json!(parsed.field_names.len()),
+        );
+        // Build field info with name and type
+        let field_info: Vec<serde_json::Value> = parsed
+            .field_names
+            .iter()
+            .zip(parsed.field_types.iter())
+            .map(|(name, ftype)| serde_json::json!({"name": name, "type": ftype}))
+            .collect();
+        additional.insert(std::borrow::Cow::Borrowed("fields"), serde_json::json!(field_info));
+
         Ok(ExtractionResult {
             content: text,
             mime_type: mime_type.to_string().into(),
-            metadata: Metadata::default(),
+            metadata: Metadata {
+                additional,
+                ..Default::default()
+            },
             pages: None,
             tables: vec![],
             detected_languages: None,

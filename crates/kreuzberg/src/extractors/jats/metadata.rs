@@ -18,4 +18,12 @@ pub(super) struct JatsMetadataExtracted {
     pub(super) article_type: Option<String>,
     pub(super) abstract_text: Option<String>,
     pub(super) corresponding_author: Option<String>,
+    /// History dates: (date-type, date-string) pairs, e.g. ("received", "2024-01-15")
+    pub(super) history_dates: Vec<(String, String)>,
+    /// Copyright statement from `<permissions>/<copyright-statement>`
+    pub(super) copyright_statement: Option<String>,
+    /// License text from `<permissions>/<license>`
+    pub(super) license: Option<String>,
+    /// Contributor roles: (name, role) pairs
+    pub(super) contributor_roles: Vec<(String, String)>,
 }

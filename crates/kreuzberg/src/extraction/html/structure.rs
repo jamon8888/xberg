@@ -5,7 +5,7 @@
 //! tag-level parser that handles the common structural elements without pulling
 //! in a full DOM library.
 
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 use crate::types::builder::{self, DocumentStructureBuilder};
 use crate::types::document_structure::{DocumentStructure, NodeIndex, TextAnnotation};
@@ -50,12 +50,24 @@ struct PreBlock {
     text: String,
 }
 
+/// Metadata about a single cell being accumulated.
+#[derive(Debug)]
+struct CellMeta {
+    text: String,
+    col_span: u32,
+    row_span: u32,
+    is_header: bool,
+}
+
 /// Represents a `<table>` being accumulated.
 #[derive(Debug)]
 struct TableAccumulator {
-    rows: Vec<Vec<String>>,
-    current_row: Vec<String>,
+    rows: Vec<Vec<CellMeta>>,
+    current_row: Vec<CellMeta>,
     current_cell: String,
+    current_col_span: u32,
+    current_row_span: u32,
+    current_is_header: bool,
     in_row: bool,
     in_cell: bool,
 }
@@ -66,6 +78,9 @@ impl TableAccumulator {
             rows: Vec::new(),
             current_row: Vec::new(),
             current_cell: String::new(),
+            current_col_span: 1,
+            current_row_span: 1,
+            current_is_header: false,
             in_row: false,
             in_cell: false,
         }
@@ -83,15 +98,26 @@ impl TableAccumulator {
         }
     }
 
-    fn open_cell(&mut self) {
+    fn open_cell(&mut self, col_span: u32, row_span: u32, is_header: bool) {
         self.current_cell = String::new();
+        self.current_col_span = col_span;
+        self.current_row_span = row_span;
+        self.current_is_header = is_header;
         self.in_cell = true;
     }
 
     fn close_cell(&mut self) {
         if self.in_cell {
-            self.current_row.push(std::mem::take(&mut self.current_cell));
+            self.current_row.push(CellMeta {
+                text: std::mem::take(&mut self.current_cell),
+                col_span: self.current_col_span,
+                row_span: self.current_row_span,
+                is_header: self.current_is_header,
+            });
             self.in_cell = false;
+            self.current_col_span = 1;
+            self.current_row_span = 1;
+            self.current_is_header = false;
         }
     }
 
@@ -106,6 +132,23 @@ impl TableAccumulator {
 #[derive(Debug)]
 struct ListContext {
     node_idx: NodeIndex,
+}
+
+/// Definition list context.
+#[derive(Debug)]
+struct DefListContext {
+    list_idx: NodeIndex,
+    current_term: Option<String>,
+}
+
+/// Figure context accumulating image + caption.
+#[derive(Debug)]
+struct FigureContext {
+    img_alt: Option<String>,
+    img_width: Option<String>,
+    img_height: Option<String>,
+    caption: Option<String>,
+    in_caption: bool,
 }
 
 /// Main walker state.
@@ -126,6 +169,14 @@ struct HtmlWalker<'a, 'b> {
     list_stack: Vec<ListContext>,
     in_list_item: bool,
     list_item_text: String,
+    def_list: Option<DefListContext>,
+    in_dt: bool,
+    in_dd: bool,
+    dt_text: String,
+    dd_text: String,
+    figure: Option<FigureContext>,
+    in_head: bool,
+    meta_entries: Vec<(String, String)>,
 
     // CSS class tracking for the last opened element
     pending_classes: Option<String>,
@@ -146,6 +197,14 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
             list_stack: Vec::new(),
             in_list_item: false,
             list_item_text: String::new(),
+            def_list: None,
+            in_dt: false,
+            in_dd: false,
+            dt_text: String::new(),
+            dd_text: String::new(),
+            figure: None,
+            in_head: false,
+            meta_entries: Vec::new(),
             pending_classes: None,
         }
     }
@@ -200,6 +259,24 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
         if self.in_list_item {
             self.list_item_text.push_str(&decoded);
             return;
+        }
+
+        if self.in_dt {
+            self.dt_text.push_str(&decoded);
+            return;
+        }
+
+        if self.in_dd {
+            self.dd_text.push_str(&decoded);
+            return;
+        }
+
+        if let Some(ref mut fig) = self.figure {
+            if fig.in_caption {
+                let cap = fig.caption.get_or_insert_with(String::new);
+                cap.push_str(&decoded);
+                return;
+            }
         }
 
         self.text_buf.push_str(&decoded);
@@ -301,7 +378,13 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
             }
             "blockquote" => {
                 self.flush_paragraph();
-                self.builder.push_quote(None);
+                let idx = self.builder.push_quote(None);
+                // Store cite attribute if present
+                if let Some(cite) = extract_attr(attrs_str, "cite") {
+                    let mut attrs = AHashMap::new();
+                    attrs.insert("cite".to_string(), cite.to_string());
+                    self.builder.set_attributes(idx, attrs);
+                }
             }
             "ul" => {
                 self.flush_paragraph();
@@ -311,6 +394,12 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
             "ol" => {
                 self.flush_paragraph();
                 let idx = self.builder.push_list(true, None);
+                // Store start attribute if present
+                if let Some(start_val) = extract_attr(attrs_str, "start") {
+                    let mut attrs = AHashMap::new();
+                    attrs.insert("start".to_string(), start_val.to_string());
+                    self.builder.set_attributes(idx, attrs);
+                }
                 self.list_stack.push(ListContext { node_idx: idx });
             }
             "li" => {
@@ -331,13 +420,95 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
             }
             "th" | "td" => {
                 if let Some(ref mut table) = self.table {
-                    table.open_cell();
+                    let col_span = extract_attr(attrs_str, "colspan")
+                        .and_then(|v| v.parse::<u32>().ok())
+                        .unwrap_or(1);
+                    let row_span = extract_attr(attrs_str, "rowspan")
+                        .and_then(|v| v.parse::<u32>().ok())
+                        .unwrap_or(1);
+                    table.open_cell(col_span, row_span, tag == "th");
                 }
             }
             "img" => {
                 let alt = extract_attr(attrs_str, "alt");
+                let width = extract_attr(attrs_str, "width").map(|s| s.to_string());
+                let height = extract_attr(attrs_str, "height").map(|s| s.to_string());
+
+                // If inside a <figure>, accumulate rather than emitting immediately
+                if let Some(ref mut fig) = self.figure {
+                    fig.img_alt = alt.map(|s| s.to_string());
+                    fig.img_width = width;
+                    fig.img_height = height;
+                } else {
+                    self.flush_paragraph();
+                    let idx = self.builder.push_image(alt, None, None, None);
+                    if width.is_some() || height.is_some() {
+                        let mut attrs = AHashMap::new();
+                        if let Some(w) = width {
+                            attrs.insert("width".to_string(), w);
+                        }
+                        if let Some(h) = height {
+                            attrs.insert("height".to_string(), h);
+                        }
+                        self.builder.set_attributes(idx, attrs);
+                    }
+                }
+            }
+            "figure" => {
                 self.flush_paragraph();
-                self.builder.push_image(alt, None, None, None);
+                self.figure = Some(FigureContext {
+                    img_alt: None,
+                    img_width: None,
+                    img_height: None,
+                    caption: None,
+                    in_caption: false,
+                });
+            }
+            "figcaption" => {
+                if let Some(ref mut fig) = self.figure {
+                    fig.in_caption = true;
+                    fig.caption = Some(String::new());
+                }
+            }
+            "dl" => {
+                self.flush_paragraph();
+                let idx = self.builder.push_definition_list(None);
+                self.def_list = Some(DefListContext {
+                    list_idx: idx,
+                    current_term: None,
+                });
+            }
+            "dt" => {
+                // Flush any previous dd
+                self.flush_definition_item();
+                self.in_dt = true;
+                self.dt_text.clear();
+            }
+            "dd" => {
+                self.in_dt = false;
+                // Store the term text we just collected
+                if let Some(ref mut dl) = self.def_list {
+                    let term = normalize_whitespace(&self.dt_text);
+                    if !term.is_empty() {
+                        dl.current_term = Some(term);
+                    }
+                }
+                self.dt_text.clear();
+                self.in_dd = true;
+                self.dd_text.clear();
+            }
+            "head" => {
+                self.in_head = true;
+                self.meta_entries.clear();
+            }
+            "meta" => {
+                if self.in_head {
+                    let name = extract_attr(attrs_str, "name");
+                    let content_val = extract_attr(attrs_str, "content");
+                    if let (Some(n), Some(c)) = (name, content_val) {
+                        self.meta_entries.push((n.to_string(), c.to_string()));
+                    }
+                }
             }
             "script" | "style" => {
                 // Skip content — find closing tag
@@ -356,9 +527,8 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
                 // so we skip it.
             }
             // Structural containers we pass through
-            "div" | "section" | "article" | "main" | "aside" | "header" | "footer" | "nav" | "figure"
-            | "figcaption" | "details" | "summary" | "span" | "html" | "head" | "body" | "title" | "meta" | "link"
-            | "dd" | "dt" | "dl" => {}
+            "div" | "section" | "article" | "main" | "aside" | "header" | "footer" | "nav" | "details" | "summary"
+            | "span" | "html" | "body" | "title" | "link" => {}
             _ => {}
         }
     }
@@ -371,7 +541,7 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
                 if !text.is_empty() {
                     let idx = self.builder.push_heading(level, &text, None, None);
                     if let Some(classes) = self.pending_classes.take() {
-                        let mut attrs = HashMap::new();
+                        let mut attrs = AHashMap::new();
                         attrs.insert("class".to_string(), classes);
                         self.builder.set_attributes(idx, attrs);
                     }
@@ -427,7 +597,7 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
                     table.close_cell();
                     table.close_row();
                     if !table.rows.is_empty() {
-                        self.builder.push_table_simple(&table.rows, None);
+                        self.emit_table_with_spans(&table.rows);
                     }
                 }
             }
@@ -442,8 +612,102 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
                     table.close_cell();
                 }
             }
+            "dl" => {
+                self.flush_definition_item();
+                self.def_list = None;
+            }
+            "dt" => {
+                self.in_dt = false;
+            }
+            "dd" => {
+                self.in_dd = false;
+                self.flush_definition_item();
+            }
+            "figure" => {
+                if let Some(fig) = self.figure.take() {
+                    // Use caption as description if present, otherwise use alt text
+                    let desc = fig
+                        .caption
+                        .as_deref()
+                        .map(|s| s.trim())
+                        .filter(|s| !s.is_empty())
+                        .or(fig.img_alt.as_deref());
+                    let idx = self.builder.push_image(desc, None, None, None);
+                    let has_dims = fig.img_width.is_some() || fig.img_height.is_some();
+                    if has_dims {
+                        let mut attrs = AHashMap::new();
+                        if let Some(w) = fig.img_width {
+                            attrs.insert("width".to_string(), w);
+                        }
+                        if let Some(h) = fig.img_height {
+                            attrs.insert("height".to_string(), h);
+                        }
+                        self.builder.set_attributes(idx, attrs);
+                    }
+                }
+            }
+            "figcaption" => {
+                if let Some(ref mut fig) = self.figure {
+                    fig.in_caption = false;
+                }
+            }
+            "head" => {
+                self.in_head = false;
+                if !self.meta_entries.is_empty() {
+                    let entries = std::mem::take(&mut self.meta_entries);
+                    self.builder.push_metadata_block(entries, None);
+                }
+            }
             _ => {}
         }
+    }
+
+    /// Build a `TableGrid` from accumulated rows with colspan/rowspan support.
+    fn emit_table_with_spans(&mut self, rows: &[Vec<CellMeta>]) {
+        use crate::types::document_structure::{GridCell, TableGrid};
+
+        let num_rows = rows.len() as u32;
+        let num_cols = rows
+            .iter()
+            .map(|r| r.iter().map(|c| c.col_span).sum::<u32>())
+            .max()
+            .unwrap_or(0);
+
+        let has_spans = rows.iter().any(|r| r.iter().any(|c| c.col_span > 1 || c.row_span > 1));
+
+        if !has_spans {
+            // Fast path: no spans, use simple grid
+            let simple: Vec<Vec<String>> = rows
+                .iter()
+                .map(|r| r.iter().map(|c| c.text.clone()).collect())
+                .collect();
+            self.builder.push_table_simple(&simple, None);
+            return;
+        }
+
+        let mut grid_cells = Vec::new();
+        for (row_idx, row) in rows.iter().enumerate() {
+            let mut col_offset: u32 = 0;
+            for cell in row {
+                grid_cells.push(GridCell {
+                    content: cell.text.clone(),
+                    row: row_idx as u32,
+                    col: col_offset,
+                    row_span: cell.row_span,
+                    col_span: cell.col_span,
+                    is_header: cell.is_header,
+                    bbox: None,
+                });
+                col_offset += cell.col_span;
+            }
+        }
+
+        let grid = TableGrid {
+            rows: num_rows,
+            cols: num_cols,
+            cells: grid_cells,
+        };
+        self.builder.push_table(grid, None, None);
     }
 
     // -----------------------------------------------------------------------
@@ -535,7 +799,7 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
             let annotations = std::mem::take(&mut self.annotations);
             let idx = self.builder.push_paragraph(&text, annotations, None, None);
             if let Some(classes) = self.pending_classes.take() {
-                let mut attrs = HashMap::new();
+                let mut attrs = AHashMap::new();
                 attrs.insert("class".to_string(), classes);
                 self.builder.set_attributes(idx, attrs);
             }
@@ -558,6 +822,31 @@ impl<'a, 'b> HtmlWalker<'a, 'b> {
         }
         self.list_item_text.clear();
         // Annotations inside list items are not tracked yet (would need per-item annotations)
+    }
+
+    fn flush_definition_item(&mut self) {
+        // If we have a current dd accumulated, emit the definition item
+        if self.in_dd {
+            self.in_dd = false;
+            if let Some(ref mut dl) = self.def_list {
+                let definition = normalize_whitespace(&self.dd_text);
+                if let Some(term) = dl.current_term.take() {
+                    self.builder.push_definition_item(dl.list_idx, &term, &definition, None);
+                }
+            }
+            self.dd_text.clear();
+        }
+        // If we're still in dt, store the text for later
+        if self.in_dt {
+            self.in_dt = false;
+            if let Some(ref mut dl) = self.def_list {
+                let term = normalize_whitespace(&self.dt_text);
+                if !term.is_empty() {
+                    dl.current_term = Some(term);
+                }
+            }
+            self.dt_text.clear();
+        }
     }
 }
 

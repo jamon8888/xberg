@@ -3,13 +3,13 @@
 use super::state::{ExtractionState, pop_block};
 use crate::extractors::djot_format::attributes::parse_jotdown_attributes;
 use crate::types::{BlockType, FormattedBlock, InlineElement, InlineType};
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 /// Handle footnote reference event.
 pub(super) fn handle_footnote_reference(state: &mut ExtractionState, label: &str) {
     state.flush_text();
 
-    let mut meta: HashMap<String, String> = HashMap::new();
+    let mut meta: AHashMap<String, String> = AHashMap::new();
     meta.insert("label".to_string(), label.to_string());
 
     state.current_inline_elements.push(InlineElement {

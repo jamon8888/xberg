@@ -54,8 +54,9 @@ impl Default for EpubExtractor {
 impl EpubExtractor {
     /// Build a `DocumentStructure` from the EPUB spine.
     ///
-    /// Each spine item becomes a heading (level 1) section, with the chapter text
-    /// split into paragraphs underneath.
+    /// Uses the full HTML structure walker for each chapter's XHTML, preserving
+    /// inline formatting annotations (bold, italic, links, etc.) and proper
+    /// element types (lists, tables, code blocks).
     ///
     /// Accepts the already-parsed `spine_hrefs` from content extraction to avoid
     /// redundantly re-reading and re-parsing the OPF file from the ZIP archive.
@@ -75,18 +76,35 @@ impl EpubExtractor {
                 Err(_) => continue,
             };
 
-            // Try to extract the title from the first heading in the XHTML
-            let chapter_title =
-                extract_title_from_xhtml(&xhtml_content).unwrap_or_else(|| format!("Chapter {}", index + 1));
+            // Use the HTML structure walker for rich extraction (inline formatting,
+            // links, lists, etc.) from each chapter's XHTML content.
+            let sanitized = content::strip_doctype_for_title(&xhtml_content);
+            let chapter_structure = crate::extraction::html::structure::build_document_structure(&sanitized);
 
-            builder.push_heading(1, &chapter_title, None, None);
+            if chapter_structure.nodes.is_empty() {
+                // Fallback: extract plain text if structure walker produces nothing
+                let chapter_title =
+                    extract_title_from_xhtml(&xhtml_content).unwrap_or_else(|| format!("Chapter {}", index + 1));
+                builder.push_heading(1, &chapter_title, None, None);
 
-            // Extract plain text and split into paragraphs
-            let text = extract_text_from_xhtml(&xhtml_content);
-            for paragraph in text.split("\n\n") {
-                let trimmed = paragraph.trim();
-                if !trimmed.is_empty() {
-                    builder.push_paragraph(trimmed, vec![], None, None);
+                let text = extract_text_from_xhtml(&xhtml_content);
+                for paragraph in text.split("\n\n") {
+                    let trimmed = paragraph.trim();
+                    if !trimmed.is_empty() {
+                        builder.push_paragraph(trimmed, vec![], None, None);
+                    }
+                }
+            } else {
+                // Merge the chapter's nodes into our combined structure.
+                // Use push_raw with the node's content layer to preserve structure.
+                for node in &chapter_structure.nodes {
+                    builder.push_raw(
+                        node.content.clone(),
+                        None,
+                        None,
+                        node.content_layer,
+                        node.annotations.clone(),
+                    );
                 }
             }
         }
@@ -289,5 +307,49 @@ mod tests {
         assert!(supported.contains(&"application/epub+zip"));
         assert!(supported.contains(&"application/x-epub+zip"));
         assert!(supported.contains(&"application/vnd.epub+zip"));
+    }
+
+    #[test]
+    fn test_epub_full_dublin_core_metadata() {
+        let opf = r#"<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Test Book</dc:title>
+    <dc:creator>Test Author</dc:creator>
+    <dc:language>en</dc:language>
+    <dc:coverage>Worldwide</dc:coverage>
+    <dc:format>application/epub+zip</dc:format>
+    <dc:relation>http://example.com/related</dc:relation>
+    <dc:source>Original Manuscript</dc:source>
+    <dc:type>Text</dc:type>
+    <dc:publisher>Test Publisher</dc:publisher>
+    <dc:description>A test book</dc:description>
+    <dc:rights>CC BY 4.0</dc:rights>
+    <meta name="cover" content="cover-img"/>
+  </metadata>
+  <manifest>
+    <item id="cover-img" href="images/cover.jpg" media-type="image/jpeg"/>
+    <item id="ch1" href="ch1.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="ch1"/>
+  </spine>
+</package>"#;
+
+        let (epub_meta, additional) = metadata::extract_metadata(opf).expect("Metadata parse failed");
+        assert_eq!(epub_meta.title, Some("Test Book".to_string()));
+        assert_eq!(epub_meta.coverage, Some("Worldwide".to_string()));
+        assert_eq!(epub_meta.format, Some("application/epub+zip".to_string()));
+        assert_eq!(epub_meta.relation, Some("http://example.com/related".to_string()));
+        assert_eq!(epub_meta.source, Some("Original Manuscript".to_string()));
+        assert_eq!(epub_meta.dc_type, Some("Text".to_string()));
+        assert_eq!(epub_meta.cover_image_href, Some("images/cover.jpg".to_string()));
+
+        assert!(additional.contains_key("coverage"));
+        assert!(additional.contains_key("format"));
+        assert!(additional.contains_key("relation"));
+        assert!(additional.contains_key("source"));
+        assert!(additional.contains_key("type"));
+        assert!(additional.contains_key("cover_image"));
     }
 }

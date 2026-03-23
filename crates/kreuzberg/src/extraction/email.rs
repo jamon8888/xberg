@@ -186,6 +186,38 @@ pub fn parse_eml_content(data: &[u8]) -> Result<EmailExtractionResult> {
 
     let message_id = message.message_id().map(|id| id.to_string());
 
+    // Extract threading and additional headers
+    let reply_to: Vec<String> = message
+        .reply_to()
+        .map(|addrs| {
+            addrs
+                .iter()
+                .filter_map(|addr| {
+                    let email = addr.address()?;
+                    Some(match addr.name() {
+                        Some(name) if !name.is_empty() => format!("\"{}\" <{}>", name, email),
+                        _ => email.to_string(),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let in_reply_to: Vec<String> = message
+        .in_reply_to()
+        .as_text_list()
+        .map(|list| list.iter().map(|s| s.to_string()).collect())
+        .unwrap_or_default();
+
+    let references: Vec<String> = message
+        .references()
+        .as_text_list()
+        .map(|list| list.iter().map(|s| s.to_string()).collect())
+        .unwrap_or_default();
+
+    // Extract additional raw headers from email bytes
+    let raw_headers = extract_raw_headers(&data);
+
     // Iterate over all body parts to capture content from multipart messages.
     // Also recurse into nested message/rfc822 parts (multipart/digest emails).
     //
@@ -265,7 +297,7 @@ pub fn parse_eml_content(data: &[u8]) -> Result<EmailExtractionResult> {
         });
     }
 
-    let metadata = build_metadata(
+    let mut metadata = build_metadata(
         &subject,
         &from_email,
         &to_emails,
@@ -275,6 +307,36 @@ pub fn parse_eml_content(data: &[u8]) -> Result<EmailExtractionResult> {
         &message_id,
         &attachments,
     );
+
+    // Add threading headers to metadata
+    if !reply_to.is_empty() {
+        metadata.insert("reply_to".to_string(), reply_to.join(", "));
+    }
+    if !in_reply_to.is_empty() {
+        metadata.insert("in_reply_to".to_string(), in_reply_to.join(", "));
+    }
+    if !references.is_empty() {
+        metadata.insert("references".to_string(), references.join(", "));
+    }
+
+    // Add raw headers (Content-Type, MIME-Version, X-Mailer, List-Id, List-Unsubscribe)
+    for (key, value) in &raw_headers {
+        metadata.insert(key.clone(), value.clone());
+    }
+
+    // Add structured attachment metadata (filename, size, mime_type per attachment)
+    if !attachments.is_empty() {
+        let attachment_details: Vec<String> = attachments
+            .iter()
+            .map(|att| {
+                let name = att.filename.as_deref().or(att.name.as_deref()).unwrap_or("unnamed");
+                let mime = att.mime_type.as_deref().unwrap_or("application/octet-stream");
+                let size = att.size.unwrap_or(0);
+                format!("{}|{}|{}", name, mime, size)
+            })
+            .collect();
+        metadata.insert("attachment_details".to_string(), attachment_details.join("; "));
+    }
 
     Ok(EmailExtractionResult {
         subject,
@@ -851,6 +913,78 @@ fn extract_raw_date_header(data: &[u8]) -> Option<String> {
     }
 
     date_value.filter(|s| !s.is_empty())
+}
+
+/// Extract additional raw headers from email bytes.
+///
+/// Scans for Content-Type, MIME-Version, X-Mailer, User-Agent, List-Id,
+/// and List-Unsubscribe headers in the header section.
+fn extract_raw_headers(data: &[u8]) -> HashMap<String, String> {
+    let mut headers = HashMap::new();
+    let text = match std::str::from_utf8(data) {
+        Ok(s) => s,
+        Err(_) => return headers,
+    };
+
+    // Find the end of headers (blank line)
+    let header_end = text
+        .find("\r\n\r\n")
+        .or_else(|| text.find("\n\n"))
+        .unwrap_or(text.len().min(16384)); // Cap scan to 16KB
+
+    let header_section = &text[..header_end];
+
+    // Headers to extract (case-insensitive key, metadata key)
+    let target_headers: &[(&str, &str)] = &[
+        ("content-type:", "content_type"),
+        ("mime-version:", "mime_version"),
+        ("x-mailer:", "x_mailer"),
+        ("user-agent:", "user_agent"),
+        ("list-id:", "list_id"),
+        ("list-unsubscribe:", "list_unsubscribe"),
+    ];
+
+    let mut current_key: Option<&str> = None;
+    let mut current_value = String::new();
+
+    for line in header_section.lines() {
+        if line.starts_with(' ') || line.starts_with('\t') {
+            // Continuation line (folded header)
+            if current_key.is_some() {
+                current_value.push(' ');
+                current_value.push_str(line.trim());
+            }
+            continue;
+        }
+
+        // Flush previous header if matched
+        if let Some(key) = current_key {
+            if !current_value.is_empty() {
+                headers.insert(key.to_string(), current_value.clone());
+            }
+            current_key = None;
+            current_value.clear();
+        }
+
+        // Check if current line matches any target header
+        let line_lower = line.to_lowercase();
+        for &(prefix, meta_key) in target_headers {
+            if line_lower.starts_with(prefix) {
+                current_key = Some(meta_key);
+                current_value = line[prefix.len()..].trim().to_string();
+                break;
+            }
+        }
+    }
+
+    // Flush last header
+    if let Some(key) = current_key {
+        if !current_value.is_empty() {
+            headers.insert(key.to_string(), current_value);
+        }
+    }
+
+    headers
 }
 
 /// Extract email content from either .eml or .msg format
@@ -1537,5 +1671,113 @@ mod tests {
         let result_default = parse_msg_content(data, None).unwrap();
         assert_eq!(result_invalid.subject, result_default.subject);
         assert_eq!(result_invalid.cleaned_text, result_default.cleaned_text);
+    }
+
+    #[test]
+    fn test_eml_threading_headers() {
+        let eml = b"From: alice@example.com\r\n\
+            To: bob@example.com\r\n\
+            Subject: Re: Thread test\r\n\
+            Message-ID: <msg2@example.com>\r\n\
+            In-Reply-To: <msg1@example.com>\r\n\
+            References: <msg0@example.com> <msg1@example.com>\r\n\
+            Reply-To: noreply@example.com\r\n\
+            \r\n\
+            Reply body";
+
+        let result = parse_eml_content(eml).unwrap();
+        assert!(
+            result.metadata.contains_key("in_reply_to"),
+            "Should extract In-Reply-To header"
+        );
+        assert!(
+            result.metadata.contains_key("references"),
+            "Should extract References header"
+        );
+        assert!(
+            result.metadata.contains_key("reply_to"),
+            "Should extract Reply-To header"
+        );
+        assert!(result.metadata.get("reply_to").unwrap().contains("noreply@example.com"));
+    }
+
+    #[test]
+    fn test_eml_raw_headers() {
+        let eml = b"From: alice@example.com\r\n\
+            To: bob@example.com\r\n\
+            Subject: Header test\r\n\
+            Content-Type: text/plain; charset=utf-8\r\n\
+            MIME-Version: 1.0\r\n\
+            X-Mailer: TestMailer/1.0\r\n\
+            List-Id: <test.example.com>\r\n\
+            List-Unsubscribe: <mailto:unsub@example.com>\r\n\
+            \r\n\
+            Body content";
+
+        let result = parse_eml_content(eml).unwrap();
+        assert!(
+            result.metadata.contains_key("content_type"),
+            "Should extract Content-Type"
+        );
+        assert!(result.metadata.get("content_type").unwrap().contains("text/plain"));
+        assert!(
+            result.metadata.contains_key("mime_version"),
+            "Should extract MIME-Version"
+        );
+        assert_eq!(result.metadata.get("mime_version").unwrap(), "1.0");
+        assert!(result.metadata.contains_key("x_mailer"), "Should extract X-Mailer");
+        assert!(result.metadata.get("x_mailer").unwrap().contains("TestMailer"));
+        assert!(result.metadata.contains_key("list_id"), "Should extract List-Id");
+        assert!(
+            result.metadata.contains_key("list_unsubscribe"),
+            "Should extract List-Unsubscribe"
+        );
+    }
+
+    #[test]
+    fn test_eml_attachment_details_metadata() {
+        let eml = b"From: alice@example.com\r\n\
+            To: bob@example.com\r\n\
+            Subject: With attachment\r\n\
+            MIME-Version: 1.0\r\n\
+            Content-Type: multipart/mixed; boundary=\"BOUNDARY\"\r\n\
+            \r\n\
+            --BOUNDARY\r\n\
+            Content-Type: text/plain\r\n\
+            \r\n\
+            Body text\r\n\
+            --BOUNDARY\r\n\
+            Content-Type: application/pdf\r\n\
+            Content-Disposition: attachment; filename=\"report.pdf\"\r\n\
+            \r\n\
+            FAKEPDFDATA\r\n\
+            --BOUNDARY--";
+
+        let result = parse_eml_content(eml).unwrap();
+        assert!(!result.attachments.is_empty(), "Should have attachment");
+        assert!(
+            result.metadata.contains_key("attachment_details"),
+            "Should have attachment_details"
+        );
+        let details = result.metadata.get("attachment_details").unwrap();
+        assert!(details.contains("report.pdf"), "Should contain filename");
+        assert!(details.contains("application/pdf"), "Should contain mime type");
+    }
+
+    #[test]
+    fn test_extract_raw_headers_function() {
+        let data = b"From: alice@example.com\r\n\
+            Content-Type: multipart/mixed; boundary=foo\r\n\
+            MIME-Version: 1.0\r\n\
+            X-Mailer: MyApp/2.0\r\n\
+            User-Agent: MyAgent/1.0\r\n\
+            \r\n\
+            Body";
+
+        let headers = extract_raw_headers(data);
+        assert_eq!(headers.get("content_type").unwrap(), "multipart/mixed; boundary=foo");
+        assert_eq!(headers.get("mime_version").unwrap(), "1.0");
+        assert_eq!(headers.get("x_mailer").unwrap(), "MyApp/2.0");
+        assert_eq!(headers.get("user_agent").unwrap(), "MyAgent/1.0");
     }
 }

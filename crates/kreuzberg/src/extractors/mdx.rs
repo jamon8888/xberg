@@ -189,7 +189,11 @@ impl MdxExtractor {
 
     /// Walk pulldown-cmark events and push nodes into the builder.
     fn walk_events_into_builder(events: &[Event], builder: &mut DocumentStructureBuilder) {
+        use crate::types::builder;
+        use crate::types::document_structure::TextAnnotation;
+
         let mut paragraph_text = String::new();
+        let mut paragraph_annotations: Vec<TextAnnotation> = Vec::new();
         let mut in_paragraph = false;
         let mut heading_text = String::new();
         let mut heading_level: u8 = 0;
@@ -207,6 +211,14 @@ impl MdxExtractor {
         let mut in_list_item = false;
         let mut in_image = false;
         let mut image_alt = String::new();
+
+        // Annotation tracking: stack of (kind_tag, byte_start, optional link data).
+        // kind_tag: 0=bold, 1=italic, 2=strikethrough, 3=code, 4=link
+        let mut annotation_starts: Vec<(u8, u32, Option<(String, Option<String>)>)> = Vec::new();
+
+        fn text_offset(paragraph_text: &str, in_paragraph: bool) -> u32 {
+            if in_paragraph { paragraph_text.len() as u32 } else { 0 }
+        }
 
         for event in events {
             match event {
@@ -233,6 +245,7 @@ impl MdxExtractor {
                 Event::Start(Tag::Paragraph) => {
                     if !in_heading && !in_list_item {
                         paragraph_text.clear();
+                        paragraph_annotations.clear();
                         in_paragraph = true;
                     }
                 }
@@ -241,9 +254,111 @@ impl MdxExtractor {
                         in_paragraph = false;
                         let text = paragraph_text.trim().to_string();
                         if !text.is_empty() {
-                            builder.push_paragraph(&text, vec![], None, None);
+                            let trim_offset = paragraph_text.len() - paragraph_text.trim_start().len();
+                            let trimmed_len = text.len() as u32;
+                            let annotations = if trim_offset > 0 {
+                                paragraph_annotations
+                                    .drain(..)
+                                    .map(|mut a| {
+                                        a.start = a.start.saturating_sub(trim_offset as u32);
+                                        a.end = a.end.saturating_sub(trim_offset as u32);
+                                        a
+                                    })
+                                    .filter(|a| a.start < a.end && a.end <= trimmed_len)
+                                    .collect()
+                            } else {
+                                paragraph_annotations
+                                    .drain(..)
+                                    .filter(|a| a.start < a.end && a.end <= trimmed_len)
+                                    .collect()
+                            };
+                            builder.push_paragraph(&text, annotations, None, None);
                         }
                         paragraph_text.clear();
+                        paragraph_annotations.clear();
+                    }
+                }
+                // Inline formatting — annotation tracking
+                Event::Start(Tag::Strong) => {
+                    if in_paragraph {
+                        annotation_starts.push((0, text_offset(&paragraph_text, in_paragraph), None));
+                    }
+                }
+                Event::End(TagEnd::Strong) => {
+                    if in_paragraph {
+                        if let Some((0, start, _)) = annotation_starts
+                            .iter()
+                            .rposition(|(k, _, _)| *k == 0)
+                            .and_then(|i| Some(annotation_starts.remove(i)))
+                        {
+                            let end = text_offset(&paragraph_text, in_paragraph);
+                            if start < end {
+                                paragraph_annotations.push(builder::bold(start, end));
+                            }
+                        }
+                    }
+                }
+                Event::Start(Tag::Emphasis) => {
+                    if in_paragraph {
+                        annotation_starts.push((1, text_offset(&paragraph_text, in_paragraph), None));
+                    }
+                }
+                Event::End(TagEnd::Emphasis) => {
+                    if in_paragraph {
+                        if let Some((1, start, _)) = annotation_starts
+                            .iter()
+                            .rposition(|(k, _, _)| *k == 1)
+                            .and_then(|i| Some(annotation_starts.remove(i)))
+                        {
+                            let end = text_offset(&paragraph_text, in_paragraph);
+                            if start < end {
+                                paragraph_annotations.push(builder::italic(start, end));
+                            }
+                        }
+                    }
+                }
+                Event::Start(Tag::Strikethrough) => {
+                    if in_paragraph {
+                        annotation_starts.push((2, text_offset(&paragraph_text, in_paragraph), None));
+                    }
+                }
+                Event::End(TagEnd::Strikethrough) => {
+                    if in_paragraph {
+                        if let Some((2, start, _)) = annotation_starts
+                            .iter()
+                            .rposition(|(k, _, _)| *k == 2)
+                            .and_then(|i| Some(annotation_starts.remove(i)))
+                        {
+                            let end = text_offset(&paragraph_text, in_paragraph);
+                            if start < end {
+                                paragraph_annotations.push(builder::strikethrough(start, end));
+                            }
+                        }
+                    }
+                }
+                Event::Start(Tag::Link { dest_url, title, .. }) => {
+                    if in_paragraph {
+                        let url = dest_url.to_string();
+                        let title_opt = if title.is_empty() {
+                            None
+                        } else {
+                            Some(title.to_string())
+                        };
+                        annotation_starts.push((4, text_offset(&paragraph_text, in_paragraph), Some((url, title_opt))));
+                    }
+                }
+                Event::End(TagEnd::Link) => {
+                    if in_paragraph {
+                        if let Some((4, start, Some((url, title)))) = annotation_starts
+                            .iter()
+                            .rposition(|(k, _, _)| *k == 4)
+                            .and_then(|i| Some(annotation_starts.remove(i)))
+                        {
+                            let end = text_offset(&paragraph_text, in_paragraph);
+                            if start < end {
+                                paragraph_annotations.push(builder::link(start, end, &url, title.as_deref()));
+                            }
+                        }
                     }
                 }
                 Event::Start(Tag::CodeBlock(pulldown_cmark::CodeBlockKind::Fenced(lang))) => {
@@ -337,7 +452,27 @@ impl MdxExtractor {
                     builder.push_image(desc.as_deref(), None, None, None);
                     image_alt.clear();
                 }
-                Event::Text(s) | Event::Code(s) => {
+                Event::Code(s) => {
+                    if in_code_block {
+                        code_text.push_str(s);
+                    } else if in_heading {
+                        heading_text.push_str(s);
+                    } else if in_image {
+                        image_alt.push_str(s);
+                    } else if in_table_cell {
+                        current_cell.push_str(s);
+                    } else if in_list_item {
+                        list_item_text.push_str(s);
+                    } else if in_paragraph {
+                        let start = paragraph_text.len() as u32;
+                        paragraph_text.push_str(s);
+                        let end = paragraph_text.len() as u32;
+                        if start < end {
+                            paragraph_annotations.push(builder::code(start, end));
+                        }
+                    }
+                }
+                Event::Text(s) => {
                     if in_code_block {
                         code_text.push_str(s);
                     } else if in_heading {
@@ -362,6 +497,9 @@ impl MdxExtractor {
                     } else if in_paragraph {
                         paragraph_text.push(' ');
                     }
+                }
+                Event::FootnoteReference(name) => {
+                    builder.push_footnote(name, None);
                 }
                 Event::Html(s) => {
                     if in_paragraph {
@@ -539,7 +677,11 @@ impl DocumentExtractor for MdxExtractor {
             metadata.additional.insert(Cow::Borrowed("title"), title.into());
         }
 
-        let parser = Parser::new_ext(&clean_markdown, Options::ENABLE_TABLES);
+        let mut options = Options::ENABLE_TABLES;
+        if config.include_document_structure {
+            options |= Options::ENABLE_STRIKETHROUGH | Options::ENABLE_FOOTNOTES;
+        }
+        let parser = Parser::new_ext(&clean_markdown, options);
         let events: Vec<Event> = parser.collect();
 
         let mut extracted_images = Vec::new();

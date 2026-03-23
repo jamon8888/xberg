@@ -114,9 +114,29 @@ impl DocumentExtractor for DocExtractor {
         let document = if config.include_document_structure {
             use crate::types::builder::DocumentStructureBuilder;
             let mut builder = DocumentStructureBuilder::new().source_format("doc");
-            for paragraph in result.text.split("\n\n") {
+
+            let paragraphs: Vec<&str> = result.text.split("\n\n").collect();
+            for (i, paragraph) in paragraphs.iter().enumerate() {
                 let trimmed = paragraph.trim();
-                if !trimmed.is_empty() {
+                if trimmed.is_empty() {
+                    continue;
+                }
+
+                // Heuristic heading detection:
+                // A short paragraph (<=80 chars, single line, no trailing period)
+                // followed by a longer paragraph is likely a heading.
+                let is_single_line = !trimmed.contains('\n');
+                let is_short = trimmed.len() <= 80;
+                let no_trailing_punct = !trimmed.ends_with('.') && !trimmed.ends_with(':') && !trimmed.ends_with(';');
+                let next_is_longer = paragraphs.get(i + 1).is_some_and(|next| {
+                    let next_trimmed = next.trim();
+                    !next_trimmed.is_empty() && next_trimmed.len() > trimmed.len()
+                });
+
+                if is_single_line && is_short && no_trailing_punct && next_is_longer {
+                    // Heuristic: treat as heading level 2 (we can't know the real level)
+                    builder.push_heading(2, trimmed, None, None);
+                } else {
                     builder.push_paragraph(trimmed, vec![], None, None);
                 }
             }
@@ -194,5 +214,53 @@ mod tests {
             .expect("DOC extraction failed");
         assert!(!result.content.is_empty(), "Should extract text from DOC");
         assert_eq!(&*result.mime_type, "application/msword");
+    }
+
+    #[tokio::test]
+    async fn test_doc_document_structure_with_heuristic_headings() {
+        let test_file = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../test_documents/vendored/unstructured/doc/simple.doc");
+        if !test_file.exists() {
+            return;
+        }
+        let content = std::fs::read(&test_file).expect("Failed to read test DOC");
+        let extractor = DocExtractor::new();
+        let mut config = ExtractionConfig::default();
+        config.include_document_structure = true;
+        let result = extractor
+            .extract_bytes(&content, "application/msword", &config)
+            .await
+            .expect("DOC extraction failed");
+        assert!(result.document.is_some(), "Should produce document structure for DOC");
+        let doc = result.document.unwrap();
+        assert!(!doc.nodes.is_empty(), "Document structure should have nodes");
+    }
+
+    #[tokio::test]
+    async fn test_doc_paragraph_mapping() {
+        // Verify that paragraphs from DOC text map properly to DocumentStructure nodes
+        let test_file =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../test_documents/doc/unit_test_lists.doc");
+        if !test_file.exists() {
+            return;
+        }
+        let content = std::fs::read(&test_file).expect("Failed to read test DOC");
+        let extractor = DocExtractor::new();
+        let mut config = ExtractionConfig::default();
+        config.include_document_structure = true;
+        let result = extractor
+            .extract_bytes(&content, "application/msword", &config)
+            .await
+            .expect("DOC extraction failed");
+        assert!(result.document.is_some(), "Should produce document structure");
+        let doc = result.document.unwrap();
+        // Should have at least one paragraph node
+        let has_paragraph = doc.nodes.iter().any(|n| {
+            matches!(
+                n.content,
+                crate::types::document_structure::NodeContent::Paragraph { .. }
+            )
+        });
+        assert!(has_paragraph, "DOC should produce Paragraph nodes");
     }
 }

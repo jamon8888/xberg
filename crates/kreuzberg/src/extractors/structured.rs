@@ -12,9 +12,9 @@ use std::path::Path;
 
 /// Build a `DocumentStructure` from a structured data result.
 ///
-/// Maps the pretty-printed content into a code block since structured data
-/// is best represented as code. The source_format reflects the detected
-/// data format (json/yaml/toml).
+/// For JSON objects: top-level keys become group headings, nested objects become
+/// sub-groups, arrays become lists. Falls back to a code block if the content
+/// is not a JSON object (e.g. YAML/TOML where structure is less uniform).
 fn build_structured_document_structure(
     result: &crate::extraction::structured::StructuredDataResult,
     mime_type: &str,
@@ -36,8 +36,73 @@ fn build_structured_document_structure(
     };
 
     let mut builder = DocumentStructureBuilder::new().source_format(source_format);
+
+    // Try to build structured document for JSON objects
+    if source_format == "json"
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(&result.content)
+        && value.is_object()
+    {
+        build_json_structure(&value, &mut builder, 1);
+        return builder.build();
+    }
+
+    // Fallback: code block
     builder.push_code(&result.content, language, None);
     builder.build()
+}
+
+/// Recursively build document structure from a JSON value.
+fn build_json_structure(
+    value: &serde_json::Value,
+    builder: &mut crate::types::builder::DocumentStructureBuilder,
+    depth: u8,
+) {
+    match value {
+        serde_json::Value::Object(map) => {
+            for (key, val) in map {
+                let level = depth.min(6);
+                match val {
+                    serde_json::Value::Object(_) => {
+                        builder.push_heading(level, key, None, None);
+                        build_json_structure(val, builder, depth + 1);
+                    }
+                    serde_json::Value::Array(arr) => {
+                        builder.push_heading(level, key, None, None);
+                        let list_idx = builder.push_list(false, None);
+                        for item in arr {
+                            let text = match item {
+                                serde_json::Value::String(s) => s.clone(),
+                                other => other.to_string(),
+                            };
+                            builder.push_list_item(list_idx, &text, None);
+                        }
+                    }
+                    serde_json::Value::String(s) => {
+                        builder.push_paragraph(&format!("{}: {}", key, s), vec![], None, None);
+                    }
+                    other => {
+                        builder.push_paragraph(&format!("{}: {}", key, other), vec![], None, None);
+                    }
+                }
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            let list_idx = builder.push_list(false, None);
+            for item in arr {
+                let text = match item {
+                    serde_json::Value::String(s) => s.clone(),
+                    other => other.to_string(),
+                };
+                builder.push_list_item(list_idx, &text, None);
+            }
+        }
+        serde_json::Value::String(s) => {
+            builder.push_paragraph(s, vec![], None, None);
+        }
+        other => {
+            builder.push_paragraph(&other.to_string(), vec![], None, None);
+        }
+    }
 }
 
 /// Structured data extractor supporting JSON, YAML, and TOML.

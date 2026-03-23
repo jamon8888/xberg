@@ -21,7 +21,7 @@ use crate::plugins::{DocumentExtractor, Plugin};
 #[cfg(feature = "office")]
 use crate::types::builder::DocumentStructureBuilder;
 #[cfg(feature = "office")]
-use crate::types::document_structure::DocumentStructure;
+use crate::types::document_structure::{AnnotationKind, DocumentStructure, TextAnnotation};
 #[cfg(feature = "office")]
 use crate::types::{ExtractionResult, Metadata, Table};
 #[cfg(feature = "office")]
@@ -371,6 +371,174 @@ impl RstExtractor {
         })
     }
 
+    /// Strip RST inline markup from text and produce annotations with byte offsets
+    /// into the stripped text.
+    ///
+    /// Handles: `**strong**` (bold), `*emphasis*` (italic), ``` ``literal`` ``` (code),
+    /// and `` `interpreted` `` (code).
+    fn parse_inline_markup(raw: &str) -> (String, Vec<TextAnnotation>) {
+        let mut out = String::with_capacity(raw.len());
+        let mut annotations = Vec::new();
+        let bytes = raw.as_bytes();
+        let len = bytes.len();
+        let mut i = 0;
+
+        while i < len {
+            // **strong emphasis**
+            if i + 1 < len && bytes[i] == b'*' && bytes[i + 1] == b'*' {
+                if let Some(end) = Self::find_closing_marker(raw, i + 2, "**") {
+                    let inner = &raw[i + 2..end];
+                    let start = out.len() as u32;
+                    out.push_str(inner);
+                    let end_off = out.len() as u32;
+                    if start < end_off {
+                        annotations.push(TextAnnotation {
+                            start,
+                            end: end_off,
+                            kind: AnnotationKind::Bold,
+                        });
+                    }
+                    i = end + 2;
+                    continue;
+                }
+            }
+            // *emphasis*  (single star, not followed by another star)
+            if bytes[i] == b'*' && (i + 1 >= len || bytes[i + 1] != b'*') {
+                if let Some(end) = Self::find_closing_marker(raw, i + 1, "*") {
+                    // Make sure this isn't inside a ** pair
+                    if end + 1 >= len || bytes[end + 1] != b'*' {
+                        let inner = &raw[i + 1..end];
+                        let start = out.len() as u32;
+                        out.push_str(inner);
+                        let end_off = out.len() as u32;
+                        if start < end_off {
+                            annotations.push(TextAnnotation {
+                                start,
+                                end: end_off,
+                                kind: AnnotationKind::Italic,
+                            });
+                        }
+                        i = end + 1;
+                        continue;
+                    }
+                }
+            }
+            // ``literal``
+            if i + 1 < len && bytes[i] == b'`' && bytes[i + 1] == b'`' {
+                if let Some(end) = Self::find_closing_marker(raw, i + 2, "``") {
+                    let inner = &raw[i + 2..end];
+                    let start = out.len() as u32;
+                    out.push_str(inner);
+                    let end_off = out.len() as u32;
+                    if start < end_off {
+                        annotations.push(TextAnnotation {
+                            start,
+                            end: end_off,
+                            kind: AnnotationKind::Code,
+                        });
+                    }
+                    i = end + 2;
+                    continue;
+                }
+            }
+            // `interpreted text`
+            if bytes[i] == b'`' && (i + 1 >= len || bytes[i + 1] != b'`') {
+                if let Some(end) = Self::find_closing_single_backtick(raw, i + 1) {
+                    let inner = &raw[i + 1..end];
+                    let start = out.len() as u32;
+                    out.push_str(inner);
+                    let end_off = out.len() as u32;
+                    if start < end_off {
+                        annotations.push(TextAnnotation {
+                            start,
+                            end: end_off,
+                            kind: AnnotationKind::Code,
+                        });
+                    }
+                    i = end + 1;
+                    continue;
+                }
+            }
+            out.push(bytes[i] as char);
+            i += 1;
+        }
+
+        (out, annotations)
+    }
+
+    /// Find the position of a closing marker substring starting from `from`.
+    fn find_closing_marker(text: &str, from: usize, marker: &str) -> Option<usize> {
+        text[from..].find(marker).map(|pos| from + pos)
+    }
+
+    /// Find closing single backtick that is NOT part of a double backtick.
+    fn find_closing_single_backtick(text: &str, from: usize) -> Option<usize> {
+        let bytes = text.as_bytes();
+        let mut j = from;
+        while j < bytes.len() {
+            if bytes[j] == b'`' {
+                // Make sure it's not ``
+                if j + 1 < bytes.len() && bytes[j + 1] == b'`' {
+                    j += 2;
+                    continue;
+                }
+                return Some(j);
+            }
+            j += 1;
+        }
+        None
+    }
+
+    /// Parse RST footnote references from a line.
+    /// Returns footnote labels found (e.g. "1" from `[1]_` or "#" from `[#]_`).
+    fn find_footnote_references(line: &str) -> Vec<String> {
+        let mut refs = Vec::new();
+        let bytes = line.as_bytes();
+        let mut i = 0;
+        while i < bytes.len() {
+            if bytes[i] == b'[' {
+                if let Some(close) = line[i + 1..].find(']') {
+                    let label_end = i + 1 + close;
+                    let label = &line[i + 1..label_end];
+                    // Check for trailing _
+                    if label_end + 1 < bytes.len() && bytes[label_end + 1] == b'_' {
+                        // Valid footnote ref: numeric or #-prefixed
+                        if label.chars().all(|c| c.is_ascii_digit()) || label.starts_with('#') {
+                            refs.push(label.to_string());
+                        }
+                    }
+                }
+            }
+            i += 1;
+        }
+        refs
+    }
+
+    /// Parse image directive options (`:alt:`, `:width:`, `:height:`) from indented lines.
+    fn parse_image_options<'a>(lines: &[&'a str], start: &mut usize) -> AHashMap<String, String> {
+        let mut opts = AHashMap::new();
+        while *start < lines.len() {
+            let line = lines[*start];
+            if !line.starts_with("   ") && !line.starts_with("\t") {
+                break;
+            }
+            let trimmed = line.trim();
+            if trimmed.is_empty() {
+                *start += 1;
+                break;
+            }
+            if trimmed.starts_with(':') {
+                if let Some(colon2) = trimmed[1..].find(':') {
+                    let key = trimmed[1..1 + colon2].to_string();
+                    let value = trimmed[2 + colon2..].trim().to_string();
+                    opts.insert(key, value);
+                }
+            }
+            *start += 1;
+        }
+        opts
+    }
+
     /// Build a `DocumentStructure` from RST content.
     fn build_document_structure(content: &str) -> DocumentStructure {
         let mut builder = DocumentStructureBuilder::new().source_format("rst");
@@ -483,15 +651,27 @@ impl RstExtractor {
                 continue;
             }
 
-            // Image directive
+            // Image directive with options
             if trimmed.starts_with(".. image::") {
                 let uri = trimmed.strip_prefix(".. image::").unwrap_or("").trim();
-                let desc = if uri.is_empty() { None } else { Some(uri) };
-                builder.push_image(desc, None, None, None);
                 i += 1;
-                // Skip image options
-                while i < lines.len() && (lines[i].starts_with("   ") || lines[i].is_empty()) {
-                    i += 1;
+                let opts = Self::parse_image_options(&lines, &mut i);
+                let alt = opts.get("alt").cloned();
+                let description = alt.as_deref().or(if uri.is_empty() { None } else { Some(uri) });
+                let img_idx = builder.push_image(description, None, None, None);
+                // Store width/height and uri as attributes
+                let mut attrs = AHashMap::new();
+                if !uri.is_empty() {
+                    attrs.insert("src".to_string(), uri.to_string());
+                }
+                if let Some(w) = opts.get("width") {
+                    attrs.insert("width".to_string(), w.clone());
+                }
+                if let Some(h) = opts.get("height") {
+                    attrs.insert("height".to_string(), h.clone());
+                }
+                if !attrs.is_empty() {
+                    builder.set_attributes(img_idx, attrs);
                 }
                 continue;
             }
@@ -601,9 +781,41 @@ impl RstExtractor {
                 continue;
             }
 
-            // Regular paragraph
+            // Footnote definitions: .. [1] text  or  .. [#label] text
+            if trimmed.starts_with(".. [")
+                && let Some(close) = trimmed.find(']')
+                && close > 4
+            {
+                let label = &trimmed[4..close];
+                let footnote_text = trimmed[close + 1..].trim();
+                // Collect continuation lines
+                let mut full_text = footnote_text.to_string();
+                i += 1;
+                while i < lines.len() && (lines[i].starts_with("   ") || lines[i].starts_with("\t")) {
+                    if !full_text.is_empty() {
+                        full_text.push(' ');
+                    }
+                    full_text.push_str(lines[i].trim());
+                    i += 1;
+                }
+                let display = if full_text.is_empty() {
+                    format!("[{}]", label)
+                } else {
+                    format!("[{}] {}", label, full_text)
+                };
+                builder.push_footnote(&display, None);
+                continue;
+            }
+
+            // Regular paragraph with inline markup scanning
             if !trimmed.is_empty() && !Self::is_markup_line(line) {
-                builder.push_paragraph(trimmed, vec![], None, None);
+                // Check for footnote references first
+                let footnote_refs = Self::find_footnote_references(trimmed);
+                let (stripped, annotations) = Self::parse_inline_markup(trimmed);
+                builder.push_paragraph(&stripped, annotations, None, None);
+                for fref in footnote_refs {
+                    builder.push_footnote(&format!("[{}]", fref), None);
+                }
             }
 
             i += 1;

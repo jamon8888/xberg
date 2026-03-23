@@ -24,7 +24,6 @@ ctor = { workspace = true }
 html-to-markdown-rs = { workspace = true }
 kreuzberg = { workspace = true, features = ["bundled-pdfium", "full"] }
 kreuzberg-ffi = { workspace = true }
-lazy_static = { workspace = true }
 napi = { version = "3", default-features = false, features = ["napi8", "async", "serde-json"] }
 napi-derive = "3"
 num_cpus = { workspace = true }

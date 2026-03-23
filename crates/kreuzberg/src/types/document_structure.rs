@@ -12,7 +12,7 @@
 //! - **Content layer classification**: Each node tagged as Body, Header, Footer, or Footnote
 //! - **Deterministic IDs**: `NodeId` generated from content hash for diffing/caching
 
-use std::collections::HashMap;
+use ahash::AHashMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -172,7 +172,7 @@ pub struct DocumentNode {
     /// Extensible bag for data that doesn't warrant a typed field: CSS classes,
     /// LaTeX environment names, Excel cell formulas, slide layout names, etc.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub attributes: Option<HashMap<String, String>>,
+    pub attributes: Option<AHashMap<String, String>>,
 }
 
 // ============================================================================

@@ -197,7 +197,7 @@ mod iwork_tests {
 
     #[test]
     fn test_list_iwa_entries_numbers() {
-        use kreuzberg::extractors::iwork::list_iwa_entries;
+        use kreuzberg::extractors::iwork::collect_iwa_paths;
 
         let path = test_doc_path("test.numbers");
         if !path.exists() {
@@ -206,7 +206,7 @@ mod iwork_tests {
         }
 
         let content = std::fs::read(&path).expect("Failed to read test.numbers");
-        let entries = list_iwa_entries(&content).expect("Should list IWA entries");
+        let entries = collect_iwa_paths(&content).expect("Should list IWA entries");
 
         assert!(!entries.is_empty(), "Numbers ZIP should contain at least one .iwa file");
         assert!(

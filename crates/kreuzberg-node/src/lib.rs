@@ -64,7 +64,6 @@ pub use plugins::{
 // Core imports for utilities and FFI types
 use ahash::AHashSet;
 use kreuzberg::{ExtractionConfig, ExtractionResult as RustExtractionResult, KNOWN_FORMATS};
-use lazy_static::lazy_static;
 use once_cell::sync::Lazy;
 use std::ffi::{CStr, c_char};
 
@@ -175,20 +174,18 @@ unsafe extern "C" {
     pub fn kreuzberg_error_code_count() -> u32;
 }
 
-lazy_static! {
-    static ref WORKER_POOL: tokio::runtime::Runtime = {
-        let worker_count = std::env::var("KREUZBERG_WORKER_THREADS")
-            .ok()
-            .and_then(|s| s.parse::<usize>().ok())
-            .unwrap_or_else(num_cpus::get);
+static WORKER_POOL: std::sync::LazyLock<tokio::runtime::Runtime> = std::sync::LazyLock::new(|| {
+    let worker_count = std::env::var("KREUZBERG_WORKER_THREADS")
+        .ok()
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or_else(num_cpus::get);
 
-        tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(worker_count)
-            .enable_all()
-            .build()
-            .expect("Failed to create Tokio worker thread pool")
-    };
-}
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(worker_count)
+        .enable_all()
+        .build()
+        .expect("Failed to create Tokio worker thread pool")
+});
 
 /// Helper function to retrieve panic context from FFI.
 ///

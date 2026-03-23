@@ -31,7 +31,7 @@ const MAX_IWA_DECOMPRESSED_SIZE: usize = 64 * 1024 * 1024; // 64 MiB
 /// Opens the ZIP from `content`, iterates every entry, and returns the names of
 /// all entries whose path ends with `.iwa`. Entries that cannot be read are
 /// silently skipped (consistent with the per-extractor `filter_map` pattern).
-pub(crate) fn collect_iwa_paths(content: &[u8]) -> Result<Vec<String>> {
+pub fn collect_iwa_paths(content: &[u8]) -> Result<Vec<String>> {
     let cursor = Cursor::new(content);
     let mut archive =
         zip::ZipArchive::new(cursor).map_err(|e| KreuzbergError::parsing(format!("Failed to open iWork ZIP: {e}")))?;
@@ -46,25 +46,6 @@ pub(crate) fn collect_iwa_paths(content: &[u8]) -> Result<Vec<String>> {
         .collect();
 
     Ok(iwa_paths)
-}
-
-/// Open a ZIP archive from bytes and collect all `.iwa` entry names.
-pub fn list_iwa_entries(content: &[u8]) -> Result<Vec<String>> {
-    let cursor = Cursor::new(content);
-    let mut archive =
-        zip::ZipArchive::new(cursor).map_err(|e| KreuzbergError::parsing(format!("Failed to open iWork ZIP: {e}")))?;
-
-    let mut names = Vec::new();
-    for i in 0..archive.len() {
-        let file = archive
-            .by_index(i)
-            .map_err(|e| KreuzbergError::parsing(format!("Failed to read ZIP entry {i}: {e}")))?;
-        let name = file.name().to_string();
-        if name.ends_with(".iwa") {
-            names.push(name);
-        }
-    }
-    Ok(names)
 }
 
 /// Read and Snappy-decompress a single `.iwa` file from the ZIP archive.

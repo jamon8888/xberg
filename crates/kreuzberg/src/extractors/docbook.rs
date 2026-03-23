@@ -68,8 +68,16 @@ impl DocbookExtractor {
     }
 }
 
-/// Type alias for DocBook parsing results: (content, title, author, date, tables)
-type DocBookParseResult = (String, String, Option<String>, Option<String>, Vec<Table>);
+/// Type alias for DocBook parsing results: (content, title, author, date, tables, publisher, copyright)
+type DocBookParseResult = (
+    String,
+    String,
+    Option<String>,
+    Option<String>,
+    Vec<Table>,
+    Option<String>,
+    Option<String>,
+);
 
 /// Build a `DocumentStructure` from DocBook XML content.
 fn build_docbook_document_structure(content: &str) -> Result<crate::types::document_structure::DocumentStructure> {
@@ -158,6 +166,23 @@ fn build_docbook_document_structure(content: &str) -> Result<crate::types::docum
                             builder.exit_container();
                         }
                     }
+                    "note" | "warning" | "tip" | "caution" | "important" => {
+                        let admonition_text = extract_element_text(&mut reader)?;
+                        if !admonition_text.is_empty() {
+                            builder.push_admonition(tag, None, None);
+                            builder.push_paragraph(&admonition_text, vec![], None, None);
+                            builder.exit_container();
+                        }
+                    }
+                    "figure" => {
+                        let caption = extract_figure_with_caption(&mut reader)?;
+                        let desc = if caption.is_empty() {
+                            None
+                        } else {
+                            Some(caption.as_str())
+                        };
+                        builder.push_image(desc, None, None, None);
+                    }
                     "footnote" => {
                         let text = extract_element_text(&mut reader)?;
                         if !text.is_empty() {
@@ -240,13 +265,15 @@ fn build_docbook_document_structure(content: &str) -> Result<crate::types::docum
 }
 
 /// Single-pass DocBook parser that extracts all content in one document traversal.
-/// Returns: (content, title, author, date, tables)
+/// Returns: (content, title, author, date, tables, publisher, copyright)
 fn parse_docbook_single_pass(content: &str, plain: bool) -> Result<DocBookParseResult> {
     let mut reader = Reader::from_str(content);
     let mut output = String::new();
     let mut title = String::new();
     let mut author = Option::None;
     let mut date = Option::None;
+    let mut publisher = Option::None;
+    let mut copyright = Option::None;
     let mut tables = Vec::new();
     let mut table_index = 0;
 
@@ -304,9 +331,27 @@ fn parse_docbook_single_pass(content: &str, plain: bool) -> Result<DocBookParseR
                             date = Some(date_text);
                         }
                     }
+                    "publishername" if state.in_info && publisher.is_none() => {
+                        let pub_text = extract_element_text(&mut reader)?;
+                        if !pub_text.is_empty() {
+                            publisher = Some(pub_text);
+                        }
+                    }
+                    "publisher" if state.in_info && publisher.is_none() => {
+                        let pub_text = extract_element_text(&mut reader)?;
+                        if !pub_text.is_empty() {
+                            publisher = Some(pub_text);
+                        }
+                    }
+                    "copyright" if state.in_info && copyright.is_none() => {
+                        let cr_text = extract_element_text(&mut reader)?;
+                        if !cr_text.is_empty() {
+                            copyright = Some(cr_text);
+                        }
+                    }
 
                     "para" => {
-                        let para_text = extract_element_text(&mut reader)?;
+                        let para_text = extract_element_text_with_inline(&mut reader, plain)?;
                         if !para_text.is_empty() {
                             output.push_str(&para_text);
                             output.push_str("\n\n");
@@ -360,8 +405,22 @@ fn parse_docbook_single_pass(content: &str, plain: bool) -> Result<DocBookParseR
                         output.push_str("\n\n");
                     }
 
+                    // Admonitions
+                    "note" | "warning" | "tip" | "caution" | "important" => {
+                        let admonition_type = tag.to_string();
+                        let admonition_text = extract_element_text(&mut reader)?;
+                        if !admonition_text.is_empty() {
+                            if !plain {
+                                let label = admonition_type[..1].to_uppercase() + &admonition_type[1..];
+                                output.push_str(&format!("**{}:** ", label));
+                            }
+                            output.push_str(&admonition_text);
+                            output.push_str("\n\n");
+                        }
+                    }
+
                     "figure" => {
-                        let figure_text = extract_element_text(&mut reader)?;
+                        let figure_text = extract_figure_with_caption(&mut reader)?;
                         if !figure_text.is_empty() {
                             if !plain {
                                 output.push_str("**Figure:** ");
@@ -473,7 +532,182 @@ fn parse_docbook_single_pass(content: &str, plain: bool) -> Result<DocBookParseR
         final_output = format!("{}\n\n{}", title, final_output);
     }
 
-    Ok((final_output.trim().to_string(), title, author, date, tables))
+    Ok((
+        final_output.trim().to_string(),
+        title,
+        author,
+        date,
+        tables,
+        publisher,
+        copyright,
+    ))
+}
+
+/// Extract text content with inline formatting from a DocBook element.
+/// Handles `<emphasis>`, `<emphasis role="bold">`, `<literal>`, `<command>`,
+/// `<link>`, and `<ulink>` elements.
+fn extract_element_text_with_inline(reader: &mut Reader<&[u8]>, plain: bool) -> Result<String> {
+    let mut text = String::new();
+    let mut depth = 0;
+    // Track emphasis type (bold vs italic) per nesting level
+    let mut emphasis_bold_stack: Vec<bool> = Vec::new();
+
+    loop {
+        match reader.read_event() {
+            Ok(Event::Start(e)) => {
+                let name = e.name();
+                let tag_cow = crate::utils::xml_tag_name(name.as_ref());
+                let tag = strip_namespace(&tag_cow);
+
+                if !plain {
+                    match tag {
+                        "emphasis" => {
+                            let mut is_bold = false;
+                            for attr in e.attributes().flatten() {
+                                let attr_name = String::from_utf8_lossy(attr.key.as_ref());
+                                if attr_name == "role" {
+                                    let val = String::from_utf8_lossy(attr.value.as_ref());
+                                    if val == "bold" || val == "strong" {
+                                        is_bold = true;
+                                    }
+                                }
+                            }
+                            emphasis_bold_stack.push(is_bold);
+                            if is_bold {
+                                text.push_str("**");
+                            } else {
+                                text.push('*');
+                            }
+                        }
+                        "literal" | "command" => {
+                            text.push('`');
+                        }
+                        "link" | "ulink" => {
+                            text.push('[');
+                        }
+                        _ => {}
+                    }
+                }
+                depth += 1;
+            }
+            Ok(Event::End(e)) => {
+                if depth == 0 {
+                    break;
+                }
+                let name = e.name();
+                let tag_cow = crate::utils::xml_tag_name(name.as_ref());
+                let tag = strip_namespace(&tag_cow);
+
+                if !plain {
+                    match tag {
+                        "emphasis" => {
+                            let is_bold = emphasis_bold_stack.pop().unwrap_or(false);
+                            if is_bold {
+                                text.push_str("**");
+                            } else {
+                                text.push('*');
+                            }
+                        }
+                        "literal" | "command" => {
+                            text.push('`');
+                        }
+                        "link" | "ulink" => {
+                            text.push(']');
+                        }
+                        _ => {}
+                    }
+                }
+                depth -= 1;
+            }
+            Ok(Event::Text(t)) => {
+                let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
+                if !decoded.trim().is_empty() {
+                    if !text.is_empty()
+                        && !text.ends_with(' ')
+                        && !text.ends_with('\n')
+                        && !text.ends_with('*')
+                        && !text.ends_with('`')
+                        && !text.ends_with('[')
+                    {
+                        text.push(' ');
+                    }
+                    text.push_str(decoded.trim());
+                }
+            }
+            Ok(Event::CData(t)) => {
+                let decoded = std::str::from_utf8(t.as_ref()).unwrap_or("").to_string();
+                if !decoded.trim().is_empty() {
+                    if !text.is_empty() {
+                        text.push(' ');
+                    }
+                    text.push_str(decoded.trim());
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(e) => {
+                return Err(crate::error::KreuzbergError::parsing(format!(
+                    "XML parsing error: {}",
+                    e
+                )));
+            }
+            _ => {}
+        }
+    }
+
+    Ok(text.trim().to_string())
+}
+
+/// Extract figure element, capturing the `<title>` as the caption.
+fn extract_figure_with_caption(reader: &mut Reader<&[u8]>) -> Result<String> {
+    let mut caption = String::new();
+    let mut depth = 0;
+
+    loop {
+        match reader.read_event() {
+            Ok(Event::Start(e)) => {
+                let name = e.name();
+                let tag_cow = crate::utils::xml_tag_name(name.as_ref());
+                let tag = strip_namespace(&tag_cow);
+
+                if tag == "title" && depth == 0 {
+                    caption = extract_element_text(reader)?;
+                } else {
+                    depth += 1;
+                }
+            }
+            Ok(Event::End(e)) => {
+                let name = e.name();
+                let tag_cow = crate::utils::xml_tag_name(name.as_ref());
+                let tag = strip_namespace(&tag_cow);
+
+                if tag == "figure" && depth == 0 {
+                    break;
+                }
+                if depth > 0 {
+                    depth -= 1;
+                }
+            }
+            Ok(Event::Text(t)) => {
+                if caption.is_empty() {
+                    let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
+                    let trimmed = decoded.trim();
+                    if !trimmed.is_empty() {
+                        caption.push_str(trimmed);
+                    }
+                }
+            }
+            Ok(Event::Eof) => break,
+            Err(e) => {
+                return Err(crate::error::KreuzbergError::parsing(format!(
+                    "XML parsing error: {}",
+                    e
+                )));
+            }
+            _ => {}
+        }
+    }
+
+    Ok(caption)
 }
 
 /// Extract text content from a DocBook element and its children.
@@ -570,15 +804,18 @@ impl DocumentExtractor for DocbookExtractor {
             .map(|s| s.to_string())
             .unwrap_or_else(|_| String::from_utf8_lossy(content).to_string());
 
-        let (extracted_content, title, author, date, tables) = parse_docbook_single_pass(&docbook_content, plain)?;
+        let (extracted_content, title, author, date, tables, publisher, copyright) =
+            parse_docbook_single_pass(&docbook_content, plain)?;
 
         let mut metadata = Metadata::default();
         let mut subject_parts = Vec::new();
 
         if !title.is_empty() {
+            metadata.title = Some(title.clone());
             subject_parts.push(format!("Title: {}", title));
         }
-        if let Some(author) = &author {
+        if let Some(ref author) = author {
+            metadata.authors = Some(vec![author.clone()]);
             subject_parts.push(format!("Author: {}", author));
         }
 
@@ -588,6 +825,18 @@ impl DocumentExtractor for DocbookExtractor {
 
         if let Some(date_val) = date {
             metadata.created_at = Some(date_val);
+        }
+
+        if let Some(pub_val) = publisher {
+            metadata
+                .additional
+                .insert(std::borrow::Cow::Borrowed("publisher"), serde_json::json!(pub_val));
+        }
+
+        if let Some(cr_val) = copyright {
+            metadata
+                .additional
+                .insert(std::borrow::Cow::Borrowed("copyright"), serde_json::json!(cr_val));
         }
 
         let document = if config.include_document_structure {
@@ -678,7 +927,7 @@ mod tests {
   <para>Test content.</para>
 </article>"#;
 
-        let (content, title, _, _, _) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
+        let (content, title, _, _, _, _, _) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
         assert_eq!(title, "Test Article");
         assert!(content.contains("Test content"));
     }
@@ -705,9 +954,96 @@ mod tests {
   </table>
 </article>"#;
 
-        let (_, _, _, _, tables) = parse_docbook_single_pass(docbook, false).expect("Table extraction failed");
+        let (_, _, _, _, tables, _, _) = parse_docbook_single_pass(docbook, false).expect("Table extraction failed");
         assert_eq!(tables.len(), 1);
         assert_eq!(tables[0].cells.len(), 2);
         assert_eq!(tables[0].cells[0], vec!["Col1", "Col2"]);
+    }
+
+    #[test]
+    fn test_docbook_inline_formatting() {
+        let docbook = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <title>Test</title>
+  <para>This has <emphasis>italic</emphasis> and <emphasis role="bold">bold</emphasis> text.</para>
+  <para>Use <literal>code_here</literal> and <command>ls -la</command> commands.</para>
+</article>"#;
+
+        let (content, _, _, _, _, _, _) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
+        assert!(content.contains("*italic*"), "expected italic markup, got: {content}");
+        assert!(content.contains("**bold**"), "expected bold markup, got: {content}");
+        assert!(content.contains("`code_here`"), "expected code markup, got: {content}");
+        assert!(content.contains("`ls -la`"), "expected command markup, got: {content}");
+    }
+
+    #[test]
+    fn test_docbook_admonitions() {
+        let docbook = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <title>Test</title>
+  <note><para>This is a note.</para></note>
+  <warning><para>This is a warning.</para></warning>
+  <tip><para>This is a tip.</para></tip>
+</article>"#;
+
+        let (content, _, _, _, _, _, _) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
+        assert!(
+            content.contains("**Note:**"),
+            "expected note admonition, got: {content}"
+        );
+        assert!(
+            content.contains("**Warning:**"),
+            "expected warning admonition, got: {content}"
+        );
+        assert!(content.contains("**Tip:**"), "expected tip admonition, got: {content}");
+    }
+
+    #[test]
+    fn test_docbook_publisher_copyright() {
+        let docbook = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <info>
+    <title>Test Article</title>
+    <author><personname>John Doe</personname></author>
+    <publishername>O'Reilly Media</publishername>
+    <copyright><year>2024</year><holder>John Doe</holder></copyright>
+  </info>
+  <para>Content.</para>
+</article>"#;
+
+        let (_, _, _, _, _, publisher, copyright) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
+        assert_eq!(publisher, Some("O'Reilly Media".to_string()));
+        assert!(copyright.is_some());
+        assert!(copyright.unwrap().contains("2024"));
+    }
+
+    #[test]
+    fn test_docbook_figure_caption() {
+        let docbook = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <title>Test</title>
+  <figure>
+    <title>Architecture Diagram</title>
+    <mediaobject><imageobject><imagedata fileref="arch.png"/></imageobject></mediaobject>
+  </figure>
+</article>"#;
+
+        let (content, _, _, _, _, _, _) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
+        assert!(
+            content.contains("Architecture Diagram"),
+            "expected figure caption, got: {content}"
+        );
+    }
+
+    #[test]
+    fn test_docbook_links() {
+        let docbook = r#"<?xml version="1.0" encoding="UTF-8"?>
+<article>
+  <title>Test</title>
+  <para>Visit <ulink url="http://example.com">the site</ulink> for details.</para>
+</article>"#;
+
+        let (content, _, _, _, _, _, _) = parse_docbook_single_pass(docbook, false).expect("Parse failed");
+        assert!(content.contains("[the site]"), "expected link markup, got: {content}");
     }
 }

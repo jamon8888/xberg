@@ -81,7 +81,10 @@ fn replace_whole_word(input: &str, word: &str, replacement: &str) -> String {
         let before_ok = if start == 0 {
             true
         } else {
-            let prev_char = input[..start].chars().next_back().unwrap();
+            // SAFETY: start > 0 guarantees input[..start] is non-empty and contains
+            // at least one UTF-8 character (memchr matched ASCII bytes, so the slice
+            // boundary is always at a valid UTF-8 char boundary).
+            let prev_char = input[..start].chars().next_back().unwrap_or(' ');
             !prev_char.is_alphanumeric()
         };
 
@@ -89,7 +92,9 @@ fn replace_whole_word(input: &str, word: &str, replacement: &str) -> String {
         let after_ok = if after_pos >= input.len() {
             true
         } else {
-            let next_char = input[after_pos..].chars().next().unwrap();
+            // SAFETY: after_pos < input.len() guarantees input[after_pos..] is non-empty
+            // and starts on a valid UTF-8 char boundary (word ends on ASCII bytes).
+            let next_char = input[after_pos..].chars().next().unwrap_or(' ');
             !next_char.is_alphanumeric()
         };
 
@@ -307,10 +312,109 @@ fn extract_mathml_text(math_node: roxmltree::Node) -> Option<String> {
     }
 }
 
+/// Resolved formatting properties for a text style.
+#[derive(Default, Clone)]
+struct OdtStyleProps {
+    bold: bool,
+    italic: bool,
+    underline: bool,
+    strikethrough: bool,
+    color: Option<String>,
+    font_size: Option<String>,
+}
+
+/// Build a map from style-name to resolved formatting properties.
+///
+/// Parses `<style:style>` elements from the `office:automatic-styles` section
+/// of content.xml and resolves `style:text-properties` attributes.
+fn build_style_map(root: roxmltree::Node) -> AHashMap<String, OdtStyleProps> {
+    let mut styles = AHashMap::new();
+    for child in root.children() {
+        if child.tag_name().name() == "automatic-styles" || child.tag_name().name() == "styles" {
+            for style_node in child.children() {
+                if style_node.tag_name().name() == "style" {
+                    if let Some(name) = style_node
+                        .attribute(("urn:oasis:names:tc:opendocument:xmlns:style:1.0", "name"))
+                        .or_else(|| style_node.attribute("style:name"))
+                    {
+                        let mut props = OdtStyleProps::default();
+                        for prop_child in style_node.children() {
+                            if prop_child.tag_name().name() == "text-properties" {
+                                // Bold: fo:font-weight="bold"
+                                if let Some(fw) = prop_child
+                                    .attribute((
+                                        "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                                        "font-weight",
+                                    ))
+                                    .or_else(|| prop_child.attribute("fo:font-weight"))
+                                {
+                                    props.bold = fw == "bold";
+                                }
+                                // Italic: fo:font-style="italic"
+                                if let Some(fs) = prop_child
+                                    .attribute((
+                                        "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                                        "font-style",
+                                    ))
+                                    .or_else(|| prop_child.attribute("fo:font-style"))
+                                {
+                                    props.italic = fs == "italic";
+                                }
+                                // Underline: style:text-underline-style != "none"
+                                if let Some(ul) = prop_child
+                                    .attribute((
+                                        "urn:oasis:names:tc:opendocument:xmlns:style:1.0",
+                                        "text-underline-style",
+                                    ))
+                                    .or_else(|| prop_child.attribute("style:text-underline-style"))
+                                {
+                                    props.underline = ul != "none";
+                                }
+                                // Strikethrough: style:text-line-through-style != "none"
+                                if let Some(st) = prop_child
+                                    .attribute((
+                                        "urn:oasis:names:tc:opendocument:xmlns:style:1.0",
+                                        "text-line-through-style",
+                                    ))
+                                    .or_else(|| prop_child.attribute("style:text-line-through-style"))
+                                {
+                                    props.strikethrough = st != "none";
+                                }
+                                // Color: fo:color="#rrggbb"
+                                if let Some(color) = prop_child
+                                    .attribute(("urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0", "color"))
+                                    .or_else(|| prop_child.attribute("fo:color"))
+                                {
+                                    if color != "#000000" {
+                                        props.color = Some(color.to_string());
+                                    }
+                                }
+                                // Font size: fo:font-size="12pt"
+                                if let Some(size) = prop_child
+                                    .attribute((
+                                        "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
+                                        "font-size",
+                                    ))
+                                    .or_else(|| prop_child.attribute("fo:font-size"))
+                                {
+                                    props.font_size = Some(size.to_string());
+                                }
+                            }
+                        }
+                        styles.insert(name.to_string(), props);
+                    }
+                }
+            }
+        }
+    }
+    styles
+}
+
 /// Build a `DocumentStructure` from ODT content.xml.
 ///
 /// Walks the same XML tree as `process_document_elements` but emits structured
-/// nodes through the `DocumentStructureBuilder`.
+/// nodes through the `DocumentStructureBuilder`. Resolves styles to produce
+/// text annotations (bold, italic, underline, color, font-size).
 fn build_odt_document_structure(
     archive: &mut zip::ZipArchive<Cursor<Vec<u8>>>,
 ) -> crate::error::Result<crate::types::document_structure::DocumentStructure> {
@@ -333,47 +437,273 @@ fn build_odt_document_structure(
         .map_err(|e| crate::error::KreuzbergError::parsing(format!("Failed to parse content.xml: {}", e)))?;
 
     let root = doc.root_element();
+    let style_map = build_style_map(root);
     let mut builder = DocumentStructureBuilder::new().source_format("odt");
 
     for body_child in root.children() {
         if body_child.tag_name().name() == "body" {
             for text_elem in body_child.children() {
                 if text_elem.tag_name().name() == "text" {
-                    build_structure_from_elements(text_elem, &mut builder);
+                    build_structure_from_elements(text_elem, &mut builder, &style_map);
                 }
             }
         }
     }
 
+    // Extract headers/footers from styles.xml (master pages)
+    extract_odt_headers_footers(archive, &mut builder);
+
     Ok(builder.build())
+}
+
+/// Extract headers and footers from styles.xml master-page elements.
+fn extract_odt_headers_footers(
+    archive: &mut zip::ZipArchive<Cursor<Vec<u8>>>,
+    builder: &mut crate::types::builder::DocumentStructureBuilder,
+) {
+    let mut styles_xml = String::new();
+    if let Ok(mut file) = archive.by_name("styles.xml") {
+        use std::io::Read;
+        if file.read_to_string(&mut styles_xml).is_err() {
+            return;
+        }
+    } else {
+        return;
+    }
+
+    let Ok(doc) = Document::parse(&styles_xml) else {
+        return;
+    };
+
+    for node in doc.root_element().descendants() {
+        match node.tag_name().name() {
+            "header" => {
+                if let Some(text) = extract_node_text(node) {
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        builder.push_header(trimmed, None);
+                    }
+                }
+            }
+            "footer" => {
+                if let Some(text) = extract_node_text(node) {
+                    let trimmed = text.trim();
+                    if !trimmed.is_empty() {
+                        builder.push_footer(trimmed, None);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Collect text and annotations from an ODT paragraph/heading node's children.
+///
+/// Walks `<text:span>` children, resolves their `text:style-name` against the
+/// style map, and produces byte-offset `TextAnnotation`s.
+fn collect_odt_annotations(
+    node: roxmltree::Node,
+    style_map: &AHashMap<String, OdtStyleProps>,
+) -> (String, Vec<crate::types::TextAnnotation>) {
+    use crate::types::builder;
+    use crate::types::document_structure::{AnnotationKind, TextAnnotation};
+
+    let mut text = String::new();
+    let mut annotations = Vec::new();
+
+    for child in node.children() {
+        match child.tag_name().name() {
+            "span" => {
+                let span_text = child.text().unwrap_or("");
+                if span_text.is_empty() {
+                    continue;
+                }
+                let start = text.len() as u32;
+                text.push_str(span_text);
+                let end = text.len() as u32;
+
+                // Resolve style
+                let style_name = child
+                    .attribute(("urn:oasis:names:tc:opendocument:xmlns:text:1.0", "style-name"))
+                    .or_else(|| child.attribute("text:style-name"));
+                if let Some(name) = style_name {
+                    if let Some(props) = style_map.get(name) {
+                        if props.bold {
+                            annotations.push(builder::bold(start, end));
+                        }
+                        if props.italic {
+                            annotations.push(builder::italic(start, end));
+                        }
+                        if props.underline {
+                            annotations.push(builder::underline(start, end));
+                        }
+                        if props.strikethrough {
+                            annotations.push(builder::strikethrough(start, end));
+                        }
+                        if let Some(ref color) = props.color {
+                            annotations.push(TextAnnotation {
+                                start,
+                                end,
+                                kind: AnnotationKind::Color { value: color.clone() },
+                            });
+                        }
+                        if let Some(ref size) = props.font_size {
+                            annotations.push(TextAnnotation {
+                                start,
+                                end,
+                                kind: AnnotationKind::FontSize { value: size.clone() },
+                            });
+                        }
+                    }
+                }
+            }
+            "tab" => {
+                text.push('\t');
+            }
+            "line-break" => {
+                text.push('\n');
+            }
+            "note" => {
+                // Footnotes/endnotes: skip inline (handled separately)
+            }
+            "a" => {
+                // Hyperlinks inside paragraphs
+                let link_text = child.text().unwrap_or("");
+                if !link_text.is_empty() {
+                    let start = text.len() as u32;
+                    text.push_str(link_text);
+                    let end = text.len() as u32;
+                    let url = child
+                        .attribute(("http://www.w3.org/1999/xlink", "href"))
+                        .or_else(|| child.attribute("xlink:href"))
+                        .unwrap_or("");
+                    if !url.is_empty() {
+                        annotations.push(builder::link(start, end, url, None));
+                    }
+                }
+            }
+            _ => {
+                if let Some(t) = child.text() {
+                    text.push_str(t);
+                }
+            }
+        }
+    }
+
+    // Fallback: if no children produced text, try the node's own text
+    if text.is_empty() {
+        if let Some(t) = node.text() {
+            text = t.to_string();
+        }
+    }
+
+    (text, annotations)
 }
 
 /// Recursively walk ODT XML elements and populate the `DocumentStructureBuilder`.
 fn build_structure_from_elements(
     parent: roxmltree::Node,
     builder: &mut crate::types::builder::DocumentStructureBuilder,
+    style_map: &AHashMap<String, OdtStyleProps>,
 ) {
     for node in parent.children() {
         match node.tag_name().name() {
             "h" => {
-                if let Some(text) = extract_node_text(node) {
-                    let trimmed = text.trim();
-                    if !trimmed.is_empty() {
-                        // Try to extract outline level; default to 1
-                        let level = node
-                            .attribute(("urn:oasis:names:tc:opendocument:xmlns:text:1.0", "outline-level"))
-                            .and_then(|v| v.parse::<u8>().ok())
-                            .unwrap_or(1);
-                        builder.push_heading(level, trimmed, None, None);
-                    }
+                let (text, _annotations) = collect_odt_annotations(node, style_map);
+                let trimmed = text.trim();
+                if !trimmed.is_empty() {
+                    let level = node
+                        .attribute(("urn:oasis:names:tc:opendocument:xmlns:text:1.0", "outline-level"))
+                        .and_then(|v| v.parse::<u8>().ok())
+                        .unwrap_or(1);
+                    builder.push_heading(level, trimmed, None, None);
                 }
             }
             "p" => {
-                if let Some(text) = extract_node_text(node) {
-                    let trimmed = text.trim();
-                    if !trimmed.is_empty() {
-                        builder.push_paragraph(trimmed, vec![], None, None);
+                // Check for draw:frame images inside paragraphs
+                let mut has_image = false;
+                for child in node.children() {
+                    if child.tag_name().name() == "frame" {
+                        for frame_child in child.children() {
+                            if frame_child.tag_name().name() == "image" {
+                                let href = frame_child
+                                    .attribute(("http://www.w3.org/1999/xlink", "href"))
+                                    .or_else(|| frame_child.attribute("xlink:href"));
+                                let description = child
+                                    .attribute(("urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0", "title"))
+                                    .or_else(|| child.attribute("svg:title"));
+                                builder.push_image(description.or(href), None, None, None);
+                                has_image = true;
+                            }
+                        }
                     }
+                }
+
+                // Extract footnotes from this paragraph
+                for child in node.descendants() {
+                    if child.tag_name().name() == "note" {
+                        // Find the note-body
+                        for note_child in child.children() {
+                            if note_child.tag_name().name() == "note-body" {
+                                if let Some(note_text) = extract_node_text(note_child) {
+                                    let trimmed = note_text.trim();
+                                    if !trimmed.is_empty() {
+                                        builder.push_footnote(trimmed, None);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Extract office:annotation comments
+                for child in node.descendants() {
+                    if child.tag_name().name() == "annotation" {
+                        let mut annotation_text = String::new();
+                        let mut annotation_author = None;
+                        let mut annotation_date = None;
+                        for ann_child in child.children() {
+                            match ann_child.tag_name().name() {
+                                "p" => {
+                                    if let Some(t) = ann_child.text() {
+                                        if !annotation_text.is_empty() {
+                                            annotation_text.push(' ');
+                                        }
+                                        annotation_text.push_str(t);
+                                    }
+                                }
+                                "creator" => {
+                                    annotation_author = ann_child.text().map(|s| s.to_string());
+                                }
+                                "date" => {
+                                    annotation_date = ann_child.text().map(|s| s.to_string());
+                                }
+                                _ => {}
+                            }
+                        }
+                        if !annotation_text.is_empty() {
+                            let mut attrs = AHashMap::new();
+                            attrs.insert("type".to_string(), "comment".to_string());
+                            attrs.insert("text".to_string(), annotation_text);
+                            if let Some(author) = annotation_author {
+                                attrs.insert("author".to_string(), author);
+                            }
+                            if let Some(date) = annotation_date {
+                                attrs.insert("date".to_string(), date);
+                            }
+                            let idx = builder.push_paragraph("", vec![], None, None);
+                            builder.set_attributes(idx, attrs);
+                        }
+                    }
+                }
+
+                let (text, annotations) = collect_odt_annotations(node, style_map);
+                let trimmed = text.trim();
+                if !trimmed.is_empty() {
+                    builder.push_paragraph(trimmed, annotations, None, None);
+                } else if !has_image {
+                    // Only skip empty paragraphs if no image was emitted
                 }
             }
             "table" => {
@@ -386,7 +716,7 @@ fn build_structure_from_elements(
                 build_list_structure(node, builder);
             }
             "section" => {
-                build_structure_from_elements(node, builder);
+                build_structure_from_elements(node, builder, style_map);
             }
             _ => {}
         }
@@ -1088,5 +1418,113 @@ mod tests {
         let result = extract_node_text(node);
         assert!(result.is_some());
         assert!(!result.unwrap().is_empty());
+    }
+
+    /// Helper to load test ODT, extract with document structure, and return the structure.
+    async fn extract_odt_with_structure(filename: &str) -> Option<crate::types::document_structure::DocumentStructure> {
+        let test_file = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../test_documents/odt")
+            .join(filename);
+        if !test_file.exists() {
+            return None;
+        }
+        let content = std::fs::read(&test_file).expect("Failed to read test ODT");
+        let extractor = OdtExtractor::new();
+        let mut config = ExtractionConfig::default();
+        config.include_document_structure = true;
+        let result = extractor
+            .extract_bytes(&content, "application/vnd.oasis.opendocument.text", &config)
+            .await
+            .expect("ODT extraction failed");
+        result.document
+    }
+
+    #[tokio::test]
+    async fn test_odt_footnote_extraction() {
+        let doc = extract_odt_with_structure("footnote.odt").await;
+        let Some(doc) = doc else { return };
+        // Should contain at least one Footnote node
+        let has_footnote = doc.nodes.iter().any(|n| {
+            matches!(
+                n.content,
+                crate::types::document_structure::NodeContent::Footnote { .. }
+            )
+        });
+        assert!(
+            has_footnote,
+            "Footnote ODT should produce Footnote nodes in document structure"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_odt_header_extraction() {
+        let doc = extract_odt_with_structure("headers.odt").await;
+        let Some(doc) = doc else { return };
+        // Should contain at least one Header-layer node
+        let has_header = doc
+            .nodes
+            .iter()
+            .any(|n| n.content_layer == crate::types::document_structure::ContentLayer::Header);
+        assert!(
+            has_header,
+            "Headers ODT should produce Header-layer nodes in document structure"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_odt_image_extraction() {
+        let doc = extract_odt_with_structure("imageWithCaption.odt").await;
+        let Some(doc) = doc else { return };
+        let has_image = doc
+            .nodes
+            .iter()
+            .any(|n| matches!(n.content, crate::types::document_structure::NodeContent::Image { .. }));
+        assert!(has_image, "Image ODT should produce Image nodes in document structure");
+    }
+
+    #[tokio::test]
+    async fn test_odt_bold_annotations() {
+        let doc = extract_odt_with_structure("bold.odt").await;
+        let Some(doc) = doc else { return };
+        let has_bold = doc.nodes.iter().any(|n| {
+            n.annotations
+                .iter()
+                .any(|a| matches!(a.kind, crate::types::document_structure::AnnotationKind::Bold))
+        });
+        assert!(
+            has_bold,
+            "Bold ODT should produce Bold annotations in document structure"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_odt_italic_annotations() {
+        let doc = extract_odt_with_structure("italic.odt").await;
+        let Some(doc) = doc else { return };
+        let has_italic = doc.nodes.iter().any(|n| {
+            n.annotations
+                .iter()
+                .any(|a| matches!(a.kind, crate::types::document_structure::AnnotationKind::Italic))
+        });
+        assert!(
+            has_italic,
+            "Italic ODT should produce Italic annotations in document structure"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_odt_underline_annotations() {
+        let doc = extract_odt_with_structure("strikeout.odt").await;
+        let Some(doc) = doc else { return };
+        // strikeout.odt should have strikethrough annotations
+        let has_strikethrough = doc.nodes.iter().any(|n| {
+            n.annotations
+                .iter()
+                .any(|a| matches!(a.kind, crate::types::document_structure::AnnotationKind::Strikethrough))
+        });
+        assert!(
+            has_strikethrough,
+            "Strikeout ODT should produce Strikethrough annotations"
+        );
     }
 }

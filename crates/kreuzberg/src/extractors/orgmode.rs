@@ -23,7 +23,7 @@ use crate::plugins::{DocumentExtractor, Plugin};
 #[cfg(feature = "office")]
 use crate::types::builder::DocumentStructureBuilder;
 #[cfg(feature = "office")]
-use crate::types::document_structure::DocumentStructure;
+use crate::types::document_structure::{AnnotationKind, DocumentStructure, TextAnnotation};
 #[cfg(feature = "office")]
 use crate::types::{ExtractionResult, Metadata, Table};
 #[cfg(feature = "office")]
@@ -31,10 +31,10 @@ use ahash::AHashMap;
 #[cfg(feature = "office")]
 use async_trait::async_trait;
 #[cfg(feature = "office")]
-use std::borrow::Cow;
-
 #[cfg(feature = "office")]
 use org::Org;
+#[cfg(feature = "office")]
+use std::borrow::Cow;
 
 /// Org Mode document extractor.
 ///
@@ -212,6 +212,149 @@ impl OrgModeExtractor {
         }
     }
 
+    /// Strip OrgMode inline markup from text and produce annotations with byte offsets.
+    ///
+    /// Handles: `*bold*`, `/italic/`, `_underline_`, `=verbatim=`, `~code~`,
+    /// `+strikethrough+`, and `[[url][desc]]` links.
+    fn parse_inline_markup(raw: &str) -> (String, Vec<TextAnnotation>) {
+        let mut out = String::with_capacity(raw.len());
+        let mut annotations = Vec::new();
+        let bytes = raw.as_bytes();
+        let len = bytes.len();
+        let mut i = 0;
+
+        while i < len {
+            // [[url][description]] or [[url]]
+            if i + 1 < len && bytes[i] == b'[' && bytes[i + 1] == b'[' {
+                if let Some((url, display, consumed_to)) = Self::parse_org_link(raw, i) {
+                    let start = out.len() as u32;
+                    out.push_str(&display);
+                    let end = out.len() as u32;
+                    if start < end {
+                        annotations.push(TextAnnotation {
+                            start,
+                            end,
+                            kind: AnnotationKind::Link { url, title: None },
+                        });
+                    }
+                    i = consumed_to;
+                    continue;
+                }
+            }
+
+            // Org markup characters: *bold*, /italic/, _underline_, =verbatim=, ~code~, +strike+
+            if bytes[i].is_ascii() && Self::is_org_markup_char(bytes[i]) {
+                let marker = bytes[i];
+                // Must be preceded by whitespace/BOL and followed by non-space
+                let preceded_ok =
+                    i == 0 || bytes[i - 1].is_ascii_whitespace() || bytes[i - 1] == b'(' || bytes[i - 1] == b'"';
+                if preceded_ok && i + 1 < len && !bytes[i + 1].is_ascii_whitespace() {
+                    if let Some(close) = Self::find_org_markup_close(bytes, i + 1, marker) {
+                        let inner = &raw[i + 1..close];
+                        let start = out.len() as u32;
+                        out.push_str(inner);
+                        let end_off = out.len() as u32;
+                        let kind = match marker {
+                            b'*' => AnnotationKind::Bold,
+                            b'/' => AnnotationKind::Italic,
+                            b'_' => AnnotationKind::Underline,
+                            b'=' | b'~' => AnnotationKind::Code,
+                            b'+' => AnnotationKind::Strikethrough,
+                            _ => unreachable!(),
+                        };
+                        if start < end_off {
+                            annotations.push(TextAnnotation {
+                                start,
+                                end: end_off,
+                                kind,
+                            });
+                        }
+                        i = close + 1;
+                        continue;
+                    }
+                }
+            }
+
+            // Decode the current UTF-8 character properly instead of casting byte to char
+            let ch = &raw[i..];
+            let c = ch.chars().next().unwrap();
+            out.push(c);
+            i += c.len_utf8();
+        }
+
+        (out, annotations)
+    }
+
+    fn is_org_markup_char(b: u8) -> bool {
+        matches!(b, b'*' | b'/' | b'_' | b'=' | b'~' | b'+')
+    }
+
+    /// Find the closing position of an Org markup character.
+    /// The closing marker must not be preceded by whitespace.
+    fn find_org_markup_close(bytes: &[u8], from: usize, marker: u8) -> Option<usize> {
+        let mut j = from;
+        while j < bytes.len() {
+            if bytes[j] == marker && j > from && !bytes[j - 1].is_ascii_whitespace() {
+                // Must be followed by whitespace, punctuation, or EOL
+                if j + 1 >= bytes.len()
+                    || bytes[j + 1].is_ascii_whitespace()
+                    || bytes[j + 1] == b'.'
+                    || bytes[j + 1] == b','
+                    || bytes[j + 1] == b';'
+                    || bytes[j + 1] == b':'
+                    || bytes[j + 1] == b')'
+                    || bytes[j + 1] == b']'
+                    || bytes[j + 1] == b'"'
+                {
+                    return Some(j);
+                }
+            }
+            j += 1;
+        }
+        None
+    }
+
+    /// Parse `[[url][desc]]` or `[[url]]` starting at position `start` (the first `[`).
+    /// Returns `(url, display_text, end_position)`.
+    fn parse_org_link(text: &str, start: usize) -> Option<(String, String, usize)> {
+        if !text[start..].starts_with("[[") {
+            return None;
+        }
+        let after_open = start + 2;
+        let rest = &text[after_open..];
+        if let Some(desc_start) = rest.find("][") {
+            let url = &rest[..desc_start];
+            let desc_begin = after_open + desc_start + 2;
+            if let Some(close) = text[desc_begin..].find("]]") {
+                let description = &text[desc_begin..desc_begin + close];
+                return Some((url.to_string(), description.to_string(), desc_begin + close + 2));
+            }
+        } else if let Some(close) = rest.find("]]") {
+            let url = &rest[..close];
+            return Some((url.to_string(), url.to_string(), after_open + close + 2));
+        }
+        None
+    }
+
+    /// Parse `[fn:name]` footnote references from text, returning label names.
+    fn find_footnote_references(line: &str) -> Vec<String> {
+        let mut refs = Vec::new();
+        let mut search_from = 0;
+        while let Some(pos) = line[search_from..].find("[fn:") {
+            let abs_pos = search_from + pos;
+            if let Some(close) = line[abs_pos..].find(']') {
+                let label = &line[abs_pos + 4..abs_pos + close];
+                if !label.is_empty() {
+                    refs.push(label.to_string());
+                }
+                search_from = abs_pos + close + 1;
+            } else {
+                break;
+            }
+        }
+        refs
+    }
+
     /// Build a `DocumentStructure` from Org Mode source text.
     fn build_document_structure(org_text: &str) -> DocumentStructure {
         let mut builder = DocumentStructureBuilder::new().source_format("orgmode");
@@ -253,7 +396,35 @@ impl OrgModeExtractor {
                 continue;
             }
 
-            // Headings: * Level 1, ** Level 2, etc.
+            // Properties drawer: :PROPERTIES: ... :END:
+            if trimmed == ":PROPERTIES:" {
+                let mut props: Vec<(String, String)> = Vec::new();
+                i += 1;
+                while i < lines.len() {
+                    let pt = lines[i].trim();
+                    if pt == ":END:" {
+                        i += 1;
+                        break;
+                    }
+                    // Parse :KEY: value
+                    if pt.starts_with(':') && pt.len() > 1 {
+                        if let Some(colon2) = pt[1..].find(':') {
+                            let key = pt[1..1 + colon2].to_string();
+                            let value = pt[2 + colon2..].trim().to_string();
+                            if !key.is_empty() {
+                                props.push((key, value));
+                            }
+                        }
+                    }
+                    i += 1;
+                }
+                if !props.is_empty() {
+                    builder.push_metadata_block(props, None);
+                }
+                continue;
+            }
+
+            // Headings: * Level 1, ** Level 2, etc. with TODO/tags
             if trimmed.starts_with('*') {
                 let mut level: u8 = 0;
                 for ch in trimmed.chars() {
@@ -264,9 +435,52 @@ impl OrgModeExtractor {
                     }
                 }
                 if level > 0 && trimmed.len() > level as usize && trimmed.as_bytes()[level as usize] == b' ' {
-                    let heading_text = trimmed[level as usize + 1..].trim();
-                    if !heading_text.is_empty() {
-                        builder.push_heading(level, heading_text, None, None);
+                    let raw_heading = trimmed[level as usize + 1..].trim();
+                    if !raw_heading.is_empty() {
+                        // Parse TODO keyword and tags
+                        let todo_keywords = ["TODO", "DONE", "NEXT", "WAITING", "CANCELLED", "CANCELED"];
+                        let mut heading_text = raw_heading;
+                        let mut todo_keyword: Option<&str> = None;
+                        let mut tags: Option<String> = None;
+
+                        // Check for TODO keyword at start
+                        for kw in &todo_keywords {
+                            if heading_text.starts_with(kw) {
+                                let after = &heading_text[kw.len()..];
+                                if after.is_empty() || after.starts_with(' ') {
+                                    todo_keyword = Some(kw);
+                                    heading_text = after.trim_start();
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Check for tags at end  :tag1:tag2:
+                        if let Some(tag_start) = heading_text.rfind(" :") {
+                            let potential_tags = &heading_text[tag_start + 1..];
+                            if potential_tags.ends_with(':')
+                                && potential_tags.len() > 2
+                                && potential_tags[1..potential_tags.len() - 1]
+                                    .chars()
+                                    .all(|c| c.is_alphanumeric() || c == ':' || c == '_' || c == '@')
+                            {
+                                tags = Some(potential_tags.to_string());
+                                heading_text = heading_text[..tag_start].trim_end();
+                            }
+                        }
+
+                        let heading_idx = builder.push_heading(level, heading_text, None, None);
+                        // Store TODO and tags as attributes
+                        if todo_keyword.is_some() || tags.is_some() {
+                            let mut attrs = AHashMap::new();
+                            if let Some(kw) = todo_keyword {
+                                attrs.insert("todo".to_string(), kw.to_string());
+                            }
+                            if let Some(t) = tags {
+                                attrs.insert("tags".to_string(), t);
+                            }
+                            builder.set_attributes(heading_idx, attrs);
+                        }
                     }
                     i += 1;
                     continue;
@@ -372,7 +586,7 @@ impl OrgModeExtractor {
                 continue;
             }
 
-            // Lists: - item, + item, 1. item, 1) item
+            // Lists: - item, + item, 1. item, 1) item, with checkbox support
             if !trimmed.is_empty() && Self::is_org_list_item(trimmed) {
                 let is_ordered = Self::is_org_ordered_item(trimmed);
                 let list_idx = builder.push_list(is_ordered, None);
@@ -382,15 +596,33 @@ impl OrgModeExtractor {
                         break;
                     }
                     let text = Self::strip_list_prefix(t);
-                    builder.push_list_item(list_idx, text, None);
+                    // Check for checkbox: [ ] or [x] or [X]
+                    let (item_text, checkbox_state) = if text.starts_with("[ ] ") {
+                        (&text[4..], Some("unchecked"))
+                    } else if text.starts_with("[x] ") || text.starts_with("[X] ") {
+                        (&text[4..], Some("checked"))
+                    } else {
+                        (text, None)
+                    };
+                    let item_idx = builder.push_list_item(list_idx, item_text, None);
+                    if let Some(state) = checkbox_state {
+                        let mut attrs = AHashMap::new();
+                        attrs.insert("checkbox".to_string(), state.to_string());
+                        builder.set_attributes(item_idx, attrs);
+                    }
                     i += 1;
                 }
                 continue;
             }
 
-            // Regular paragraph
+            // Regular paragraph with inline markup
             if !trimmed.is_empty() {
-                builder.push_paragraph(trimmed, vec![], None, None);
+                let footnote_refs = Self::find_footnote_references(trimmed);
+                let (stripped, annotations) = Self::parse_inline_markup(trimmed);
+                builder.push_paragraph(&stripped, annotations, None, None);
+                for fref in footnote_refs {
+                    builder.push_footnote(&format!("[fn:{}]", fref), None);
+                }
             }
 
             i += 1;

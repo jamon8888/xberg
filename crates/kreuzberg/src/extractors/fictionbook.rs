@@ -12,8 +12,9 @@
 
 use crate::Result;
 use crate::core::config::ExtractionConfig;
+use crate::extraction::{cells_to_markdown, cells_to_text};
 use crate::plugins::{DocumentExtractor, Plugin};
-use crate::types::{ExtractionResult, Metadata};
+use crate::types::{ExtractionResult, Metadata, Table};
 use async_trait::async_trait;
 use quick_xml::Reader;
 use quick_xml::events::Event;
@@ -211,8 +212,8 @@ impl FictionBookExtractor {
                     let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
                     let had_leading_space = decoded.starts_with(char::is_whitespace);
                     let had_trailing_space = decoded.ends_with(char::is_whitespace);
-                    let normalized = decoded.split_whitespace().collect::<Vec<_>>().join(" ");
-                    let trimmed = normalized.as_str();
+                    let normalized = crate::utils::normalize_whitespace(&decoded);
+                    let trimmed = normalized.as_ref();
                     if !trimmed.is_empty() {
                         if in_sub {
                             sub_buf.push_str(trimmed);
@@ -306,8 +307,8 @@ impl FictionBookExtractor {
                 Ok(Event::Text(t)) => {
                     let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
                     let had_trailing_space = decoded.ends_with(char::is_whitespace);
-                    let normalized = decoded.split_whitespace().collect::<Vec<_>>().join(" ");
-                    let trimmed = normalized.as_str();
+                    let normalized = crate::utils::normalize_whitespace(&decoded);
+                    let trimmed = normalized.as_ref();
                     if !trimmed.is_empty() {
                         let starts_with_punct = trimmed.starts_with(['.', ',', ';', ':', '!', '?', ')', ']', '[']);
                         if !text.is_empty() && !text.ends_with(' ') && !text.ends_with('\n') && !starts_with_punct {
@@ -356,12 +357,119 @@ impl FictionBookExtractor {
         Ok(text)
     }
 
+    /// Extract a table from FB2 `<table>` element.
+    /// FB2 tables use `<tr>` for rows and `<td>`/`<th>` for cells.
+    fn extract_table(reader: &mut Reader<&[u8]>) -> Result<Vec<Vec<String>>> {
+        let mut table: Vec<Vec<String>> = Vec::new();
+        let mut current_row: Vec<String> = Vec::new();
+        let mut in_row = false;
+        let mut table_depth = 1;
+
+        loop {
+            match reader.read_event() {
+                Ok(Event::Start(e)) => {
+                    let name = e.name();
+                    let tag = crate::utils::xml_tag_name(name.as_ref());
+                    match tag.as_ref() {
+                        "table" => table_depth += 1,
+                        "tr" => {
+                            in_row = true;
+                            current_row.clear();
+                        }
+                        "td" | "th" if in_row => {
+                            let cell_text = Self::extract_text_content(reader)?;
+                            current_row.push(cell_text);
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(Event::End(e)) => {
+                    let name = e.name();
+                    let tag = crate::utils::xml_tag_name(name.as_ref());
+                    match tag.as_ref() {
+                        "table" => {
+                            table_depth -= 1;
+                            if table_depth == 0 {
+                                break;
+                            }
+                        }
+                        "tr" if in_row => {
+                            if !current_row.is_empty() {
+                                table.push(std::mem::take(&mut current_row));
+                            }
+                            in_row = false;
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(Event::Eof) => break,
+                Err(e) => {
+                    return Err(crate::error::KreuzbergError::parsing(format!(
+                        "XML parsing error in table: {}",
+                        e
+                    )));
+                }
+                _ => {}
+            }
+        }
+
+        Ok(table)
+    }
+
+    /// Extract all tables from FictionBook body for the `tables` field in ExtractionResult.
+    fn extract_tables_from_body(data: &[u8]) -> Result<Vec<Table>> {
+        let mut reader = Reader::from_reader(data);
+        let mut tables = Vec::new();
+        let mut table_index = 0;
+
+        loop {
+            match reader.read_event() {
+                Ok(Event::Start(e)) => {
+                    let name = e.name();
+                    let tag = crate::utils::xml_tag_name(name.as_ref());
+                    if tag == "table" {
+                        if let Ok(cells) = Self::extract_table(&mut reader) {
+                            if !cells.is_empty() {
+                                let markdown = cells_to_markdown(&cells);
+                                tables.push(Table {
+                                    cells,
+                                    markdown,
+                                    page_number: table_index + 1,
+                                    bounding_box: None,
+                                });
+                                table_index += 1;
+                            }
+                        }
+                    }
+                }
+                Ok(Event::Eof) => break,
+                Err(_) => break,
+                _ => {}
+            }
+        }
+
+        Ok(tables)
+    }
+
     /// Extract metadata from FictionBook document.
     fn extract_metadata(data: &[u8]) -> Result<Metadata> {
         let mut reader = Reader::from_reader(data);
         let mut metadata = Metadata::default();
+        let mut additional = ahash::AHashMap::new();
         let mut in_title_info = false;
         let mut in_description = false;
+        let mut in_author = false;
+        let mut in_annotation = false;
+        let mut genres: Vec<String> = Vec::new();
+        let mut sequences: Vec<String> = Vec::new();
+        let mut authors: Vec<String> = Vec::new();
+        let mut annotation_text = String::new();
+
+        // Author name parts
+        let mut first_name = String::new();
+        let mut middle_name = String::new();
+        let mut last_name = String::new();
+        let mut nickname = String::new();
 
         loop {
             match reader.read_event() {
@@ -376,12 +484,64 @@ impl FictionBookExtractor {
                         "title-info" if in_description => {
                             in_title_info = true;
                         }
+                        "author" if in_title_info => {
+                            in_author = true;
+                            first_name.clear();
+                            middle_name.clear();
+                            last_name.clear();
+                            nickname.clear();
+                        }
+                        "first-name" if in_author => {
+                            if let Ok(Event::Text(t)) = reader.read_event() {
+                                first_name = String::from_utf8_lossy(t.as_ref()).trim().to_string();
+                            }
+                        }
+                        "middle-name" if in_author => {
+                            if let Ok(Event::Text(t)) = reader.read_event() {
+                                middle_name = String::from_utf8_lossy(t.as_ref()).trim().to_string();
+                            }
+                        }
+                        "last-name" if in_author => {
+                            if let Ok(Event::Text(t)) = reader.read_event() {
+                                last_name = String::from_utf8_lossy(t.as_ref()).trim().to_string();
+                            }
+                        }
+                        "nickname" if in_author => {
+                            if let Ok(Event::Text(t)) = reader.read_event() {
+                                nickname = String::from_utf8_lossy(t.as_ref()).trim().to_string();
+                            }
+                        }
+                        "annotation" if in_title_info => {
+                            in_annotation = true;
+                            annotation_text.clear();
+                        }
                         "genre" if in_title_info => {
                             if let Ok(Event::Text(t)) = reader.read_event() {
                                 let genre = String::from_utf8_lossy(t.as_ref());
                                 if !genre.trim().is_empty() && genre.trim() != "unrecognised" {
-                                    metadata.subject = Some(genre.trim().to_string());
+                                    genres.push(genre.trim().to_string());
                                 }
+                            }
+                        }
+                        "sequence" if in_title_info => {
+                            let mut seq_name = String::new();
+                            let mut seq_number = String::new();
+                            for attr in e.attributes().flatten() {
+                                let attr_name = String::from_utf8_lossy(attr.key.as_ref());
+                                let attr_value = String::from_utf8_lossy(attr.value.as_ref());
+                                if attr_name == "name" {
+                                    seq_name = attr_value.to_string();
+                                } else if attr_name == "number" {
+                                    seq_number = attr_value.to_string();
+                                }
+                            }
+                            if !seq_name.is_empty() {
+                                let entry = if seq_number.is_empty() {
+                                    seq_name
+                                } else {
+                                    format!("{} #{}", seq_name, seq_number)
+                                };
+                                sequences.push(entry);
                             }
                         }
                         "date" if in_title_info => {
@@ -400,16 +560,91 @@ impl FictionBookExtractor {
                                 }
                             }
                         }
+                        "book-title" if in_title_info => {
+                            if let Ok(Event::Text(t)) = reader.read_event() {
+                                let title = String::from_utf8_lossy(t.as_ref());
+                                if !title.trim().is_empty() {
+                                    metadata.title = Some(title.trim().to_string());
+                                }
+                            }
+                        }
                         _ => {}
                     }
                 }
                 Ok(Event::End(e)) => {
                     let name = e.name();
                     let tag = crate::utils::xml_tag_name(name.as_ref());
-                    if tag == "title-info" {
-                        in_title_info = false;
-                    } else if tag == "description" {
-                        in_description = false;
+                    match tag.as_ref() {
+                        "title-info" => {
+                            in_title_info = false;
+                        }
+                        "description" => {
+                            in_description = false;
+                        }
+                        "author" if in_author => {
+                            in_author = false;
+                            // Build full author name from parts
+                            let mut parts = Vec::new();
+                            if !first_name.is_empty() {
+                                parts.push(first_name.clone());
+                            }
+                            if !middle_name.is_empty() {
+                                parts.push(middle_name.clone());
+                            }
+                            if !last_name.is_empty() {
+                                parts.push(last_name.clone());
+                            }
+                            let full_name = parts.join(" ");
+                            if !full_name.is_empty() {
+                                // Store individual name parts in additional metadata
+                                let mut author_detail = serde_json::Map::new();
+                                if !first_name.is_empty() {
+                                    author_detail.insert("first_name".to_string(), serde_json::json!(first_name));
+                                }
+                                if !middle_name.is_empty() {
+                                    author_detail.insert("middle_name".to_string(), serde_json::json!(middle_name));
+                                }
+                                if !last_name.is_empty() {
+                                    author_detail.insert("last_name".to_string(), serde_json::json!(last_name));
+                                }
+                                if !nickname.is_empty() {
+                                    author_detail.insert("nickname".to_string(), serde_json::json!(nickname));
+                                }
+                                authors.push(full_name);
+
+                                // Store author details in additional metadata as array
+                                let existing = additional
+                                    .entry(std::borrow::Cow::Borrowed("author_details"))
+                                    .or_insert_with(|| serde_json::json!([]));
+                                if let serde_json::Value::Array(arr) = existing {
+                                    arr.push(serde_json::Value::Object(author_detail));
+                                }
+                            } else if !nickname.is_empty() {
+                                authors.push(nickname.clone());
+                                let mut author_detail = serde_json::Map::new();
+                                author_detail.insert("nickname".to_string(), serde_json::json!(nickname));
+                                let existing = additional
+                                    .entry(std::borrow::Cow::Borrowed("author_details"))
+                                    .or_insert_with(|| serde_json::json!([]));
+                                if let serde_json::Value::Array(arr) = existing {
+                                    arr.push(serde_json::Value::Object(author_detail));
+                                }
+                            }
+                        }
+                        "annotation" if in_annotation => {
+                            in_annotation = false;
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(Event::Text(t)) if in_annotation => {
+                    let decoded = String::from_utf8_lossy(t.as_ref());
+                    let trimmed = decoded.trim();
+                    if !trimmed.is_empty() {
+                        if !annotation_text.is_empty() {
+                            annotation_text.push(' ');
+                        }
+                        annotation_text.push_str(trimmed);
                     }
                 }
                 Ok(Event::Eof) => break,
@@ -417,6 +652,28 @@ impl FictionBookExtractor {
                 _ => {}
             }
         }
+
+        if !genres.is_empty() {
+            metadata.subject = Some(genres.join(", "));
+            additional.insert(std::borrow::Cow::Borrowed("genres"), serde_json::json!(genres));
+        }
+
+        if !sequences.is_empty() {
+            additional.insert(std::borrow::Cow::Borrowed("sequences"), serde_json::json!(sequences));
+        }
+
+        if !authors.is_empty() {
+            metadata.authors = Some(authors);
+        }
+
+        if !annotation_text.is_empty() {
+            additional.insert(
+                std::borrow::Cow::Borrowed("annotation"),
+                serde_json::json!(annotation_text),
+            );
+        }
+
+        metadata.additional = additional;
 
         Ok(metadata)
     }
@@ -773,8 +1030,8 @@ impl FictionBookExtractor {
                     let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
                     let had_leading_space = decoded.starts_with(char::is_whitespace);
                     let had_trailing_space = decoded.ends_with(char::is_whitespace);
-                    let normalized = decoded.split_whitespace().collect::<Vec<_>>().join(" ");
-                    let trimmed = normalized.as_str();
+                    let normalized = crate::utils::normalize_whitespace(&decoded);
+                    let trimmed = normalized.as_ref();
                     if !trimmed.is_empty() {
                         if in_sub {
                             sub_buf.push_str(trimmed);
@@ -947,6 +1204,18 @@ impl FictionBookExtractor {
                             }
                             _ => {}
                         },
+                        "table" => {
+                            if let Ok(table_cells) = Self::extract_table(reader) {
+                                if !table_cells.is_empty() {
+                                    if plain {
+                                        content.push_str(&cells_to_text(&table_cells));
+                                    } else {
+                                        content.push_str(&cells_to_markdown(&table_cells));
+                                    }
+                                    content.push_str("\n\n");
+                                }
+                            }
+                        }
                         "empty-line" => {
                             content.push_str(HORIZONTAL_RULE);
                             content.push_str("\n\n");
@@ -1136,8 +1405,8 @@ impl FictionBookExtractor {
                 }
                 Ok(Event::Text(t)) => {
                     let decoded = String::from_utf8_lossy(t.as_ref()).to_string();
-                    let normalized = decoded.split_whitespace().collect::<Vec<_>>().join(" ");
-                    let trimmed = normalized.as_str();
+                    let normalized = crate::utils::normalize_whitespace(&decoded);
+                    let trimmed = normalized.as_ref();
                     if !trimmed.is_empty() {
                         if !text.is_empty() && !text.ends_with(' ') {
                             text.push(' ');
@@ -1251,6 +1520,7 @@ impl DocumentExtractor for FictionBookExtractor {
         );
 
         let extracted_content = Self::extract_body_content(content, plain)?;
+        let tables = Self::extract_tables_from_body(content)?;
 
         let document = if config.include_document_structure {
             Some(Self::build_document_structure(content)?)
@@ -1262,7 +1532,7 @@ impl DocumentExtractor for FictionBookExtractor {
             content: extracted_content,
             mime_type: mime_type.to_string().into(),
             metadata,
-            tables: vec![],
+            tables,
             detected_languages: None,
             chunks: None,
             images: None,
@@ -1323,5 +1593,163 @@ mod tests {
         let extractor = FictionBookExtractor::new();
         assert!(extractor.initialize().is_ok());
         assert!(extractor.shutdown().is_ok());
+    }
+
+    #[test]
+    fn test_fictionbook_author_details() {
+        let fb2 = br#"<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook>
+  <description>
+    <title-info>
+      <author>
+        <first-name>Leo</first-name>
+        <middle-name>Nikolaevich</middle-name>
+        <last-name>Tolstoy</last-name>
+        <nickname>LNT</nickname>
+      </author>
+      <book-title>War and Peace</book-title>
+      <genre>fiction</genre>
+      <lang>ru</lang>
+    </title-info>
+  </description>
+  <body><section><p>Content.</p></section></body>
+</FictionBook>"#;
+
+        let metadata = FictionBookExtractor::extract_metadata(fb2).expect("Metadata extraction failed");
+        assert_eq!(metadata.title, Some("War and Peace".to_string()));
+        assert!(metadata.authors.is_some());
+        let authors = metadata.authors.expect("authors should be present");
+        assert_eq!(authors.len(), 1);
+        assert!(authors[0].contains("Leo"), "expected first name, got: {}", authors[0]);
+        assert!(
+            authors[0].contains("Tolstoy"),
+            "expected last name, got: {}",
+            authors[0]
+        );
+
+        // Check author details in additional metadata
+        let details = metadata
+            .additional
+            .get("author_details")
+            .expect("expected author_details");
+        assert!(details.is_array());
+        let arr = details.as_array().expect("author_details should be an array");
+        assert_eq!(arr.len(), 1);
+        assert_eq!(arr[0]["first_name"], "Leo");
+        assert_eq!(arr[0]["middle_name"], "Nikolaevich");
+        assert_eq!(arr[0]["last_name"], "Tolstoy");
+        assert_eq!(arr[0]["nickname"], "LNT");
+    }
+
+    #[test]
+    fn test_fictionbook_genre_metadata() {
+        let fb2 = br#"<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook>
+  <description>
+    <title-info>
+      <genre>sci_fi</genre>
+      <genre>adventure</genre>
+      <lang>en</lang>
+    </title-info>
+  </description>
+  <body><section><p>Content.</p></section></body>
+</FictionBook>"#;
+
+        let metadata = FictionBookExtractor::extract_metadata(fb2).expect("Metadata extraction failed");
+        assert!(metadata.subject.is_some());
+        let subject = metadata.subject.expect("subject should be present");
+        assert!(subject.contains("sci_fi"), "expected sci_fi genre, got: {subject}");
+        assert!(
+            subject.contains("adventure"),
+            "expected adventure genre, got: {subject}"
+        );
+
+        let genres = metadata.additional.get("genres").expect("expected genres array");
+        assert!(genres.is_array());
+        assert_eq!(genres.as_array().expect("genres should be an array").len(), 2);
+    }
+
+    #[test]
+    fn test_fictionbook_annotation() {
+        let fb2 = br#"<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook>
+  <description>
+    <title-info>
+      <annotation>
+        <p>This is the book annotation describing the plot.</p>
+      </annotation>
+      <lang>en</lang>
+    </title-info>
+  </description>
+  <body><section><p>Content.</p></section></body>
+</FictionBook>"#;
+
+        let metadata = FictionBookExtractor::extract_metadata(fb2).expect("Metadata extraction failed");
+        let annotation = metadata.additional.get("annotation").expect("expected annotation");
+        assert!(
+            annotation
+                .as_str()
+                .expect("annotation should be a string")
+                .contains("book annotation"),
+            "expected annotation text, got: {}",
+            annotation
+        );
+    }
+
+    #[test]
+    fn test_fictionbook_sequence() {
+        let fb2 = br#"<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook>
+  <description>
+    <title-info>
+      <sequence name="Foundation Series" number="3"/>
+      <lang>en</lang>
+    </title-info>
+  </description>
+  <body><section><p>Content.</p></section></body>
+</FictionBook>"#;
+
+        let metadata = FictionBookExtractor::extract_metadata(fb2).expect("Metadata extraction failed");
+        let sequences = metadata.additional.get("sequences").expect("expected sequences");
+        assert!(sequences.is_array());
+        let arr = sequences.as_array().expect("sequences should be an array");
+        assert_eq!(arr.len(), 1);
+        assert!(
+            arr[0]
+                .as_str()
+                .expect("sequence entry should be a string")
+                .contains("Foundation Series")
+        );
+        assert!(
+            arr[0]
+                .as_str()
+                .expect("sequence entry should be a string")
+                .contains("#3")
+        );
+    }
+
+    #[test]
+    fn test_fictionbook_tables() {
+        let fb2 = br#"<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook>
+  <description>
+    <title-info><lang>en</lang></title-info>
+  </description>
+  <body>
+    <section>
+      <table>
+        <tr><th>Name</th><th>Age</th></tr>
+        <tr><td>Alice</td><td>30</td></tr>
+        <tr><td>Bob</td><td>25</td></tr>
+      </table>
+    </section>
+  </body>
+</FictionBook>"#;
+
+        let tables = FictionBookExtractor::extract_tables_from_body(fb2).expect("Table extraction failed");
+        assert_eq!(tables.len(), 1);
+        assert_eq!(tables[0].cells.len(), 3);
+        assert_eq!(tables[0].cells[0], vec!["Name", "Age"]);
+        assert_eq!(tables[0].cells[1], vec!["Alice", "30"]);
     }
 }

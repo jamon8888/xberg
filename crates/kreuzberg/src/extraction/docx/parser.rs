@@ -64,6 +64,14 @@ pub struct Run {
     pub italic: bool,
     pub underline: bool,
     pub strikethrough: bool,
+    pub subscript: bool,
+    pub superscript: bool,
+    /// Font size in half-points (from `w:sz`).
+    pub font_size: Option<u32>,
+    /// Font color as "RRGGBB" hex (from `w:color`).
+    pub font_color: Option<String>,
+    /// Highlight color name (from `w:highlight`).
+    pub highlight: Option<String>,
     pub hyperlink_url: Option<String>,
     /// LaTeX math content: (latex_source, is_display_math).
     /// When set, this run represents an equation and `text` is ignored.
@@ -828,9 +836,11 @@ impl TableContext {
     }
 }
 
-/// Apply run-level formatting from a `<w:b>`, `<w:i>`, `<w:u>`, `<w:strike>`, or `<w:dstrike>` element.
+/// Apply run-level formatting from run property child elements.
 ///
-/// Works for both `Event::Start` and `Event::Empty` events, eliminating duplication.
+/// Handles `<w:b>`, `<w:i>`, `<w:u>`, `<w:strike>`, `<w:dstrike>`,
+/// `<w:vertAlign>`, `<w:sz>`, `<w:color>`, and `<w:highlight>`.
+/// Works for both `Event::Start` and `Event::Empty` events.
 fn apply_run_formatting(e: &BytesStart, current_run: &mut Option<Run>) {
     if let Some(run) = current_run {
         match e.name().as_ref() as &[u8] {
@@ -838,6 +848,61 @@ fn apply_run_formatting(e: &BytesStart, current_run: &mut Option<Run>) {
             b"w:i" => run.italic = is_format_enabled(e),
             b"w:u" => run.underline = is_format_enabled(e),
             b"w:strike" | b"w:dstrike" => run.strikethrough = is_format_enabled(e),
+            b"w:vertAlign" => {
+                if let Some(val) = get_val_attr_string(e) {
+                    match val.as_str() {
+                        "subscript" => {
+                            run.subscript = true;
+                            run.superscript = false;
+                        }
+                        "superscript" => {
+                            run.superscript = true;
+                            run.subscript = false;
+                        }
+                        _ => {
+                            run.subscript = false;
+                            run.superscript = false;
+                        }
+                    }
+                }
+            }
+            b"w:sz" => {
+                if let Some(val) = get_val_attr(e) {
+                    run.font_size = Some(val as u32);
+                }
+            }
+            b"w:color" => {
+                if let Some(val) = get_val_attr_string(e) {
+                    if val != "auto" && val.len() == 6 && val.chars().all(|c| c.is_ascii_hexdigit()) {
+                        run.font_color = Some(val);
+                    }
+                }
+            }
+            b"w:highlight" => {
+                if let Some(val) = get_val_attr_string(e) {
+                    const VALID_HIGHLIGHTS: &[&str] = &[
+                        "yellow",
+                        "green",
+                        "cyan",
+                        "magenta",
+                        "blue",
+                        "red",
+                        "darkBlue",
+                        "darkCyan",
+                        "darkGreen",
+                        "darkMagenta",
+                        "darkRed",
+                        "darkYellow",
+                        "darkGray",
+                        "lightGray",
+                        "black",
+                        "none",
+                    ];
+                    if VALID_HIGHLIGHTS.contains(&val.as_str()) {
+                        run.highlight = Some(val);
+                    }
+                }
+            }
             _ => {}
         }
     }
@@ -1198,7 +1263,8 @@ impl<R: Read + Seek> DocxParser<R> {
                             cell.properties = Some(super::table::parse_cell_properties(&mut reader));
                         }
                     }
-                    b"w:b" | b"w:i" | b"w:u" | b"w:strike" | b"w:dstrike" => {
+                    b"w:b" | b"w:i" | b"w:u" | b"w:strike" | b"w:dstrike" | b"w:vertAlign" | b"w:sz" | b"w:color"
+                    | b"w:highlight" => {
                         apply_run_formatting(e, &mut current_run);
                     }
                     b"w:pStyle" | b"w:ilvl" | b"w:numId" => {
@@ -1243,7 +1309,8 @@ impl<R: Read + Seek> DocxParser<R> {
                             }
                         }
                     }
-                    b"w:b" | b"w:i" | b"w:u" | b"w:strike" | b"w:dstrike" => {
+                    b"w:b" | b"w:i" | b"w:u" | b"w:strike" | b"w:dstrike" | b"w:vertAlign" | b"w:sz" | b"w:color"
+                    | b"w:highlight" => {
                         apply_run_formatting(e, &mut current_run);
                     }
                     b"w:pStyle" | b"w:ilvl" | b"w:numId" => {
@@ -1542,38 +1609,16 @@ impl<R: Read + Seek> DocxParser<R> {
                     b"w:p" => current_paragraph = Some(Paragraph::new()),
                     b"w:r" => current_run = Some(Run::default()),
                     b"w:t" => in_text = true,
-                    b"w:b" => {
-                        if let Some(ref mut run) = current_run {
-                            run.bold = is_format_enabled(e);
-                        }
-                    }
-                    b"w:i" => {
-                        if let Some(ref mut run) = current_run {
-                            run.italic = is_format_enabled(e);
-                        }
-                    }
-                    b"w:u" => {
-                        if let Some(ref mut run) = current_run {
-                            run.underline = is_format_enabled(e);
-                        }
+                    b"w:b" | b"w:i" | b"w:u" | b"w:strike" | b"w:dstrike" | b"w:vertAlign" | b"w:sz" | b"w:color"
+                    | b"w:highlight" => {
+                        apply_run_formatting(e, &mut current_run);
                     }
                     _ => {}
                 },
                 Ok(Event::Empty(ref e)) => match e.name().as_ref() as &[u8] {
-                    b"w:b" => {
-                        if let Some(ref mut run) = current_run {
-                            run.bold = is_format_enabled(e);
-                        }
-                    }
-                    b"w:i" => {
-                        if let Some(ref mut run) = current_run {
-                            run.italic = is_format_enabled(e);
-                        }
-                    }
-                    b"w:u" => {
-                        if let Some(ref mut run) = current_run {
-                            run.underline = is_format_enabled(e);
-                        }
+                    b"w:b" | b"w:i" | b"w:u" | b"w:strike" | b"w:dstrike" | b"w:vertAlign" | b"w:sz" | b"w:color"
+                    | b"w:highlight" => {
+                        apply_run_formatting(e, &mut current_run);
                     }
                     _ => {}
                 },

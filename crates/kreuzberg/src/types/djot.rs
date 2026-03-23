@@ -2,8 +2,8 @@
 //!
 //! This module defines types for representing Djot document structures.
 
+use ahash::AHashMap;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // Import Metadata and Table from parent module
 use super::Table;
@@ -125,7 +125,7 @@ pub struct InlineElement {
 
     /// Additional metadata (e.g., href for links, src/alt for images)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata: Option<HashMap<String, String>>,
+    pub metadata: Option<AHashMap<String, String>>,
 }
 
 /// Types of inline elements in Djot.

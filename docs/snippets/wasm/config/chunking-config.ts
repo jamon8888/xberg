@@ -15,6 +15,15 @@ async function extractWithChunking() {
 		},
 	};
 
+	// Example: prepend heading context so each chunk carries its heading breadcrumb
+	const configWithHeadings: ExtractionConfig = {
+		chunking: {
+			chunkerType: 'markdown',
+			maxChars: 800,
+			prependHeadingContext: true,
+		},
+	};
+
 	const result = await extractBytes(bytes, "application/pdf", config);
 
 	if (result.chunks) {

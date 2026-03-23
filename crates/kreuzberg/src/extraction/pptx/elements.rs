@@ -7,6 +7,10 @@
 pub(super) struct ElementPosition {
     pub(super) x: i64,
     pub(super) y: i64,
+    /// Width in EMUs (from `a:ext cx`).
+    pub(super) cx: i64,
+    /// Height in EMUs (from `a:ext cy`).
+    pub(super) cy: i64,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -14,6 +18,9 @@ pub(super) struct Formatting {
     pub(super) bold: bool,
     pub(super) italic: bool,
     pub(super) underlined: bool,
+    pub(super) strikethrough: bool,
+    /// Font size in hundredths of a point (from `a:rPr sz`).
+    pub(super) font_size: Option<u32>,
     pub(super) lang: String,
 }
 
@@ -39,6 +46,9 @@ impl Run {
         }
         if self.formatting.underlined {
             result = format!("<u>{}</u>", result);
+        }
+        if self.formatting.strikethrough {
+            result = format!("~~{}~~", result);
         }
 
         result
@@ -81,6 +91,8 @@ pub(super) struct TableElement {
 pub(super) struct ImageReference {
     pub(super) id: String,
     pub(super) target: String,
+    /// Alt text / description from shape `descr` attribute.
+    pub(super) description: Option<String>,
 }
 
 #[derive(Debug, Clone)]
