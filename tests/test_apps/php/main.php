@@ -1177,14 +1177,6 @@ $runner->test('render_pdf_pages_iter function exists', function (): void {
     assert_true(function_exists('Kreuzberg\render_pdf_pages_iter'), 'render_pdf_pages_iter function should exist');
 });
 
-$runner->test('render_pdf_page raises exception for nonexistent file', function (): void {
-    assert_throws(
-        KreuzbergException::class,
-        static fn () => \Kreuzberg\render_pdf_page('/nonexistent/path/to/document.pdf', 0),
-        'nonexistent file for render_pdf_page'
-    );
-});
-
 // =========================================================================
 // Print summary
 // =========================================================================

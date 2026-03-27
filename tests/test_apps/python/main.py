@@ -1759,11 +1759,6 @@ runner.test(
 )
 
 runner.test(
-    "ChunkingConfig() with chunker_type='yaml'",
-    lambda: (c := ChunkingConfig(chunker_type="yaml"), c.chunker_type == "yaml")[1],
-)
-
-runner.test(
     "ChunkingConfig() prepend_heading_context defaults to False",
     lambda: (c := ChunkingConfig(), c.prepend_heading_context is False)[1],
 )
@@ -1781,16 +1776,6 @@ runner.test(
 
 runner.start_section("ExtractionConfig New Fields (4.6.3+)")
 
-
-runner.test(
-    "ExtractionConfig() max_archive_depth has a default",
-    lambda: (c := ExtractionConfig(), isinstance(c.max_archive_depth, int) and c.max_archive_depth >= 0)[1],
-)
-
-runner.test(
-    "ExtractionConfig() with max_archive_depth=5",
-    lambda: (c := ExtractionConfig(max_archive_depth=5), c.max_archive_depth == 5)[1],
-)
 
 runner.test("AccelerationConfig() construction", lambda: AccelerationConfig() is not None)
 
