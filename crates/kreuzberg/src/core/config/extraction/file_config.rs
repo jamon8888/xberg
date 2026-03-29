@@ -44,6 +44,7 @@ use super::types::{ImageExtractionConfig, LanguageDetectionConfig, TokenReductio
 /// ```
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
+#[serde(deny_unknown_fields)]
 pub struct FileExtractionConfig {
     /// Override quality post-processing for this file.
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -30,6 +30,7 @@ use super::types::{ImageExtractionConfig, LanguageDetectionConfig, TokenReductio
 /// // let config = ExtractionConfig::from_toml_file("kreuzberg.toml")?;
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ExtractionConfig {
     /// Enable caching of extraction results
     #[serde(default = "default_true")]
