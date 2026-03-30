@@ -5,6 +5,7 @@ use kreuzberg::core::config::ExtractionConfig;
 use kreuzberg::extraction::derive::derive_extraction_result;
 use kreuzberg::extractors::BibtexExtractor;
 use kreuzberg::plugins::DocumentExtractor;
+use kreuzberg::types::metadata::FormatMetadata;
 
 mod helpers;
 use helpers::get_test_file_path;
@@ -72,9 +73,11 @@ async fn test_all_entry_types() {
             kreuzberg::OutputFormat::Plain,
         );
 
-        if let Some(entry_types) = result.metadata.additional.get("entry_types") {
-            assert!(entry_types.as_object().is_some(), "Entry types should be an object");
-            println!("Entry type '{}' extracted successfully", expected_type);
+        if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+            if let Some(ref entry_types) = bibtex.entry_types {
+                assert!(!entry_types.is_empty(), "Entry types should not be empty");
+                println!("Entry type '{}' extracted successfully", expected_type);
+            }
         }
     }
 }
@@ -236,10 +239,11 @@ async fn test_special_characters() {
         kreuzberg::OutputFormat::Plain,
     );
 
-    assert_eq!(
-        result.metadata.additional.get("entry_count"),
-        Some(&serde_json::json!(1))
-    );
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        assert_eq!(bibtex.entry_count, 1);
+    } else {
+        panic!("Expected BibtexMetadata in format");
+    }
 
     if let Some(authors) = &result.metadata.authors {
         assert!(authors.len() >= 3, "Should have 3 authors");
@@ -268,16 +272,13 @@ async fn test_year_range_extraction() {
         kreuzberg::OutputFormat::Plain,
     );
 
-    if let Some(year_range) = result.metadata.additional.get("year_range") {
-        assert_eq!(year_range.get("min"), Some(&serde_json::json!(1990)));
-        assert_eq!(year_range.get("max"), Some(&serde_json::json!(2023)));
-
-        if let Some(years) = year_range.get("years") {
-            let years_array = years.as_array().expect("Years should be an array");
-            assert_eq!(years_array.len(), 3, "Should have 3 unique years");
-        }
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        let year_range = bibtex.year_range.as_ref().expect("Year range not extracted");
+        assert_eq!(year_range.min, Some(1990));
+        assert_eq!(year_range.max, Some(2023));
+        assert_eq!(year_range.years.len(), 3, "Should have 3 unique years");
     } else {
-        panic!("Year range not extracted");
+        panic!("Expected BibtexMetadata in format");
     }
 }
 
@@ -303,17 +304,16 @@ async fn test_citation_keys_extraction() {
         kreuzberg::OutputFormat::Plain,
     );
 
-    if let Some(citation_keys) = result.metadata.additional.get("citation_keys") {
-        let keys_array = citation_keys.as_array().expect("Citation keys should be an array");
-        assert_eq!(keys_array.len(), 3);
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        assert_eq!(bibtex.citation_keys.len(), 3);
 
         let expected_keys = vec!["key1", "key2", "key3"];
         for expected_key in expected_keys {
-            let found = keys_array.iter().any(|k| k.as_str() == Some(expected_key));
+            let found = bibtex.citation_keys.iter().any(|k| k == expected_key);
             assert!(found, "Citation key '{}' not found", expected_key);
         }
     } else {
-        panic!("Citation keys not extracted");
+        panic!("Expected BibtexMetadata in format");
     }
 }
 
@@ -342,14 +342,14 @@ async fn test_entry_type_distribution() {
         kreuzberg::OutputFormat::Plain,
     );
 
-    if let Some(entry_types) = result.metadata.additional.get("entry_types") {
-        let types_obj = entry_types.as_object().expect("Entry types should be an object");
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        let entry_types = bibtex.entry_types.as_ref().expect("Entry types not extracted");
 
-        assert_eq!(types_obj.get("article"), Some(&serde_json::json!(2)));
-        assert_eq!(types_obj.get("book"), Some(&serde_json::json!(1)));
-        assert_eq!(types_obj.get("inproceedings"), Some(&serde_json::json!(3)));
+        assert_eq!(entry_types.get("article"), Some(&2));
+        assert_eq!(entry_types.get("book"), Some(&1));
+        assert_eq!(entry_types.get("inproceedings"), Some(&3));
     } else {
-        panic!("Entry types not extracted");
+        panic!("Expected BibtexMetadata in format");
     }
 }
 
@@ -378,10 +378,11 @@ async fn test_unicode_support() {
         kreuzberg::OutputFormat::Plain,
     );
 
-    assert_eq!(
-        result.metadata.additional.get("entry_count"),
-        Some(&serde_json::json!(1))
-    );
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        assert_eq!(bibtex.entry_count, 1);
+    } else {
+        panic!("Expected BibtexMetadata in format");
+    }
 }
 
 #[tokio::test]
@@ -409,10 +410,11 @@ async fn test_empty_fields() {
         false,
         kreuzberg::OutputFormat::Plain,
     );
-    assert_eq!(
-        result.metadata.additional.get("entry_count"),
-        Some(&serde_json::json!(1))
-    );
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        assert_eq!(bibtex.entry_count, 1);
+    } else {
+        panic!("Expected BibtexMetadata in format");
+    }
 }
 
 #[tokio::test]
@@ -435,22 +437,20 @@ async fn test_comprehensive_file() {
         kreuzberg::OutputFormat::Plain,
     );
 
-    assert_eq!(
-        result.metadata.additional.get("entry_count"),
-        Some(&serde_json::json!(20))
-    );
+    if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
+        assert_eq!(bibtex.entry_count, 20);
 
-    if let Some(entry_types) = result.metadata.additional.get("entry_types") {
-        let types_obj = entry_types.as_object().expect("Entry types should be an object");
-        assert!(types_obj.len() >= 10, "Should have at least 10 different entry types");
-    }
+        let entry_types = bibtex.entry_types.as_ref().expect("Entry types not extracted");
+        assert!(entry_types.len() >= 10, "Should have at least 10 different entry types");
 
-    if let Some(authors) = &result.metadata.authors {
-        assert!(authors.len() > 10, "Should have many unique authors");
-    }
+        if let Some(authors) = &result.metadata.authors {
+            assert!(authors.len() > 10, "Should have many unique authors");
+        }
 
-    if let Some(year_range) = result.metadata.additional.get("year_range") {
-        assert!(year_range.get("min").is_some());
-        assert!(year_range.get("max").is_some());
+        let year_range = bibtex.year_range.as_ref().expect("Year range not extracted");
+        assert!(year_range.min.is_some());
+        assert!(year_range.max.is_some());
+    } else {
+        panic!("Expected BibtexMetadata in format");
     }
 }

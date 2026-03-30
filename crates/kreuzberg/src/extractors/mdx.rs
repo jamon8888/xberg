@@ -702,12 +702,9 @@ impl DocumentExtractor for MdxExtractor {
         let clean_markdown = Self::strip_mdx_syntax_collecting(&remaining_content, jsx_blocks_buf.as_mut());
 
         if metadata.title.is_none()
-            && !metadata.additional.contains_key("title")
             && let Some(title) = extract_title_from_content(&clean_markdown)
         {
-            metadata.title = Some(title.clone());
-            // DEPRECATED: kept for backward compatibility; will be removed in next major version.
-            metadata.additional.insert(Cow::Borrowed("title"), title.into());
+            metadata.title = Some(title);
         }
 
         let mut options = Options::ENABLE_TABLES;
@@ -951,14 +948,8 @@ Final paragraph.
         let result =
             crate::extraction::derive::derive_extraction_result(result, true, crate::core::config::OutputFormat::Plain);
 
-        assert_eq!(
-            result.metadata.additional.get("title").and_then(|v| v.as_str()),
-            Some("My MDX Post")
-        );
-        assert_eq!(
-            result.metadata.additional.get("author").and_then(|v| v.as_str()),
-            Some("Test Author")
-        );
+        assert_eq!(result.metadata.title.as_deref(), Some("My MDX Post"));
+        assert_eq!(result.metadata.created_by.as_deref(), Some("Test Author"));
         assert!(result.content.contains("Body text"));
         assert!(!result.content.contains("import"));
     }

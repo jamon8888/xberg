@@ -306,29 +306,5 @@ pub(super) fn build_additional_metadata(epub_metadata: &OepbMetadata) -> BTreeMa
         additional_metadata.insert("rights".to_string(), serde_json::json!(rights.clone()));
     }
 
-    if let Some(ref coverage) = epub_metadata.coverage {
-        additional_metadata.insert("coverage".to_string(), serde_json::json!(coverage.clone()));
-    }
-
-    if let Some(ref format) = epub_metadata.format {
-        additional_metadata.insert("format".to_string(), serde_json::json!(format.clone()));
-    }
-
-    if let Some(ref relation) = epub_metadata.relation {
-        additional_metadata.insert("relation".to_string(), serde_json::json!(relation.clone()));
-    }
-
-    if let Some(ref source) = epub_metadata.source {
-        additional_metadata.insert("source".to_string(), serde_json::json!(source.clone()));
-    }
-
-    if let Some(ref dc_type) = epub_metadata.dc_type {
-        additional_metadata.insert("type".to_string(), serde_json::json!(dc_type.clone()));
-    }
-
-    if let Some(ref cover_href) = epub_metadata.cover_image_href {
-        additional_metadata.insert("cover_image".to_string(), serde_json::json!(cover_href.clone()));
-    }
-
     additional_metadata
 }

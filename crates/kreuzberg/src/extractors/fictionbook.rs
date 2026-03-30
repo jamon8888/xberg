@@ -388,23 +388,22 @@ impl FictionBookExtractor {
 
         if !genres.is_empty() {
             metadata.subject = Some(genres.join(", "));
-            additional.insert(std::borrow::Cow::Borrowed("genres"), serde_json::json!(genres));
-        }
-
-        if !sequences.is_empty() {
-            additional.insert(std::borrow::Cow::Borrowed("sequences"), serde_json::json!(sequences));
         }
 
         if !authors.is_empty() {
             metadata.authors = Some(authors);
         }
 
-        if !annotation_text.is_empty() {
-            additional.insert(
-                std::borrow::Cow::Borrowed("annotation"),
-                serde_json::json!(annotation_text),
-            );
-        }
+        let fb_metadata = crate::types::metadata::FictionBookMetadata {
+            genres,
+            sequences,
+            annotation: if annotation_text.is_empty() {
+                None
+            } else {
+                Some(annotation_text)
+            },
+        };
+        metadata.format = Some(crate::types::metadata::FormatMetadata::FictionBook(fb_metadata));
 
         metadata.additional = additional;
 
@@ -1079,9 +1078,11 @@ mod tests {
             "expected adventure genre, got: {subject}"
         );
 
-        let genres = metadata.additional.get("genres").expect("expected genres array");
-        assert!(genres.is_array());
-        assert_eq!(genres.as_array().expect("genres should be an array").len(), 2);
+        let fb_meta = match &metadata.format {
+            Some(crate::types::metadata::FormatMetadata::FictionBook(fb)) => fb,
+            other => panic!("expected FictionBook format metadata, got: {:?}", other),
+        };
+        assert_eq!(fb_meta.genres.len(), 2);
     }
 
     #[test]
@@ -1100,12 +1101,13 @@ mod tests {
 </FictionBook>"#;
 
         let metadata = FictionBookExtractor::extract_metadata(fb2).expect("Metadata extraction failed");
-        let annotation = metadata.additional.get("annotation").expect("expected annotation");
+        let fb_meta = match &metadata.format {
+            Some(crate::types::metadata::FormatMetadata::FictionBook(fb)) => fb,
+            other => panic!("expected FictionBook format metadata, got: {:?}", other),
+        };
+        let annotation = fb_meta.annotation.as_deref().expect("expected annotation");
         assert!(
-            annotation
-                .as_str()
-                .expect("annotation should be a string")
-                .contains("book annotation"),
+            annotation.contains("book annotation"),
             "expected annotation text, got: {}",
             annotation
         );
@@ -1125,21 +1127,20 @@ mod tests {
 </FictionBook>"#;
 
         let metadata = FictionBookExtractor::extract_metadata(fb2).expect("Metadata extraction failed");
-        let sequences = metadata.additional.get("sequences").expect("expected sequences");
-        assert!(sequences.is_array());
-        let arr = sequences.as_array().expect("sequences should be an array");
-        assert_eq!(arr.len(), 1);
+        let fb_meta = match &metadata.format {
+            Some(crate::types::metadata::FormatMetadata::FictionBook(fb)) => fb,
+            other => panic!("expected FictionBook format metadata, got: {:?}", other),
+        };
+        assert_eq!(fb_meta.sequences.len(), 1);
         assert!(
-            arr[0]
-                .as_str()
-                .expect("sequence entry should be a string")
-                .contains("Foundation Series")
+            fb_meta.sequences[0].contains("Foundation Series"),
+            "expected Foundation Series, got: {}",
+            fb_meta.sequences[0]
         );
         assert!(
-            arr[0]
-                .as_str()
-                .expect("sequence entry should be a string")
-                .contains("#3")
+            fb_meta.sequences[0].contains("#3"),
+            "expected #3, got: {}",
+            fb_meta.sequences[0]
         );
     }
 

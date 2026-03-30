@@ -597,12 +597,9 @@ impl DocumentExtractor for MarkdownExtractor {
         };
 
         if metadata.title.is_none()
-            && !metadata.additional.contains_key("title")
             && let Some(title) = extract_title_from_content(&remaining_content)
         {
-            metadata.title = Some(title.clone());
-            // DEPRECATED: kept for backward compatibility; will be removed in next major version.
-            metadata.additional.insert(Cow::Borrowed("title"), title.into());
+            metadata.title = Some(title);
         }
 
         let mut options = Options::ENABLE_TABLES;
@@ -709,20 +706,8 @@ mod tests {
         let yaml = yaml_opt.expect("Should extract YAML frontmatter");
         let metadata = extract_metadata_from_yaml(&yaml);
 
-        assert_eq!(
-            metadata
-                .additional
-                .get("title")
-                .and_then(|v: &serde_json::Value| v.as_str()),
-            Some("My Document")
-        );
-        assert_eq!(
-            metadata
-                .additional
-                .get("author")
-                .and_then(|v: &serde_json::Value| v.as_str()),
-            Some("John Doe")
-        );
+        assert_eq!(metadata.title.as_deref(), Some("My Document"));
+        assert_eq!(metadata.created_by.as_deref(), Some("John Doe"));
         assert_eq!(metadata.created_at, Some("2024-01-15".to_string()));
         assert!(metadata.subject.is_some());
         assert!(
@@ -746,13 +731,11 @@ mod tests {
         let metadata = extract_metadata_from_yaml(&yaml);
 
         let keywords = metadata
-            .additional
-            .get("keywords")
-            .and_then(|v: &serde_json::Value| v.as_str());
-        assert!(keywords.is_some());
-        let keywords_str = keywords.expect("Should extract keywords from metadata");
-        assert!(keywords_str.contains("rust"));
-        assert!(keywords_str.contains("markdown"));
+            .keywords
+            .as_ref()
+            .expect("Should extract keywords from metadata");
+        assert!(keywords.iter().any(|k| k == "rust"));
+        assert!(keywords.iter().any(|k| k == "markdown"));
     }
 
     #[tokio::test]
@@ -848,14 +831,8 @@ mod tests {
 
         assert_eq!(result.mime_type, "text/x-markdown");
         assert!(result.content.contains("Introduction text"));
-        assert_eq!(
-            result.metadata.additional.get("title").and_then(|v| v.as_str()),
-            Some("Complete Document")
-        );
-        assert_eq!(
-            result.metadata.additional.get("author").and_then(|v| v.as_str()),
-            Some("Test Author")
-        );
+        assert_eq!(result.metadata.title.as_deref(), Some("Complete Document"));
+        assert_eq!(result.metadata.created_by.as_deref(), Some("Test Author"));
         assert!(!result.tables.is_empty());
     }
 
@@ -949,50 +926,28 @@ nested:
         let metadata = extract_metadata_from_yaml(&yaml);
 
         assert_eq!(metadata.created_at, Some("2024-01-15".to_string()));
-        assert_eq!(
-            metadata.additional.get("title").and_then(|v| v.as_str()),
-            Some("Test Document")
-        );
-        assert_eq!(
-            metadata.additional.get("author").and_then(|v| v.as_str()),
-            Some("Test Author")
-        );
+        assert_eq!(metadata.title.as_deref(), Some("Test Document"));
+        assert_eq!(metadata.created_by.as_deref(), Some("Test Author"));
 
-        assert!(metadata.additional.contains_key("keywords"));
-        let keywords = metadata
-            .additional
-            .get("keywords")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
-        assert!(keywords.contains("rust"));
-        assert!(keywords.contains("markdown"));
+        let keywords = metadata.keywords.as_ref().expect("Should have keywords");
+        assert!(keywords.iter().any(|k| k == "rust"));
+        assert!(keywords.iter().any(|k| k == "markdown"));
 
         assert_eq!(metadata.subject, Some("Test subject".to_string()));
 
-        assert_eq!(
-            metadata.additional.get("abstract").and_then(|v| v.as_str()),
-            Some("Test abstract")
-        );
+        assert_eq!(metadata.abstract_text.as_deref(), Some("Test abstract"));
 
-        assert_eq!(
-            metadata.additional.get("category").and_then(|v| v.as_str()),
-            Some("Documentation")
-        );
+        assert_eq!(metadata.category.as_deref(), Some("Documentation"));
 
-        assert!(metadata.additional.contains_key("tags"));
-        let tags = metadata.additional.get("tags").and_then(|v| v.as_str()).unwrap_or("");
-        assert!(tags.contains("tag1"));
-        assert!(tags.contains("tag2"));
+        let tags = metadata.tags.as_ref().expect("Should have tags");
+        assert!(tags.iter().any(|t| t == "tag1"));
+        assert!(tags.iter().any(|t| t == "tag2"));
 
-        assert_eq!(metadata.additional.get("language").and_then(|v| v.as_str()), Some("en"));
+        assert_eq!(metadata.language.as_deref(), Some("en"));
 
-        assert_eq!(
-            metadata.additional.get("version").and_then(|v| v.as_str()),
-            Some("1.2.3")
-        );
+        assert_eq!(metadata.document_version.as_deref(), Some("1.2.3"));
 
-        assert_eq!(metadata.additional.len(), 8, "Should extract all standard fields");
-        println!("\nSuccessfully extracted all 8 additional metadata fields");
+        println!("\nSuccessfully extracted all typed metadata fields");
     }
 
     #[test]

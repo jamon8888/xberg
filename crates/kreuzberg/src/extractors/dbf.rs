@@ -9,7 +9,7 @@ use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::internal::InternalDocument;
 use crate::types::internal_builder::InternalDocumentBuilder;
-use crate::types::metadata::Metadata;
+use crate::types::metadata::{DbfFieldInfo, DbfMetadata, FormatMetadata, Metadata};
 use async_trait::async_trait;
 use std::io::Cursor;
 
@@ -162,26 +162,27 @@ impl DocumentExtractor for DbfExtractor {
     ) -> Result<InternalDocument> {
         let parsed = parse_dbf(content)?;
 
-        let mut additional = ahash::AHashMap::new();
-        additional.insert(Cow::Borrowed("record_count"), serde_json::json!(parsed.record_count));
-        additional.insert(
-            Cow::Borrowed("field_count"),
-            serde_json::json!(parsed.field_names.len()),
-        );
-        // Build field info with name and type
-        let field_info: Vec<serde_json::Value> = parsed
+        let fields: Vec<DbfFieldInfo> = parsed
             .field_names
             .iter()
             .zip(parsed.field_types.iter())
-            .map(|(name, ftype)| serde_json::json!({"name": name, "type": ftype}))
+            .map(|(name, ftype)| DbfFieldInfo {
+                name: name.clone(),
+                field_type: ftype.clone(),
+            })
             .collect();
-        additional.insert(Cow::Borrowed("fields"), serde_json::json!(field_info));
+
+        let dbf_metadata = DbfMetadata {
+            record_count: parsed.record_count,
+            field_count: parsed.field_names.len(),
+            fields,
+        };
 
         let mut doc = build_dbf_internal_document(&parsed);
         doc.mime_type = Cow::Owned(mime_type.to_string());
 
         doc.metadata = Metadata {
-            additional,
+            format: Some(FormatMetadata::Dbf(dbf_metadata)),
             ..Default::default()
         };
 

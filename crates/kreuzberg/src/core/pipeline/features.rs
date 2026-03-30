@@ -51,15 +51,6 @@ pub(super) fn execute_chunking(result: &mut ExtractionResult, config: &Extractio
             Ok(chunking_result) => {
                 result.chunks = Some(chunking_result.chunks);
 
-                if let Some(ref chunks) = result.chunks {
-                    // DEPRECATED: kept for backward compatibility; will be removed in next major version.
-                    // chunk_count is derivable from result.chunks.len().
-                    result.metadata.additional.insert(
-                        Cow::Borrowed("chunk_count"),
-                        serde_json::Value::Number(serde_json::Number::from(chunks.len())),
-                    );
-                }
-
                 #[cfg(feature = "embeddings")]
                 if let Some(ref embedding_config) = chunking_config.embedding
                     && let Some(ref mut chunks) = result.chunks

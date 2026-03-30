@@ -603,3 +603,99 @@ type CodeProcessResult struct {
 	Diagnostics []CodeDiagnostic    `json:"diagnostics"`
 	Chunks      []CodeChunk         `json:"chunks"`
 }
+
+// ---------------------------------------------------------------------------
+// Format-specific metadata types (deserialized from FormatMetadata variants)
+// ---------------------------------------------------------------------------
+
+// CsvMetadata holds CSV/TSV file metadata.
+type CsvMetadata struct {
+	RowCount    int      `json:"row_count"`
+	ColumnCount int      `json:"column_count"`
+	Delimiter   *string  `json:"delimiter,omitempty"`
+	HasHeader   bool     `json:"has_header"`
+	ColumnTypes []string `json:"column_types,omitempty"`
+}
+
+// YearRange represents a year range for bibliographic metadata.
+type YearRange struct {
+	Min   *int   `json:"min,omitempty"`
+	Max   *int   `json:"max,omitempty"`
+	Years []int  `json:"years,omitempty"`
+}
+
+// BibtexMetadata holds BibTeX bibliography metadata.
+type BibtexMetadata struct {
+	EntryCount   int               `json:"entry_count"`
+	CitationKeys []string          `json:"citation_keys,omitempty"`
+	Authors      []string          `json:"authors,omitempty"`
+	YearRange    *YearRange        `json:"year_range,omitempty"`
+	EntryTypes   map[string]int    `json:"entry_types,omitempty"`
+}
+
+// CitationMetadata holds citation file metadata (RIS, PubMed, EndNote).
+type CitationMetadata struct {
+	CitationCount int        `json:"citation_count"`
+	Format        *string    `json:"format,omitempty"`
+	Authors       []string   `json:"authors,omitempty"`
+	YearRange     *YearRange `json:"year_range,omitempty"`
+	Dois          []string   `json:"dois,omitempty"`
+	Keywords      []string   `json:"keywords,omitempty"`
+}
+
+// FictionBookMetadata holds FictionBook (FB2) metadata.
+type FictionBookMetadata struct {
+	Genres     []string `json:"genres,omitempty"`
+	Sequences  []string `json:"sequences,omitempty"`
+	Annotation *string  `json:"annotation,omitempty"`
+}
+
+// DbfFieldInfo describes a dBASE field.
+type DbfFieldInfo struct {
+	Name      string `json:"name"`
+	FieldType string `json:"field_type"`
+}
+
+// DbfMetadata holds dBASE (DBF) file metadata.
+type DbfMetadata struct {
+	RecordCount int            `json:"record_count"`
+	FieldCount  int            `json:"field_count"`
+	Fields      []DbfFieldInfo `json:"fields,omitempty"`
+}
+
+// ContributorRole represents a JATS contributor with role.
+type ContributorRole struct {
+	Name string  `json:"name"`
+	Role *string `json:"role,omitempty"`
+}
+
+// JatsMetadata holds JATS (Journal Article Tag Suite) metadata.
+type JatsMetadata struct {
+	Copyright        *string            `json:"copyright,omitempty"`
+	License          *string            `json:"license,omitempty"`
+	HistoryDates     map[string]string  `json:"history_dates,omitempty"`
+	ContributorRoles []ContributorRole  `json:"contributor_roles,omitempty"`
+}
+
+// EpubMetadata holds EPUB metadata (Dublin Core extensions).
+type EpubMetadata struct {
+	Coverage   *string `json:"coverage,omitempty"`
+	DcFormat   *string `json:"dc_format,omitempty"`
+	Relation   *string `json:"relation,omitempty"`
+	Source     *string `json:"source,omitempty"`
+	DcType     *string `json:"dc_type,omitempty"`
+	CoverImage *string `json:"cover_image,omitempty"`
+}
+
+// PstMetadata holds Outlook PST archive metadata.
+type PstMetadata struct {
+	MessageCount int `json:"message_count"`
+}
+
+// PptxMetadata holds PowerPoint presentation metadata.
+type PptxMetadata struct {
+	SlideCount int      `json:"slide_count"`
+	SlideNames []string `json:"slide_names"`
+	ImageCount *int     `json:"image_count,omitempty"`
+	TableCount *int     `json:"table_count,omitempty"`
+}

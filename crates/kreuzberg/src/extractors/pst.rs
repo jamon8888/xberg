@@ -5,8 +5,8 @@ use crate::core::config::ExtractionConfig;
 use crate::extractors::SyncExtractor;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::internal::{ElementKind, InternalDocument, InternalElement};
-use crate::types::{EmailMetadata, Metadata};
-use ahash::AHashMap;
+use crate::types::metadata::PstMetadata;
+use crate::types::{FormatMetadata, Metadata};
 use async_trait::async_trait;
 use std::borrow::Cow;
 #[cfg(feature = "tokio-runtime")]
@@ -67,40 +67,20 @@ impl SyncExtractor for PstExtractor {
         }
 
         // Use metadata from the first message if available (archive-level metadata)
-        let (subject, format_metadata, created_at) = if let Some(first) = messages.first() {
-            let attachment_names: Vec<String> = first
-                .attachments
-                .iter()
-                .filter_map(|a| a.filename.clone().or_else(|| a.name.clone()))
-                .collect();
-
-            let email_metadata = EmailMetadata {
-                from_email: first.from_email.clone(),
-                from_name: None,
-                to_emails: first.to_emails.clone(),
-                cc_emails: first.cc_emails.clone(),
-                bcc_emails: first.bcc_emails.clone(),
-                message_id: first.message_id.clone(),
-                attachments: attachment_names,
-            };
-
-            (
-                first.subject.clone(),
-                Some(crate::types::FormatMetadata::Email(email_metadata)),
-                first.date.clone(),
-            )
+        let (subject, created_at) = if let Some(first) = messages.first() {
+            (first.subject.clone(), first.date.clone())
         } else {
-            (None, None, None)
+            (None, None)
         };
 
-        let mut additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
-        additional.insert(Cow::Borrowed("message_count"), serde_json::json!(messages.len()));
+        let pst_metadata = PstMetadata {
+            message_count: messages.len(),
+        };
 
         doc.metadata = Metadata {
-            format: format_metadata,
+            format: Some(FormatMetadata::Pst(pst_metadata)),
             subject,
             created_at,
-            additional,
             ..Default::default()
         };
 
@@ -161,43 +141,20 @@ impl DocumentExtractor for PstExtractor {
             }
         }
 
-        let (subject, format_metadata, created_at) = if let Some(first) = messages.first() {
-            let attachment_names: Vec<String> = first
-                .attachments
-                .iter()
-                .filter_map(|a| a.filename.clone().or_else(|| a.name.clone()))
-                .collect();
-
-            let email_metadata = crate::types::EmailMetadata {
-                from_email: first.from_email.clone(),
-                from_name: None,
-                to_emails: first.to_emails.clone(),
-                cc_emails: first.cc_emails.clone(),
-                bcc_emails: first.bcc_emails.clone(),
-                message_id: first.message_id.clone(),
-                attachments: attachment_names,
-            };
-
-            (
-                first.subject.clone(),
-                Some(crate::types::FormatMetadata::Email(email_metadata)),
-                first.date.clone(),
-            )
+        let (subject, created_at) = if let Some(first) = messages.first() {
+            (first.subject.clone(), first.date.clone())
         } else {
-            (None, None, None)
+            (None, None)
         };
 
-        let mut additional: ahash::AHashMap<std::borrow::Cow<'static, str>, serde_json::Value> = ahash::AHashMap::new();
-        additional.insert(
-            std::borrow::Cow::Borrowed("message_count"),
-            serde_json::json!(messages.len()),
-        );
+        let pst_metadata = PstMetadata {
+            message_count: messages.len(),
+        };
 
         doc.metadata = crate::types::Metadata {
-            format: format_metadata,
+            format: Some(FormatMetadata::Pst(pst_metadata)),
             subject,
             created_at,
-            additional,
             ..Default::default()
         };
 

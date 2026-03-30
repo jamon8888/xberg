@@ -24,6 +24,7 @@ use crate::text::utf8_validation;
 use crate::types::Metadata;
 use crate::types::internal::InternalDocument;
 use crate::types::internal_builder::InternalDocumentBuilder;
+use crate::types::metadata::{ContributorRole, FormatMetadata, JatsMetadata};
 use crate::types::uri::Uri;
 use async_trait::async_trait;
 use quick_xml::Reader;
@@ -457,6 +458,7 @@ impl DocumentExtractor for JatsExtractor {
         }
 
         // History dates
+        let mut history_dates = std::collections::BTreeMap::new();
         if !jats_metadata.history_dates.is_empty() {
             for (date_type, date_val) in &jats_metadata.history_dates {
                 subject_parts.push(format!(
@@ -464,39 +466,37 @@ impl DocumentExtractor for JatsExtractor {
                     date_type[..1].to_uppercase() + &date_type[1..],
                     date_val
                 ));
-                metadata.additional.insert(
-                    std::borrow::Cow::Owned(format!("date_{}", date_type)),
-                    serde_json::json!(date_val),
-                );
+                history_dates.insert(date_type.clone(), date_val.clone());
             }
         }
 
         // Permissions
-        if let Some(copyright) = &jats_metadata.copyright_statement {
+        let copyright = if let Some(copyright) = &jats_metadata.copyright_statement {
             subject_parts.push(format!("Copyright: {}", copyright));
-            metadata
-                .additional
-                .insert(std::borrow::Cow::Borrowed("copyright"), serde_json::json!(copyright));
-        }
+            Some(copyright.clone())
+        } else {
+            None
+        };
 
-        if let Some(license) = &jats_metadata.license {
-            metadata
-                .additional
-                .insert(std::borrow::Cow::Borrowed("license"), serde_json::json!(license));
-        }
+        let license = jats_metadata.license.clone();
 
         // Contributor roles
-        if !jats_metadata.contributor_roles.is_empty() {
-            let roles: Vec<serde_json::Value> = jats_metadata
-                .contributor_roles
-                .iter()
-                .map(|(name, role)| serde_json::json!({"name": name, "role": role}))
-                .collect();
-            metadata.additional.insert(
-                std::borrow::Cow::Borrowed("contributor_roles"),
-                serde_json::json!(roles),
-            );
-        }
+        let contributor_roles: Vec<ContributorRole> = jats_metadata
+            .contributor_roles
+            .iter()
+            .map(|(name, role)| ContributorRole {
+                name: name.clone(),
+                role: if role.is_empty() { None } else { Some(role.clone()) },
+            })
+            .collect();
+
+        let jats_typed_metadata = JatsMetadata {
+            copyright,
+            license,
+            history_dates,
+            contributor_roles,
+        };
+        metadata.format = Some(FormatMetadata::Jats(jats_typed_metadata));
 
         if !subject_parts.is_empty() {
             metadata.subject = Some(subject_parts.join(" | "));

@@ -164,9 +164,11 @@ impl PptxExtractor {
         extract_images: bool,
     ) -> InternalDocument {
         let mut additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
-        additional.insert(Cow::Borrowed("slide_count"), serde_json::json!(pptx_result.slide_count));
-        additional.insert(Cow::Borrowed("image_count"), serde_json::json!(pptx_result.image_count));
-        additional.insert(Cow::Borrowed("table_count"), serde_json::json!(pptx_result.table_count));
+
+        // Populate image_count and table_count on PptxMetadata struct
+        let mut pptx_metadata = pptx_result.metadata;
+        pptx_metadata.image_count = Some(pptx_result.image_count);
+        pptx_metadata.table_count = Some(pptx_result.table_count);
 
         // Map office metadata to standard Metadata fields
         let office_meta = &pptx_result.office_metadata;
@@ -207,7 +209,7 @@ impl PptxExtractor {
             modified_at,
             created_by,
             modified_by,
-            format: Some(crate::types::FormatMetadata::Pptx(pptx_result.metadata)),
+            format: Some(crate::types::FormatMetadata::Pptx(pptx_metadata)),
             additional,
             ..Default::default()
         };

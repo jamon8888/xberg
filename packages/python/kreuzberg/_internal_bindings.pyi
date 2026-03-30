@@ -18,6 +18,7 @@ __all__ = [
     "AccelerationConfig",
     "AnnotationType",
     "Attributes",
+    "BibtexMetadata",
     "BoundingBox",
     "Chunk",
     "ChunkMetadata",
@@ -35,8 +36,13 @@ __all__ = [
     "CodeSpan",
     "CodeStructureItem",
     "CodeSymbolInfo",
+    "CitationMetadata",
     "ConcurrencyConfig",
     "ContentLayer",
+    "ContributorRole",
+    "CsvMetadata",
+    "DbfFieldInfo",
+    "DbfMetadata",
     "DjotContent",
     "DjotImage",
     "DjotLink",
@@ -48,6 +54,7 @@ __all__ = [
     "ElementType",
     "EmailConfig",
     "EmbeddingConfig",
+    "EpubMetadata",
     "EmbeddingModelType",
     "EmbeddingPreset",
     "ErrorDetails",
@@ -57,6 +64,7 @@ __all__ = [
     "ExtractedTable",
     "ExtractionConfig",
     "ExtractionResult",
+    "FictionBookMetadata",
     "FileExtractionConfig",
     "Footnote",
     "FormattedBlock",
@@ -71,6 +79,7 @@ __all__ = [
     "ImagePreprocessingConfig",
     "ImagePreprocessingMetadata",
     "InlineElement",
+    "JatsMetadata",
     "KeywordAlgorithm",
     "KeywordConfig",
     "LanguageDetectionConfig",
@@ -107,6 +116,7 @@ __all__ = [
     "PostProcessorConfig",
     "PostProcessorProtocol",
     "ProcessingWarning",
+    "PstMetadata",
     "RakeParams",
     "ResultFormat",
     "StructuredData",
@@ -119,6 +129,7 @@ __all__ = [
     "ValidationError",
     "ValidatorProtocol",
     "YakeParams",
+    "YearRange",
     "_discover_extraction_config_impl",
     "_load_extraction_config_from_file_impl",
     "available_languages",
@@ -1754,6 +1765,68 @@ class TextMetadata(TypedDict, total=False):
     headers: list[str] | None
     links: list[tuple[str, str]] | None
     code_blocks: list[tuple[str, str]] | None
+
+class CsvMetadata(TypedDict, total=False):
+    row_count: int
+    column_count: int
+    delimiter: str | None
+    has_header: bool
+    column_types: list[str] | None
+
+class YearRange(TypedDict, total=False):
+    min: int | None
+    max: int | None
+    years: list[int]
+
+class BibtexMetadata(TypedDict, total=False):
+    entry_count: int
+    citation_keys: list[str]
+    authors: list[str]
+    year_range: YearRange | None
+    entry_types: dict[str, int] | None
+
+class CitationMetadata(TypedDict, total=False):
+    citation_count: int
+    format: str | None
+    authors: list[str]
+    year_range: YearRange | None
+    dois: list[str]
+    keywords: list[str]
+
+class FictionBookMetadata(TypedDict, total=False):
+    genres: list[str]
+    sequences: list[str]
+    annotation: str | None
+
+class DbfFieldInfo(TypedDict):
+    name: str
+    field_type: str
+
+class DbfMetadata(TypedDict, total=False):
+    record_count: int
+    field_count: int
+    fields: list[DbfFieldInfo]
+
+class ContributorRole(TypedDict):
+    name: str
+    role: str | None
+
+class JatsMetadata(TypedDict, total=False):
+    copyright: str | None
+    license: str | None
+    history_dates: dict[str, str]
+    contributor_roles: list[ContributorRole]
+
+class EpubMetadata(TypedDict, total=False):
+    coverage: str | None
+    dc_format: str | None
+    relation: str | None
+    source: str | None
+    dc_type: str | None
+    cover_image: str | None
+
+class PstMetadata(TypedDict, total=False):
+    message_count: int
 
 class HeaderMetadata(TypedDict):
     level: int

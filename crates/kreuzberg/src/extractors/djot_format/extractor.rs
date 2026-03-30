@@ -547,12 +547,9 @@ impl DocumentExtractor for DjotExtractor {
         };
 
         if metadata.title.is_none()
-            && !metadata.additional.contains_key("title")
             && let Some(title) = crate::extractors::frontmatter_utils::extract_title_from_content(&remaining_content)
         {
-            metadata.title = Some(title.clone());
-            // DEPRECATED: kept for backward compatibility; will be removed in next major version.
-            metadata.additional.insert(Cow::Borrowed("title"), title.into());
+            metadata.title = Some(title);
         }
 
         // Parse with jotdown and collect events once for extraction

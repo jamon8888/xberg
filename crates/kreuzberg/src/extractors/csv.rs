@@ -13,7 +13,7 @@ use crate::text::utf8_validation;
 use crate::types::Table;
 use crate::types::internal::InternalDocument;
 use crate::types::internal_builder::InternalDocumentBuilder;
-use crate::types::metadata::Metadata;
+use crate::types::metadata::{CsvMetadata, FormatMetadata, Metadata};
 use async_trait::async_trait;
 
 static DATE_RE_ISO: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"^\d{4}-\d{2}-\d{2}").unwrap());
@@ -97,20 +97,21 @@ impl DocumentExtractor for CsvExtractor {
             bounding_box: None,
         };
 
-        let mut additional = ahash::AHashMap::new();
-        additional.insert(Cow::Borrowed("row_count"), serde_json::Value::Number(row_count.into()));
-        additional.insert(
-            Cow::Borrowed("column_count"),
-            serde_json::Value::Number(col_count.into()),
-        );
-        additional.insert(
-            Cow::Borrowed("extraction_method"),
-            serde_json::Value::String("native_csv".to_string()),
-        );
-        additional.insert(Cow::Borrowed("has_header"), serde_json::Value::Bool(has_header));
-        if !column_types.is_empty() {
-            additional.insert(Cow::Borrowed("column_types"), serde_json::json!(column_types));
-        }
+        let csv_metadata = CsvMetadata {
+            row_count,
+            column_count: col_count,
+            delimiter: if delimiter != ',' {
+                Some(delimiter.to_string())
+            } else {
+                None
+            },
+            has_header,
+            column_types: if column_types.is_empty() {
+                None
+            } else {
+                Some(column_types)
+            },
+        };
 
         // Build InternalDocument with the table
         let mut builder = InternalDocumentBuilder::new("csv");
@@ -125,7 +126,7 @@ impl DocumentExtractor for CsvExtractor {
         doc.mime_type = Cow::Owned(mime_type.to_string());
 
         doc.metadata = Metadata {
-            additional,
+            format: Some(FormatMetadata::Csv(csv_metadata)),
             ..Default::default()
         };
 
@@ -513,9 +514,12 @@ mod tests {
         // Tables should be populated in the InternalDocument
         assert!(!result.tables.is_empty());
 
-        // Metadata should contain CSV-specific fields
-        let additional = &result.metadata.additional;
-        assert_eq!(additional.get("has_header"), Some(&serde_json::Value::Bool(true)));
+        // Metadata should contain CSV-specific fields via FormatMetadata
+        if let Some(FormatMetadata::Csv(csv_meta)) = &result.metadata.format {
+            assert!(csv_meta.has_header);
+        } else {
+            panic!("Expected FormatMetadata::Csv");
+        }
     }
 
     #[tokio::test]
@@ -649,11 +653,12 @@ mod tests {
 
         let result = extractor.extract_bytes(csv_data, "text/csv", &config).await.unwrap();
 
-        let has_header = result.metadata.additional.get("has_header");
-        assert_eq!(has_header, Some(&serde_json::Value::Bool(true)));
-
-        let col_types = result.metadata.additional.get("column_types");
-        assert!(col_types.is_some(), "Should have column_types metadata");
+        if let Some(FormatMetadata::Csv(csv_meta)) = &result.metadata.format {
+            assert!(csv_meta.has_header);
+            assert!(csv_meta.column_types.is_some(), "Should have column_types metadata");
+        } else {
+            panic!("Expected FormatMetadata::Csv");
+        }
     }
 
     #[tokio::test]

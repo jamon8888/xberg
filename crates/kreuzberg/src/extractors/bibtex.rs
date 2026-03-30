@@ -8,12 +8,13 @@ use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::internal::InternalDocument;
 use crate::types::internal_builder::InternalDocumentBuilder;
-use crate::types::metadata::Metadata;
+use crate::types::metadata::{BibtexMetadata, FormatMetadata, Metadata, YearRange};
 use crate::types::uri::Uri;
 use ahash::AHashMap;
 use ahash::AHashSet;
 use async_trait::async_trait;
 use std::borrow::Cow;
+use std::collections::{BTreeMap, HashSet};
 
 #[cfg(feature = "office")]
 use crate::types::document_structure::{AnnotationKind, TextAnnotation};
@@ -225,15 +226,43 @@ impl DocumentExtractor for BibtexExtractor {
             }
         }
 
+        // Build typed BibtexMetadata
+        let citation_keys: Vec<String> = entries_vec.iter().map(|(k, _)| k.clone()).collect();
+
+        let mut authors_list: Vec<String> = authors_set.into_iter().collect();
+        authors_list.sort();
+
+        let year_range = if !years_set.is_empty() {
+            let min_year = years_set.iter().min().copied();
+            let max_year = years_set.iter().max().copied();
+            let mut years: Vec<u32> = years_set.into_iter().collect();
+            years.sort_unstable();
+            Some(YearRange {
+                min: min_year,
+                max: max_year,
+                years,
+            })
+        } else {
+            None
+        };
+
+        let entry_types = if !entry_types_map.is_empty() {
+            let typed: BTreeMap<String, usize> = entry_types_map.into_iter().map(|(k, v)| (k, v as usize)).collect();
+            Some(typed)
+        } else {
+            None
+        };
+
+        let bibtex_metadata = BibtexMetadata {
+            entry_count: entries_vec.len(),
+            citation_keys,
+            authors: authors_list.clone(),
+            year_range,
+            entry_types,
+        };
+
+        // Store per-entry field maps as additional (complex JSON data)
         let mut additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
-
-        additional.insert(Cow::Borrowed("entry_count"), serde_json::json!(entries_vec.len()));
-
-        // Collect citation keys (just the key strings)
-        let citation_keys: Vec<&str> = entries_vec.iter().map(|(k, _)| k.as_str()).collect();
-        additional.insert(Cow::Borrowed("citation_keys"), serde_json::json!(citation_keys));
-
-        // Store per-entry field maps as structured metadata
         let entries_metadata: Vec<serde_json::Value> = entries_vec
             .iter()
             .map(|(key, fields)| {
@@ -247,30 +276,6 @@ impl DocumentExtractor for BibtexExtractor {
             .collect();
         additional.insert(Cow::Borrowed("entries"), serde_json::json!(entries_metadata));
 
-        let mut authors_list: Vec<String> = authors_set.into_iter().collect();
-        authors_list.sort();
-
-        if !years_set.is_empty() {
-            let min_year = years_set.iter().min().copied().unwrap_or(0);
-            let max_year = years_set.iter().max().copied().unwrap_or(0);
-            additional.insert(
-                Cow::Borrowed("year_range"),
-                serde_json::json!({
-                    "min": min_year,
-                    "max": max_year,
-                    "years": years_set.into_iter().collect::<Vec<_>>()
-                }),
-            );
-        }
-
-        if !entry_types_map.is_empty() {
-            let mut entry_types_json = serde_json::json!({});
-            for (entry_type, count) in entry_types_map {
-                entry_types_json[entry_type] = serde_json::json!(count);
-            }
-            additional.insert(Cow::Borrowed("entry_types"), entry_types_json);
-        }
-
         let meta_authors = if authors_list.is_empty() {
             None
         } else {
@@ -281,6 +286,7 @@ impl DocumentExtractor for BibtexExtractor {
         doc.mime_type = Cow::Owned(mime_type.to_string());
         doc.metadata = Metadata {
             authors: meta_authors,
+            format: Some(FormatMetadata::Bibtex(bibtex_metadata)),
             additional,
             ..Default::default()
         };
@@ -330,10 +336,11 @@ mod tests {
         let result = result.expect("Should extract valid BibTeX entry");
 
         let metadata = &result.metadata;
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("entry_count")),
-            Some(&serde_json::json!(1))
-        );
+        if let Some(FormatMetadata::Bibtex(bib)) = &metadata.format {
+            assert_eq!(bib.entry_count, 1);
+        } else {
+            panic!("Expected FormatMetadata::Bibtex");
+        }
     }
 
     #[tokio::test]
@@ -369,21 +376,16 @@ mod tests {
 
         let metadata = &result.metadata;
 
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("entry_count")),
-            Some(&serde_json::json!(3))
-        );
-
-        if let Some(keys) = metadata.additional.get(&Cow::Borrowed("citation_keys"))
-            && let Some(keys_array) = keys.as_array()
-        {
-            assert_eq!(keys_array.len(), 3);
-        }
-
-        if let Some(types) = metadata.additional.get(&Cow::Borrowed("entry_types")) {
-            assert!(types.get("article").is_some());
-            assert!(types.get("book").is_some());
-            assert!(types.get("inproceedings").is_some());
+        if let Some(FormatMetadata::Bibtex(bib)) = &metadata.format {
+            assert_eq!(bib.entry_count, 3);
+            assert_eq!(bib.citation_keys.len(), 3);
+            if let Some(types) = &bib.entry_types {
+                assert!(types.contains_key("article"));
+                assert!(types.contains_key("book"));
+                assert!(types.contains_key("inproceedings"));
+            }
+        } else {
+            panic!("Expected FormatMetadata::Bibtex");
         }
     }
 
@@ -433,14 +435,14 @@ mod tests {
         let result = result.expect("Should extract valid book entry");
 
         let metadata = &result.metadata;
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("entry_count")),
-            Some(&serde_json::json!(1))
-        );
-
-        if let Some(year_range) = metadata.additional.get("year_range") {
-            assert_eq!(year_range.get("min"), Some(&serde_json::json!(1984)));
-            assert_eq!(year_range.get("max"), Some(&serde_json::json!(1984)));
+        if let Some(FormatMetadata::Bibtex(bib)) = &metadata.format {
+            assert_eq!(bib.entry_count, 1);
+            if let Some(yr) = &bib.year_range {
+                assert_eq!(yr.min, Some(1984));
+                assert_eq!(yr.max, Some(1984));
+            }
+        } else {
+            panic!("Expected FormatMetadata::Bibtex");
         }
     }
 
@@ -474,23 +476,24 @@ mod tests {
         let result = result.expect("Should extract valid metadata");
         let metadata = &result.metadata;
 
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("entry_count")),
-            Some(&serde_json::json!(3))
-        );
+        if let Some(FormatMetadata::Bibtex(bib)) = &metadata.format {
+            assert_eq!(bib.entry_count, 3);
 
-        if let Some(authors) = &metadata.authors {
-            assert!(authors.len() >= 4);
-        }
+            if let Some(authors) = &metadata.authors {
+                assert!(authors.len() >= 4);
+            }
 
-        if let Some(year_range) = metadata.additional.get("year_range") {
-            assert_eq!(year_range.get("min"), Some(&serde_json::json!(2019)));
-            assert_eq!(year_range.get("max"), Some(&serde_json::json!(2021)));
-        }
+            if let Some(yr) = &bib.year_range {
+                assert_eq!(yr.min, Some(2019));
+                assert_eq!(yr.max, Some(2021));
+            }
 
-        if let Some(types) = metadata.additional.get(&Cow::Borrowed("entry_types")) {
-            assert_eq!(types.get("article"), Some(&serde_json::json!(2)));
-            assert_eq!(types.get("book"), Some(&serde_json::json!(1)));
+            if let Some(types) = &bib.entry_types {
+                assert_eq!(types.get("article"), Some(&2));
+                assert_eq!(types.get("book"), Some(&1));
+            }
+        } else {
+            panic!("Expected FormatMetadata::Bibtex");
         }
     }
 
@@ -508,10 +511,11 @@ mod tests {
         let result = result.expect("Should extract empty bibliography");
         let metadata = &result.metadata;
 
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("entry_count")),
-            Some(&serde_json::json!(0))
-        );
+        if let Some(FormatMetadata::Bibtex(bib)) = &metadata.format {
+            assert_eq!(bib.entry_count, 0);
+        } else {
+            panic!("Expected FormatMetadata::Bibtex");
+        }
     }
 
     #[tokio::test]

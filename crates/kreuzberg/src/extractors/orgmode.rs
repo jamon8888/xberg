@@ -980,7 +980,7 @@ mod tests {
         let org = Org::from_vec(&lines).expect("Failed to parse org");
         let (metadata, _) = OrgModeExtractor::extract_metadata_and_content(org_text, &org);
 
-        assert!(metadata.additional.get("title").and_then(|v| v.as_str()).is_some());
+        assert!(metadata.title.is_some());
     }
 
     #[test]
@@ -990,7 +990,7 @@ mod tests {
         let org = Org::from_vec(&lines).expect("Failed to parse org");
         let (metadata, _) = OrgModeExtractor::extract_metadata_and_content(org_text, &org);
 
-        assert!(metadata.additional.get("author").and_then(|v| v.as_str()).is_some());
+        assert!(metadata.authors.is_some());
     }
 
     #[test]
@@ -1010,8 +1010,7 @@ mod tests {
         let org = Org::from_vec(&lines).expect("Failed to parse org");
         let (metadata, _) = OrgModeExtractor::extract_metadata_and_content(org_text, &org);
 
-        let keywords = metadata.additional.get("keywords").and_then(|v| v.as_array());
-        assert!(keywords.is_some());
+        assert!(metadata.keywords.is_some());
     }
 
     #[test]

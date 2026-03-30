@@ -91,6 +91,123 @@ module Kreuzberg
     def serialize: () -> Hash[Symbol, untyped]
   end
 
+  # CSV format metadata (T::Struct from types.rb)
+  class CsvMetadata
+    attr_reader row_count: Integer
+    attr_reader column_count: Integer
+    attr_reader delimiter: String?
+    attr_reader has_header: bool
+    attr_reader column_types: Array[String]?
+
+    def initialize: (row_count: Integer, column_count: Integer, delimiter: String?, has_header: bool, column_types: Array[String]?) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # Year range for citation metadata (T::Struct from types.rb)
+  class YearRange
+    attr_reader min: Integer?
+    attr_reader max: Integer?
+    attr_reader years: Array[Integer]
+
+    def initialize: (min: Integer?, max: Integer?, years: Array[Integer]) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # BibTeX format metadata (T::Struct from types.rb)
+  class BibtexMetadata
+    attr_reader entry_count: Integer
+    attr_reader citation_keys: Array[String]
+    attr_reader authors: Array[String]
+    attr_reader year_range: YearRange?
+    attr_reader entry_types: Hash[String, Integer]?
+
+    def initialize: (entry_count: Integer, citation_keys: Array[String], authors: Array[String], year_range: YearRange?, entry_types: Hash[String, Integer]?) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # Citation format metadata (T::Struct from types.rb)
+  class CitationMetadata
+    attr_reader citation_count: Integer
+    attr_reader format: String?
+    attr_reader authors: Array[String]
+    attr_reader year_range: YearRange?
+    attr_reader dois: Array[String]
+    attr_reader keywords: Array[String]
+
+    def initialize: (citation_count: Integer, format: String?, authors: Array[String], year_range: YearRange?, dois: Array[String], keywords: Array[String]) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # FictionBook format metadata (T::Struct from types.rb)
+  class FictionBookMetadata
+    attr_reader genres: Array[String]
+    attr_reader sequences: Array[String]
+    attr_reader annotation: String?
+
+    def initialize: (genres: Array[String], sequences: Array[String], annotation: String?) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # DBF field information (T::Struct from types.rb)
+  class DbfFieldInfo
+    attr_reader name: String
+    attr_reader field_type: String
+
+    def initialize: (name: String, field_type: String) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # DBF format metadata (T::Struct from types.rb)
+  class DbfMetadata
+    attr_reader record_count: Integer
+    attr_reader field_count: Integer
+    attr_reader fields: Array[DbfFieldInfo]
+
+    def initialize: (record_count: Integer, field_count: Integer, fields: Array[DbfFieldInfo]) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # Contributor with role (T::Struct from types.rb)
+  class ContributorRole
+    attr_reader name: String
+    attr_reader role: String?
+
+    def initialize: (name: String, role: String?) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # JATS format metadata (T::Struct from types.rb)
+  class JatsMetadata
+    attr_reader copyright: String?
+    attr_reader license: String?
+    attr_reader history_dates: Hash[String, String]
+    attr_reader contributor_roles: Array[ContributorRole]
+
+    def initialize: (copyright: String?, license: String?, history_dates: Hash[String, String], contributor_roles: Array[ContributorRole]) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # EPUB format metadata (T::Struct from types.rb)
+  class EpubMetadata
+    attr_reader coverage: String?
+    attr_reader dc_format: String?
+    attr_reader relation: String?
+    attr_reader source: String?
+    attr_reader dc_type: String?
+    attr_reader cover_image: String?
+
+    def initialize: (coverage: String?, dc_format: String?, relation: String?, source: String?, dc_type: String?, cover_image: String?) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
+  # PST format metadata (T::Struct from types.rb)
+  class PstMetadata
+    attr_reader message_count: Integer
+
+    def initialize: (message_count: Integer) -> void
+    def to_h: () -> Hash[Symbol, untyped]
+  end
+
   # HTML metadata (T::Struct from types.rb)
   class HtmlMetadata     attr_reader title: String?
     attr_reader description: String?

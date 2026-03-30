@@ -8,9 +8,8 @@ use crate::core::config::ExtractionConfig;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::internal::InternalDocument;
 use crate::types::internal_builder::InternalDocumentBuilder;
-use crate::types::metadata::Metadata;
+use crate::types::metadata::{CitationMetadata, FormatMetadata, Metadata, YearRange};
 use crate::types::uri::Uri;
-use ahash::AHashMap;
 use ahash::AHashSet;
 use async_trait::async_trait;
 use std::borrow::Cow;
@@ -96,13 +95,15 @@ impl DocumentExtractor for CitationExtractor {
             "application/x-endnote+xml" => (EndNoteXmlParser::new().parse(&citation_str), "EndNote XML"),
             _ => {
                 // Fallback: return empty document if MIME type is unexpected
-                let mut additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
-                additional.insert(Cow::Borrowed("citation_count"), serde_json::json!(0));
-                additional.insert(Cow::Borrowed("format"), serde_json::json!("Unknown"));
+                let citation_metadata = CitationMetadata {
+                    citation_count: 0,
+                    format: Some("Unknown".to_string()),
+                    ..Default::default()
+                };
 
                 let mut doc = InternalDocument::new("citation");
                 doc.metadata = Metadata {
-                    additional,
+                    format: Some(FormatMetadata::Citation(citation_metadata)),
                     ..Default::default()
                 };
                 return Ok(doc);
@@ -233,53 +234,51 @@ impl DocumentExtractor for CitationExtractor {
             }
         }
 
-        let mut additional: AHashMap<Cow<'static, str>, serde_json::Value> = AHashMap::new();
-
-        additional.insert(Cow::Borrowed("citation_count"), serde_json::json!(citations_vec.len()));
-
         let mut authors_list: Vec<String> = authors_set.into_iter().collect();
         authors_list.sort();
         let meta_authors = if authors_list.is_empty() {
             None
         } else {
-            Some(authors_list)
+            Some(authors_list.clone())
         };
 
-        if !years_set.is_empty() {
-            let min_year = years_set.iter().min().copied().unwrap_or(0);
-            let max_year = years_set.iter().max().copied().unwrap_or(0);
+        let year_range = if !years_set.is_empty() {
+            let min_year = years_set.iter().min().copied();
+            let max_year = years_set.iter().max().copied();
             let mut years_sorted: Vec<u32> = years_set.into_iter().collect();
             years_sorted.sort_unstable();
-            additional.insert(
-                Cow::Borrowed("year_range"),
-                serde_json::json!({
-                    "min": min_year,
-                    "max": max_year,
-                    "years": years_sorted
-                }),
-            );
-        }
-
-        if !dois_vec.is_empty() {
-            additional.insert(Cow::Borrowed("dois"), serde_json::json!(dois_vec));
-        }
+            Some(YearRange {
+                min: min_year,
+                max: max_year,
+                years: years_sorted,
+            })
+        } else {
+            None
+        };
 
         let mut keywords_list: Vec<String> = keywords_set.into_iter().collect();
         keywords_list.sort();
         let meta_keywords = if keywords_list.is_empty() {
             None
         } else {
-            Some(keywords_list)
+            Some(keywords_list.clone())
         };
 
-        additional.insert(Cow::Borrowed("format"), serde_json::json!(format_string));
+        let citation_metadata = CitationMetadata {
+            citation_count: citations_vec.len(),
+            format: Some(format_string.to_string()),
+            authors: authors_list,
+            year_range,
+            dois: dois_vec,
+            keywords: keywords_list,
+        };
 
         let mut doc = builder.build();
         doc.mime_type = Cow::Owned(mime_type.to_string());
         doc.metadata = Metadata {
             authors: meta_authors,
             keywords: meta_keywords,
-            additional,
+            format: Some(FormatMetadata::Citation(citation_metadata)),
             ..Default::default()
         };
 
@@ -332,14 +331,12 @@ ER  -"#;
         let result = result.expect("Should extract valid RIS entry");
 
         let metadata = &result.metadata;
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("citation_count")),
-            Some(&serde_json::json!(1))
-        );
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("format")),
-            Some(&serde_json::json!("RIS"))
-        );
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert_eq!(cit.citation_count, 1);
+            assert_eq!(cit.format.as_deref(), Some("RIS"));
+        } else {
+            panic!("Expected FormatMetadata::Citation");
+        }
     }
 
     #[tokio::test]
@@ -367,14 +364,14 @@ ER  -"#;
 
         let metadata = &result.metadata;
 
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("citation_count")),
-            Some(&serde_json::json!(2))
-        );
-
-        if let Some(year_range) = metadata.additional.get("year_range") {
-            assert_eq!(year_range.get("min"), Some(&serde_json::json!(2020)));
-            assert_eq!(year_range.get("max"), Some(&serde_json::json!(2021)));
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert_eq!(cit.citation_count, 2);
+            if let Some(yr) = &cit.year_range {
+                assert_eq!(yr.min, Some(2020));
+                assert_eq!(yr.max, Some(2021));
+            }
+        } else {
+            panic!("Expected FormatMetadata::Citation");
         }
     }
 
@@ -397,8 +394,10 @@ ER  -"#;
         let result = result.expect("Should extract RIS with DOI");
 
         let metadata = &result.metadata;
-        if let Some(dois) = metadata.additional.get("dois") {
-            assert!(!dois.as_array().unwrap().is_empty());
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert!(!cit.dois.is_empty());
+        } else {
+            panic!("Expected FormatMetadata::Citation");
         }
     }
 
@@ -416,11 +415,11 @@ ER  -"#;
         let result = result.expect("Should handle empty citation file");
 
         let metadata = &result.metadata;
-
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("citation_count")),
-            Some(&serde_json::json!(0))
-        );
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert_eq!(cit.citation_count, 0);
+        } else {
+            panic!("Expected FormatMetadata::Citation");
+        }
     }
 
     #[tokio::test]
@@ -439,10 +438,11 @@ ER  -"#;
         // When RIS parser encounters unparseable content, it may return empty results
         // Verify we get a result either way
         let metadata = &result.metadata;
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("citation_count")),
-            Some(&serde_json::json!(0))
-        );
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert_eq!(cit.citation_count, 0);
+        } else {
+            panic!("Expected FormatMetadata::Citation");
+        }
     }
 
     #[tokio::test]
@@ -535,10 +535,11 @@ DP  - 2023"#;
         let result = result.expect("Should extract PubMed format");
 
         let metadata = &result.metadata;
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("format")),
-            Some(&serde_json::json!("PubMed"))
-        );
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert_eq!(cit.format.as_deref(), Some("PubMed"));
+        } else {
+            panic!("Expected FormatMetadata::Citation");
+        }
     }
 
     #[tokio::test]
@@ -567,9 +568,10 @@ DP  - 2023"#;
         let result = result.expect("Should extract EndNote XML format");
 
         let metadata = &result.metadata;
-        assert_eq!(
-            metadata.additional.get(&Cow::Borrowed("format")),
-            Some(&serde_json::json!("EndNote XML"))
-        );
+        if let Some(FormatMetadata::Citation(cit)) = &metadata.format {
+            assert_eq!(cit.format.as_deref(), Some("EndNote XML"));
+        } else {
+            panic!("Expected FormatMetadata::Citation");
+        }
     }
 }

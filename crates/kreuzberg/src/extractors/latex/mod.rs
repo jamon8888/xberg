@@ -690,17 +690,14 @@ mod tests {
     fn test_basic_title_extraction() {
         let latex = r#"\title{Hello World}"#;
         let (_, metadata, _) = LatexExtractor::extract_from_latex(latex);
-        assert_eq!(
-            metadata.additional.get("title").and_then(|v| v.as_str()),
-            Some("Hello World")
-        );
+        assert_eq!(metadata.title.as_deref(), Some("Hello World"));
     }
 
     #[test]
     fn test_author_extraction() {
         let latex = r#"\author{John Doe}"#;
         let (_, metadata, _) = LatexExtractor::extract_from_latex(latex);
-        assert!(metadata.additional.contains_key("author"));
+        assert!(metadata.created_by.is_some());
     }
 
     #[test]

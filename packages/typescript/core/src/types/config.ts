@@ -452,6 +452,91 @@ export interface TreeSitterConfig {
 }
 
 // ============================================================================
+// Format-specific metadata interfaces (serialized from Rust via serde)
+// ============================================================================
+
+export interface CsvMetadata {
+	format_type: "csv";
+	row_count: number;
+	column_count: number;
+	delimiter?: string;
+	has_header: boolean;
+	column_types?: string[];
+}
+
+export interface YearRange {
+	min?: number;
+	max?: number;
+	years: number[];
+}
+
+export interface BibtexMetadata {
+	format_type: "bibtex";
+	entry_count: number;
+	citation_keys: string[];
+	authors: string[];
+	year_range?: YearRange;
+	entry_types?: Record<string, number>;
+}
+
+export interface CitationMetadata {
+	format_type: "citation";
+	citation_count: number;
+	format?: string;
+	authors: string[];
+	year_range?: YearRange;
+	dois: string[];
+	keywords: string[];
+}
+
+export interface FictionBookMetadata {
+	format_type: "fiction_book";
+	genres: string[];
+	sequences: string[];
+	annotation?: string;
+}
+
+export interface DbfFieldInfo {
+	name: string;
+	field_type: string;
+}
+
+export interface DbfMetadata {
+	format_type: "dbf";
+	record_count: number;
+	field_count: number;
+	fields: DbfFieldInfo[];
+}
+
+export interface ContributorRole {
+	name: string;
+	role?: string;
+}
+
+export interface JatsMetadata {
+	format_type: "jats";
+	copyright?: string;
+	license?: string;
+	history_dates: Record<string, string>;
+	contributor_roles: ContributorRole[];
+}
+
+export interface EpubMetadata {
+	format_type: "epub";
+	coverage?: string;
+	dc_format?: string;
+	relation?: string;
+	source?: string;
+	dc_type?: string;
+	cover_image?: string;
+}
+
+export interface PstMetadata {
+	format_type: "pst";
+	message_count: number;
+}
+
+// ============================================================================
 // Tree-sitter ProcessResult types (serialized from Rust via serde)
 // ============================================================================
 

@@ -74,7 +74,7 @@ async fn test_pipeline_with_quality_processing() {
     };
 
     let processed = run_pipeline(doc, &config).await.unwrap();
-    assert!(processed.metadata.additional.contains_key("quality_score"));
+    assert!(processed.quality_score.is_some());
 }
 
 #[tokio::test]
@@ -91,7 +91,7 @@ async fn test_pipeline_without_quality_processing() {
     };
 
     let processed = run_pipeline(doc, &config).await.unwrap();
-    assert!(!processed.metadata.additional.contains_key("quality_score"));
+    assert!(processed.quality_score.is_none());
 }
 
 #[tokio::test]
@@ -114,9 +114,8 @@ async fn test_pipeline_with_chunking() {
     };
 
     let processed = run_pipeline(doc, &config).await.unwrap();
-    assert!(processed.metadata.additional.contains_key("chunk_count"));
-    let chunk_count = processed.metadata.additional.get("chunk_count").unwrap();
-    assert!(chunk_count.as_u64().unwrap() > 1);
+    let chunks = processed.chunks.as_ref().expect("chunks should be present");
+    assert!(chunks.len() > 1);
 }
 
 #[tokio::test]
@@ -133,7 +132,7 @@ async fn test_pipeline_without_chunking() {
     };
 
     let processed = run_pipeline(doc, &config).await.unwrap();
-    assert!(!processed.metadata.additional.contains_key("chunk_count"));
+    assert!(processed.chunks.is_none());
 }
 
 #[tokio::test]
@@ -238,8 +237,8 @@ async fn test_pipeline_with_all_features() {
 
     let processed = run_pipeline(doc, &config).await.unwrap();
     #[cfg(feature = "quality")]
-    assert!(processed.metadata.additional.contains_key("quality_score"));
-    assert!(processed.metadata.additional.contains_key("chunk_count"));
+    assert!(processed.quality_score.is_some());
+    assert!(processed.chunks.is_some());
 }
 
 #[tokio::test]
@@ -518,7 +517,7 @@ async fn test_quality_processing_runs_before_validator() {
                 return Ok(());
             }
 
-            if !result.metadata.additional.contains_key("quality_score") {
+            if result.quality_score.is_none() {
                 return Err(crate::KreuzbergError::Validation {
                     message: "Quality processing did not run before validator".to_string(),
                     source: None,

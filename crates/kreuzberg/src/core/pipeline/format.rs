@@ -11,6 +11,7 @@
 
 use crate::core::config::OutputFormat;
 use crate::types::ExtractionResult;
+#[cfg(test)]
 use std::borrow::Cow;
 
 /// Apply output format conversion to the extraction result.
@@ -35,11 +36,6 @@ pub fn apply_output_format(result: &mut ExtractionResult, output_format: OutputF
         OutputFormat::Custom(ref name) => name.as_str(),
     };
     result.metadata.output_format = Some(format_name.to_string());
-    // DEPRECATED: kept for backward compatibility; will be removed in next major version.
-    result.metadata.additional.insert(
-        Cow::Borrowed("output_format"),
-        serde_json::Value::String(format_name.to_string()),
-    );
 
     // Swap in pre-rendered content if available (populated by derive_extraction_result).
     if let Some(formatted) = result.formatted_content.take() {
@@ -193,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_output_format_sets_deprecated_additional_field() {
+    fn test_apply_output_format_sets_typed_field() {
         let mut result = ExtractionResult {
             content: "test".to_string(),
             mime_type: Cow::Borrowed("text/plain"),
@@ -202,9 +198,6 @@ mod tests {
 
         apply_output_format(&mut result, OutputFormat::Djot);
 
-        assert_eq!(
-            result.metadata.additional.get("output_format"),
-            Some(&serde_json::json!("djot"))
-        );
+        assert_eq!(result.metadata.output_format, Some("djot".to_string()));
     }
 }

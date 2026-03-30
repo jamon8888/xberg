@@ -2280,7 +2280,7 @@ mod tests {
                 name: Some("Picture 1".to_string()),
                 description: Some("A test image".to_string()),
             }),
-            image_ref: None,
+            image_ref: Some("rId1".to_string()),
         };
         let d_idx = doc.drawings.len();
         doc.drawings.push(drawing);

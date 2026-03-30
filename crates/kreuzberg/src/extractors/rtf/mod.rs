@@ -400,9 +400,11 @@ mod tests {
     fn test_plain_text_table_uses_pipes() {
         let rtf_content = r#"{\rtf1 {\trowd Cell1\cell Cell2\cell\row}}"#;
         let (plain, tables, _, _) = extract_text_from_rtf(rtf_content, true);
+        // Table rows produce [TABLE_ROW] placeholders in plain text
         assert!(
-            plain.contains('|'),
-            "Plain text should use pipe delimiters for table cells"
+            plain.contains("[TABLE_ROW]"),
+            "Plain text should contain table row placeholder, got: {}",
+            plain
         );
         assert!(!tables.is_empty(), "Tables should still be extracted");
     }

@@ -22,6 +22,7 @@ use crate::types::Metadata;
 use crate::types::ProcessingWarning;
 use crate::types::internal::InternalDocument;
 use crate::types::internal_builder::InternalDocumentBuilder;
+use crate::types::metadata::{EpubMetadata, FormatMetadata};
 use crate::types::uri::{Uri, UriKind, classify_uri};
 use ahash::{AHashMap, AHashSet};
 use async_trait::async_trait;
@@ -507,6 +508,14 @@ impl DocumentExtractor for EpubExtractor {
         let opf_xml = read_file_from_zip(&mut archive, &opf_path)?;
         let (package, _processing_warnings) = parse_opf(&opf_xml, &manifest_dir)?;
         let additional_metadata = build_additional_metadata(&package.metadata);
+        let epub_format_metadata = FormatMetadata::Epub(EpubMetadata {
+            coverage: package.metadata.coverage.clone(),
+            dc_format: package.metadata.format.clone(),
+            relation: package.metadata.relation.clone(),
+            source: package.metadata.source.clone(),
+            dc_type: package.metadata.dc_type.clone(),
+            cover_image: package.metadata.cover_image_href.clone(),
+        });
 
         // Collect nav document hrefs so we can skip them in content extraction
         let nav_hrefs: AHashSet<String> = package
@@ -543,6 +552,7 @@ impl DocumentExtractor for EpubExtractor {
             authors: package.metadata.creator.map(|c| vec![c]),
             language: package.metadata.language,
             created_at: package.metadata.date,
+            format: Some(epub_format_metadata),
             additional: metadata_map,
             ..Default::default()
         };
@@ -626,8 +636,7 @@ mod tests {
 </package>"#;
 
         let (package, _warnings) = metadata::parse_opf(opf, "").expect("Metadata parse failed");
-        let epub_meta = package.metadata;
-        let additional = metadata::build_additional_metadata(&epub_meta);
+        let epub_meta = &package.metadata;
         assert_eq!(epub_meta.title, Some("Test Book".to_string()));
         assert_eq!(epub_meta.coverage, Some("Worldwide".to_string()));
         assert_eq!(epub_meta.format, Some("application/epub+zip".to_string()));
@@ -636,11 +645,38 @@ mod tests {
         assert_eq!(epub_meta.dc_type, Some("Text".to_string()));
         assert_eq!(epub_meta.cover_image_href, Some("images/cover.jpg".to_string()));
 
-        assert!(additional.contains_key("coverage"));
-        assert!(additional.contains_key("format"));
-        assert!(additional.contains_key("relation"));
-        assert!(additional.contains_key("source"));
-        assert!(additional.contains_key("type"));
-        assert!(additional.contains_key("cover_image"));
+        // Verify Dublin Core extension fields go into FormatMetadata::Epub
+        let format_meta = FormatMetadata::Epub(EpubMetadata {
+            coverage: epub_meta.coverage.clone(),
+            dc_format: epub_meta.format.clone(),
+            relation: epub_meta.relation.clone(),
+            source: epub_meta.source.clone(),
+            dc_type: epub_meta.dc_type.clone(),
+            cover_image: epub_meta.cover_image_href.clone(),
+        });
+        match &format_meta {
+            FormatMetadata::Epub(em) => {
+                assert_eq!(em.coverage.as_deref(), Some("Worldwide"));
+                assert_eq!(em.dc_format.as_deref(), Some("application/epub+zip"));
+                assert_eq!(em.relation.as_deref(), Some("http://example.com/related"));
+                assert_eq!(em.source.as_deref(), Some("Original Manuscript"));
+                assert_eq!(em.dc_type.as_deref(), Some("Text"));
+                assert_eq!(em.cover_image.as_deref(), Some("images/cover.jpg"));
+            }
+            _ => panic!("Expected FormatMetadata::Epub variant"),
+        }
+
+        // Standard Dublin Core fields still go into additional
+        let additional = metadata::build_additional_metadata(epub_meta);
+        assert!(additional.contains_key("publisher"));
+        assert!(additional.contains_key("description"));
+        assert!(additional.contains_key("rights"));
+        // These should NOT be in additional anymore
+        assert!(!additional.contains_key("coverage"));
+        assert!(!additional.contains_key("format"));
+        assert!(!additional.contains_key("relation"));
+        assert!(!additional.contains_key("source"));
+        assert!(!additional.contains_key("type"));
+        assert!(!additional.contains_key("cover_image"));
     }
 }

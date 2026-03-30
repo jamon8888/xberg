@@ -7,7 +7,6 @@
 //! Each family gets its own lazily-initialized engine with the appropriate
 //! recognition model and character dictionary.
 
-use ahash::AHashMap;
 use async_trait::async_trait;
 use std::borrow::Cow;
 use std::panic::catch_unwind;
@@ -414,9 +413,6 @@ impl OcrBackend for PaddleOcrBackend {
             }
         }
 
-        let mut additional = AHashMap::new();
-        additional.insert(Cow::Borrowed("backend"), serde_json::json!("paddle-ocr"));
-
         let metadata = Metadata {
             format: Some(FormatMetadata::Ocr(OcrMetadata {
                 language: config.language.clone(),
@@ -426,7 +422,6 @@ impl OcrBackend for PaddleOcrBackend {
                 table_rows,
                 table_cols,
             })),
-            additional,
             ..Default::default()
         };
 
