@@ -20,9 +20,12 @@ readonly class DbfFieldInfo
      */
     public static function fromArray(array $data): self
     {
+        $rawName = $data['name'] ?? '';
+        $rawFieldType = $data['field_type'] ?? '';
+
         return new self(
-            name: (string) ($data['name'] ?? ''),
-            fieldType: (string) ($data['field_type'] ?? ''),
+            name: is_string($rawName) ? $rawName : '',
+            fieldType: is_string($rawFieldType) ? $rawFieldType : '',
         );
     }
 

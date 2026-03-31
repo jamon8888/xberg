@@ -440,7 +440,7 @@ test_custom_path_with_flag() {
   if ! run_container "$container_name" "$image" "$port" \
     --volume "$config_file:$container_path:ro" \
     --entrypoint "/usr/local/bin/kreuzberg" \
-    -- "serve" "--config" "$container_path"; then
+    -- "serve" "--config" "$container_path" "--host" "0.0.0.0"; then
     fail_test "Failed to start container with custom --config flag"
     log_error "  Container logs:\n$(get_container_logs "$container_name" 2>/dev/null || echo 'N/A')"
     return 1

@@ -21,8 +21,11 @@ readonly class PstMetadata
      */
     public static function fromArray(array $data): self
     {
+        $rawCount = $data['message_count'] ?? 0;
+        $messageCount = is_int($rawCount) ? $rawCount : (is_numeric($rawCount) ? (int) $rawCount : 0);
+
         return new self(
-            messageCount: (int) ($data['message_count'] ?? 0),
+            messageCount: $messageCount,
         );
     }
 

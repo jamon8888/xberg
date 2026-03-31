@@ -10,7 +10,7 @@ namespace Kreuzberg\Types\Metadata;
 readonly class YearRange
 {
     /**
-     * @param int[]$years
+     * @param int[] $years
      */
     public function __construct(
         public ?int $min = null,
@@ -24,8 +24,11 @@ readonly class YearRange
      */
     public static function fromArray(array $data): self
     {
-        $min = isset($data['min']) ? (int) $data['min'] : null;
-        $max = isset($data['max']) ? (int) $data['max'] : null;
+        $rawMin = $data['min'] ?? null;
+        $min = is_int($rawMin) ? $rawMin : (is_numeric($rawMin) ? (int) $rawMin : null);
+
+        $rawMax = $data['max'] ?? null;
+        $max = is_int($rawMax) ? $rawMax : (is_numeric($rawMax) ? (int) $rawMax : null);
 
         /** @var int[] $years */
         $years = $data['years'] ?? [];

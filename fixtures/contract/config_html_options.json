@@ -10,7 +10,7 @@
 		"input_type": "file",
 		"config": {
 			"html_options": {
-				"extract_metadata": true
+				"extractMetadata": true
 			}
 		}
 	},

@@ -81,5 +81,4 @@ defmodule Kreuzberg.Native do
   def render_pdf_pages_iter_open(_path, _dpi), do: :erlang.nif_error(:nif_not_loaded)
   def render_pdf_pages_iter_next(_handle), do: :erlang.nif_error(:nif_not_loaded)
   def render_pdf_pages_iter_free(_handle), do: :erlang.nif_error(:nif_not_loaded)
-
 end

@@ -125,17 +125,17 @@ pub fn extract_metadata_from_yaml(yaml: &YamlValue) -> Metadata {
     let mut metadata = Metadata::default();
 
     // Title
-    if let Some(title) = yaml.get("title").and_then(|v| v.as_str()) {
-        if metadata.title.is_none() {
-            metadata.title = Some(title.to_string());
-        }
+    if let Some(title) = yaml.get("title").and_then(|v| v.as_str())
+        && metadata.title.is_none()
+    {
+        metadata.title = Some(title.to_string());
     }
 
     // Author
-    if let Some(author) = yaml.get("author").and_then(|v| v.as_str()) {
-        if metadata.created_by.is_none() {
-            metadata.created_by = Some(author.to_string());
-        }
+    if let Some(author) = yaml.get("author").and_then(|v| v.as_str())
+        && metadata.created_by.is_none()
+    {
+        metadata.created_by = Some(author.to_string());
     }
 
     // Date (map to created_at)
@@ -196,10 +196,10 @@ pub fn extract_metadata_from_yaml(yaml: &YamlValue) -> Metadata {
     }
 
     // Language
-    if let Some(language) = yaml.get("language").and_then(|v| v.as_str()) {
-        if metadata.language.is_none() {
-            metadata.language = Some(language.to_string());
-        }
+    if let Some(language) = yaml.get("language").and_then(|v| v.as_str())
+        && metadata.language.is_none()
+    {
+        metadata.language = Some(language.to_string());
     }
 
     // Version

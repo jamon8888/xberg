@@ -73,11 +73,11 @@ async fn test_all_entry_types() {
             kreuzberg::OutputFormat::Plain,
         );
 
-        if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format {
-            if let Some(ref entry_types) = bibtex.entry_types {
-                assert!(!entry_types.is_empty(), "Entry types should not be empty");
-                println!("Entry type '{}' extracted successfully", expected_type);
-            }
+        if let Some(FormatMetadata::Bibtex(ref bibtex)) = result.metadata.format
+            && let Some(ref entry_types) = bibtex.entry_types
+        {
+            assert!(!entry_types.is_empty(), "Entry types should not be empty");
+            println!("Entry type '{}' extracted successfully", expected_type);
         }
     }
 }

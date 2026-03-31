@@ -138,7 +138,7 @@ mod tests {
 
         assert!(result.quality_score.is_some());
         let score = result.quality_score.unwrap();
-        assert!(score >= 0.0 && score <= 1.0);
+        assert!((0.0..=1.0).contains(&score));
     }
 
     #[tokio::test]

@@ -14,7 +14,7 @@ use ahash::AHashMap;
 use ahash::AHashSet;
 use async_trait::async_trait;
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 
 #[cfg(feature = "office")]
 use crate::types::document_structure::{AnnotationKind, TextAnnotation};

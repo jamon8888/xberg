@@ -31,11 +31,11 @@ readonly class CsvMetadata
      */
     public static function fromArray(array $data): self
     {
-        /** @var int $rowCount */
-        $rowCount = (int) ($data['row_count'] ?? 0);
+        $rawRowCount = $data['row_count'] ?? 0;
+        $rowCount = is_int($rawRowCount) ? $rawRowCount : (is_numeric($rawRowCount) ? (int) $rawRowCount : 0);
 
-        /** @var int $columnCount */
-        $columnCount = (int) ($data['column_count'] ?? 0);
+        $rawColumnCount = $data['column_count'] ?? 0;
+        $columnCount = is_int($rawColumnCount) ? $rawColumnCount : (is_numeric($rawColumnCount) ? (int) $rawColumnCount : 0);
 
         /** @var string|null $delimiter */
         $delimiter = $data['delimiter'] ?? null;

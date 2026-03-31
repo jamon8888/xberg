@@ -619,18 +619,18 @@ type CsvMetadata struct {
 
 // YearRange represents a year range for bibliographic metadata.
 type YearRange struct {
-	Min   *int   `json:"min,omitempty"`
-	Max   *int   `json:"max,omitempty"`
-	Years []int  `json:"years,omitempty"`
+	Min   *int  `json:"min,omitempty"`
+	Max   *int  `json:"max,omitempty"`
+	Years []int `json:"years,omitempty"`
 }
 
 // BibtexMetadata holds BibTeX bibliography metadata.
 type BibtexMetadata struct {
-	EntryCount   int               `json:"entry_count"`
-	CitationKeys []string          `json:"citation_keys,omitempty"`
-	Authors      []string          `json:"authors,omitempty"`
-	YearRange    *YearRange        `json:"year_range,omitempty"`
-	EntryTypes   map[string]int    `json:"entry_types,omitempty"`
+	EntryCount   int            `json:"entry_count"`
+	CitationKeys []string       `json:"citation_keys,omitempty"`
+	Authors      []string       `json:"authors,omitempty"`
+	YearRange    *YearRange     `json:"year_range,omitempty"`
+	EntryTypes   map[string]int `json:"entry_types,omitempty"`
 }
 
 // CitationMetadata holds citation file metadata (RIS, PubMed, EndNote).
@@ -671,10 +671,10 @@ type ContributorRole struct {
 
 // JatsMetadata holds JATS (Journal Article Tag Suite) metadata.
 type JatsMetadata struct {
-	Copyright        *string            `json:"copyright,omitempty"`
-	License          *string            `json:"license,omitempty"`
-	HistoryDates     map[string]string  `json:"history_dates,omitempty"`
-	ContributorRoles []ContributorRole  `json:"contributor_roles,omitempty"`
+	Copyright        *string           `json:"copyright,omitempty"`
+	License          *string           `json:"license,omitempty"`
+	HistoryDates     map[string]string `json:"history_dates,omitempty"`
+	ContributorRoles []ContributorRole `json:"contributor_roles,omitempty"`
 }
 
 // EpubMetadata holds EPUB metadata (Dublin Core extensions).

@@ -31,8 +31,8 @@ readonly class BibtexMetadata
      */
     public static function fromArray(array $data): self
     {
-        /** @var int $entryCount */
-        $entryCount = (int) ($data['entry_count'] ?? 0);
+        $rawEntryCount = $data['entry_count'] ?? 0;
+        $entryCount = is_int($rawEntryCount) ? $rawEntryCount : (is_numeric($rawEntryCount) ? (int) $rawEntryCount : 0);
 
         /** @var string[] $citationKeys */
         $citationKeys = $data['citation_keys'] ?? [];
@@ -47,8 +47,11 @@ readonly class BibtexMetadata
         }
 
         $yearRange = null;
-        if (isset($data['year_range']) && is_array($data['year_range'])) {
-            $yearRange = YearRange::fromArray($data['year_range']);
+        $yearRangeRaw = $data['year_range'] ?? null;
+        if (is_array($yearRangeRaw)) {
+            /** @var array<string, mixed> $yearRangeData */
+            $yearRangeData = $yearRangeRaw;
+            $yearRange = YearRange::fromArray($yearRangeData);
         }
 
         /** @var array<string, int>|null $entryTypes */

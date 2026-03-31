@@ -7,6 +7,7 @@
 //! Each family gets its own lazily-initialized engine with the appropriate
 //! recognition model and character dictionary.
 
+use ahash::AHashMap;
 use async_trait::async_trait;
 use std::borrow::Cow;
 use std::panic::catch_unwind;

@@ -20,9 +20,12 @@ readonly class ContributorRole
      */
     public static function fromArray(array $data): self
     {
+        $rawName = $data['name'] ?? '';
+        $rawRole = $data['role'] ?? null;
+
         return new self(
-            name: (string) ($data['name'] ?? ''),
-            role: $data['role'] ?? null,
+            name: is_string($rawName) ? $rawName : '',
+            role: is_string($rawRole) ? $rawRole : null,
         );
     }
 

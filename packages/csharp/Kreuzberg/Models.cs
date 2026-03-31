@@ -539,6 +539,13 @@ public sealed class ExtractionResult
     /// </summary>
     [JsonPropertyName("annotations")]
     public List<PdfAnnotation>? Annotations { get; set; }
+
+    /// <summary>
+    /// URIs/links discovered during document extraction.
+    /// Contains hyperlinks, image references, citations, email addresses, and other URI-like references.
+    /// </summary>
+    [JsonPropertyName("uris")]
+    public List<ExtractedUri>? Uris { get; set; }
 }
 
 /// <summary>
@@ -599,6 +606,37 @@ public sealed class PdfAnnotationBoundingBox
     /// </summary>
     [JsonPropertyName("y1")]
     public double Y1 { get; init; }
+}
+
+/// <summary>
+/// A URI extracted from a document.
+/// Represents any link, reference, or resource pointer found during extraction.
+/// </summary>
+public sealed class ExtractedUri
+{
+    /// <summary>
+    /// The URL or path string.
+    /// </summary>
+    [JsonPropertyName("url")]
+    public string Url { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Optional display text / label for the link.
+    /// </summary>
+    [JsonPropertyName("label")]
+    public string? Label { get; init; }
+
+    /// <summary>
+    /// Optional page number where the URI was found (1-indexed).
+    /// </summary>
+    [JsonPropertyName("page")]
+    public uint? Page { get; init; }
+
+    /// <summary>
+    /// Semantic classification of the URI (hyperlink, image, anchor, citation, reference, email).
+    /// </summary>
+    [JsonPropertyName("kind")]
+    public string Kind { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -3971,6 +4009,12 @@ public sealed class NodeContent
     /// </summary>
     [JsonPropertyName("image_index")]
     public uint? ImageIndex { get; set; }
+
+    /// <summary>
+    /// Source URL or path for images.
+    /// </summary>
+    [JsonPropertyName("src")]
+    public string? Src { get; set; }
 
     /// <summary>
     /// Programming language for code blocks.

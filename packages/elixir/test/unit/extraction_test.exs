@@ -296,7 +296,8 @@ defmodule KreuzbergTest.Unit.ExtractionTest do
         })
 
       # Rust rejects unknown config keys (deny_unknown_fields)
-      assert %Kreuzberg.Error{} = error
+      assert is_binary(error)
+      assert error =~ "unknown_option"
     end
   end
 

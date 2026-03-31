@@ -32,8 +32,8 @@ readonly class CitationMetadata
      */
     public static function fromArray(array $data): self
     {
-        /** @var int $citationCount */
-        $citationCount = (int) ($data['citation_count'] ?? 0);
+        $rawCitationCount = $data['citation_count'] ?? 0;
+        $citationCount = is_int($rawCitationCount) ? $rawCitationCount : (is_numeric($rawCitationCount) ? (int) $rawCitationCount : 0);
 
         /** @var string|null $format */
         $format = $data['format'] ?? null;
@@ -45,8 +45,11 @@ readonly class CitationMetadata
         }
 
         $yearRange = null;
-        if (isset($data['year_range']) && is_array($data['year_range'])) {
-            $yearRange = YearRange::fromArray($data['year_range']);
+        $yearRangeRaw = $data['year_range'] ?? null;
+        if (is_array($yearRangeRaw)) {
+            /** @var array<string, mixed> $yearRangeData */
+            $yearRangeData = $yearRangeRaw;
+            $yearRange = YearRange::fromArray($yearRangeData);
         }
 
         /** @var string[] $dois */

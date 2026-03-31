@@ -29,11 +29,11 @@ readonly class JatsMetadata
      */
     public static function fromArray(array $data): self
     {
-        /** @var string|null $copyright */
-        $copyright = $data['copyright'] ?? null;
+        $rawCopyright = $data['copyright'] ?? null;
+        $copyright = is_string($rawCopyright) ? $rawCopyright : null;
 
-        /** @var string|null $license */
-        $license = $data['license'] ?? null;
+        $rawLicense = $data['license'] ?? null;
+        $license = is_string($rawLicense) ? $rawLicense : null;
 
         /** @var array<string, string> $historyDates */
         $historyDates = $data['history_dates'] ?? [];
@@ -43,10 +43,13 @@ readonly class JatsMetadata
 
         /** @var ContributorRole[] $contributorRoles */
         $contributorRoles = [];
-        if (isset($data['contributor_roles']) && is_array($data['contributor_roles'])) {
-            foreach ($data['contributor_roles'] as $roleData) {
+        $rawRoles = $data['contributor_roles'] ?? null;
+        if (is_array($rawRoles)) {
+            foreach ($rawRoles as $roleData) {
                 if (is_array($roleData)) {
-                    $contributorRoles[] = ContributorRole::fromArray($roleData);
+                    /** @var array<string, mixed> $typedRoleData */
+                    $typedRoleData = $roleData;
+                    $contributorRoles[] = ContributorRole::fromArray($typedRoleData);
                 }
             }
         }
@@ -80,7 +83,7 @@ readonly class JatsMetadata
 
         if ($this->contributorRoles !== []) {
             $result['contributor_roles'] = array_map(
-                fn(ContributorRole $c) => $c->toArray(),
+                fn (ContributorRole $c) => $c->toArray(),
                 $this->contributorRoles,
             );
         }

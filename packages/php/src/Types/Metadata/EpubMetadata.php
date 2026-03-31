@@ -26,13 +26,20 @@ readonly class EpubMetadata
      */
     public static function fromArray(array $data): self
     {
+        $rawCoverage = $data['coverage'] ?? null;
+        $rawDcFormat = $data['dc_format'] ?? null;
+        $rawRelation = $data['relation'] ?? null;
+        $rawSource = $data['source'] ?? null;
+        $rawDcType = $data['dc_type'] ?? null;
+        $rawCoverImage = $data['cover_image'] ?? null;
+
         return new self(
-            coverage: $data['coverage'] ?? null,
-            dcFormat: $data['dc_format'] ?? null,
-            relation: $data['relation'] ?? null,
-            source: $data['source'] ?? null,
-            dcType: $data['dc_type'] ?? null,
-            coverImage: $data['cover_image'] ?? null,
+            coverage: is_string($rawCoverage) ? $rawCoverage : null,
+            dcFormat: is_string($rawDcFormat) ? $rawDcFormat : null,
+            relation: is_string($rawRelation) ? $rawRelation : null,
+            source: is_string($rawSource) ? $rawSource : null,
+            dcType: is_string($rawDcType) ? $rawDcType : null,
+            coverImage: is_string($rawCoverImage) ? $rawCoverImage : null,
         );
     }
 

@@ -26,18 +26,21 @@ readonly class DbfMetadata
      */
     public static function fromArray(array $data): self
     {
-        /** @var int $recordCount */
-        $recordCount = (int) ($data['record_count'] ?? 0);
+        $rawRecordCount = $data['record_count'] ?? 0;
+        $recordCount = is_int($rawRecordCount) ? $rawRecordCount : (is_numeric($rawRecordCount) ? (int) $rawRecordCount : 0);
 
-        /** @var int $fieldCount */
-        $fieldCount = (int) ($data['field_count'] ?? 0);
+        $rawFieldCount = $data['field_count'] ?? 0;
+        $fieldCount = is_int($rawFieldCount) ? $rawFieldCount : (is_numeric($rawFieldCount) ? (int) $rawFieldCount : 0);
 
         /** @var DbfFieldInfo[] $fields */
         $fields = [];
-        if (isset($data['fields']) && is_array($data['fields'])) {
-            foreach ($data['fields'] as $fieldData) {
+        $rawFields = $data['fields'] ?? null;
+        if (is_array($rawFields)) {
+            foreach ($rawFields as $fieldData) {
                 if (is_array($fieldData)) {
-                    $fields[] = DbfFieldInfo::fromArray($fieldData);
+                    /** @var array<string, mixed> $typedFieldData */
+                    $typedFieldData = $fieldData;
+                    $fields[] = DbfFieldInfo::fromArray($typedFieldData);
                 }
             }
         }
@@ -61,7 +64,7 @@ readonly class DbfMetadata
 
         if ($this->fields !== []) {
             $result['fields'] = array_map(
-                fn(DbfFieldInfo $f) => $f->toArray(),
+                fn (DbfFieldInfo $f) => $f->toArray(),
                 $this->fields,
             );
         }

@@ -340,6 +340,10 @@ typedef struct CExtractionResult {
    */
   char *tables_json;
   /**
+   * JSON-serialized URIs/links array (null-terminated, or null pointer if none, must be freed with kreuzberg_free_string)
+   */
+  char *uris_json;
+  /**
    * Whether extraction was successful
    */
   bool success;
