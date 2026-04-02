@@ -195,38 +195,38 @@ public final class KreuzbergExtractJava {
 
         ExtractionConfig benchConfig = buildBenchmarkConfig(ocrEnabled);
         long start = System.nanoTime();
-        try {
-            List<ExtractionResult> results = new ArrayList<>();
-            for (Path path : paths) {
-                results.add(Kreuzberg.extractFile(path, benchConfig));
-            }
-            double totalMs = (System.nanoTime() - start) / NANOS_IN_MILLISECOND;
-
-            if (debug) {
-                debugLog("Batch extraction completed", String.valueOf(results.size()) + " results");
-            }
-
-            double perFileMs = totalMs / Math.max(results.size(), 1);
-
-            if (results.size() == 1) {
-                String json = toJsonWithBatch(results.get(0), perFileMs, totalMs, ocrEnabled);
-                System.out.print(json);
-            } else {
-                System.out.print("[");
-                for (int i = 0; i < results.size(); i++) {
-                    if (i > 0) {
-                        System.out.print(",");
-                    }
-                    System.out.print(toJsonWithBatch(results.get(i), perFileMs, totalMs, ocrEnabled));
+        List<String> jsonResults = new ArrayList<>();
+        for (Path path : paths) {
+            long fileStart = System.nanoTime();
+            try {
+                ExtractionResult result = Kreuzberg.extractFile(path, benchConfig);
+                double fileMs = (System.nanoTime() - fileStart) / NANOS_IN_MILLISECOND;
+                jsonResults.add(toJsonWithBatch(result, fileMs, fileMs, ocrEnabled));
+            } catch (KreuzbergException | RuntimeException | java.io.IOException e) {
+                double fileMs = (System.nanoTime() - fileStart) / NANOS_IN_MILLISECOND;
+                if (debug) {
+                    debugLog("File extraction failed: " + path, e.getClass().getName() + ": " + e.getMessage());
                 }
-                System.out.print("]");
+                jsonResults.add("{\"error\":\"" + e.getMessage().replace("\"", "\\\"") + "\",\"_extraction_time_ms\":" + fileMs + ",\"_ocr_used\":false}");
             }
-        } catch (KreuzbergException | RuntimeException | java.io.IOException e) {
-            if (debug) {
-                debugLog("Batch extraction failed", e.getClass().getName());
-                e.printStackTrace(System.err);
+        }
+        double totalMs = (System.nanoTime() - start) / NANOS_IN_MILLISECOND;
+
+        if (debug) {
+            debugLog("Batch extraction completed", String.valueOf(jsonResults.size()) + " results");
+        }
+
+        if (jsonResults.size() == 1) {
+            System.out.print(jsonResults.get(0));
+        } else {
+            System.out.print("[");
+            for (int i = 0; i < jsonResults.size(); i++) {
+                if (i > 0) {
+                    System.out.print(",");
+                }
+                System.out.print(jsonResults.get(i));
             }
-            System.exit(1);
+            System.out.print("]");
         }
     }
 
