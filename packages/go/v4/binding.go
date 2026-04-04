@@ -644,13 +644,6 @@ func LastPanicContext() *PanicContext {
 }
 
 func convertCResult(cRes *C.CExtractionResult) (*ExtractionResult, error) {
-	// Debug: print raw pointer values to diagnose FFI struct layout issues
-	fmt.Fprintf(os.Stderr, "DEBUG convertCResult: cRes=%p success=%v\n", cRes, cRes.success)
-	fmt.Fprintf(os.Stderr, "DEBUG   content=%p mime_type=%p\n", cRes.content, cRes.mime_type)
-	fmt.Fprintf(os.Stderr, "DEBUG   tables_json=%p annotations_json=%p\n", cRes.tables_json, cRes.annotations_json)
-	fmt.Fprintf(os.Stderr, "DEBUG   chunks_json=%p children_json=%p\n", cRes.chunks_json, cRes.children_json)
-	fmt.Fprintf(os.Stderr, "DEBUG   code_intelligence_json=%p uris_json=%p\n", cRes.code_intelligence_json, cRes.uris_json)
-
 	result := &ExtractionResult{
 		Content:  C.GoString(cRes.content),
 		MimeType: C.GoString(cRes.mime_type),

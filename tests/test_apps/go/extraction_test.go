@@ -1784,7 +1784,7 @@ func TestMetadataPptxMetadata(t *testing.T) {
 	pptx, ok := metadata.PptxMetadata()
 	assert.True(t, ok)
 	assert.NotNil(t, pptx)
-	assert.Equal(t, uint64(3), pptx.SlideCount)
+	assert.Equal(t, 3, pptx.SlideCount)
 	assert.Equal(t, 3, len(pptx.SlideNames))
 }
 

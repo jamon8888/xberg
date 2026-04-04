@@ -39,6 +39,16 @@ pub(crate) fn apply_layout_overrides(
         // Proportional matching for structure tree pages (no positional data)
         apply_proportional_overrides(paragraphs, hints, min_confidence);
     }
+
+    tracing::debug!(
+        total = paragraphs.len(),
+        headings = paragraphs.iter().filter(|p| p.heading_level.is_some()).count(),
+        list_items = paragraphs.iter().filter(|p| p.is_list_item).count(),
+        code_blocks = paragraphs.iter().filter(|p| p.is_code_block).count(),
+        formulas = paragraphs.iter().filter(|p| p.is_formula).count(),
+        furniture = paragraphs.iter().filter(|p| p.is_page_furniture).count(),
+        "layout overrides applied"
+    );
 }
 
 /// Spatial matching: match paragraphs to hints by bounding box overlap.

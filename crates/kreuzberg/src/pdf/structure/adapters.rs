@@ -96,7 +96,8 @@ pub(crate) fn ocr_doc_to_paragraphs(
     // Each per-page hOCR InternalDocument is extracted independently by tesseract,
     // so all OcrText elements belong to the current page regardless of their
     // stored page number (which is always 1 from single-page hOCR).
-    doc.elements
+    let result: Vec<super::types::PdfParagraph> = doc
+        .elements
         .iter()
         .filter(|e| matches!(e.kind, ElementKind::OcrText { .. }))
         .filter(|e| !e.text.trim().is_empty())
@@ -171,7 +172,20 @@ pub(crate) fn ocr_doc_to_paragraphs(
                 block_bbox,
             }
         })
-        .collect()
+        .collect();
+
+    tracing::debug!(
+        input_elements = doc
+            .elements
+            .iter()
+            .filter(|e| matches!(e.kind, ElementKind::OcrText { .. }))
+            .count(),
+        output_paragraphs = result.len(),
+        total_text_chars = result.iter().map(|p| p.text.len()).sum::<usize>(),
+        "ocr_doc_to_paragraphs"
+    );
+
+    result
 }
 
 #[cfg(test)]

@@ -811,6 +811,13 @@ pub(crate) async fn extract_with_ocr(
                         );
                     }
 
+                    tracing::debug!(
+                        page = page_idx + 1,
+                        paragraphs = paragraphs.len(),
+                        raw_content_len = ocr_result.content.len(),
+                        "OCR page layout classification complete"
+                    );
+
                     // Don't filter page furniture for OCR — the layout model's
                     // header/footer detection is less reliable on OCR-rendered pages,
                     // and falsely filtering content is worse than keeping it.

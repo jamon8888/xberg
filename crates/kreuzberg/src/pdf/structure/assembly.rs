@@ -129,7 +129,12 @@ pub(crate) fn assemble_internal_document(
         }
     }
 
-    builder.build()
+    let doc = builder.build();
+    tracing::debug!(
+        output_elements = doc.elements.len(),
+        "assemble_internal_document complete"
+    );
+    doc
 }
 
 /// Push paragraph elements for a page without tables.

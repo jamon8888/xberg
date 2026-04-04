@@ -388,6 +388,8 @@ impl OcrBackend for PaddleOcrBackend {
             .do_ocr(&ocr_image_bytes, paddle_lang, Arc::clone(&effective_config))
             .await?;
 
+        let text_blocks_count = ocr_elements.len();
+
         // Build structured InternalDocument from OCR elements for the layout
         // classification pipeline (same path as tesseract hOCR).
         let ocr_doc = {
@@ -419,6 +421,13 @@ impl OcrBackend for PaddleOcrBackend {
             }
             doc
         };
+
+        tracing::debug!(
+            text_blocks = text_blocks_count,
+            ocr_elements = ocr_elements.len(),
+            internal_doc_elements = ocr_doc.elements.len(),
+            "PaddleOCR InternalDocument built"
+        );
 
         // Table detection
         let mut tables: Vec<Table> = vec![];

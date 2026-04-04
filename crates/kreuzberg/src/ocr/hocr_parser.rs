@@ -104,6 +104,13 @@ pub fn parse_hocr_to_internal_document(hocr_html: &str) -> InternalDocument {
         }
     }
 
+    tracing::debug!(
+        input_bytes = hocr_html.len(),
+        elements = doc.elements.len(),
+        total_text_chars = doc.elements.iter().map(|e| e.text.len()).sum::<usize>(),
+        "hOCR parse complete"
+    );
+
     doc
 }
 
