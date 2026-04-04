@@ -731,7 +731,9 @@ pub fn build_comrak_ast<'a>(doc: &InternalDocument, arena: &'a comrak::Arena<'a>
             }
 
             ElementKind::PageBreak => {
-                parent.append(mk(arena, NodeValue::ThematicBreak));
+                // PageBreak is structural metadata, not rendered content.
+                // Page separation is handled by paragraph breaks between elements.
+                // Rendering as ThematicBreak (-----) pollutes output and hurts scoring.
             }
 
             ElementKind::Slide { .. } => {

@@ -790,7 +790,10 @@ mod tests {
         let mut paragraphs = vec![para];
         let hints = vec![make_hint(LayoutHintClass::Code, 0.9, 40.0, 598.0, 400.0, 620.0)];
         apply_layout_overrides(&mut paragraphs, &hints, 0.5, 0.5, None);
-        assert!(!paragraphs[0].is_code_block, "Prose text should not be classified as code");
+        assert!(
+            !paragraphs[0].is_code_block,
+            "Prose text should not be classified as code"
+        );
     }
 
     #[test]
@@ -800,7 +803,10 @@ mod tests {
         let mut paragraphs = vec![para];
         let hints = vec![make_hint(LayoutHintClass::Code, 0.9, 40.0, 598.0, 400.0, 620.0)];
         apply_layout_overrides(&mut paragraphs, &hints, 0.5, 0.5, None);
-        assert!(paragraphs[0].is_code_block, "Code-like text should be classified as code");
+        assert!(
+            paragraphs[0].is_code_block,
+            "Code-like text should be classified as code"
+        );
     }
 
     #[test]

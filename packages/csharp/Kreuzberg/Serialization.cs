@@ -1641,7 +1641,7 @@ internal class MetadataConverter : JsonConverter<Metadata>
     }
 }
 
-internal static class Serialization
+public static class Serialization
 {
     /// <summary>
     /// JSON serializer options for deserialization with custom converters.
@@ -1883,7 +1883,7 @@ internal static class Serialization
     /// Parses an ExtractionConfig from JSON.
     /// Uses source-generated serialization on .NET 7+ for better performance (100-150ms improvement).
     /// </summary>
-    internal static ExtractionConfig ParseConfig(string json)
+    public static ExtractionConfig ParseConfig(string json)
     {
 #if NET7_0_OR_GREATER
         return JsonSerializer.Deserialize<ExtractionConfig>(json, GetJsonSerializerOptions()) ?? new ExtractionConfig();

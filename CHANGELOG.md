@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **PageBreak rendering as `-----` separators** — PageBreak elements in InternalDocument were rendered as ThematicBreak (`-----`) in markdown and `<hr>` in HTML output. This polluted extraction output with separators that don't exist in the source document. PageBreak is now treated as structural metadata — paragraph breaks between elements provide sufficient page separation, matching the pdfium baseline behavior.
 - **Leptonica DPI crash** (#606) — Images with resolution 0 DPI caused Leptonica preprocessing (background normalization, unsharp mask, grayscale conversion) to trigger a C++ exception that Rust cannot catch, aborting the process. Now validates and fixes DPI to 72 before preprocessing. Also disabled C++ exception handling on Windows MSVC builds (`/EHsc` removed).
 - **Node.js `ExtractionResult.children` missing at runtime** — The `children` field was declared in TypeScript definitions but missing from the runtime NAPI object in the published v4.7.1 binary, causing parity test failures.
 - **Layout detection fixture stale `preset` field** — E2E fixture `layout_detection.json` included removed `preset` field, causing Python test failures. Removed from fixture.

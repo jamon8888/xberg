@@ -194,6 +194,47 @@ importers:
         specifier: ^4.1.2
         version: 4.1.2(@types/node@25.5.2)(@vitest/ui@4.1.2)(jsdom@29.0.1)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
 
+  test_apps/typescript:
+    dependencies:
+      '@kreuzberg/node':
+        specifier: 4.7.1
+        version: 4.7.1
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.2
+        version: 25.5.2
+      '@vitest/ui':
+        specifier: ^4.1.2
+        version: 4.1.2(vitest@4.1.2)
+      oxlint:
+        specifier: ^1.58.0
+        version: 1.58.0
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^4.1.2
+        version: 4.1.2(@types/node@25.5.2)(@vitest/ui@4.1.2)(jsdom@29.0.1)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
+
+  test_apps/wasm:
+    dependencies:
+      '@kreuzberg/wasm':
+        specifier: 4.7.1
+        version: 4.7.1
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.2
+      '@vitest/ui':
+        specifier: ^4.1.2
+        version: 4.1.2(vitest@4.1.2)
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^4.1.2
+        version: 4.1.2(@types/node@25.5.2)(@vitest/ui@4.1.2)(jsdom@29.0.1)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0))
+
 packages:
 
   '@asamuzakjp/css-color@5.1.4':
@@ -649,6 +690,41 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@kreuzberg/node-darwin-arm64@4.7.1':
+    resolution: {integrity: sha512-ChkbAf412HvRK7dFLpYJDfJ4+L2XmTZo8q6QWKh/9e/K3rLCnC8CX1iJ9bfEjOdkQAQPKcF0aJ1nHms31DTkGQ==}
+    engines: {bun: '>= 1.3', node: '>= 22'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@kreuzberg/node-linux-arm64-gnu@4.7.1':
+    resolution: {integrity: sha512-0UbcsuhjpKrNNY1k42ZFaySS6FfXfvCJRDaJaAq4/P+GlAnCSMXR8Y3zsX1vHllsm7TgIa1ysDfStz9stVKziA==}
+    engines: {bun: '>= 1.3', node: '>= 22'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@kreuzberg/node-linux-x64-gnu@4.7.1':
+    resolution: {integrity: sha512-kwsQyyrjzCTvrPGlF6AQS03b1ismGz0+JBRzRm6HeJP2fFGSFladasvoxLVAL3Ni/udR0KvlEYGX71fsSePCPg==}
+    engines: {bun: '>= 1.3', node: '>= 22'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@kreuzberg/node-win32-x64-msvc@4.7.1':
+    resolution: {integrity: sha512-fhfV6tIrdlGmZ5WxBwgowltHd5S2GVXNkas1zZgXVtppVe6GmYtBN/Kv1dCkDFiU+WETVePTCa1ZkaH1gi14fQ==}
+    engines: {bun: '>= 1.3', node: '>= 22'}
+    cpu: [x64]
+    os: [win32]
+
+  '@kreuzberg/node@4.7.1':
+    resolution: {integrity: sha512-j9u5FS77DKcur3gOWU1EjRiCRjKN2eIxkGqmR2vuOthW38iTQuK6UsrGDuxpM9chqzPw4vEWl9T/19i+VaPAlw==}
+    engines: {bun: '>= 1.3', node: '>= 22'}
+    hasBin: true
+
+  '@kreuzberg/wasm@4.7.1':
+    resolution: {integrity: sha512-WMdP1vLMgKD7/j8krlV5F1LBmaWtVHLZY0boRLJ7Cw+n6fBzZzD+gIbUtwTG2mm+UNDzYhSEH7VUYveRYkbEgw==}
+    engines: {node: '>= 16'}
 
   '@napi-rs/cli@3.6.0':
     resolution: {integrity: sha512-aA8m4+9XxnK1+0sr4GplZP0Ze90gkzO8sMKaplOK0zXbLnzsLl6O2BQQt6rTCcTRzIN24wrrByakr/imM+CxhA==}
@@ -2829,6 +2905,32 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@kreuzberg/node-darwin-arm64@4.7.1':
+    optional: true
+
+  '@kreuzberg/node-linux-arm64-gnu@4.7.1':
+    optional: true
+
+  '@kreuzberg/node-linux-x64-gnu@4.7.1':
+    optional: true
+
+  '@kreuzberg/node-win32-x64-msvc@4.7.1':
+    optional: true
+
+  '@kreuzberg/node@4.7.1':
+    dependencies:
+      '@emnapi/runtime': 1.9.2
+      which: 6.0.1
+    optionalDependencies:
+      '@kreuzberg/node-darwin-arm64': 4.7.1
+      '@kreuzberg/node-linux-arm64-gnu': 4.7.1
+      '@kreuzberg/node-linux-x64-gnu': 4.7.1
+      '@kreuzberg/node-win32-x64-msvc': 4.7.1
+
+  '@kreuzberg/wasm@4.7.1':
+    optionalDependencies:
+      tesseract-wasm: 0.11.0
 
   '@napi-rs/cli@3.6.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)':
     dependencies:

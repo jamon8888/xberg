@@ -122,7 +122,7 @@ pub fn render_djot(doc: &InternalDocument) -> String {
                 // Rendered at end
             }
             ElementKind::PageBreak => {
-                push_with_bq(&mut out, "\n---\n\n", bq_depth);
+                // Structural metadata — paragraph breaks provide separation.
             }
             ElementKind::Slide { number: _ } => {
                 if elem.text.is_empty() {

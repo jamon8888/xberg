@@ -900,13 +900,34 @@ pub fn generate(fixtures: &[Fixture], output_dir: &Utf8Path, mode: &GenerationMo
     Ok(())
 }
 
-fn write_composer_json(php_root: &Utf8Path, _mode: &GenerationMode) -> Result<()> {
-    let content = r#"{
-    "require-dev": {
+fn write_composer_json(php_root: &Utf8Path, mode: &GenerationMode) -> Result<()> {
+    let require_section = match mode {
+        GenerationMode::Published { .. } => {
+            r#"    "require": {
+        "kreuzberg/kreuzberg": "^4.7"
+    },
+"#
+        }
+        GenerationMode::Local => "",
+    };
+    let content = format!(
+        r#"{{
+{require_section}    "autoload": {{
+        "psr-4": {{
+            "E2EPhp\\": "tests/"
+        }}
+    }},
+    "autoload-dev": {{
+        "psr-4": {{
+            "E2EPhp\\Tests\\": "tests/"
+        }}
+    }},
+    "require-dev": {{
         "phpunit/phpunit": "^13.1"
-    }
-}
-"#;
+    }}
+}}
+"#
+    );
     let path = php_root.join("composer.json");
     fs::write(&path, content).context("Failed to write composer.json")
 }
