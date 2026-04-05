@@ -3,12 +3,12 @@
 
 [default]
 extend-ignore-re = [
-  # Hex strings (e.g. commit hashes, checksums)
-  "[a-fA-F0-9]{32,}",
-  # Base64 encoded strings
-  "[A-Za-z0-9+/]{40,}={0,2}",
-  # URLs — avoid flagging path segments
-  "https?://[^\\s]+",
+    # Hex strings (e.g. commit hashes, checksums)
+    "[a-fA-F0-9]{32,}",
+    # Base64 encoded strings
+    "[A-Za-z0-9+/]{40,}={0,2}",
+    # URLs — avoid flagging path segments
+    "https?://[^\\s]+",
 ]
 
 [default.extend-words]
@@ -41,28 +41,29 @@ WebUI = "WebUI"
 
 [files]
 extend-exclude = [
-  # Test fixtures and vendor files
-  "test_documents/",
-  "fixtures/",
-  # Lock files
-  "*.lock",
-  "pnpm-lock.yaml",
-  # Build artifacts
-  "target/",
-  "node_modules/",
-  "dist/",
-  "site/",
-  # Code snippets (validated separately by snippet-runner)
-  "docs/snippets/",
-  # Generated files
-  "docs/CHANGELOG.md",
-  # Vendored / third-party code
-  "**/vendor/",
-  "**/vendored/",
-  # Binary files
-  "*.whl",
-  "*.tar.gz",
-  "*.png",
-  "*.ico",
-  "*.svg",
+    # Test fixtures and vendor files
+    "test_documents/",
+    "fixtures/",
+    # Lock files
+    "*.lock",
+    "pnpm-lock.yaml",
+    # Build artifacts
+    "target/",
+    "node_modules/",
+    "dist/",
+    "site/",
+    # Code snippets (validated separately by snippet-runner)
+    "docs/snippets/",
+    # Generated files
+    "e2e/",
+    "docs/CHANGELOG.md",
+    # Vendored / third-party code
+    "**/vendor/",
+    "**/vendored/",
+    # Binary files
+    "*.whl",
+    "*.tar.gz",
+    "*.png",
+    "*.ico",
+    "*.svg",
 ]

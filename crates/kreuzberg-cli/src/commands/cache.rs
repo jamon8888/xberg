@@ -227,6 +227,7 @@ pub fn manifest_command(format: WireFormat) -> Result<()> {
 }
 
 /// Execute cache warm command - eagerly downloads all models.
+#[allow(clippy::too_many_arguments)]
 pub fn warm_command(
     cache_dir: Option<PathBuf>,
     format: WireFormat,
