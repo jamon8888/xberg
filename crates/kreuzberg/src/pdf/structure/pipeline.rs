@@ -1225,6 +1225,11 @@ pub fn extract_document_structure(
 
     let mut doc = assemble_internal_document(all_page_paragraphs, &combined_tables, &image_pos_pairs);
 
+    // Stage 4b: Populate doc.images with actual image data from pdfium.
+    // Image elements reference indices into doc.images, which must be populated
+    // for markdown/HTML rendering to produce `![desc](image_N.png)` instead of `![]()`.
+    populate_images_from_pdfium(document, &all_image_positions, &mut doc);
+
     let element_count = doc.elements.len();
     tracing::debug!(element_count, "PDF structure pipeline: assembly complete");
 
@@ -1746,6 +1751,122 @@ fn is_dedup_candidate(p: &PdfParagraph) -> bool {
         && !p.is_formula
         && !p.is_page_furniture
         && p.caption_for.is_none()
+}
+
+/// Extract actual image data from pdfium and populate `doc.images`.
+///
+/// Each `ImagePosition` records (page_number, image_index) for image objects
+/// found during page scanning. This function re-traverses the pages to extract
+/// actual pixel data via pdfium's `get_processed_image`, then pushes each as an
+/// `ExtractedImage` into the document so that rendering produces proper
+/// `![desc](image_N.fmt)` references instead of empty `![]()`.
+fn populate_images_from_pdfium(
+    document: &PdfDocument,
+    image_positions: &[super::bridge::ImagePosition],
+    doc: &mut crate::types::internal::InternalDocument,
+) {
+    use bytes::Bytes;
+    use image::ImageEncoder;
+
+    if image_positions.is_empty() {
+        return;
+    }
+
+    // Group image positions by page number (1-indexed) for efficient traversal.
+    let mut by_page: std::collections::BTreeMap<usize, Vec<usize>> = std::collections::BTreeMap::new();
+    for pos in image_positions {
+        by_page.entry(pos.page_number).or_default().push(pos.image_index);
+    }
+
+    let pages = document.pages();
+    let mut extracted_count = 0u32;
+
+    for (&page_num, indices) in &by_page {
+        let page_idx = page_num.saturating_sub(1) as i32;
+        let Ok(page) = pages.get(page_idx) else {
+            for &idx in indices {
+                doc.images.push(empty_image_placeholder(idx, page_num));
+            }
+            continue;
+        };
+
+        // Walk page objects, extracting image data for each matching index.
+        let first_idx_on_page = indices.iter().copied().min().unwrap_or(0);
+        let mut current_image = 0usize;
+        let mut extracted_on_page: std::collections::BTreeMap<usize, crate::types::ExtractedImage> =
+            std::collections::BTreeMap::new();
+
+        for obj in page.objects().iter() {
+            if let Some(image_obj) = obj.as_image_object() {
+                let global_idx = first_idx_on_page + current_image;
+                if indices.contains(&global_idx)
+                    && let Ok(dynamic_image) = image_obj.get_processed_image(document)
+                {
+                    let w = dynamic_image.width();
+                    let h = dynamic_image.height();
+                    let rgba = dynamic_image.to_rgba8();
+                    let mut png_buf: Vec<u8> = Vec::new();
+                    if image::codecs::png::PngEncoder::new(&mut png_buf)
+                        .write_image(rgba.as_raw(), w, h, image::ExtendedColorType::Rgba8)
+                        .is_ok()
+                    {
+                        extracted_count += 1;
+                        extracted_on_page.insert(
+                            global_idx,
+                            crate::types::ExtractedImage {
+                                data: Bytes::from(png_buf),
+                                format: std::borrow::Cow::Borrowed("png"),
+                                image_index: global_idx,
+                                page_number: Some(page_num),
+                                width: Some(w),
+                                height: Some(h),
+                                colorspace: Some("RGBA".to_string()),
+                                bits_per_component: Some(8),
+                                is_mask: false,
+                                description: None,
+                                ocr_result: None,
+                                bounding_box: None,
+                                source_path: None,
+                            },
+                        );
+                    }
+                }
+                current_image += 1;
+            }
+        }
+
+        for &idx in indices {
+            let img = extracted_on_page
+                .remove(&idx)
+                .unwrap_or_else(|| empty_image_placeholder(idx, page_num));
+            doc.images.push(img);
+        }
+    }
+
+    tracing::debug!(
+        total_positions = image_positions.len(),
+        extracted = extracted_count,
+        "populated document images from pdfium"
+    );
+}
+
+/// Create an empty placeholder for an image that couldn't be extracted.
+fn empty_image_placeholder(idx: usize, page_num: usize) -> crate::types::ExtractedImage {
+    crate::types::ExtractedImage {
+        data: bytes::Bytes::new(),
+        format: std::borrow::Cow::Borrowed("unknown"),
+        image_index: idx,
+        page_number: Some(page_num),
+        width: None,
+        height: None,
+        colorspace: None,
+        bits_per_component: None,
+        is_mask: false,
+        description: None,
+        ocr_result: None,
+        bounding_box: None,
+        source_path: None,
+    }
 }
 
 #[cfg(test)]

@@ -676,6 +676,12 @@ pub fn build_comrak_ast<'a>(doc: &InternalDocument, arena: &'a comrak::Arena<'a>
                     })
                     .unwrap_or_default();
 
+                // Skip images with no URL and no description — they produce
+                // empty `![]()` nodes that add noise to the output.
+                if url.is_empty() && desc.is_empty() {
+                    continue;
+                }
+
                 let para = mk(arena, NodeValue::Paragraph);
                 let img_node = mk(
                     arena,
