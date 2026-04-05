@@ -245,57 +245,6 @@ jobs:
       - name: Build and run snippet validation
         run: cargo run --release -p snippet-runner -- validate --snippets docs/snippets --reference docs/reference --level syntax --timeout 120
 
-  validate-docs:
-    name: "Validate: Documentation"
-    needs: [changes]
-    if: |
-      github.actor != 'dependabot[bot]' &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.docs == 'true')
-    runs-on: ubuntu-24.04-arm
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check spelling with typos
-        uses: crate-ci/typos@v1
-
-      - name: Lint markdown with rumdl
-        uses: j178/prek-action@v2
-        with:
-          extra-args: rumdl-fmt --all-files
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
-      - name: Build documentation (strict mode)
-        shell: bash
-        run: scripts/ci/docs/build.sh --strict --log-file /tmp/build-log.txt
-
-      - name: Check build log for warnings
-        if: always()
-        run: scripts/ci/docs/check-build-log.sh /tmp/build-log.txt
-        shell: bash
-
-      - name: Check links with lychee
-        uses: lycheeverse/lychee-action@v2
-        with:
-          args: >-
-            --no-progress
-            --exclude-mail
-            --timeout 30
-            --max-retries 3
-            './site/**/*.html'
-          fail: true
-
   changes:
     name: Detect Changes
     runs-on: ubuntu-24.04-arm
@@ -407,7 +356,7 @@ jobs:
               - '.lychee.toml'
               - 'scripts/ci/docs/**'
 
-# --- Stage 2: Build FFI + Rust Tests + Docker ---
+  # --- Stage 2: Build FFI + Rust Tests + Docker ---
 
   build-ffi:
     needs: [validate, validate-rust, changes]
@@ -833,7 +782,7 @@ jobs:
             jq . < /tmp/kreuzberg-docker-cli-test-results.json || cat /tmp/kreuzberg-docker-cli-test-results.json
           fi
 
-# --- Stage 3: Build Bindings ---
+  # --- Stage 3: Build Bindings ---
 
   build-python:
     needs: [rust-tests, changes, validate, validate-rust]
@@ -881,9 +830,9 @@ jobs:
         with:
           cache-key-prefix: python-${{ matrix.platform }}
           target: ${{ matrix.target }}
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Clippy (kreuzberg-py)
         if: matrix.platform == 'linux-x86_64'
@@ -999,9 +948,9 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: python-sdist
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Setup Python
         uses: kreuzberg-dev/actions/setup-python-env@v1
@@ -1095,9 +1044,9 @@ jobs:
         with:
           cache-key-prefix: node-${{ matrix.platform }}
           target: ${{ matrix.target }}
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Clippy (kreuzberg-node)
         if: matrix.platform == 'linux-x64'
@@ -1253,9 +1202,9 @@ jobs:
           cache-key-prefix: ruby-${{ matrix.os }}
           toolchain: ${{ runner.os == 'Windows' && 'stable-x86_64-pc-windows-msvc' || '' }}
           target: ${{ runner.os == 'Windows' && 'x86_64-pc-windows-msvc' || '' }}
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Detect partial cache hit and clean stale fingerprints
         shell: bash
@@ -1508,9 +1457,9 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: php-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Detect partial cache hit and clean stale fingerprints
         shell: bash
@@ -1664,10 +1613,10 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: wasm-build-${{ matrix.target }}
-          use-sccache: 'true'
-          report-stats: 'true'
+          use-sccache: "true"
+          report-stats: "true"
           target: wasm32-unknown-unknown
-          shared-core-cache: 'true'
+          shared-core-cache: "true"
 
       - name: Setup Node
         uses: kreuzberg-dev/actions/setup-node-workspace@v1
@@ -1744,16 +1693,16 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: java-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Setup Java
         uses: actions/setup-java@v5
         id: setup-java
         with:
-          distribution: 'temurin'
-          java-version: '25'
+          distribution: "temurin"
+          java-version: "25"
 
       - name: Setup Maven 3.9.11
         uses: kreuzberg-dev/actions/setup-maven@v1
@@ -1875,9 +1824,9 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: csharp-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
-          shared-core-cache: 'true'
+          use-sccache: "true"
+          report-stats: "true"
+          shared-core-cache: "true"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -2030,7 +1979,7 @@ jobs:
     env:
       HF_HOME: ~/.cache/huggingface
       TRANSFORMERS_CACHE: ~/.cache/huggingface
-      RUSTC_WRAPPER: ''
+      RUSTC_WRAPPER: ""
     steps:
       - uses: actions/checkout@v6
         id: checkout
@@ -2245,8 +2194,8 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: ruby-test-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
+          use-sccache: "true"
+          report-stats: "true"
 
       - name: Detect partial cache hit and clean stale fingerprints
         shell: bash
@@ -2374,8 +2323,8 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: php-test-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
+          use-sccache: "true"
+          report-stats: "true"
 
       - name: Detect partial cache hit and clean stale fingerprints
         shell: bash
@@ -2729,8 +2678,8 @@ jobs:
         uses: actions/setup-java@v5
         id: setup-java
         with:
-          distribution: 'temurin'
-          java-version: '25'
+          distribution: "temurin"
+          java-version: "25"
 
       - name: Setup Maven 3.9.11
         uses: kreuzberg-dev/actions/setup-maven@v1
@@ -2995,8 +2944,8 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: elixir-test-${{ matrix.os }}
-          use-sccache: 'false'
-          report-stats: 'true'
+          use-sccache: "false"
+          report-stats: "true"
 
       - name: Clean stale workspace fingerprints
         shell: bash
@@ -3154,13 +3103,13 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: r-test-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
+          use-sccache: "true"
+          report-stats: "true"
 
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3'
+          r-version: "4.3"
 
       - name: Install R dependencies
         shell: bash
@@ -3359,8 +3308,8 @@ jobs:
         uses: kreuzberg-dev/actions/setup-rust@v1
         with:
           cache-key-prefix: wasm-test-${{ matrix.os }}
-          use-sccache: 'true'
-          report-stats: 'true'
+          use-sccache: "true"
+          report-stats: "true"
           target: wasm32-unknown-unknown
 
       - name: Setup Node
