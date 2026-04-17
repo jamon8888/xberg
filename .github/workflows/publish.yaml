@@ -498,7 +498,7 @@ jobs:
             os: ubuntu-latest
             artifact: python-wheels-linux-x86_64
             rust_target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_39
+            manylinux: manylinux_2_28
             python: "3.10"
             needs_qemu: false
             extra_args: ""
@@ -506,7 +506,7 @@ jobs:
             os: ubuntu-24.04-arm
             artifact: python-wheels-linux-aarch64
             rust_target: aarch64-unknown-linux-gnu
-            manylinux: manylinux_2_39
+            manylinux: manylinux_2_28
             python: "3.10"
             needs_qemu: false
             extra_args: ""
@@ -623,6 +623,10 @@ jobs:
           docker-options: ${{ steps.tesseract-cache.outputs.docker-options }}
           before-script-linux: |
             set -euo pipefail
+            # Prevent GCC 14+ from emitting C23-versioned glibc symbols
+            # (__isoc23_strtoll etc.) that require glibc ≥ 2.38.
+            export CFLAGS="${CFLAGS:-} -std=gnu11"
+            export CXXFLAGS="${CXXFLAGS:-} -std=gnu++17"
             rustup component add rust-src || true
             # Install dependencies based on the container distro
             if command -v yum >/dev/null 2>&1; then

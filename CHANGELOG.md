@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Markdown chunker duplicates heading when `prepend_heading_context` is enabled** — the heading was prepended twice when a chunk boundary aligned with a heading node, producing repeated heading text in the output. (#701)
 - **Helm chart icon 404 on Artifact Hub** — `Chart.yaml` referenced `logo.png` but the file is `logo.svg`.
 - **Python wheel manylinux compliance failure** — bumped manylinux from `2_38` to `2_39` to allow `GLIBCXX_3.4.31` symbols from the build toolchain, matching the v4.6.x baseline that worked.
+- **Python wheel requires glibc ≥ 2.38 (breaks Debian 12, Ubuntu 22.04)** — GCC 14 in the `manylinux_2_39` build container emitted C23-versioned glibc symbols (`__isoc23_strtoll`, `__isoc23_sscanf`, etc.), making the wheel uninstallable on systems with glibc < 2.38. Downgraded to `manylinux_2_28` and added `-std=gnu11`/`-std=gnu++17` CFLAGS to suppress C23 symbol emission. (#588)
 - **FFI memory leak** — `kreuzberg_free_result` was not freeing `djot_content_json`, `structured_output_json`, and `llm_usage_json` pointers.
 - **R e2e embed tests fail** — generated R embedding config was missing the `type` discriminator field required by Rust's tagged enum deserialization.
 - **Elixir parity test fails** — `ExtractionConfig` struct was missing the `:html_output` field.
