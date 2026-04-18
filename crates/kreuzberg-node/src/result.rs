@@ -409,7 +409,22 @@ impl TryFrom<RustExtractionResult> for JsExtractionResult {
                     images: page_images,
                     hierarchy,
                     is_blank: page.is_blank,
-                    layout_regions: None,
+                    layout_regions: page.layout_regions.map(|regions| {
+                        regions
+                            .into_iter()
+                            .map(|r| JsLayoutRegion {
+                                class: r.class,
+                                confidence: r.confidence,
+                                bounding_box: JsBoundingBox {
+                                    x0: r.bounding_box.x0,
+                                    y0: r.bounding_box.y0,
+                                    x1: r.bounding_box.x1,
+                                    y1: r.bounding_box.y1,
+                                },
+                                area_fraction: r.area_fraction,
+                            })
+                            .collect()
+                    }),
                 });
             }
             js_pages

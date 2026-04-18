@@ -2160,7 +2160,7 @@ fn test_config_pages_exact_count() {
 
     assertions::assert_expected_mime(&result, &["application/pdf"]);
     assertions::assert_min_content_length(&result, 10);
-    assertions::assert_pages(&result, None, Some(5));
+    assertions::assert_pages(&result, None, Some(5), None, None);
 }
 
 #[test]
@@ -2206,7 +2206,7 @@ fn test_config_pages_extract() {
 
     assertions::assert_expected_mime(&result, &["application/pdf"]);
     assertions::assert_min_content_length(&result, 10);
-    assertions::assert_pages(&result, Some(1), None);
+    assertions::assert_pages(&result, Some(1), None, None, None);
 }
 
 #[test]

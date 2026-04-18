@@ -766,7 +766,7 @@ namespace Kreuzberg.E2E.Contract
             var result = KreuzbergClient.ExtractFileSync(documentPath, config);
             TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
             TestHelpers.AssertMinContentLength(result, 10);
-            TestHelpers.AssertPages(result, null, 5);
+            TestHelpers.AssertPages(result, null, 5, null, null);
         }
 
         [SkippableFact]
@@ -781,7 +781,7 @@ namespace Kreuzberg.E2E.Contract
             var result = KreuzbergClient.ExtractFileSync(documentPath, config);
             TestHelpers.AssertExpectedMime(result, new[] { "application/pdf" });
             TestHelpers.AssertMinContentLength(result, 10);
-            TestHelpers.AssertPages(result, 1, null);
+            TestHelpers.AssertPages(result, 1, null, null, null);
         }
 
         [SkippableFact]

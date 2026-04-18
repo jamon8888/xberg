@@ -436,7 +436,7 @@ impl PdfExtractor {
                             pdf_metadata,
                             native_text,
                             tables,
-                            page_contents,
+                            mut page_contents,
                             boundaries,
                             pre_rendered_doc,
                             has_font_encoding_issues,
@@ -455,6 +455,12 @@ impl PdfExtractor {
                             None,
                         )
                         .map_err(|e| PdfError::ExtractionFailed(e.to_string()))?;
+
+                        // Populate layout_regions on pages from layout detection results.
+                        #[cfg(feature = "layout-detection")]
+                        if let Some(ref lr) = layout_results {
+                            crate::extractors::pdf::pages::assign_layout_regions_to_pages(&mut page_contents, lr);
+                        }
 
                         if let Some(page_cfg) = config_owned.pages.as_ref()
                             && page_cfg.extract_pages
@@ -490,7 +496,7 @@ impl PdfExtractor {
 
                     let document = load_pdf_from_byte_slice(&pdfium, content, config)?;
 
-                    extract_all_from_document(
+                    let (a, b, c, mut d, e, f, g, h) = extract_all_from_document(
                         &document,
                         config,
                         layout_hints.as_deref(),
@@ -502,7 +508,14 @@ impl PdfExtractor {
                         layout_results.as_deref(),
                         #[cfg(not(feature = "layout-detection"))]
                         None,
-                    )?
+                    )?;
+
+                    #[cfg(feature = "layout-detection")]
+                    if let Some(ref lr) = layout_results {
+                        pages::assign_layout_regions_to_pages(&mut d, lr);
+                    }
+
+                    (a, b, c, d, e, f, g, h)
                 }
             }
             #[cfg(all(not(target_arch = "wasm32"), not(feature = "tokio-runtime")))]
@@ -526,7 +539,7 @@ impl PdfExtractor {
 
                 let document = load_pdf_from_byte_slice(&pdfium, content, config)?;
 
-                extract_all_from_document(
+                let (a, b, c, mut d, e, f, g, h) = extract_all_from_document(
                     &document,
                     config,
                     layout_hints.as_deref(),
@@ -538,7 +551,14 @@ impl PdfExtractor {
                     layout_results.as_deref(),
                     #[cfg(not(feature = "layout-detection"))]
                     None,
-                )?
+                )?;
+
+                #[cfg(feature = "layout-detection")]
+                if let Some(ref lr) = layout_results {
+                    pages::assign_layout_regions_to_pages(&mut d, lr);
+                }
+
+                (a, b, c, d, e, f, g, h)
             }
         };
 
@@ -1218,7 +1238,12 @@ impl PdfExtractor {
         };
 
         // --- Page assembly ---
-        let final_pages = assign_tables_and_images_to_pages(page_contents, &tables, &[]);
+        let mut final_pages = assign_tables_and_images_to_pages(page_contents, &tables, &[]);
+
+        #[cfg(feature = "layout-detection")]
+        if let Some(ref bundle) = layout_bundle {
+            pages::assign_layout_regions_to_pages(&mut final_pages, &bundle.results);
+        }
 
         // --- Build InternalDocument ---
         let pre_formatted_output: Option<String> = None;

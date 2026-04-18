@@ -998,10 +998,18 @@ defmodule Kreuzberg.ExtractionConfig do
 
       v when is_binary(v) ->
         case String.downcase(v) do
-          "text" -> :ok
-          "markdown" -> :ok
-          "yaml" -> :ok
-          "semantic" -> :ok
+          "text" ->
+            :ok
+
+          "markdown" ->
+            :ok
+
+          "yaml" ->
+            :ok
+
+          "semantic" ->
+            :ok
+
           _invalid ->
             {:error,
              "Field 'chunker_type' must be one of: text, markdown, yaml, semantic, got: #{v}"}

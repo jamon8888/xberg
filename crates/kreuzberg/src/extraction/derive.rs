@@ -762,6 +762,7 @@ fn build_pages(doc: &InternalDocument) -> Option<Vec<PageContent>> {
                 images,
                 hierarchy: None,
                 is_blank: None,
+                layout_regions: None,
             }
         })
         .collect();

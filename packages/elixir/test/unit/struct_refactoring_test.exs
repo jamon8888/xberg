@@ -311,11 +311,12 @@ defmodule KreuzbergTest.Unit.StructRefactoringTest do
     test "preserves existing LayoutRegion structs in normalize" do
       region = %Kreuzberg.LayoutRegion{class: "diagram", confidence: 0.75, area_fraction: 0.1}
 
-      page = Kreuzberg.Page.from_map(%{
-        "page_number" => 1,
-        "content" => "text",
-        "layout_regions" => [region]
-      })
+      page =
+        Kreuzberg.Page.from_map(%{
+          "page_number" => 1,
+          "content" => "text",
+          "layout_regions" => [region]
+        })
 
       assert [^region] = page.layout_regions
     end

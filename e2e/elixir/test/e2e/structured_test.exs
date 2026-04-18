@@ -113,11 +113,7 @@ defmodule E2E.StructuredTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/nbib",
-            "application/x-pubmed",
-            "text/plain"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/nbib", "application/x-pubmed", "text/plain"])
           |> E2E.Helpers.assert_content_not_empty()
 
         {:skipped, reason} ->
@@ -139,10 +135,7 @@ defmodule E2E.StructuredTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/x-research-info-systems",
-            "text/plain"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/x-research-info-systems", "text/plain"])
           |> E2E.Helpers.assert_content_not_empty()
 
         {:skipped, reason} ->
@@ -208,12 +201,7 @@ defmodule E2E.StructuredTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/yaml",
-            "text/yaml",
-            "text/x-yaml",
-            "application/x-yaml"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/yaml", "text/yaml", "text/x-yaml", "application/x-yaml"])
           |> E2E.Helpers.assert_min_content_length(10)
 
         {:skipped, reason} ->

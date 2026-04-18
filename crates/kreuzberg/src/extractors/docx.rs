@@ -1296,6 +1296,7 @@ impl DocumentExtractor for DocxExtractor {
                         images: page_images,
                         hierarchy: None,
                         is_blank: Some(is_blank),
+                        layout_regions: None,
                     });
                 }
                 Some(pages)
@@ -1308,6 +1309,7 @@ impl DocumentExtractor for DocxExtractor {
                     images: arc_images,
                     hierarchy: None,
                     is_blank: Some(text.chars().filter(|c| !c.is_whitespace()).count() < 3),
+                    layout_regions: None,
                 }])
             }
         };

@@ -511,6 +511,7 @@ fn extract_text_lazy_with_tracking(
                 images: Vec::new(),
                 hierarchy,
                 is_blank,
+                layout_regions: None,
             });
         }
 

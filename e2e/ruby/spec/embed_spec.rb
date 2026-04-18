@@ -5,7 +5,6 @@
 
 # Tests for standalone embed fixtures.
 
-# rubocop:disable Metrics/BlockLength
 require_relative 'spec_helper'
 
 RSpec.describe 'embed fixtures' do

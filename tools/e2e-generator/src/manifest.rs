@@ -150,6 +150,7 @@ const OPTIONAL_FIELDS: &[(&str, &str)] = &[
     // PageContent
     ("PageContent", "hierarchy"),
     ("PageContent", "is_blank"),
+    ("PageContent", "layout_regions"),
     // PageInfo
     ("PageInfo", "title"),
     ("PageInfo", "dimensions"),
@@ -292,6 +293,7 @@ fn sample_extraction_result() -> Value {
             }],
         }),
         is_blank: Some(false),
+        layout_regions: None,
     };
 
     let element = kreuzberg::types::extraction::Element {

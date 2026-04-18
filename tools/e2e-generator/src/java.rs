@@ -522,7 +522,9 @@ public final class E2EHelpers {
         public static void assertPages(
                 ExtractionResult result,
                 Integer minCount,
-                Integer exactCount
+                Integer exactCount,
+                Boolean hasLayoutRegions,
+                List<String> layoutClassesInclude
         ) {
             var pages = result.getPages();
             int count = pages != null ? pages.size() : 0;
@@ -539,6 +541,38 @@ public final class E2EHelpers {
                     // isBlank should be accessible (Optional<Boolean>)
                     var isBlank = page.getIsBlank();
                     assertTrue(isBlank != null, "getIsBlank() should return non-null Optional");
+                }
+            }
+
+            if (Boolean.TRUE.equals(hasLayoutRegions)) {
+                boolean foundLayoutRegions = false;
+                if (pages != null) {
+                    for (var page : pages) {
+                        var layoutRegions = page.getLayoutRegions();
+                        if (layoutRegions != null && !layoutRegions.isEmpty()) {
+                            foundLayoutRegions = true;
+                            break;
+                        }
+                    }
+                }
+                assertTrue(foundLayoutRegions, "Expected at least one page to have layout_regions populated");
+            }
+
+            if (layoutClassesInclude != null && !layoutClassesInclude.isEmpty()) {
+                var allClasses = new java.util.HashSet<String>();
+                if (pages != null) {
+                    for (var page : pages) {
+                        var layoutRegions = page.getLayoutRegions();
+                        if (layoutRegions != null) {
+                            for (var region : layoutRegions) {
+                                allClasses.add(region.getClassName());
+                            }
+                        }
+                    }
+                }
+                for (var expectedClass : layoutClassesInclude) {
+                    assertTrue(allClasses.contains(expectedClass),
+                            String.format("Expected layout class '%s' not found in %s", expectedClass, allClasses));
                 }
             }
         }
@@ -1854,9 +1888,18 @@ fn render_assertions(assertions: &Assertions) -> String {
             .exact_count
             .map(|v| v.to_string())
             .unwrap_or_else(|| "null".to_string());
+        let has_layout_literal = pages
+            .has_layout_regions
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "null".to_string());
+        let layout_classes_expr = pages
+            .layout_classes_include
+            .as_ref()
+            .map(|c| render_string_list(c))
+            .unwrap_or_else(|| "null".to_string());
         buffer.push_str(&format!(
-            "                E2EHelpers.Assertions.assertPages(result, {}, {});\n",
-            min_literal, exact_literal
+            "                E2EHelpers.Assertions.assertPages(result, {}, {}, {}, {});\n",
+            min_literal, exact_literal, has_layout_literal, layout_classes_expr
         ));
     }
 

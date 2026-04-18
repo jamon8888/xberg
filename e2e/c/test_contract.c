@@ -634,7 +634,7 @@ static void test_contract_config_pages_exact_count(void) {
     if (!result) return; /* skipped */
     assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
     assert_min_content_length(result, 10);
-    assert_pages(result, 0, 0, 1, 5);
+    assert_pages(result, 0, 0, 1, 5, 0, NULL, 0);
     kreuzberg_free_result(result);
 }
 
@@ -644,7 +644,7 @@ static void test_contract_config_pages_extract(void) {
     if (!result) return; /* skipped */
     assert_expected_mime(result, (const char *[]){"application/pdf"}, 1);
     assert_min_content_length(result, 10);
-    assert_pages(result, 1, 1, 0, 0);
+    assert_pages(result, 1, 1, 0, 0, 0, NULL, 0);
     kreuzberg_free_result(result);
 }
 

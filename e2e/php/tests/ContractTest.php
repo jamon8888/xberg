@@ -1117,7 +1117,7 @@ class ContractTest extends TestCase
 
         Helpers::assertExpectedMime($result, ['application/pdf']);
         Helpers::assertMinContentLength($result, 10);
-        Helpers::assertPages($result, null, 5);
+        Helpers::assertPages($result, null, 5, null, null);
     }
 
     /**
@@ -1139,7 +1139,7 @@ class ContractTest extends TestCase
 
         Helpers::assertExpectedMime($result, ['application/pdf']);
         Helpers::assertMinContentLength($result, 10);
-        Helpers::assertPages($result, 1, null);
+        Helpers::assertPages($result, 1, null, null, null);
     }
 
     /**

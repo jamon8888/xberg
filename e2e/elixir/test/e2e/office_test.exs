@@ -42,11 +42,7 @@ defmodule E2E.OfficeTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "text/markdown",
-            "text/plain",
-            "text/x-commonmark"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["text/markdown", "text/plain", "text/x-commonmark"])
           |> E2E.Helpers.assert_min_content_length(5)
 
         {:skipped, reason} ->
@@ -376,10 +372,7 @@ defmodule E2E.OfficeTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/x-fictionbook+xml",
-            "application/x-fictionbook"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/x-fictionbook+xml", "application/x-fictionbook"])
           |> E2E.Helpers.assert_min_content_length(10)
 
         {:skipped, reason} ->
@@ -778,11 +771,7 @@ defmodule E2E.OfficeTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/xml+opml",
-            "text/x-opml",
-            "application/x-opml+xml"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/xml+opml", "text/x-opml", "application/x-opml+xml"])
           |> E2E.Helpers.assert_min_content_length(10)
 
         {:skipped, reason} ->
@@ -1129,9 +1118,7 @@ defmodule E2E.OfficeTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"])
           |> E2E.Helpers.assert_min_content_length(100)
           |> E2E.Helpers.assert_content_contains_all(["Team", "Location", "Stanley Cups"])
           |> E2E.Helpers.assert_table_count(1, nil)
@@ -1157,9 +1144,7 @@ defmodule E2E.OfficeTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"])
           |> E2E.Helpers.assert_min_content_length(20)
           |> E2E.Helpers.assert_metadata_expectation("sheet_count", %{gte: 2})
 
@@ -1182,9 +1167,7 @@ defmodule E2E.OfficeTest do
            ) do
         {:ok, result} ->
           result
-          |> E2E.Helpers.assert_expected_mime([
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          ])
+          |> E2E.Helpers.assert_expected_mime(["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"])
           |> E2E.Helpers.assert_min_content_length(10)
 
         {:skipped, reason} ->

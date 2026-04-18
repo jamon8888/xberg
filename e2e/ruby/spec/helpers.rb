@@ -93,7 +93,7 @@ module E2ERuby
   def skip_if_feature_unavailable(feature)
     env_var = "KREUZBERG_#{feature.tr('-', '_').upcase}_DISABLED"
     flag = ENV.fetch(env_var, nil)
-    return unless flag == '1' || (flag && flag.casecmp('true').zero?)
+    return unless flag == '1' || flag&.casecmp('true')&.zero?
 
     raise RSpec::Core::Pending::SkipDeclaredInExample,
           "Feature #{feature} disabled (via #{env_var}=1)"
@@ -293,7 +293,7 @@ module E2ERuby
       end
     end
 
-    def self.assert_pages(result, min_count: nil, exact_count: nil)
+    def self.assert_pages(result, min_count: nil, exact_count: nil, has_layout_regions: nil, layout_classes_include: nil)
       pages = Array(result.pages)
       expect(pages.length).to be >= min_count if min_count
       expect(pages.length).to eq(exact_count) if exact_count
@@ -301,6 +301,25 @@ module E2ERuby
         if page.respond_to?(:is_blank)
           expect(page.is_blank).to be_nil.or be(true).or be(false)
         end
+      end
+
+      if has_layout_regions
+        found_layout_regions = pages.any? do |page|
+          page.respond_to?(:layout_regions) && !Array(page.layout_regions).empty?
+        end
+        expect(found_layout_regions).to be(true)
+      end
+
+      return unless layout_classes_include
+      all_classes = Set.new
+      pages.each do |page|
+        next unless page.respond_to?(:layout_regions) && page.layout_regions
+        Array(page.layout_regions).each do |region|
+          all_classes.add(region.class) if region.respond_to?(:class)
+        end
+      end
+      layout_classes_include.each do |expected_class|
+        expect(all_classes.include?(expected_class)).to be(true)
       end
     end
 
@@ -474,7 +493,7 @@ module E2ERuby
           expect(vec.any? { |v| v.to_f.infinite? }).to be(false), "Embedding #{i} contains Inf values"
         end
         if non_zero
-          expect(vec.all? { |v| v == 0.0 }).to be(false), "Embedding #{i} is all zeros"
+          expect(vec.all?(0.0)).to be(false), "Embedding #{i} is all zeros"
         end
         if normalized
           norm = Math.sqrt(vec.sum { |v| v * v })
@@ -495,12 +514,11 @@ module E2ERuby
         expect(output).not_to be_nil
         expect(output).to be_a(Hash).or be_a(Array)
       end
-      if field_exists
-        expect(output).not_to be_nil
-        expect(output).to be_a(Hash)
-        field_exists.each do |field|
-          expect(output).to have_key(field)
-        end
+      return unless field_exists
+      expect(output).not_to be_nil
+      expect(output).to be_a(Hash)
+      field_exists.each do |field|
+        expect(output).to have_key(field)
       end
     end
 

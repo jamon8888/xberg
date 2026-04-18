@@ -1157,7 +1157,7 @@ describe("contract fixtures", () => {
 			}
 			assertions.assertExpectedMime(result, ["application/pdf"]);
 			assertions.assertMinContentLength(result, 10);
-			assertions.assertPages(result, null, 5);
+			assertions.assertPages(result, null, 5, null, null);
 		},
 		TEST_TIMEOUT_MS,
 	);
@@ -1181,7 +1181,7 @@ describe("contract fixtures", () => {
 			}
 			assertions.assertExpectedMime(result, ["application/pdf"]);
 			assertions.assertMinContentLength(result, 10);
-			assertions.assertPages(result, 1, null);
+			assertions.assertPages(result, 1, null, null, null);
 		},
 		TEST_TIMEOUT_MS,
 	);

@@ -637,7 +637,7 @@ func TestContractConfigPagesExactCount(t *testing.T) {
 }`))
 	assertExpectedMime(t, result, []string{"application/pdf"})
 	assertMinContentLength(t, result, 10)
-	assertPages(t, result, nil, intPtr(5))
+	assertPages(t, result, nil, intPtr(5), nil, nil)
 }
 
 func TestContractConfigPagesExtract(t *testing.T) {
@@ -649,7 +649,7 @@ func TestContractConfigPagesExtract(t *testing.T) {
 }`))
 	assertExpectedMime(t, result, []string{"application/pdf"})
 	assertMinContentLength(t, result, 10)
-	assertPages(t, result, intPtr(1), nil)
+	assertPages(t, result, intPtr(1), nil, nil, nil)
 }
 
 func TestContractConfigPagesMarkers(t *testing.T) {

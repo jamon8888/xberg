@@ -97,7 +97,9 @@ void assert_images(const CExtractionResult *result,
 
 void assert_pages(const CExtractionResult *result,
                   int has_min, size_t min_count,
-                  int has_exact, size_t exact_count);
+                  int has_exact, size_t exact_count,
+                  int has_layout_regions,
+                  const char **layout_classes_include, size_t layout_classes_count);
 
 void assert_elements(const CExtractionResult *result,
                      int has_min, size_t min_count);
