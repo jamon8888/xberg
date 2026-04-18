@@ -38,7 +38,7 @@ public record PageContent(@JsonProperty("page_number") int pageNumber, @JsonProp
 	public PageContent(@JsonProperty("page_number") int pageNumber, @JsonProperty("content") String content,
 			@JsonProperty("tables") List<Table> tables, @JsonProperty("images") List<ExtractedImage> images,
 			@JsonProperty("hierarchy") PageHierarchy hierarchy, @JsonProperty("is_blank") Boolean isBlank,
-			@JsonProperty("layout_regions") List<LayoutRegion> layoutRegions) {
+			@JsonDeserialize(contentAs = LayoutRegion.class) @JsonProperty("layout_regions") List<LayoutRegion> layoutRegions) {
 		this.pageNumber = pageNumber;
 		this.content = content != null ? content : "";
 		this.tables = tables != null ? Collections.unmodifiableList(tables) : List.of();

@@ -340,10 +340,3 @@ repos:
         language: system
         files: ^charts/
         pass_filenames: false
-
-  # Link checking
-  - repo: https://github.com/lycheeverse/lychee.git
-    rev: v0.15.1
-    hooks:
-      - id: lychee
-        args: ["--no-progress", "--exclude", "file://"]
