@@ -383,7 +383,7 @@ mod build_tesseract {
             download_and_extract(&third_party_dir, &tesseract_url(), "tesseract")
         };
 
-        let (cmake_cxx_flags, additional_defines) = get_os_specific_config();
+        let (cmake_cxx_flags, cmake_c_flags, additional_defines) = get_os_specific_config();
 
         let leptonica_install_dir = out_dir.join("leptonica");
         let leptonica_cache_dir = cache_dir.join("leptonica");
@@ -464,6 +464,7 @@ mod build_tesseract {
                     .define("ENABLE_GIF", "OFF")
                     .define("NO_CONSOLE_IO", "ON")
                     .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags)
+                    .define("CMAKE_C_FLAGS", &cmake_c_flags)
                     .define("MINIMUM_SEVERITY", "L_SEVERITY_NONE")
                     .define("SW_BUILD", "OFF")
                     .define("HAVE_LIBZ", "0")
@@ -596,7 +597,8 @@ mod build_tesseract {
                     .define("LEPT_TIFF_RESULT", "FALSE")
                     .define("INSTALL_CONFIGS", "ON")
                     .define("USE_SYSTEM_ICU", "ON")
-                    .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags);
+                    .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags)
+                    .define("CMAKE_C_FLAGS", &cmake_c_flags);
 
                 for (key, value) in &additional_defines {
                     tesseract_config.define(key, value);
@@ -667,8 +669,9 @@ mod build_tesseract {
         eprintln!("Tessdata dir: {:?}", tessdata_prefix);
     }
 
-    fn get_os_specific_config() -> (String, Vec<(String, String)>) {
+    fn get_os_specific_config() -> (String, String, Vec<(String, String)>) {
         let mut cmake_cxx_flags = String::new();
+        let mut cmake_c_flags = String::new();
         let mut additional_defines = Vec::new();
         let target = target_triple();
         let target_macos = is_macos_target(&target);
@@ -683,7 +686,10 @@ mod build_tesseract {
             cmake_cxx_flags.push_str("-std=c++17 ");
             cmake_cxx_flags.push_str("-fno-exceptions ");
         } else if target_linux {
-            cmake_cxx_flags.push_str("-std=c++17 ");
+            // Prevent GCC 14+ from emitting C23-versioned glibc symbols (__isoc23_strtoll etc.)
+            // that require glibc >= 2.38. Force C11 mode for C code.
+            cmake_c_flags.push_str("-std=gnu11 ");
+            cmake_cxx_flags.push_str("-std=gnu++17 ");
             cmake_cxx_flags.push_str("-fno-exceptions ");
             if target_musl {
                 // For musl: use g++ with musl-gcc specs (avoids libc++/musl locale
@@ -759,7 +765,7 @@ mod build_tesseract {
             additional_defines.push(("CMAKE_MODULE_LINKER_FLAGS".to_string(), "/INCREMENTAL:NO".to_string()));
         }
 
-        (cmake_cxx_flags, additional_defines)
+        (cmake_cxx_flags, cmake_c_flags, additional_defines)
     }
 
     fn set_os_specific_link_flags() {
