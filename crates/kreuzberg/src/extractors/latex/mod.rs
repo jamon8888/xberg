@@ -1111,11 +1111,7 @@ impl DocumentExtractor for LatexExtractor {
         tracing::debug!(format = "latex", size_bytes = content.len(), "extraction starting");
         let mut budget = SecurityBudget::from_config(config);
         budget.account_text(content.len())?;
-        let inject_placeholders = config
-            .images
-            .as_ref()
-            .and_then(|img| img.inject_placeholders)
-            .unwrap_or(true);
+        let inject_placeholders = config.images.as_ref().map(|img| img.inject_placeholders).unwrap_or(true);
         let latex_str = String::from_utf8_lossy(content).into_owned();
         let (_text, metadata, _tables) = Self::extract_from_latex(&latex_str);
         let mut doc = Self::build_internal_document(&latex_str, inject_placeholders);
