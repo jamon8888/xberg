@@ -937,9 +937,9 @@ before = "cd packages/python && uv sync"
 typecheck = "cd packages/python && uv run mypy ."
 
 [crates.lint.node]
-precondition = "command -v npx >/dev/null 2>&1"
-format = "npx oxfmt packages/typescript"
-check = "npx oxlint packages/typescript"
+precondition = "command -v pnpm >/dev/null 2>&1"
+format = "pnpm dlx oxfmt packages/typescript"
+check = "pnpm dlx oxlint packages/typescript"
 
 [crates.lint.ruby]
 precondition = "command -v bundle >/dev/null 2>&1"
@@ -966,8 +966,8 @@ check = "mvn -f packages/java/pom.xml spotless:check -q"
 
 [crates.lint.wasm]
 precondition = "test -d crates/kreuzberg-wasm/typescript"
-format = "npx oxfmt crates/kreuzberg-wasm/typescript"
-check = "npx oxlint crates/kreuzberg-wasm/typescript"
+format = "pnpm dlx oxfmt crates/kreuzberg-wasm/typescript"
+check = "pnpm dlx oxlint crates/kreuzberg-wasm/typescript"
 
 [crates.lint.ffi]
 precondition = "test -d e2e/c"
@@ -1035,7 +1035,7 @@ before = "cd packages/python && maturin develop --release"
 e2e = "cd e2e/python && uv run pytest tests/ -q"
 
 [crates.test.node]
-precondition = "command -v npx >/dev/null 2>&1"
+precondition = "command -v pnpm >/dev/null 2>&1"
 before = "cd crates/kreuzberg-node && napi build --output-dir . --release --platform"
 e2e = "cd e2e/node && pnpm install && pnpm test"
 
