@@ -11,7 +11,7 @@
     clippy::unnecessary_cast,
     clippy::manual_flatten,
     clippy::match_single_binding,
-    clippy::redundant_closure
+    clippy::redundant_closure,
 )]
 
 #[swift_bridge::bridge]
@@ -19,7 +19,7 @@ mod ffi {
     extern "Rust" {
         type AccelerationConfig;
         #[swift_bridge(init)]
-        fn new(provider: ExecutionProviderType, device_id: u32) -> AccelerationConfig;
+        fn new(provider: ExecutionProviderType, device_id: u32) -> ;
         fn provider(&self) -> ExecutionProviderType;
         fn device_id(&self) -> u32;
     }
@@ -27,12 +27,7 @@ mod ffi {
     extern "Rust" {
         type ContentFilterConfig;
         #[swift_bridge(init)]
-        fn new(
-            include_headers: bool,
-            include_footers: bool,
-            strip_repeating_text: bool,
-            include_watermarks: bool,
-        ) -> ContentFilterConfig;
+        fn new(include_headers: bool, include_footers: bool, strip_repeating_text: bool, include_watermarks: bool) -> ;
         fn include_headers(&self) -> bool;
         fn include_footers(&self) -> bool;
         fn strip_repeating_text(&self) -> bool;
@@ -42,48 +37,14 @@ mod ffi {
     extern "Rust" {
         type EmailConfig;
         #[swift_bridge(init)]
-        fn new(msg_fallback_codepage: Option<u32>) -> EmailConfig;
+        fn new(msg_fallback_codepage: Option<u32>) -> ;
         fn msg_fallback_codepage(&self) -> Option<u32>;
     }
 
     extern "Rust" {
         type ExtractionConfig;
         #[swift_bridge(init)]
-        fn new(
-            use_cache: bool,
-            enable_quality_processing: bool,
-            ocr: Option<OcrConfig>,
-            force_ocr: bool,
-            force_ocr_pages: Option<Vec<usize>>,
-            disable_ocr: bool,
-            chunking: Option<ChunkingConfig>,
-            content_filter: Option<ContentFilterConfig>,
-            images: Option<ImageExtractionConfig>,
-            pdf_options: Option<PdfConfig>,
-            token_reduction: Option<TokenReductionOptions>,
-            language_detection: Option<LanguageDetectionConfig>,
-            pages: Option<PageConfig>,
-            keywords: Option<KeywordConfig>,
-            postprocessor: Option<PostProcessorConfig>,
-            html_options: Option<String>,
-            html_output: Option<HtmlOutputConfig>,
-            extraction_timeout_secs: Option<u64>,
-            max_concurrent_extractions: Option<usize>,
-            result_format: ResultFormat,
-            security_limits: Option<SecurityLimits>,
-            output_format: OutputFormat,
-            layout: Option<LayoutDetectionConfig>,
-            include_document_structure: bool,
-            acceleration: Option<AccelerationConfig>,
-            cache_namespace: Option<String>,
-            cache_ttl_secs: Option<u64>,
-            email: Option<EmailConfig>,
-            concurrency: Option<String>,
-            max_archive_depth: usize,
-            tree_sitter: Option<TreeSitterConfig>,
-            structured_extraction: Option<StructuredExtractionConfig>,
-            cancel_token: Option<String>,
-        ) -> ExtractionConfig;
+        fn new(use_cache: bool, enable_quality_processing: bool, ocr: Option<OcrConfig>, force_ocr: bool, force_ocr_pages: Option<Vec<usize>>, disable_ocr: bool, chunking: Option<ChunkingConfig>, content_filter: Option<ContentFilterConfig>, images: Option<ImageExtractionConfig>, pdf_options: Option<PdfConfig>, token_reduction: Option<TokenReductionOptions>, language_detection: Option<LanguageDetectionConfig>, pages: Option<PageConfig>, keywords: Option<KeywordConfig>, postprocessor: Option<PostProcessorConfig>, html_options: Option<String>, html_output: Option<HtmlOutputConfig>, extraction_timeout_secs: Option<u64>, max_concurrent_extractions: Option<usize>, result_format: ResultFormat, security_limits: Option<SecurityLimits>, output_format: OutputFormat, layout: Option<LayoutDetectionConfig>, include_document_structure: bool, acceleration: Option<AccelerationConfig>, cache_namespace: Option<String>, cache_ttl_secs: Option<u64>, email: Option<EmailConfig>, concurrency: Option<String>, max_archive_depth: usize, tree_sitter: Option<TreeSitterConfig>, structured_extraction: Option<StructuredExtractionConfig>, cancel_token: Option<String>) -> ;
         fn use_cache(&self) -> bool;
         fn enable_quality_processing(&self) -> bool;
         fn ocr(&self) -> Option<OcrConfig>;
@@ -122,30 +83,7 @@ mod ffi {
     extern "Rust" {
         type FileExtractionConfig;
         #[swift_bridge(init)]
-        fn new(
-            enable_quality_processing: Option<bool>,
-            ocr: Option<OcrConfig>,
-            force_ocr: Option<bool>,
-            force_ocr_pages: Option<Vec<usize>>,
-            disable_ocr: Option<bool>,
-            chunking: Option<ChunkingConfig>,
-            content_filter: Option<ContentFilterConfig>,
-            images: Option<ImageExtractionConfig>,
-            pdf_options: Option<PdfConfig>,
-            token_reduction: Option<TokenReductionOptions>,
-            language_detection: Option<LanguageDetectionConfig>,
-            pages: Option<PageConfig>,
-            keywords: Option<KeywordConfig>,
-            postprocessor: Option<PostProcessorConfig>,
-            html_options: Option<String>,
-            result_format: Option<ResultFormat>,
-            output_format: Option<OutputFormat>,
-            include_document_structure: Option<bool>,
-            layout: Option<LayoutDetectionConfig>,
-            timeout_secs: Option<u64>,
-            tree_sitter: Option<TreeSitterConfig>,
-            structured_extraction: Option<StructuredExtractionConfig>,
-        ) -> FileExtractionConfig;
+        fn new(enable_quality_processing: Option<bool>, ocr: Option<OcrConfig>, force_ocr: Option<bool>, force_ocr_pages: Option<Vec<usize>>, disable_ocr: Option<bool>, chunking: Option<ChunkingConfig>, content_filter: Option<ContentFilterConfig>, images: Option<ImageExtractionConfig>, pdf_options: Option<PdfConfig>, token_reduction: Option<TokenReductionOptions>, language_detection: Option<LanguageDetectionConfig>, pages: Option<PageConfig>, keywords: Option<KeywordConfig>, postprocessor: Option<PostProcessorConfig>, html_options: Option<String>, result_format: Option<ResultFormat>, output_format: Option<OutputFormat>, include_document_structure: Option<bool>, layout: Option<LayoutDetectionConfig>, timeout_secs: Option<u64>, tree_sitter: Option<TreeSitterConfig>, structured_extraction: Option<StructuredExtractionConfig>) -> ;
         fn enable_quality_processing(&self) -> Option<bool>;
         fn ocr(&self) -> Option<OcrConfig>;
         fn force_ocr(&self) -> Option<bool>;
@@ -186,17 +124,7 @@ mod ffi {
     extern "Rust" {
         type ImageExtractionConfig;
         #[swift_bridge(init)]
-        fn new(
-            extract_images: bool,
-            target_dpi: i32,
-            max_image_dimension: i32,
-            inject_placeholders: bool,
-            auto_adjust_dpi: bool,
-            min_dpi: i32,
-            max_dpi: i32,
-            max_images_per_page: Option<u32>,
-            classify: bool,
-        ) -> ImageExtractionConfig;
+        fn new(extract_images: bool, target_dpi: i32, max_image_dimension: i32, inject_placeholders: bool, auto_adjust_dpi: bool, min_dpi: i32, max_dpi: i32, max_images_per_page: Option<u32>, classify: bool) -> ;
         fn extract_images(&self) -> bool;
         fn target_dpi(&self) -> i32;
         fn max_image_dimension(&self) -> i32;
@@ -211,7 +139,7 @@ mod ffi {
     extern "Rust" {
         type TokenReductionOptions;
         #[swift_bridge(init)]
-        fn new(mode: String, preserve_important_words: bool) -> TokenReductionOptions;
+        fn new(mode: String, preserve_important_words: bool) -> ;
         fn mode(&self) -> String;
         fn preserve_important_words(&self) -> bool;
     }
@@ -219,7 +147,7 @@ mod ffi {
     extern "Rust" {
         type LanguageDetectionConfig;
         #[swift_bridge(init)]
-        fn new(enabled: bool, min_confidence: f64, detect_multiple: bool) -> LanguageDetectionConfig;
+        fn new(enabled: bool, min_confidence: f64, detect_multiple: bool) -> ;
         fn enabled(&self) -> bool;
         fn min_confidence(&self) -> f64;
         fn detect_multiple(&self) -> bool;
@@ -228,13 +156,7 @@ mod ffi {
     extern "Rust" {
         type HtmlOutputConfig;
         #[swift_bridge(init)]
-        fn new(
-            css: Option<String>,
-            css_file: Option<String>,
-            theme: HtmlTheme,
-            class_prefix: String,
-            embed_css: bool,
-        ) -> HtmlOutputConfig;
+        fn new(css: Option<String>, css_file: Option<String>, theme: HtmlTheme, class_prefix: String, embed_css: bool) -> ;
         fn css(&self) -> Option<String>;
         fn css_file(&self) -> Option<String>;
         fn theme(&self) -> HtmlTheme;
@@ -245,12 +167,7 @@ mod ffi {
     extern "Rust" {
         type LayoutDetectionConfig;
         #[swift_bridge(init)]
-        fn new(
-            confidence_threshold: Option<f32>,
-            apply_heuristics: bool,
-            table_model: TableModel,
-            acceleration: Option<AccelerationConfig>,
-        ) -> LayoutDetectionConfig;
+        fn new(confidence_threshold: Option<f32>, apply_heuristics: bool, table_model: TableModel, acceleration: Option<AccelerationConfig>) -> ;
         fn confidence_threshold(&self) -> Option<f32>;
         fn apply_heuristics(&self) -> bool;
         fn table_model(&self) -> TableModel;
@@ -260,15 +177,7 @@ mod ffi {
     extern "Rust" {
         type LlmConfig;
         #[swift_bridge(init)]
-        fn new(
-            model: String,
-            api_key: Option<String>,
-            base_url: Option<String>,
-            timeout_secs: Option<u64>,
-            max_retries: Option<u32>,
-            temperature: Option<f64>,
-            max_tokens: Option<u64>,
-        ) -> LlmConfig;
+        fn new(model: String, api_key: Option<String>, base_url: Option<String>, timeout_secs: Option<u64>, max_retries: Option<u32>, temperature: Option<f64>, max_tokens: Option<u64>) -> ;
         fn model(&self) -> String;
         fn api_key(&self) -> Option<String>;
         fn base_url(&self) -> Option<String>;
@@ -291,24 +200,7 @@ mod ffi {
     extern "Rust" {
         type OcrQualityThresholds;
         #[swift_bridge(init)]
-        fn new(
-            min_total_non_whitespace: usize,
-            min_non_whitespace_per_page: f64,
-            min_meaningful_word_len: usize,
-            min_meaningful_words: usize,
-            min_alnum_ratio: f64,
-            min_garbage_chars: usize,
-            max_fragmented_word_ratio: f64,
-            critical_fragmented_word_ratio: f64,
-            min_avg_word_length: f64,
-            min_words_for_avg_length_check: usize,
-            min_consecutive_repeat_ratio: f64,
-            min_words_for_repeat_check: usize,
-            substantive_min_chars: usize,
-            non_text_min_chars: usize,
-            alnum_ws_ratio_threshold: f64,
-            pipeline_min_quality: f64,
-        ) -> OcrQualityThresholds;
+        fn new(min_total_non_whitespace: usize, min_non_whitespace_per_page: f64, min_meaningful_word_len: usize, min_meaningful_words: usize, min_alnum_ratio: f64, min_garbage_chars: usize, max_fragmented_word_ratio: f64, critical_fragmented_word_ratio: f64, min_avg_word_length: f64, min_words_for_avg_length_check: usize, min_consecutive_repeat_ratio: f64, min_words_for_repeat_check: usize, substantive_min_chars: usize, non_text_min_chars: usize, alnum_ws_ratio_threshold: f64, pipeline_min_quality: f64) -> ;
         fn min_total_non_whitespace(&self) -> usize;
         fn min_non_whitespace_per_page(&self) -> f64;
         fn min_meaningful_word_len(&self) -> usize;
@@ -346,21 +238,7 @@ mod ffi {
     extern "Rust" {
         type OcrConfig;
         #[swift_bridge(init)]
-        fn new(
-            enabled: bool,
-            backend: String,
-            language: String,
-            tesseract_config: Option<TesseractConfig>,
-            output_format: Option<OutputFormat>,
-            paddle_ocr_config: Option<String>,
-            element_config: Option<OcrElementConfig>,
-            quality_thresholds: Option<OcrQualityThresholds>,
-            pipeline: Option<OcrPipelineConfig>,
-            auto_rotate: bool,
-            vlm_config: Option<LlmConfig>,
-            vlm_prompt: Option<String>,
-            acceleration: Option<AccelerationConfig>,
-        ) -> OcrConfig;
+        fn new(enabled: bool, backend: String, language: String, tesseract_config: Option<TesseractConfig>, output_format: Option<OutputFormat>, paddle_ocr_config: Option<String>, element_config: Option<OcrElementConfig>, quality_thresholds: Option<OcrQualityThresholds>, pipeline: Option<OcrPipelineConfig>, auto_rotate: bool, vlm_config: Option<LlmConfig>, vlm_prompt: Option<String>, acceleration: Option<AccelerationConfig>) -> ;
         fn enabled(&self) -> bool;
         fn backend(&self) -> String;
         fn language(&self) -> String;
@@ -379,7 +257,7 @@ mod ffi {
     extern "Rust" {
         type PageConfig;
         #[swift_bridge(init)]
-        fn new(extract_pages: bool, insert_page_markers: bool, marker_format: String) -> PageConfig;
+        fn new(extract_pages: bool, insert_page_markers: bool, marker_format: String) -> ;
         fn extract_pages(&self) -> bool;
         fn insert_page_markers(&self) -> bool;
         fn marker_format(&self) -> String;
@@ -388,16 +266,7 @@ mod ffi {
     extern "Rust" {
         type PdfConfig;
         #[swift_bridge(init)]
-        fn new(
-            extract_images: bool,
-            passwords: Option<Vec<String>>,
-            extract_metadata: bool,
-            hierarchy: Option<HierarchyConfig>,
-            extract_annotations: bool,
-            top_margin_fraction: Option<f32>,
-            bottom_margin_fraction: Option<f32>,
-            allow_single_column_tables: bool,
-        ) -> PdfConfig;
+        fn new(extract_images: bool, passwords: Option<Vec<String>>, extract_metadata: bool, hierarchy: Option<HierarchyConfig>, extract_annotations: bool, top_margin_fraction: Option<f32>, bottom_margin_fraction: Option<f32>, allow_single_column_tables: bool) -> ;
         fn extract_images(&self) -> bool;
         fn passwords(&self) -> Option<Vec<String>>;
         fn extract_metadata(&self) -> bool;
@@ -411,12 +280,7 @@ mod ffi {
     extern "Rust" {
         type HierarchyConfig;
         #[swift_bridge(init)]
-        fn new(
-            enabled: bool,
-            k_clusters: usize,
-            include_bbox: bool,
-            ocr_coverage_threshold: Option<f32>,
-        ) -> HierarchyConfig;
+        fn new(enabled: bool, k_clusters: usize, include_bbox: bool, ocr_coverage_threshold: Option<f32>) -> ;
         fn enabled(&self) -> bool;
         fn k_clusters(&self) -> usize;
         fn include_bbox(&self) -> bool;
@@ -426,13 +290,7 @@ mod ffi {
     extern "Rust" {
         type PostProcessorConfig;
         #[swift_bridge(init)]
-        fn new(
-            enabled: bool,
-            enabled_processors: Option<Vec<String>>,
-            disabled_processors: Option<Vec<String>>,
-            enabled_set: Option<String>,
-            disabled_set: Option<String>,
-        ) -> PostProcessorConfig;
+        fn new(enabled: bool, enabled_processors: Option<Vec<String>>, disabled_processors: Option<Vec<String>>, enabled_set: Option<String>, disabled_set: Option<String>) -> ;
         fn enabled(&self) -> bool;
         fn enabled_processors(&self) -> Option<Vec<String>>;
         fn disabled_processors(&self) -> Option<Vec<String>>;
@@ -443,17 +301,7 @@ mod ffi {
     extern "Rust" {
         type ChunkingConfig;
         #[swift_bridge(init)]
-        fn new(
-            max_characters: usize,
-            overlap: usize,
-            trim: bool,
-            chunker_type: ChunkerType,
-            embedding: Option<EmbeddingConfig>,
-            preset: Option<String>,
-            sizing: ChunkSizing,
-            prepend_heading_context: bool,
-            topic_threshold: Option<f32>,
-        ) -> ChunkingConfig;
+        fn new(max_characters: usize, overlap: usize, trim: bool, chunker_type: ChunkerType, embedding: Option<EmbeddingConfig>, preset: Option<String>, sizing: ChunkSizing, prepend_heading_context: bool, topic_threshold: Option<f32>) -> ;
         fn max_characters(&self) -> usize;
         fn overlap(&self) -> usize;
         fn trim(&self) -> bool;
@@ -468,15 +316,7 @@ mod ffi {
     extern "Rust" {
         type EmbeddingConfig;
         #[swift_bridge(init)]
-        fn new(
-            model: EmbeddingModelType,
-            normalize: bool,
-            batch_size: usize,
-            show_download_progress: bool,
-            cache_dir: Option<String>,
-            acceleration: Option<AccelerationConfig>,
-            max_embed_duration_secs: Option<u64>,
-        ) -> EmbeddingConfig;
+        fn new(model: EmbeddingModelType, normalize: bool, batch_size: usize, show_download_progress: bool, cache_dir: Option<String>, acceleration: Option<AccelerationConfig>, max_embed_duration_secs: Option<u64>) -> ;
         fn model(&self) -> EmbeddingModelType;
         fn normalize(&self) -> bool;
         fn batch_size(&self) -> usize;
@@ -489,13 +329,7 @@ mod ffi {
     extern "Rust" {
         type TreeSitterConfig;
         #[swift_bridge(init)]
-        fn new(
-            enabled: bool,
-            cache_dir: Option<String>,
-            languages: Option<Vec<String>>,
-            groups: Option<Vec<String>>,
-            process: TreeSitterProcessConfig,
-        ) -> TreeSitterConfig;
+        fn new(enabled: bool, cache_dir: Option<String>, languages: Option<Vec<String>>, groups: Option<Vec<String>>, process: TreeSitterProcessConfig) -> ;
         fn enabled(&self) -> bool;
         fn cache_dir(&self) -> Option<String>;
         fn languages(&self) -> Option<Vec<String>>;
@@ -506,17 +340,7 @@ mod ffi {
     extern "Rust" {
         type TreeSitterProcessConfig;
         #[swift_bridge(init)]
-        fn new(
-            structure: bool,
-            imports: bool,
-            exports: bool,
-            comments: bool,
-            docstrings: bool,
-            symbols: bool,
-            diagnostics: bool,
-            chunk_max_size: Option<usize>,
-            content_mode: CodeContentMode,
-        ) -> TreeSitterProcessConfig;
+        fn new(structure: bool, imports: bool, exports: bool, comments: bool, docstrings: bool, symbols: bool, diagnostics: bool, chunk_max_size: Option<usize>, content_mode: CodeContentMode) -> ;
         fn structure(&self) -> bool;
         fn imports(&self) -> bool;
         fn exports(&self) -> bool;
@@ -537,13 +361,7 @@ mod ffi {
     extern "Rust" {
         type ServerConfig;
         #[swift_bridge(init)]
-        fn new(
-            host: String,
-            port: u16,
-            cors_origins: Vec<String>,
-            max_request_body_bytes: usize,
-            max_multipart_field_bytes: usize,
-        ) -> ServerConfig;
+        fn new(host: String, port: u16, cors_origins: Vec<String>, max_request_body_bytes: usize, max_multipart_field_bytes: usize) -> ;
         fn host(&self) -> String;
         fn port(&self) -> u16;
         fn cors_origins(&self) -> Vec<String>;
@@ -562,7 +380,7 @@ mod ffi {
     extern "Rust" {
         type CharShape;
         #[swift_bridge(init)]
-        fn new(bold: bool, italic: bool, underline: bool) -> CharShape;
+        fn new(bold: bool, italic: bool, underline: bool) -> ;
         fn bold(&self) -> bool;
         fn italic(&self) -> bool;
         fn underline(&self) -> bool;
@@ -571,7 +389,7 @@ mod ffi {
     extern "Rust" {
         type HwpImage;
         #[swift_bridge(init)]
-        fn new(name: String, data: Vec<u8>) -> HwpImage;
+        fn new(name: String, data: Vec<u8>) -> ;
         fn name(&self) -> String;
         fn data(&self) -> Vec<u8>;
     }
@@ -605,12 +423,7 @@ mod ffi {
     extern "Rust" {
         type Drawing;
         #[swift_bridge(init)]
-        fn new(
-            drawing_type: String,
-            extent: Option<String>,
-            doc_properties: Option<String>,
-            image_ref: Option<String>,
-        ) -> Drawing;
+        fn new(drawing_type: String, extent: Option<String>, doc_properties: Option<String>, image_ref: Option<String>) -> ;
         fn drawing_type(&self) -> String;
         fn extent(&self) -> Option<String>;
         fn doc_properties(&self) -> Option<String>;
@@ -620,14 +433,7 @@ mod ffi {
     extern "Rust" {
         type AnchorProperties;
         #[swift_bridge(init)]
-        fn new(
-            behind_doc: bool,
-            layout_in_cell: bool,
-            relative_height: Option<i64>,
-            position_h: Option<String>,
-            position_v: Option<String>,
-            wrap_type: String,
-        ) -> AnchorProperties;
+        fn new(behind_doc: bool, layout_in_cell: bool, relative_height: Option<i64>, position_h: Option<String>, position_v: Option<String>, wrap_type: String) -> ;
         fn behind_doc(&self) -> bool;
         fn layout_in_cell(&self) -> bool;
         fn relative_height(&self) -> Option<i64>;
@@ -639,15 +445,7 @@ mod ffi {
     extern "Rust" {
         type PageMarginsPoints;
         #[swift_bridge(init)]
-        fn new(
-            top: Option<f64>,
-            right: Option<f64>,
-            bottom: Option<f64>,
-            left: Option<f64>,
-            header: Option<f64>,
-            footer: Option<f64>,
-            gutter: Option<f64>,
-        ) -> PageMarginsPoints;
+        fn new(top: Option<f64>, right: Option<f64>, bottom: Option<f64>, left: Option<f64>, header: Option<f64>, footer: Option<f64>, gutter: Option<f64>) -> ;
         fn top(&self) -> Option<f64>;
         fn right(&self) -> Option<f64>;
         fn bottom(&self) -> Option<f64>;
@@ -672,7 +470,7 @@ mod ffi {
     extern "Rust" {
         type ResolvedStyle;
         #[swift_bridge(init)]
-        fn new(paragraph_properties: String, run_properties: String) -> ResolvedStyle;
+        fn new(paragraph_properties: String, run_properties: String) -> ;
         fn paragraph_properties(&self) -> String;
         fn run_properties(&self) -> String;
     }
@@ -680,17 +478,7 @@ mod ffi {
     extern "Rust" {
         type TableProperties;
         #[swift_bridge(init)]
-        fn new(
-            style_id: Option<String>,
-            width: Option<String>,
-            alignment: Option<String>,
-            layout: Option<String>,
-            look: Option<String>,
-            borders: Option<String>,
-            cell_margins: Option<String>,
-            indent: Option<String>,
-            caption: Option<String>,
-        ) -> TableProperties;
+        fn new(style_id: Option<String>, width: Option<String>, alignment: Option<String>, layout: Option<String>, look: Option<String>, borders: Option<String>, cell_margins: Option<String>, indent: Option<String>, caption: Option<String>) -> ;
         fn style_id(&self) -> Option<String>;
         fn width(&self) -> Option<String>;
         fn alignment(&self) -> Option<String>;
@@ -705,17 +493,7 @@ mod ffi {
     extern "Rust" {
         type XlsxAppProperties;
         #[swift_bridge(init)]
-        fn new(
-            application: Option<String>,
-            app_version: Option<String>,
-            doc_security: Option<i32>,
-            scale_crop: Option<bool>,
-            links_up_to_date: Option<bool>,
-            shared_doc: Option<bool>,
-            hyperlinks_changed: Option<bool>,
-            company: Option<String>,
-            worksheet_names: Vec<String>,
-        ) -> XlsxAppProperties;
+        fn new(application: Option<String>, app_version: Option<String>, doc_security: Option<i32>, scale_crop: Option<bool>, links_up_to_date: Option<bool>, shared_doc: Option<bool>, hyperlinks_changed: Option<bool>, company: Option<String>, worksheet_names: Vec<String>) -> ;
         fn application(&self) -> Option<String>;
         fn app_version(&self) -> Option<String>;
         fn doc_security(&self) -> Option<i32>;
@@ -730,23 +508,7 @@ mod ffi {
     extern "Rust" {
         type PptxAppProperties;
         #[swift_bridge(init)]
-        fn new(
-            application: Option<String>,
-            app_version: Option<String>,
-            total_time: Option<i32>,
-            company: Option<String>,
-            doc_security: Option<i32>,
-            scale_crop: Option<bool>,
-            links_up_to_date: Option<bool>,
-            shared_doc: Option<bool>,
-            hyperlinks_changed: Option<bool>,
-            slides: Option<i32>,
-            notes: Option<i32>,
-            hidden_slides: Option<i32>,
-            multimedia_clips: Option<i32>,
-            presentation_format: Option<String>,
-            slide_titles: Vec<String>,
-        ) -> PptxAppProperties;
+        fn new(application: Option<String>, app_version: Option<String>, total_time: Option<i32>, company: Option<String>, doc_security: Option<i32>, scale_crop: Option<bool>, links_up_to_date: Option<bool>, shared_doc: Option<bool>, hyperlinks_changed: Option<bool>, slides: Option<i32>, notes: Option<i32>, hidden_slides: Option<i32>, multimedia_clips: Option<i32>, presentation_format: Option<String>, slide_titles: Vec<String>) -> ;
         fn application(&self) -> Option<String>;
         fn app_version(&self) -> Option<String>;
         fn total_time(&self) -> Option<i32>;
@@ -771,26 +533,7 @@ mod ffi {
     extern "Rust" {
         type OdtProperties;
         #[swift_bridge(init)]
-        fn new(
-            title: Option<String>,
-            subject: Option<String>,
-            creator: Option<String>,
-            initial_creator: Option<String>,
-            keywords: Option<String>,
-            description: Option<String>,
-            date: Option<String>,
-            creation_date: Option<String>,
-            language: Option<String>,
-            generator: Option<String>,
-            editing_duration: Option<String>,
-            editing_cycles: Option<String>,
-            page_count: Option<i32>,
-            word_count: Option<i32>,
-            character_count: Option<i32>,
-            paragraph_count: Option<i32>,
-            table_count: Option<i32>,
-            image_count: Option<i32>,
-        ) -> OdtProperties;
+        fn new(title: Option<String>, subject: Option<String>, creator: Option<String>, initial_creator: Option<String>, keywords: Option<String>, description: Option<String>, date: Option<String>, creation_date: Option<String>, language: Option<String>, generator: Option<String>, editing_duration: Option<String>, editing_cycles: Option<String>, page_count: Option<i32>, word_count: Option<i32>, character_count: Option<i32>, paragraph_count: Option<i32>, table_count: Option<i32>, image_count: Option<i32>) -> ;
         fn title(&self) -> Option<String>;
         fn subject(&self) -> Option<String>;
         fn creator(&self) -> Option<String>;
@@ -814,17 +557,7 @@ mod ffi {
     extern "Rust" {
         type SecurityLimits;
         #[swift_bridge(init)]
-        fn new(
-            max_archive_size: usize,
-            max_compression_ratio: usize,
-            max_files_in_archive: usize,
-            max_nesting_depth: usize,
-            max_entity_length: usize,
-            max_content_size: usize,
-            max_iterations: usize,
-            max_xml_depth: usize,
-            max_table_cells: usize,
-        ) -> SecurityLimits;
+        fn new(max_archive_size: usize, max_compression_ratio: usize, max_files_in_archive: usize, max_nesting_depth: usize, max_entity_length: usize, max_content_size: usize, max_iterations: usize, max_xml_depth: usize, max_table_cells: usize) -> ;
         fn max_archive_size(&self) -> usize;
         fn max_compression_ratio(&self) -> usize;
         fn max_files_in_archive(&self) -> usize;
@@ -843,19 +576,7 @@ mod ffi {
     extern "Rust" {
         type TokenReductionConfig;
         #[swift_bridge(init)]
-        fn new(
-            level: ReductionLevel,
-            language_hint: Option<String>,
-            preserve_markdown: bool,
-            preserve_code: bool,
-            semantic_threshold: f32,
-            enable_parallel: bool,
-            use_simd: bool,
-            custom_stopwords: String,
-            preserve_patterns: Vec<String>,
-            target_reduction: Option<f32>,
-            enable_semantic_clustering: bool,
-        ) -> TokenReductionConfig;
+        fn new(level: ReductionLevel, language_hint: Option<String>, preserve_markdown: bool, preserve_code: bool, semantic_threshold: f32, enable_parallel: bool, use_simd: bool, custom_stopwords: String, preserve_patterns: Vec<String>, target_reduction: Option<f32>, enable_semantic_clustering: bool) -> ;
         fn level(&self) -> ReductionLevel;
         fn language_hint(&self) -> Option<String>;
         fn preserve_markdown(&self) -> bool;
@@ -933,12 +654,7 @@ mod ffi {
     extern "Rust" {
         type DocumentStructure;
         #[swift_bridge(init)]
-        fn new(
-            nodes: Vec<DocumentNode>,
-            source_format: Option<String>,
-            relationships: Vec<DocumentRelationship>,
-            node_types: Vec<String>,
-        ) -> DocumentStructure;
+        fn new(nodes: Vec<DocumentNode>, source_format: Option<String>, relationships: Vec<DocumentRelationship>, node_types: Vec<String>) -> ;
         fn nodes(&self) -> Vec<DocumentNode>;
         fn source_format(&self) -> Option<String>;
         fn relationships(&self) -> Vec<DocumentRelationship>;
@@ -969,7 +685,7 @@ mod ffi {
     extern "Rust" {
         type TableGrid;
         #[swift_bridge(init)]
-        fn new(rows: u32, cols: u32, cells: Vec<GridCell>) -> TableGrid;
+        fn new(rows: u32, cols: u32, cells: Vec<GridCell>) -> ;
         fn rows(&self) -> u32;
         fn cols(&self) -> u32;
         fn cells(&self) -> Vec<GridCell>;
@@ -996,31 +712,7 @@ mod ffi {
     extern "Rust" {
         type ExtractionResult;
         #[swift_bridge(init)]
-        fn new(
-            content: String,
-            mime_type: String,
-            metadata: Metadata,
-            extraction_method: Option<ExtractionMethod>,
-            tables: Vec<Table>,
-            detected_languages: Option<Vec<String>>,
-            chunks: Option<Vec<Chunk>>,
-            images: Option<Vec<ExtractedImage>>,
-            pages: Option<Vec<PageContent>>,
-            elements: Option<Vec<Element>>,
-            djot_content: Option<DjotContent>,
-            ocr_elements: Option<Vec<OcrElement>>,
-            document: Option<DocumentStructure>,
-            extracted_keywords: Option<Vec<Keyword>>,
-            quality_score: Option<f64>,
-            processing_warnings: Vec<ProcessingWarning>,
-            annotations: Option<Vec<PdfAnnotation>>,
-            children: Option<Vec<ArchiveEntry>>,
-            uris: Option<Vec<Uri>>,
-            structured_output: Option<String>,
-            code_intelligence: Option<String>,
-            llm_usage: Option<Vec<LlmUsage>>,
-            formatted_content: Option<String>,
-        ) -> ExtractionResult;
+        fn new(content: String, mime_type: String, metadata: Metadata, extraction_method: Option<ExtractionMethod>, tables: Vec<Table>, detected_languages: Option<Vec<String>>, chunks: Option<Vec<Chunk>>, images: Option<Vec<ExtractedImage>>, pages: Option<Vec<PageContent>>, elements: Option<Vec<Element>>, djot_content: Option<DjotContent>, ocr_elements: Option<Vec<OcrElement>>, document: Option<DocumentStructure>, extracted_keywords: Option<Vec<Keyword>>, quality_score: Option<f64>, processing_warnings: Vec<ProcessingWarning>, annotations: Option<Vec<PdfAnnotation>>, children: Option<Vec<ArchiveEntry>>, uris: Option<Vec<Uri>>, structured_output: Option<String>, code_intelligence: Option<String>, llm_usage: Option<Vec<LlmUsage>>, formatted_content: Option<String>) -> ;
         fn content(&self) -> String;
         fn mime_type(&self) -> String;
         fn metadata(&self) -> Metadata;
@@ -1062,15 +754,7 @@ mod ffi {
     extern "Rust" {
         type LlmUsage;
         #[swift_bridge(init)]
-        fn new(
-            model: String,
-            source: String,
-            input_tokens: Option<u64>,
-            output_tokens: Option<u64>,
-            total_tokens: Option<u64>,
-            estimated_cost: Option<f64>,
-            finish_reason: Option<String>,
-        ) -> LlmUsage;
+        fn new(model: String, source: String, input_tokens: Option<u64>, output_tokens: Option<u64>, total_tokens: Option<u64>, estimated_cost: Option<f64>, finish_reason: Option<String>) -> ;
         fn model(&self) -> String;
         fn source(&self) -> String;
         fn input_tokens(&self) -> Option<u64>;
@@ -1251,15 +935,7 @@ mod ffi {
     extern "Rust" {
         type ImagePreprocessingConfig;
         #[swift_bridge(init)]
-        fn new(
-            target_dpi: i32,
-            auto_rotate: bool,
-            deskew: bool,
-            denoise: bool,
-            contrast_enhance: bool,
-            binarization_method: String,
-            invert_colors: bool,
-        ) -> ImagePreprocessingConfig;
+        fn new(target_dpi: i32, auto_rotate: bool, deskew: bool, denoise: bool, contrast_enhance: bool, binarization_method: String, invert_colors: bool) -> ;
         fn target_dpi(&self) -> i32;
         fn auto_rotate(&self) -> bool;
         fn deskew(&self) -> bool;
@@ -1272,29 +948,7 @@ mod ffi {
     extern "Rust" {
         type TesseractConfig;
         #[swift_bridge(init)]
-        fn new(
-            language: String,
-            psm: i32,
-            output_format: String,
-            oem: i32,
-            min_confidence: f64,
-            preprocessing: Option<ImagePreprocessingConfig>,
-            enable_table_detection: bool,
-            table_min_confidence: f64,
-            table_column_threshold: i32,
-            table_row_threshold_ratio: f64,
-            use_cache: bool,
-            classify_use_pre_adapted_templates: bool,
-            language_model_ngram_on: bool,
-            tessedit_dont_blkrej_good_wds: bool,
-            tessedit_dont_rowrej_good_wds: bool,
-            tessedit_enable_dict_correction: bool,
-            tessedit_char_whitelist: String,
-            tessedit_char_blacklist: String,
-            tessedit_use_primary_params_model: bool,
-            textord_space_size_is_variable: bool,
-            thresholding_method: bool,
-        ) -> TesseractConfig;
+        fn new(language: String, psm: i32, output_format: String, oem: i32, min_confidence: f64, preprocessing: Option<ImagePreprocessingConfig>, enable_table_detection: bool, table_min_confidence: f64, table_column_threshold: i32, table_row_threshold_ratio: f64, use_cache: bool, classify_use_pre_adapted_templates: bool, language_model_ngram_on: bool, tessedit_dont_blkrej_good_wds: bool, tessedit_dont_rowrej_good_wds: bool, tessedit_enable_dict_correction: bool, tessedit_char_whitelist: String, tessedit_char_blacklist: String, tessedit_use_primary_params_model: bool, textord_space_size_is_variable: bool, thresholding_method: bool) -> ;
         fn language(&self) -> String;
         fn psm(&self) -> i32;
         fn output_format(&self) -> String;
@@ -1337,29 +991,7 @@ mod ffi {
     extern "Rust" {
         type Metadata;
         #[swift_bridge(init)]
-        fn new(
-            title: Option<String>,
-            subject: Option<String>,
-            authors: Option<Vec<String>>,
-            keywords: Option<Vec<String>>,
-            language: Option<String>,
-            created_at: Option<String>,
-            modified_at: Option<String>,
-            created_by: Option<String>,
-            modified_by: Option<String>,
-            pages: Option<PageStructure>,
-            format: Option<FormatMetadata>,
-            image_preprocessing: Option<ImagePreprocessingMetadata>,
-            json_schema: Option<String>,
-            error: Option<ErrorMetadata>,
-            extraction_duration_ms: Option<u64>,
-            category: Option<String>,
-            tags: Option<Vec<String>>,
-            document_version: Option<String>,
-            abstract_text: Option<String>,
-            output_format: Option<String>,
-            additional: String,
-        ) -> Metadata;
+        fn new(title: Option<String>, subject: Option<String>, authors: Option<Vec<String>>, keywords: Option<Vec<String>>, language: Option<String>, created_at: Option<String>, modified_at: Option<String>, created_by: Option<String>, modified_by: Option<String>, pages: Option<PageStructure>, format: Option<FormatMetadata>, image_preprocessing: Option<ImagePreprocessingMetadata>, json_schema: Option<String>, error: Option<ErrorMetadata>, extraction_duration_ms: Option<u64>, category: Option<String>, tags: Option<Vec<String>>, document_version: Option<String>, abstract_text: Option<String>, output_format: Option<String>, additional: String) -> ;
         fn title(&self) -> Option<String>;
         fn subject(&self) -> Option<String>;
         fn authors(&self) -> Option<Vec<String>>;
@@ -1386,7 +1018,7 @@ mod ffi {
     extern "Rust" {
         type ExcelMetadata;
         #[swift_bridge(init)]
-        fn new(sheet_count: Option<usize>, sheet_names: Option<Vec<String>>) -> ExcelMetadata;
+        fn new(sheet_count: Option<usize>, sheet_names: Option<Vec<String>>) -> ;
         fn sheet_count(&self) -> Option<usize>;
         fn sheet_names(&self) -> Option<Vec<String>>;
     }
@@ -1394,15 +1026,7 @@ mod ffi {
     extern "Rust" {
         type EmailMetadata;
         #[swift_bridge(init)]
-        fn new(
-            from_email: Option<String>,
-            from_name: Option<String>,
-            to_emails: Vec<String>,
-            cc_emails: Vec<String>,
-            bcc_emails: Vec<String>,
-            message_id: Option<String>,
-            attachments: Vec<String>,
-        ) -> EmailMetadata;
+        fn new(from_email: Option<String>, from_name: Option<String>, to_emails: Vec<String>, cc_emails: Vec<String>, bcc_emails: Vec<String>, message_id: Option<String>, attachments: Vec<String>) -> ;
         fn from_email(&self) -> Option<String>;
         fn from_name(&self) -> Option<String>;
         fn to_emails(&self) -> Vec<String>;
@@ -1415,13 +1039,7 @@ mod ffi {
     extern "Rust" {
         type ArchiveMetadata;
         #[swift_bridge(init)]
-        fn new(
-            format: String,
-            file_count: usize,
-            file_list: Vec<String>,
-            total_size: usize,
-            compressed_size: Option<usize>,
-        ) -> ArchiveMetadata;
+        fn new(format: String, file_count: usize, file_list: Vec<String>, total_size: usize, compressed_size: Option<usize>) -> ;
         fn format(&self) -> String;
         fn file_count(&self) -> usize;
         fn file_list(&self) -> Vec<String>;
@@ -1432,7 +1050,7 @@ mod ffi {
     extern "Rust" {
         type XmlMetadata;
         #[swift_bridge(init)]
-        fn new(element_count: usize, unique_elements: Vec<String>) -> XmlMetadata;
+        fn new(element_count: usize, unique_elements: Vec<String>) -> ;
         fn element_count(&self) -> usize;
         fn unique_elements(&self) -> Vec<String>;
     }
@@ -1440,14 +1058,7 @@ mod ffi {
     extern "Rust" {
         type TextMetadata;
         #[swift_bridge(init)]
-        fn new(
-            line_count: usize,
-            word_count: usize,
-            character_count: usize,
-            headers: Option<Vec<String>>,
-            links: Option<Vec<String>>,
-            code_blocks: Option<Vec<String>>,
-        ) -> TextMetadata;
+        fn new(line_count: usize, word_count: usize, character_count: usize, headers: Option<Vec<String>>, links: Option<Vec<String>>, code_blocks: Option<Vec<String>>) -> ;
         fn line_count(&self) -> usize;
         fn word_count(&self) -> usize;
         fn character_count(&self) -> usize;
@@ -1495,23 +1106,7 @@ mod ffi {
     extern "Rust" {
         type HtmlMetadata;
         #[swift_bridge(init)]
-        fn new(
-            title: Option<String>,
-            description: Option<String>,
-            keywords: Vec<String>,
-            author: Option<String>,
-            canonical_url: Option<String>,
-            base_href: Option<String>,
-            language: Option<String>,
-            text_direction: Option<TextDirection>,
-            open_graph: String,
-            twitter_card: String,
-            meta_tags: String,
-            headers: Vec<HeaderMetadata>,
-            links: Vec<LinkMetadata>,
-            images: Vec<ImageMetadataType>,
-            structured_data: Vec<StructuredData>,
-        ) -> HtmlMetadata;
+        fn new(title: Option<String>, description: Option<String>, keywords: Vec<String>, author: Option<String>, canonical_url: Option<String>, base_href: Option<String>, language: Option<String>, text_direction: Option<TextDirection>, open_graph: String, twitter_card: String, meta_tags: String, headers: Vec<HeaderMetadata>, links: Vec<LinkMetadata>, images: Vec<ImageMetadataType>, structured_data: Vec<StructuredData>) -> ;
         fn title(&self) -> Option<String>;
         fn description(&self) -> Option<String>;
         fn keywords(&self) -> Vec<String>;
@@ -1532,14 +1127,7 @@ mod ffi {
     extern "Rust" {
         type OcrMetadata;
         #[swift_bridge(init)]
-        fn new(
-            language: String,
-            psm: i32,
-            output_format: String,
-            table_count: usize,
-            table_rows: Option<usize>,
-            table_cols: Option<usize>,
-        ) -> OcrMetadata;
+        fn new(language: String, psm: i32, output_format: String, table_count: usize, table_rows: Option<usize>, table_cols: Option<usize>) -> ;
         fn language(&self) -> String;
         fn psm(&self) -> i32;
         fn output_format(&self) -> String;
@@ -1557,12 +1145,7 @@ mod ffi {
     extern "Rust" {
         type PptxMetadata;
         #[swift_bridge(init)]
-        fn new(
-            slide_count: usize,
-            slide_names: Vec<String>,
-            image_count: Option<usize>,
-            table_count: Option<usize>,
-        ) -> PptxMetadata;
+        fn new(slide_count: usize, slide_names: Vec<String>, image_count: Option<usize>, table_count: Option<usize>) -> ;
         fn slide_count(&self) -> usize;
         fn slide_names(&self) -> Vec<String>;
         fn image_count(&self) -> Option<usize>;
@@ -1572,11 +1155,7 @@ mod ffi {
     extern "Rust" {
         type DocxMetadata;
         #[swift_bridge(init)]
-        fn new(
-            core_properties: Option<String>,
-            app_properties: Option<String>,
-            custom_properties: String,
-        ) -> DocxMetadata;
+        fn new(core_properties: Option<String>, app_properties: Option<String>, custom_properties: String) -> ;
         fn core_properties(&self) -> Option<String>;
         fn app_properties(&self) -> Option<String>;
         fn custom_properties(&self) -> String;
@@ -1585,13 +1164,7 @@ mod ffi {
     extern "Rust" {
         type CsvMetadata;
         #[swift_bridge(init)]
-        fn new(
-            row_count: usize,
-            column_count: usize,
-            delimiter: Option<String>,
-            has_header: bool,
-            column_types: Option<Vec<String>>,
-        ) -> CsvMetadata;
+        fn new(row_count: usize, column_count: usize, delimiter: Option<String>, has_header: bool, column_types: Option<Vec<String>>) -> ;
         fn row_count(&self) -> usize;
         fn column_count(&self) -> usize;
         fn delimiter(&self) -> Option<String>;
@@ -1602,13 +1175,7 @@ mod ffi {
     extern "Rust" {
         type BibtexMetadata;
         #[swift_bridge(init)]
-        fn new(
-            entry_count: usize,
-            citation_keys: Vec<String>,
-            authors: Vec<String>,
-            year_range: Option<YearRange>,
-            entry_types: String,
-        ) -> BibtexMetadata;
+        fn new(entry_count: usize, citation_keys: Vec<String>, authors: Vec<String>, year_range: Option<YearRange>, entry_types: String) -> ;
         fn entry_count(&self) -> usize;
         fn citation_keys(&self) -> Vec<String>;
         fn authors(&self) -> Vec<String>;
@@ -1619,14 +1186,7 @@ mod ffi {
     extern "Rust" {
         type CitationMetadata;
         #[swift_bridge(init)]
-        fn new(
-            citation_count: usize,
-            format: Option<String>,
-            authors: Vec<String>,
-            year_range: Option<YearRange>,
-            dois: Vec<String>,
-            keywords: Vec<String>,
-        ) -> CitationMetadata;
+        fn new(citation_count: usize, format: Option<String>, authors: Vec<String>, year_range: Option<YearRange>, dois: Vec<String>, keywords: Vec<String>) -> ;
         fn citation_count(&self) -> usize;
         fn format(&self) -> Option<String>;
         fn authors(&self) -> Vec<String>;
@@ -1645,7 +1205,7 @@ mod ffi {
     extern "Rust" {
         type FictionBookMetadata;
         #[swift_bridge(init)]
-        fn new(genres: Vec<String>, sequences: Vec<String>, annotation: Option<String>) -> FictionBookMetadata;
+        fn new(genres: Vec<String>, sequences: Vec<String>, annotation: Option<String>) -> ;
         fn genres(&self) -> Vec<String>;
         fn sequences(&self) -> Vec<String>;
         fn annotation(&self) -> Option<String>;
@@ -1654,7 +1214,7 @@ mod ffi {
     extern "Rust" {
         type DbfMetadata;
         #[swift_bridge(init)]
-        fn new(record_count: usize, field_count: usize, fields: Vec<DbfFieldInfo>) -> DbfMetadata;
+        fn new(record_count: usize, field_count: usize, fields: Vec<DbfFieldInfo>) -> ;
         fn record_count(&self) -> usize;
         fn field_count(&self) -> usize;
         fn fields(&self) -> Vec<DbfFieldInfo>;
@@ -1669,12 +1229,7 @@ mod ffi {
     extern "Rust" {
         type JatsMetadata;
         #[swift_bridge(init)]
-        fn new(
-            copyright: Option<String>,
-            license: Option<String>,
-            history_dates: String,
-            contributor_roles: Vec<ContributorRole>,
-        ) -> JatsMetadata;
+        fn new(copyright: Option<String>, license: Option<String>, history_dates: String, contributor_roles: Vec<ContributorRole>) -> ;
         fn copyright(&self) -> Option<String>;
         fn license(&self) -> Option<String>;
         fn history_dates(&self) -> String;
@@ -1690,14 +1245,7 @@ mod ffi {
     extern "Rust" {
         type EpubMetadata;
         #[swift_bridge(init)]
-        fn new(
-            coverage: Option<String>,
-            dc_format: Option<String>,
-            relation: Option<String>,
-            source: Option<String>,
-            dc_type: Option<String>,
-            cover_image: Option<String>,
-        ) -> EpubMetadata;
+        fn new(coverage: Option<String>, dc_format: Option<String>, relation: Option<String>, source: Option<String>, dc_type: Option<String>, cover_image: Option<String>) -> ;
         fn coverage(&self) -> Option<String>;
         fn dc_format(&self) -> Option<String>;
         fn relation(&self) -> Option<String>;
@@ -1709,14 +1257,14 @@ mod ffi {
     extern "Rust" {
         type PstMetadata;
         #[swift_bridge(init)]
-        fn new(message_count: usize) -> PstMetadata;
+        fn new(message_count: usize) -> ;
         fn message_count(&self) -> usize;
     }
 
     extern "Rust" {
         type OcrConfidence;
         #[swift_bridge(init)]
-        fn new(detection: Option<f64>, recognition: f64) -> OcrConfidence;
+        fn new(detection: Option<f64>, recognition: f64) -> ;
         fn detection(&self) -> Option<f64>;
         fn recognition(&self) -> f64;
     }
@@ -1730,16 +1278,7 @@ mod ffi {
     extern "Rust" {
         type OcrElement;
         #[swift_bridge(init)]
-        fn new(
-            text: String,
-            geometry: OcrBoundingGeometry,
-            confidence: OcrConfidence,
-            level: OcrElementLevel,
-            rotation: Option<OcrRotation>,
-            page_number: usize,
-            parent_id: Option<String>,
-            backend_metadata: String,
-        ) -> OcrElement;
+        fn new(text: String, geometry: OcrBoundingGeometry, confidence: OcrConfidence, level: OcrElementLevel, rotation: Option<OcrRotation>, page_number: usize, parent_id: Option<String>, backend_metadata: String) -> ;
         fn text(&self) -> String;
         fn geometry(&self) -> OcrBoundingGeometry;
         fn confidence(&self) -> OcrConfidence;
@@ -1753,12 +1292,7 @@ mod ffi {
     extern "Rust" {
         type OcrElementConfig;
         #[swift_bridge(init)]
-        fn new(
-            include_elements: bool,
-            min_level: OcrElementLevel,
-            min_confidence: f64,
-            build_hierarchy: bool,
-        ) -> OcrElementConfig;
+        fn new(include_elements: bool, min_level: OcrElementLevel, min_confidence: f64, build_hierarchy: bool) -> ;
         fn include_elements(&self) -> bool;
         fn min_level(&self) -> OcrElementLevel;
         fn min_confidence(&self) -> f64;
@@ -1806,7 +1340,7 @@ mod ffi {
     extern "Rust" {
         type LayoutRegion;
         #[swift_bridge(init)]
-        fn new(class_name: String, confidence: f64, bounding_box: String, area_fraction: f64) -> LayoutRegion;
+        fn new(class_name: String, confidence: f64, bounding_box: String, area_fraction: f64) -> ;
         fn class_name(&self) -> String;
         fn confidence(&self) -> f64;
         fn bounding_box(&self) -> String;
@@ -1830,7 +1364,7 @@ mod ffi {
     extern "Rust" {
         type Table;
         #[swift_bridge(init)]
-        fn new(cells: String, markdown: String, page_number: usize, bounding_box: Option<String>) -> Table;
+        fn new(cells: String, markdown: String, page_number: usize, bounding_box: Option<String>) -> ;
         fn cells(&self) -> String;
         fn markdown(&self) -> String;
         fn page_number(&self) -> usize;
@@ -1840,7 +1374,7 @@ mod ffi {
     extern "Rust" {
         type TableCell;
         #[swift_bridge(init)]
-        fn new(content: String, row_span: usize, col_span: usize, is_header: bool) -> TableCell;
+        fn new(content: String, row_span: usize, col_span: usize, is_header: bool) -> ;
         fn content(&self) -> String;
         fn row_span(&self) -> usize;
         fn col_span(&self) -> usize;
@@ -2035,14 +1569,14 @@ mod ffi {
     extern "Rust" {
         type YakeParams;
         #[swift_bridge(init)]
-        fn new(window_size: usize) -> YakeParams;
+        fn new(window_size: usize) -> ;
         fn window_size(&self) -> usize;
     }
 
     extern "Rust" {
         type RakeParams;
         #[swift_bridge(init)]
-        fn new(min_word_length: usize, max_words_per_phrase: usize) -> RakeParams;
+        fn new(min_word_length: usize, max_words_per_phrase: usize) -> ;
         fn min_word_length(&self) -> usize;
         fn max_words_per_phrase(&self) -> usize;
     }
@@ -2050,15 +1584,7 @@ mod ffi {
     extern "Rust" {
         type KeywordConfig;
         #[swift_bridge(init)]
-        fn new(
-            algorithm: KeywordAlgorithm,
-            max_keywords: usize,
-            min_score: f32,
-            ngram_range: Vec<usize>,
-            language: Option<String>,
-            yake_params: Option<YakeParams>,
-            rake_params: Option<RakeParams>,
-        ) -> KeywordConfig;
+        fn new(algorithm: KeywordAlgorithm, max_keywords: usize, min_score: f32, ngram_range: Vec<usize>, language: Option<String>, yake_params: Option<YakeParams>, rake_params: Option<RakeParams>) -> ;
         fn algorithm(&self) -> KeywordAlgorithm;
         fn max_keywords(&self) -> usize;
         fn min_score(&self) -> f32;
@@ -2079,7 +1605,7 @@ mod ffi {
     extern "Rust" {
         type OcrCacheStats;
         #[swift_bridge(init)]
-        fn new(total_files: usize, total_size_mb: f64) -> OcrCacheStats;
+        fn new(total_files: usize, total_size_mb: f64) -> ;
         fn total_files(&self) -> usize;
         fn total_size_mb(&self) -> f64;
     }
@@ -2098,20 +1624,7 @@ mod ffi {
     extern "Rust" {
         type PaddleOcrConfig;
         #[swift_bridge(init)]
-        fn new(
-            language: String,
-            cache_dir: Option<String>,
-            use_angle_cls: bool,
-            enable_table_detection: bool,
-            det_db_thresh: f32,
-            det_db_box_thresh: f32,
-            det_db_unclip_ratio: f32,
-            det_limit_side_len: u32,
-            rec_batch_num: u32,
-            padding: u32,
-            drop_score: f32,
-            model_tier: String,
-        ) -> PaddleOcrConfig;
+        fn new(language: String, cache_dir: Option<String>, use_angle_cls: bool, enable_table_detection: bool, det_db_thresh: f32, det_db_box_thresh: f32, det_db_unclip_ratio: f32, det_limit_side_len: u32, rec_batch_num: u32, padding: u32, drop_score: f32, model_tier: String) -> ;
         fn language(&self) -> String;
         fn cache_dir(&self) -> Option<String>;
         fn use_angle_cls(&self) -> bool;
@@ -2323,49 +1836,21 @@ mod ffi {
 
     extern "Rust" {
         #[swift_bridge(swift_name = "extractBytes")]
-        fn extract_bytes(
-            content: Vec<u8>,
-            mime_type: String,
-            config: ExtractionConfig,
-        ) -> Result<ExtractionResult, String>;
+        fn extract_bytes(content: Vec<u8>, mime_type: String, config: ExtractionConfig) -> Result<ExtractionResult, String>;
         #[swift_bridge(swift_name = "extractFile")]
-        fn extract_file(
-            path: String,
-            mime_type: Option<String>,
-            config: ExtractionConfig,
-        ) -> Result<ExtractionResult, String>;
+        fn extract_file(path: String, mime_type: Option<String>, config: ExtractionConfig) -> Result<ExtractionResult, String>;
         #[swift_bridge(swift_name = "extractFileSync")]
-        fn extract_file_sync(
-            path: String,
-            mime_type: Option<String>,
-            config: ExtractionConfig,
-        ) -> Result<ExtractionResult, String>;
+        fn extract_file_sync(path: String, mime_type: Option<String>, config: ExtractionConfig) -> Result<ExtractionResult, String>;
         #[swift_bridge(swift_name = "extractBytesSync")]
-        fn extract_bytes_sync(
-            content: Vec<u8>,
-            mime_type: String,
-            config: ExtractionConfig,
-        ) -> Result<ExtractionResult, String>;
+        fn extract_bytes_sync(content: Vec<u8>, mime_type: String, config: ExtractionConfig) -> Result<ExtractionResult, String>;
         #[swift_bridge(swift_name = "batchExtractFilesSync")]
-        fn batch_extract_files_sync(
-            items: Vec<BatchFileItem>,
-            config: ExtractionConfig,
-        ) -> Result<Vec<ExtractionResult>, String>;
+        fn batch_extract_files_sync(items: Vec<BatchFileItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String>;
         #[swift_bridge(swift_name = "batchExtractBytesSync")]
-        fn batch_extract_bytes_sync(
-            items: Vec<BatchBytesItem>,
-            config: ExtractionConfig,
-        ) -> Result<Vec<ExtractionResult>, String>;
+        fn batch_extract_bytes_sync(items: Vec<BatchBytesItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String>;
         #[swift_bridge(swift_name = "batchExtractFiles")]
-        fn batch_extract_files(
-            items: Vec<BatchFileItem>,
-            config: ExtractionConfig,
-        ) -> Result<Vec<ExtractionResult>, String>;
+        fn batch_extract_files(items: Vec<BatchFileItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String>;
         #[swift_bridge(swift_name = "batchExtractBytes")]
-        fn batch_extract_bytes(
-            items: Vec<BatchBytesItem>,
-            config: ExtractionConfig,
-        ) -> Result<Vec<ExtractionResult>, String>;
+        fn batch_extract_bytes(items: Vec<BatchBytesItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String>;
         #[swift_bridge(swift_name = "detectMimeTypeFromBytes")]
         fn detect_mime_type_from_bytes(content: Vec<u8>) -> Result<String, String>;
         #[swift_bridge(swift_name = "getExtensionsForMime")]
@@ -2386,6 +1871,8 @@ mod ffi {
         fn clear_validators() -> Result<(), String>;
         #[swift_bridge(swift_name = "embedTextsAsync")]
         fn embed_texts_async(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String>;
+        #[swift_bridge(swift_name = "renderPdfPageToPng")]
+        fn render_pdf_page_to_png(pdf_bytes: Vec<u8>, page_index: usize, dpi: Option<i32>, password: Option<String>) -> Result<Vec<u8>, String>;
         #[swift_bridge(swift_name = "detectMimeType")]
         fn detect_mime_type(path: String, check_exists: bool) -> Result<String, String>;
         #[swift_bridge(swift_name = "embedTexts")]
@@ -2399,42 +1886,22 @@ mod ffi {
     extern "Rust" {
         type OcrBackendBox;
         fn alef_phantom_vec_ocr_backend() -> Vec<OcrBackendBox>;
-        fn ocr_backend_call_process_image(
-            this: &OcrBackendBox,
-            image_bytes: Vec<u8>,
-            config: OcrConfig,
-        ) -> Result<ExtractionResult, String>;
-        fn ocr_backend_call_process_image_file(
-            this: &OcrBackendBox,
-            path: String,
-            config: OcrConfig,
-        ) -> Result<ExtractionResult, String>;
+        fn ocr_backend_call_process_image(this: &OcrBackendBox, image_bytes: Vec<u8>, config: OcrConfig) -> Result<ExtractionResult, String>;
+        fn ocr_backend_call_process_image_file(this: &OcrBackendBox, path: String, config: OcrConfig) -> Result<ExtractionResult, String>;
         fn ocr_backend_call_supports_language(this: &OcrBackendBox, lang: String) -> bool;
         fn ocr_backend_call_backend_type(this: &OcrBackendBox) -> OcrBackendType;
         fn ocr_backend_call_supported_languages(this: &OcrBackendBox) -> Vec<String>;
         fn ocr_backend_call_supports_table_detection(this: &OcrBackendBox) -> bool;
         fn ocr_backend_call_supports_document_processing(this: &OcrBackendBox) -> bool;
-        fn ocr_backend_call_process_document(
-            this: &OcrBackendBox,
-            path: String,
-            config: OcrConfig,
-        ) -> Result<ExtractionResult, String>;
+        fn ocr_backend_call_process_document(this: &OcrBackendBox, path: String, config: OcrConfig) -> Result<ExtractionResult, String>;
     }
 
     extern "Rust" {
         type PostProcessorBox;
         fn alef_phantom_vec_post_processor() -> Vec<PostProcessorBox>;
-        fn post_processor_call_process(
-            this: &PostProcessorBox,
-            result: ExtractionResult,
-            config: ExtractionConfig,
-        ) -> Result<(), String>;
+        fn post_processor_call_process(this: &PostProcessorBox, result: ExtractionResult, config: ExtractionConfig) -> Result<(), String>;
         fn post_processor_call_processing_stage(this: &PostProcessorBox) -> ProcessingStage;
-        fn post_processor_call_should_process(
-            this: &PostProcessorBox,
-            result: ExtractionResult,
-            config: ExtractionConfig,
-        ) -> bool;
+        fn post_processor_call_should_process(this: &PostProcessorBox, result: ExtractionResult, config: ExtractionConfig) -> bool;
         fn post_processor_call_estimated_duration_ms(this: &PostProcessorBox, result: ExtractionResult) -> u64;
         fn post_processor_call_priority(this: &PostProcessorBox) -> i32;
     }
@@ -2442,16 +1909,8 @@ mod ffi {
     extern "Rust" {
         type ValidatorBox;
         fn alef_phantom_vec_validator() -> Vec<ValidatorBox>;
-        fn validator_call_validate(
-            this: &ValidatorBox,
-            result: ExtractionResult,
-            config: ExtractionConfig,
-        ) -> Result<(), String>;
-        fn validator_call_should_validate(
-            this: &ValidatorBox,
-            result: ExtractionResult,
-            config: ExtractionConfig,
-        ) -> bool;
+        fn validator_call_validate(this: &ValidatorBox, result: ExtractionResult, config: ExtractionConfig) -> Result<(), String>;
+        fn validator_call_should_validate(this: &ValidatorBox, result: ExtractionResult, config: ExtractionConfig) -> bool;
         fn validator_call_priority(this: &ValidatorBox) -> i32;
     }
 
@@ -2461,10 +1920,10 @@ mod ffi {
         fn embedding_backend_call_dimensions(this: &EmbeddingBackendBox) -> usize;
         fn embedding_backend_call_embed(this: &EmbeddingBackendBox, texts: Vec<String>) -> Result<String, String>;
     }
+
 }
 
 pub struct AccelerationConfig(pub kreuzberg::AccelerationConfig);
-
 impl AccelerationConfig {
     pub fn new(provider: ExecutionProviderType, device_id: u32) -> AccelerationConfig {
         let mut __target: kreuzberg::AccelerationConfig = ::std::default::Default::default();
@@ -2472,26 +1931,13 @@ impl AccelerationConfig {
         __target.device_id = device_id;
         AccelerationConfig(__target)
     }
-    pub fn provider(&self) -> ExecutionProviderType {
         ExecutionProviderType::from(self.0.provider.clone())
-    }
-    pub fn device_id(&self) -> u32 {
-        ::serde_json::to_value(&self.0.device_id)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.device_id).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ContentFilterConfig(pub kreuzberg::ContentFilterConfig);
-
 impl ContentFilterConfig {
-    pub fn new(
-        include_headers: bool,
-        include_footers: bool,
-        strip_repeating_text: bool,
-        include_watermarks: bool,
-    ) -> ContentFilterConfig {
+    pub fn new(include_headers: bool, include_footers: bool, strip_repeating_text: bool, include_watermarks: bool) -> ContentFilterConfig {
         let mut __target: kreuzberg::ContentFilterConfig = ::std::default::Default::default();
         __target.include_headers = include_headers;
         __target.include_footers = include_footers;
@@ -2499,542 +1945,188 @@ impl ContentFilterConfig {
         __target.include_watermarks = include_watermarks;
         ContentFilterConfig(__target)
     }
-    pub fn include_headers(&self) -> bool {
-        ::serde_json::to_value(&self.0.include_headers)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn include_footers(&self) -> bool {
-        ::serde_json::to_value(&self.0.include_footers)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn strip_repeating_text(&self) -> bool {
-        ::serde_json::to_value(&self.0.strip_repeating_text)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn include_watermarks(&self) -> bool {
-        ::serde_json::to_value(&self.0.include_watermarks)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.include_headers).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.include_footers).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.strip_repeating_text).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.include_watermarks).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct EmailConfig(pub kreuzberg::EmailConfig);
-
 impl EmailConfig {
     pub fn new(msg_fallback_codepage: Option<u32>) -> EmailConfig {
         let mut __target: kreuzberg::EmailConfig = ::std::default::Default::default();
         __target.msg_fallback_codepage = msg_fallback_codepage;
         EmailConfig(__target)
     }
-    pub fn msg_fallback_codepage(&self) -> Option<u32> {
-        self.0.msg_fallback_codepage.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.msg_fallback_codepage.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct ExtractionConfig(pub kreuzberg::ExtractionConfig);
-
 impl ExtractionConfig {
-    pub fn new(
-        use_cache: bool,
-        enable_quality_processing: bool,
-        ocr: Option<OcrConfig>,
-        force_ocr: bool,
-        force_ocr_pages: Option<Vec<usize>>,
-        disable_ocr: bool,
-        chunking: Option<ChunkingConfig>,
-        content_filter: Option<ContentFilterConfig>,
-        images: Option<ImageExtractionConfig>,
-        pdf_options: Option<PdfConfig>,
-        token_reduction: Option<TokenReductionOptions>,
-        language_detection: Option<LanguageDetectionConfig>,
-        pages: Option<PageConfig>,
-        keywords: Option<KeywordConfig>,
-        postprocessor: Option<PostProcessorConfig>,
-        html_options: Option<String>,
-        html_output: Option<HtmlOutputConfig>,
-        extraction_timeout_secs: Option<u64>,
-        max_concurrent_extractions: Option<usize>,
-        result_format: ResultFormat,
-        security_limits: Option<SecurityLimits>,
-        output_format: OutputFormat,
-        layout: Option<LayoutDetectionConfig>,
-        include_document_structure: bool,
-        acceleration: Option<AccelerationConfig>,
-        cache_namespace: Option<String>,
-        cache_ttl_secs: Option<u64>,
-        email: Option<EmailConfig>,
-        concurrency: Option<String>,
-        max_archive_depth: usize,
-        tree_sitter: Option<TreeSitterConfig>,
-        structured_extraction: Option<StructuredExtractionConfig>,
-        cancel_token: Option<String>,
-    ) -> ExtractionConfig {
+    pub fn new(use_cache: bool, enable_quality_processing: bool, ocr: Option<OcrConfig>, force_ocr: bool, force_ocr_pages: Option<Vec<usize>>, disable_ocr: bool, chunking: Option<ChunkingConfig>, content_filter: Option<ContentFilterConfig>, images: Option<ImageExtractionConfig>, pdf_options: Option<PdfConfig>, token_reduction: Option<TokenReductionOptions>, language_detection: Option<LanguageDetectionConfig>, pages: Option<PageConfig>, keywords: Option<KeywordConfig>, postprocessor: Option<PostProcessorConfig>, html_options: Option<String>, html_output: Option<HtmlOutputConfig>, extraction_timeout_secs: Option<u64>, max_concurrent_extractions: Option<usize>, result_format: ResultFormat, security_limits: Option<SecurityLimits>, output_format: OutputFormat, layout: Option<LayoutDetectionConfig>, include_document_structure: bool, acceleration: Option<AccelerationConfig>, cache_namespace: Option<String>, cache_ttl_secs: Option<u64>, email: Option<EmailConfig>, concurrency: Option<String>, max_archive_depth: usize, tree_sitter: Option<TreeSitterConfig>, structured_extraction: Option<StructuredExtractionConfig>, cancel_token: Option<String>) -> ExtractionConfig {
         let mut __target: kreuzberg::ExtractionConfig = ::std::default::Default::default();
         __target.use_cache = use_cache;
         __target.enable_quality_processing = enable_quality_processing;
-        if let Some(w) = ocr {
-            __target.ocr = Some(w.0);
-        }
+        if let Some(w) = ocr { __target.ocr = Some(w.0); }
         __target.force_ocr = force_ocr;
         if let Ok(__v) = ::serde_json::to_value(force_ocr_pages) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.force_ocr_pages = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.force_ocr_pages = t; }
         }
         __target.disable_ocr = disable_ocr;
-        if let Some(w) = chunking {
-            __target.chunking = Some(w.0);
-        }
-        if let Some(w) = content_filter {
-            __target.content_filter = Some(w.0);
-        }
-        if let Some(w) = images {
-            __target.images = Some(w.0);
-        }
-        if let Some(w) = pdf_options {
-            __target.pdf_options = Some(w.0);
-        }
-        if let Some(w) = token_reduction {
-            __target.token_reduction = Some(w.0);
-        }
-        if let Some(w) = language_detection {
-            __target.language_detection = Some(w.0);
-        }
-        if let Some(w) = pages {
-            __target.pages = Some(w.0);
-        }
-        if let Some(w) = keywords {
-            __target.keywords = Some(w.0);
-        }
-        if let Some(w) = postprocessor {
-            __target.postprocessor = Some(w.0);
-        }
+        if let Some(w) = chunking { __target.chunking = Some(w.0); }
+        if let Some(w) = content_filter { __target.content_filter = Some(w.0); }
+        if let Some(w) = images { __target.images = Some(w.0); }
+        if let Some(w) = pdf_options { __target.pdf_options = Some(w.0); }
+        if let Some(w) = token_reduction { __target.token_reduction = Some(w.0); }
+        if let Some(w) = language_detection { __target.language_detection = Some(w.0); }
+        if let Some(w) = pages { __target.pages = Some(w.0); }
+        if let Some(w) = keywords { __target.keywords = Some(w.0); }
+        if let Some(w) = postprocessor { __target.postprocessor = Some(w.0); }
         if let Some(s) = html_options {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.html_options = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.html_options = Some(t); }
             }
         }
-        if let Some(w) = html_output {
-            __target.html_output = Some(w.0);
-        }
+        if let Some(w) = html_output { __target.html_output = Some(w.0); }
         __target.extraction_timeout_secs = extraction_timeout_secs;
         __target.max_concurrent_extractions = max_concurrent_extractions;
         // alef: result_format (ResultFormat) is an enum; reverse From not generated — left at default
-        if let Some(w) = security_limits {
-            __target.security_limits = Some(w.0);
-        }
+        if let Some(w) = security_limits { __target.security_limits = Some(w.0); }
         // alef: output_format (OutputFormat) is an enum; reverse From not generated — left at default
-        if let Some(w) = layout {
-            __target.layout = Some(w.0);
-        }
+        if let Some(w) = layout { __target.layout = Some(w.0); }
         __target.include_document_structure = include_document_structure;
-        if let Some(w) = acceleration {
-            __target.acceleration = Some(w.0);
-        }
+        if let Some(w) = acceleration { __target.acceleration = Some(w.0); }
         if let Some(s) = cache_namespace {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cache_namespace = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cache_namespace = Some(t); }
             }
         }
         __target.cache_ttl_secs = cache_ttl_secs;
-        if let Some(w) = email {
-            __target.email = Some(w.0);
-        }
+        if let Some(w) = email { __target.email = Some(w.0); }
         if let Some(s) = concurrency {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.concurrency = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.concurrency = Some(t); }
             }
         }
         __target.max_archive_depth = max_archive_depth;
-        if let Some(w) = tree_sitter {
-            __target.tree_sitter = Some(w.0);
-        }
-        if let Some(w) = structured_extraction {
-            __target.structured_extraction = Some(w.0);
-        }
+        if let Some(w) = tree_sitter { __target.tree_sitter = Some(w.0); }
+        if let Some(w) = structured_extraction { __target.structured_extraction = Some(w.0); }
         if let Some(s) = cancel_token {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cancel_token = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cancel_token = Some(t); }
             }
         }
         ExtractionConfig(__target)
     }
-    pub fn use_cache(&self) -> bool {
-        ::serde_json::to_value(&self.0.use_cache)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn enable_quality_processing(&self) -> bool {
-        ::serde_json::to_value(&self.0.enable_quality_processing)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn ocr(&self) -> Option<OcrConfig> {
+        ::serde_json::to_value(&self.0.use_cache).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.enable_quality_processing).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.ocr.clone().map(OcrConfig)
-    }
-    pub fn force_ocr(&self) -> bool {
-        ::serde_json::to_value(&self.0.force_ocr)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn force_ocr_pages(&self) -> Option<Vec<usize>> {
-        self.0.force_ocr_pages.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn disable_ocr(&self) -> bool {
-        ::serde_json::to_value(&self.0.disable_ocr)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn chunking(&self) -> Option<ChunkingConfig> {
+        ::serde_json::to_value(&self.0.force_ocr).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.force_ocr_pages.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.disable_ocr).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.chunking.clone().map(ChunkingConfig)
-    }
-    pub fn content_filter(&self) -> Option<ContentFilterConfig> {
         self.0.content_filter.clone().map(ContentFilterConfig)
-    }
-    pub fn images(&self) -> Option<ImageExtractionConfig> {
         self.0.images.clone().map(ImageExtractionConfig)
-    }
-    pub fn pdf_options(&self) -> Option<PdfConfig> {
         self.0.pdf_options.clone().map(PdfConfig)
-    }
-    pub fn token_reduction(&self) -> Option<TokenReductionOptions> {
         self.0.token_reduction.clone().map(TokenReductionOptions)
-    }
-    pub fn language_detection(&self) -> Option<LanguageDetectionConfig> {
         self.0.language_detection.clone().map(LanguageDetectionConfig)
-    }
-    pub fn pages(&self) -> Option<PageConfig> {
         self.0.pages.clone().map(PageConfig)
-    }
-    pub fn keywords(&self) -> Option<KeywordConfig> {
         self.0.keywords.clone().map(KeywordConfig)
-    }
-    pub fn postprocessor(&self) -> Option<PostProcessorConfig> {
         self.0.postprocessor.clone().map(PostProcessorConfig)
-    }
-    pub fn html_options(&self) -> Option<String> {
         self.0.html_options.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn html_output(&self) -> Option<HtmlOutputConfig> {
         self.0.html_output.clone().map(HtmlOutputConfig)
-    }
-    pub fn extraction_timeout_secs(&self) -> Option<u64> {
-        self.0.extraction_timeout_secs.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn max_concurrent_extractions(&self) -> Option<usize> {
-        self.0.max_concurrent_extractions.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn result_format(&self) -> ResultFormat {
+        self.0.extraction_timeout_secs.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.max_concurrent_extractions.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         ResultFormat::from(self.0.result_format.clone())
-    }
-    pub fn security_limits(&self) -> Option<SecurityLimits> {
         self.0.security_limits.clone().map(SecurityLimits)
-    }
-    pub fn output_format(&self) -> OutputFormat {
         OutputFormat::from(self.0.output_format.clone())
-    }
-    pub fn layout(&self) -> Option<LayoutDetectionConfig> {
         self.0.layout.clone().map(LayoutDetectionConfig)
-    }
-    pub fn include_document_structure(&self) -> bool {
-        ::serde_json::to_value(&self.0.include_document_structure)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn acceleration(&self) -> Option<AccelerationConfig> {
+        ::serde_json::to_value(&self.0.include_document_structure).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.acceleration.clone().map(AccelerationConfig)
-    }
-    pub fn cache_namespace(&self) -> Option<String> {
-        self.0
-            .cache_namespace
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn cache_ttl_secs(&self) -> Option<u64> {
-        self.0.cache_ttl_secs.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn email(&self) -> Option<EmailConfig> {
+        self.0.cache_namespace.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.cache_ttl_secs.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.email.clone().map(EmailConfig)
-    }
-    pub fn concurrency(&self) -> Option<String> {
         self.0.concurrency.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn max_archive_depth(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_archive_depth)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn tree_sitter(&self) -> Option<TreeSitterConfig> {
+        ::serde_json::to_value(&self.0.max_archive_depth).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.tree_sitter.clone().map(TreeSitterConfig)
-    }
-    pub fn structured_extraction(&self) -> Option<StructuredExtractionConfig> {
         self.0.structured_extraction.clone().map(StructuredExtractionConfig)
-    }
-    pub fn cancel_token(&self) -> Option<String> {
         self.0.cancel_token.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct FileExtractionConfig(pub kreuzberg::FileExtractionConfig);
-
 impl FileExtractionConfig {
-    pub fn new(
-        enable_quality_processing: Option<bool>,
-        ocr: Option<OcrConfig>,
-        force_ocr: Option<bool>,
-        force_ocr_pages: Option<Vec<usize>>,
-        disable_ocr: Option<bool>,
-        chunking: Option<ChunkingConfig>,
-        content_filter: Option<ContentFilterConfig>,
-        images: Option<ImageExtractionConfig>,
-        pdf_options: Option<PdfConfig>,
-        token_reduction: Option<TokenReductionOptions>,
-        language_detection: Option<LanguageDetectionConfig>,
-        pages: Option<PageConfig>,
-        keywords: Option<KeywordConfig>,
-        postprocessor: Option<PostProcessorConfig>,
-        html_options: Option<String>,
-        result_format: Option<ResultFormat>,
-        output_format: Option<OutputFormat>,
-        include_document_structure: Option<bool>,
-        layout: Option<LayoutDetectionConfig>,
-        timeout_secs: Option<u64>,
-        tree_sitter: Option<TreeSitterConfig>,
-        structured_extraction: Option<StructuredExtractionConfig>,
-    ) -> FileExtractionConfig {
+    pub fn new(enable_quality_processing: Option<bool>, ocr: Option<OcrConfig>, force_ocr: Option<bool>, force_ocr_pages: Option<Vec<usize>>, disable_ocr: Option<bool>, chunking: Option<ChunkingConfig>, content_filter: Option<ContentFilterConfig>, images: Option<ImageExtractionConfig>, pdf_options: Option<PdfConfig>, token_reduction: Option<TokenReductionOptions>, language_detection: Option<LanguageDetectionConfig>, pages: Option<PageConfig>, keywords: Option<KeywordConfig>, postprocessor: Option<PostProcessorConfig>, html_options: Option<String>, result_format: Option<ResultFormat>, output_format: Option<OutputFormat>, include_document_structure: Option<bool>, layout: Option<LayoutDetectionConfig>, timeout_secs: Option<u64>, tree_sitter: Option<TreeSitterConfig>, structured_extraction: Option<StructuredExtractionConfig>) -> FileExtractionConfig {
         let mut __target: kreuzberg::FileExtractionConfig = ::std::default::Default::default();
         __target.enable_quality_processing = enable_quality_processing;
-        if let Some(w) = ocr {
-            __target.ocr = Some(w.0);
-        }
+        if let Some(w) = ocr { __target.ocr = Some(w.0); }
         __target.force_ocr = force_ocr;
         if let Ok(__v) = ::serde_json::to_value(force_ocr_pages) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.force_ocr_pages = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.force_ocr_pages = t; }
         }
         __target.disable_ocr = disable_ocr;
-        if let Some(w) = chunking {
-            __target.chunking = Some(w.0);
-        }
-        if let Some(w) = content_filter {
-            __target.content_filter = Some(w.0);
-        }
-        if let Some(w) = images {
-            __target.images = Some(w.0);
-        }
-        if let Some(w) = pdf_options {
-            __target.pdf_options = Some(w.0);
-        }
-        if let Some(w) = token_reduction {
-            __target.token_reduction = Some(w.0);
-        }
-        if let Some(w) = language_detection {
-            __target.language_detection = Some(w.0);
-        }
-        if let Some(w) = pages {
-            __target.pages = Some(w.0);
-        }
-        if let Some(w) = keywords {
-            __target.keywords = Some(w.0);
-        }
-        if let Some(w) = postprocessor {
-            __target.postprocessor = Some(w.0);
-        }
+        if let Some(w) = chunking { __target.chunking = Some(w.0); }
+        if let Some(w) = content_filter { __target.content_filter = Some(w.0); }
+        if let Some(w) = images { __target.images = Some(w.0); }
+        if let Some(w) = pdf_options { __target.pdf_options = Some(w.0); }
+        if let Some(w) = token_reduction { __target.token_reduction = Some(w.0); }
+        if let Some(w) = language_detection { __target.language_detection = Some(w.0); }
+        if let Some(w) = pages { __target.pages = Some(w.0); }
+        if let Some(w) = keywords { __target.keywords = Some(w.0); }
+        if let Some(w) = postprocessor { __target.postprocessor = Some(w.0); }
         if let Some(s) = html_options {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.html_options = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.html_options = Some(t); }
             }
         }
         // alef: result_format (ResultFormat) is an enum; reverse From not generated — left at default
         // alef: output_format (OutputFormat) is an enum; reverse From not generated — left at default
         __target.include_document_structure = include_document_structure;
-        if let Some(w) = layout {
-            __target.layout = Some(w.0);
-        }
+        if let Some(w) = layout { __target.layout = Some(w.0); }
         __target.timeout_secs = timeout_secs;
-        if let Some(w) = tree_sitter {
-            __target.tree_sitter = Some(w.0);
-        }
-        if let Some(w) = structured_extraction {
-            __target.structured_extraction = Some(w.0);
-        }
+        if let Some(w) = tree_sitter { __target.tree_sitter = Some(w.0); }
+        if let Some(w) = structured_extraction { __target.structured_extraction = Some(w.0); }
         FileExtractionConfig(__target)
     }
-    pub fn enable_quality_processing(&self) -> Option<bool> {
-        self.0.enable_quality_processing.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn ocr(&self) -> Option<OcrConfig> {
+        self.0.enable_quality_processing.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.ocr.clone().map(OcrConfig)
-    }
-    pub fn force_ocr(&self) -> Option<bool> {
-        self.0.force_ocr.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn force_ocr_pages(&self) -> Option<Vec<usize>> {
-        self.0.force_ocr_pages.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn disable_ocr(&self) -> Option<bool> {
-        self.0.disable_ocr.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn chunking(&self) -> Option<ChunkingConfig> {
+        self.0.force_ocr.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.force_ocr_pages.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.disable_ocr.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.chunking.clone().map(ChunkingConfig)
-    }
-    pub fn content_filter(&self) -> Option<ContentFilterConfig> {
         self.0.content_filter.clone().map(ContentFilterConfig)
-    }
-    pub fn images(&self) -> Option<ImageExtractionConfig> {
         self.0.images.clone().map(ImageExtractionConfig)
-    }
-    pub fn pdf_options(&self) -> Option<PdfConfig> {
         self.0.pdf_options.clone().map(PdfConfig)
-    }
-    pub fn token_reduction(&self) -> Option<TokenReductionOptions> {
         self.0.token_reduction.clone().map(TokenReductionOptions)
-    }
-    pub fn language_detection(&self) -> Option<LanguageDetectionConfig> {
         self.0.language_detection.clone().map(LanguageDetectionConfig)
-    }
-    pub fn pages(&self) -> Option<PageConfig> {
         self.0.pages.clone().map(PageConfig)
-    }
-    pub fn keywords(&self) -> Option<KeywordConfig> {
         self.0.keywords.clone().map(KeywordConfig)
-    }
-    pub fn postprocessor(&self) -> Option<PostProcessorConfig> {
         self.0.postprocessor.clone().map(PostProcessorConfig)
-    }
-    pub fn html_options(&self) -> Option<String> {
         self.0.html_options.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn result_format(&self) -> Option<ResultFormat> {
         self.0.result_format.clone().map(ResultFormat::from)
-    }
-    pub fn output_format(&self) -> Option<OutputFormat> {
         self.0.output_format.clone().map(OutputFormat::from)
-    }
-    pub fn include_document_structure(&self) -> Option<bool> {
-        self.0.include_document_structure.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn layout(&self) -> Option<LayoutDetectionConfig> {
+        self.0.include_document_structure.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.layout.clone().map(LayoutDetectionConfig)
-    }
-    pub fn timeout_secs(&self) -> Option<u64> {
-        self.0.timeout_secs.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn tree_sitter(&self) -> Option<TreeSitterConfig> {
+        self.0.timeout_secs.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.tree_sitter.clone().map(TreeSitterConfig)
-    }
-    pub fn structured_extraction(&self) -> Option<StructuredExtractionConfig> {
         self.0.structured_extraction.clone().map(StructuredExtractionConfig)
-    }
 }
 
 pub struct BatchBytesItem(pub kreuzberg::BatchBytesItem);
-
 impl BatchBytesItem {
-    pub fn content(&self) -> Vec<u8> {
         self.0.content.to_vec()
-    }
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
-    pub fn config(&self) -> Option<FileExtractionConfig> {
         self.0.config.clone().map(FileExtractionConfig)
-    }
 }
 
 pub struct BatchFileItem(pub kreuzberg::BatchFileItem);
-
 impl BatchFileItem {
-    pub fn path(&self) -> String {
         serde_json::to_string(&self.0.path).unwrap_or_default()
-    }
-    pub fn config(&self) -> Option<FileExtractionConfig> {
         self.0.config.clone().map(FileExtractionConfig)
-    }
 }
 
 pub struct ImageExtractionConfig(pub kreuzberg::ImageExtractionConfig);
-
 impl ImageExtractionConfig {
-    pub fn new(
-        extract_images: bool,
-        target_dpi: i32,
-        max_image_dimension: i32,
-        inject_placeholders: bool,
-        auto_adjust_dpi: bool,
-        min_dpi: i32,
-        max_dpi: i32,
-        max_images_per_page: Option<u32>,
-        classify: bool,
-    ) -> ImageExtractionConfig {
+    pub fn new(extract_images: bool, target_dpi: i32, max_image_dimension: i32, inject_placeholders: bool, auto_adjust_dpi: bool, min_dpi: i32, max_dpi: i32, max_images_per_page: Option<u32>, classify: bool) -> ImageExtractionConfig {
         let mut __target: kreuzberg::ImageExtractionConfig = ::std::default::Default::default();
         __target.extract_images = extract_images;
         __target.target_dpi = target_dpi;
@@ -3047,89 +2139,32 @@ impl ImageExtractionConfig {
         __target.classify = classify;
         ImageExtractionConfig(__target)
     }
-    pub fn extract_images(&self) -> bool {
-        ::serde_json::to_value(&self.0.extract_images)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn target_dpi(&self) -> i32 {
-        ::serde_json::to_value(&self.0.target_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_image_dimension(&self) -> i32 {
-        ::serde_json::to_value(&self.0.max_image_dimension)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn inject_placeholders(&self) -> bool {
-        ::serde_json::to_value(&self.0.inject_placeholders)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn auto_adjust_dpi(&self) -> bool {
-        ::serde_json::to_value(&self.0.auto_adjust_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_dpi(&self) -> i32 {
-        ::serde_json::to_value(&self.0.min_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_dpi(&self) -> i32 {
-        ::serde_json::to_value(&self.0.max_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_images_per_page(&self) -> Option<u32> {
-        self.0.max_images_per_page.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn classify(&self) -> bool {
-        ::serde_json::to_value(&self.0.classify)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.extract_images).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.target_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_image_dimension).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.inject_placeholders).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.auto_adjust_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.max_images_per_page.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.classify).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct TokenReductionOptions(pub kreuzberg::TokenReductionOptions);
-
 impl TokenReductionOptions {
     pub fn new(mode: String, preserve_important_words: bool) -> TokenReductionOptions {
         let mut __target: kreuzberg::TokenReductionOptions = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&mode) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.mode = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.mode = t; }
         }
         __target.preserve_important_words = preserve_important_words;
         TokenReductionOptions(__target)
     }
-    pub fn mode(&self) -> String {
         serde_json::to_string(&self.0.mode).unwrap_or_default()
-    }
-    pub fn preserve_important_words(&self) -> bool {
-        ::serde_json::to_value(&self.0.preserve_important_words)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.preserve_important_words).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct LanguageDetectionConfig(pub kreuzberg::LanguageDetectionConfig);
-
 impl LanguageDetectionConfig {
     pub fn new(enabled: bool, min_confidence: f64, detect_multiple: bool) -> LanguageDetectionConfig {
         let mut __target: kreuzberg::LanguageDetectionConfig = ::std::default::Default::default();
@@ -3138,149 +2173,70 @@ impl LanguageDetectionConfig {
         __target.detect_multiple = detect_multiple;
         LanguageDetectionConfig(__target)
     }
-    pub fn enabled(&self) -> bool {
-        ::serde_json::to_value(&self.0.enabled)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_confidence(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn detect_multiple(&self) -> bool {
-        ::serde_json::to_value(&self.0.detect_multiple)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.enabled).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.detect_multiple).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct HtmlOutputConfig(pub kreuzberg::HtmlOutputConfig);
-
 impl HtmlOutputConfig {
-    pub fn new(
-        css: Option<String>,
-        css_file: Option<String>,
-        theme: HtmlTheme,
-        class_prefix: String,
-        embed_css: bool,
-    ) -> HtmlOutputConfig {
+    pub fn new(css: Option<String>, css_file: Option<String>, theme: HtmlTheme, class_prefix: String, embed_css: bool) -> HtmlOutputConfig {
         let mut __target: kreuzberg::HtmlOutputConfig = ::std::default::Default::default();
         if let Some(s) = css {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.css = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.css = Some(t); }
             }
         }
         if let Some(s) = css_file {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.css_file = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.css_file = Some(t); }
             }
         }
         // alef: theme (HtmlTheme) is an enum; reverse From not generated — left at default
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&class_prefix) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.class_prefix = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.class_prefix = t; }
         }
         __target.embed_css = embed_css;
         HtmlOutputConfig(__target)
     }
-    pub fn css(&self) -> Option<String> {
         self.0.css.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn css_file(&self) -> Option<String> {
         self.0.css_file.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn theme(&self) -> HtmlTheme {
         HtmlTheme::from(self.0.theme.clone())
-    }
-    pub fn class_prefix(&self) -> String {
         serde_json::to_string(&self.0.class_prefix).unwrap_or_default()
-    }
-    pub fn embed_css(&self) -> bool {
-        ::serde_json::to_value(&self.0.embed_css)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.embed_css).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct LayoutDetectionConfig(pub kreuzberg::LayoutDetectionConfig);
-
 impl LayoutDetectionConfig {
-    pub fn new(
-        confidence_threshold: Option<f32>,
-        apply_heuristics: bool,
-        table_model: TableModel,
-        acceleration: Option<AccelerationConfig>,
-    ) -> LayoutDetectionConfig {
+    pub fn new(confidence_threshold: Option<f32>, apply_heuristics: bool, table_model: TableModel, acceleration: Option<AccelerationConfig>) -> LayoutDetectionConfig {
         let mut __target: kreuzberg::LayoutDetectionConfig = ::std::default::Default::default();
         __target.confidence_threshold = confidence_threshold;
         __target.apply_heuristics = apply_heuristics;
         // alef: table_model (TableModel) is an enum; reverse From not generated — left at default
-        if let Some(w) = acceleration {
-            __target.acceleration = Some(w.0);
-        }
+        if let Some(w) = acceleration { __target.acceleration = Some(w.0); }
         LayoutDetectionConfig(__target)
     }
-    pub fn confidence_threshold(&self) -> Option<f32> {
-        self.0.confidence_threshold.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn apply_heuristics(&self) -> bool {
-        ::serde_json::to_value(&self.0.apply_heuristics)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_model(&self) -> TableModel {
+        self.0.confidence_threshold.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.apply_heuristics).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         TableModel::from(self.0.table_model.clone())
-    }
-    pub fn acceleration(&self) -> Option<AccelerationConfig> {
         self.0.acceleration.clone().map(AccelerationConfig)
-    }
 }
 
 pub struct LlmConfig(pub kreuzberg::LlmConfig);
-
 impl LlmConfig {
-    pub fn new(
-        model: String,
-        api_key: Option<String>,
-        base_url: Option<String>,
-        timeout_secs: Option<u64>,
-        max_retries: Option<u32>,
-        temperature: Option<f64>,
-        max_tokens: Option<u64>,
-    ) -> LlmConfig {
+    pub fn new(model: String, api_key: Option<String>, base_url: Option<String>, timeout_secs: Option<u64>, max_retries: Option<u32>, temperature: Option<f64>, max_tokens: Option<u64>) -> LlmConfig {
         let mut __target: kreuzberg::LlmConfig = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&model) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.model = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.model = t; }
         }
         if let Some(s) = api_key {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.api_key = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.api_key = Some(t); }
             }
         }
         if let Some(s) = base_url {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.base_url = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.base_url = Some(t); }
             }
         }
         __target.timeout_secs = timeout_secs;
@@ -3289,95 +2245,28 @@ impl LlmConfig {
         __target.max_tokens = max_tokens;
         LlmConfig(__target)
     }
-    pub fn model(&self) -> String {
         serde_json::to_string(&self.0.model).unwrap_or_default()
-    }
-    pub fn api_key(&self) -> Option<String> {
         self.0.api_key.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn base_url(&self) -> Option<String> {
         self.0.base_url.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn timeout_secs(&self) -> Option<u64> {
-        self.0.timeout_secs.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn max_retries(&self) -> Option<u32> {
-        self.0.max_retries.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn temperature(&self) -> Option<f64> {
-        self.0.temperature.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn max_tokens(&self) -> Option<u64> {
-        self.0.max_tokens.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.timeout_secs.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.max_retries.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.temperature.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.max_tokens.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct StructuredExtractionConfig(pub kreuzberg::StructuredExtractionConfig);
-
 impl StructuredExtractionConfig {
-    pub fn schema(&self) -> String {
         serde_json::to_string(&self.0.schema).unwrap_or_default()
-    }
-    pub fn schema_name(&self) -> String {
         serde_json::to_string(&self.0.schema_name).unwrap_or_default()
-    }
-    pub fn schema_description(&self) -> Option<String> {
-        self.0
-            .schema_description
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn strict(&self) -> bool {
-        ::serde_json::to_value(&self.0.strict)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn prompt(&self) -> Option<String> {
+        self.0.schema_description.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        ::serde_json::to_value(&self.0.strict).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.prompt.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn llm(&self) -> LlmConfig {
         LlmConfig(self.0.llm.clone())
-    }
 }
 
 pub struct OcrQualityThresholds(pub kreuzberg::OcrQualityThresholds);
-
 impl OcrQualityThresholds {
-    pub fn new(
-        min_total_non_whitespace: usize,
-        min_non_whitespace_per_page: f64,
-        min_meaningful_word_len: usize,
-        min_meaningful_words: usize,
-        min_alnum_ratio: f64,
-        min_garbage_chars: usize,
-        max_fragmented_word_ratio: f64,
-        critical_fragmented_word_ratio: f64,
-        min_avg_word_length: f64,
-        min_words_for_avg_length_check: usize,
-        min_consecutive_repeat_ratio: f64,
-        min_words_for_repeat_check: usize,
-        substantive_min_chars: usize,
-        non_text_min_chars: usize,
-        alnum_ws_ratio_threshold: f64,
-        pipeline_min_quality: f64,
-    ) -> OcrQualityThresholds {
+    pub fn new(min_total_non_whitespace: usize, min_non_whitespace_per_page: f64, min_meaningful_word_len: usize, min_meaningful_words: usize, min_alnum_ratio: f64, min_garbage_chars: usize, max_fragmented_word_ratio: f64, critical_fragmented_word_ratio: f64, min_avg_word_length: f64, min_words_for_avg_length_check: usize, min_consecutive_repeat_ratio: f64, min_words_for_repeat_check: usize, substantive_min_chars: usize, non_text_min_chars: usize, alnum_ws_ratio_threshold: f64, pipeline_min_quality: f64) -> OcrQualityThresholds {
         let mut __target: kreuzberg::OcrQualityThresholds = ::std::default::Default::default();
         __target.min_total_non_whitespace = min_total_non_whitespace;
         __target.min_non_whitespace_per_page = min_non_whitespace_per_page;
@@ -3397,384 +2286,131 @@ impl OcrQualityThresholds {
         __target.pipeline_min_quality = pipeline_min_quality;
         OcrQualityThresholds(__target)
     }
-    pub fn min_total_non_whitespace(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_total_non_whitespace)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_non_whitespace_per_page(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_non_whitespace_per_page)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_meaningful_word_len(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_meaningful_word_len)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_meaningful_words(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_meaningful_words)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_alnum_ratio(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_alnum_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_garbage_chars(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_garbage_chars)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_fragmented_word_ratio(&self) -> f64 {
-        ::serde_json::to_value(&self.0.max_fragmented_word_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn critical_fragmented_word_ratio(&self) -> f64 {
-        ::serde_json::to_value(&self.0.critical_fragmented_word_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_avg_word_length(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_avg_word_length)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_words_for_avg_length_check(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_words_for_avg_length_check)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_consecutive_repeat_ratio(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_consecutive_repeat_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_words_for_repeat_check(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_words_for_repeat_check)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn substantive_min_chars(&self) -> usize {
-        ::serde_json::to_value(&self.0.substantive_min_chars)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn non_text_min_chars(&self) -> usize {
-        ::serde_json::to_value(&self.0.non_text_min_chars)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn alnum_ws_ratio_threshold(&self) -> f64 {
-        ::serde_json::to_value(&self.0.alnum_ws_ratio_threshold)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn pipeline_min_quality(&self) -> f64 {
-        ::serde_json::to_value(&self.0.pipeline_min_quality)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.min_total_non_whitespace).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_non_whitespace_per_page).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_meaningful_word_len).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_meaningful_words).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_alnum_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_garbage_chars).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_fragmented_word_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.critical_fragmented_word_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_avg_word_length).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_words_for_avg_length_check).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_consecutive_repeat_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_words_for_repeat_check).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.substantive_min_chars).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.non_text_min_chars).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.alnum_ws_ratio_threshold).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.pipeline_min_quality).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct OcrPipelineStage(pub kreuzberg::OcrPipelineStage);
-
 impl OcrPipelineStage {
-    pub fn backend(&self) -> String {
         serde_json::to_string(&self.0.backend).unwrap_or_default()
-    }
-    pub fn priority(&self) -> u32 {
-        ::serde_json::to_value(&self.0.priority)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn language(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.priority).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.language.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn tesseract_config(&self) -> Option<TesseractConfig> {
         self.0.tesseract_config.clone().map(TesseractConfig)
-    }
-    pub fn paddle_ocr_config(&self) -> Option<String> {
-        self.0
-            .paddle_ocr_config
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn vlm_config(&self) -> Option<LlmConfig> {
+        self.0.paddle_ocr_config.as_ref().and_then(|v| serde_json::to_string(v).ok())
         self.0.vlm_config.clone().map(LlmConfig)
-    }
 }
 
 pub struct OcrPipelineConfig(pub kreuzberg::OcrPipelineConfig);
-
 impl OcrPipelineConfig {
-    pub fn stages(&self) -> Vec<OcrPipelineStage> {
-        self.0
-            .stages
-            .iter()
-            .map(|elem| OcrPipelineStage(elem.clone()))
-            .collect()
-    }
-    pub fn quality_thresholds(&self) -> OcrQualityThresholds {
+        self.0.stages.iter().map(|elem| OcrPipelineStage(elem.clone())).collect()
         OcrQualityThresholds(self.0.quality_thresholds.clone())
-    }
 }
 
 pub struct OcrConfig(pub kreuzberg::OcrConfig);
-
 impl OcrConfig {
-    pub fn new(
-        enabled: bool,
-        backend: String,
-        language: String,
-        tesseract_config: Option<TesseractConfig>,
-        output_format: Option<OutputFormat>,
-        paddle_ocr_config: Option<String>,
-        element_config: Option<OcrElementConfig>,
-        quality_thresholds: Option<OcrQualityThresholds>,
-        pipeline: Option<OcrPipelineConfig>,
-        auto_rotate: bool,
-        vlm_config: Option<LlmConfig>,
-        vlm_prompt: Option<String>,
-        acceleration: Option<AccelerationConfig>,
-    ) -> OcrConfig {
+    pub fn new(enabled: bool, backend: String, language: String, tesseract_config: Option<TesseractConfig>, output_format: Option<OutputFormat>, paddle_ocr_config: Option<String>, element_config: Option<OcrElementConfig>, quality_thresholds: Option<OcrQualityThresholds>, pipeline: Option<OcrPipelineConfig>, auto_rotate: bool, vlm_config: Option<LlmConfig>, vlm_prompt: Option<String>, acceleration: Option<AccelerationConfig>) -> OcrConfig {
         let mut __target: kreuzberg::OcrConfig = ::std::default::Default::default();
         __target.enabled = enabled;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&backend) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.backend = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.backend = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&language) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.language = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.language = t; }
         }
-        if let Some(w) = tesseract_config {
-            __target.tesseract_config = Some(w.0);
-        }
+        if let Some(w) = tesseract_config { __target.tesseract_config = Some(w.0); }
         // alef: output_format (OutputFormat) is an enum; reverse From not generated — left at default
         if let Some(s) = paddle_ocr_config {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.paddle_ocr_config = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.paddle_ocr_config = Some(t); }
             }
         }
-        if let Some(w) = element_config {
-            __target.element_config = Some(w.0);
-        }
-        if let Some(w) = quality_thresholds {
-            __target.quality_thresholds = Some(w.0);
-        }
-        if let Some(w) = pipeline {
-            __target.pipeline = Some(w.0);
-        }
+        if let Some(w) = element_config { __target.element_config = Some(w.0); }
+        if let Some(w) = quality_thresholds { __target.quality_thresholds = Some(w.0); }
+        if let Some(w) = pipeline { __target.pipeline = Some(w.0); }
         __target.auto_rotate = auto_rotate;
-        if let Some(w) = vlm_config {
-            __target.vlm_config = Some(w.0);
-        }
+        if let Some(w) = vlm_config { __target.vlm_config = Some(w.0); }
         if let Some(s) = vlm_prompt {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.vlm_prompt = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.vlm_prompt = Some(t); }
             }
         }
-        if let Some(w) = acceleration {
-            __target.acceleration = Some(w.0);
-        }
+        if let Some(w) = acceleration { __target.acceleration = Some(w.0); }
         OcrConfig(__target)
     }
-    pub fn enabled(&self) -> bool {
-        ::serde_json::to_value(&self.0.enabled)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn backend(&self) -> String {
+        ::serde_json::to_value(&self.0.enabled).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.backend).unwrap_or_default()
-    }
-    pub fn language(&self) -> String {
         serde_json::to_string(&self.0.language).unwrap_or_default()
-    }
-    pub fn tesseract_config(&self) -> Option<TesseractConfig> {
         self.0.tesseract_config.clone().map(TesseractConfig)
-    }
-    pub fn output_format(&self) -> Option<OutputFormat> {
         self.0.output_format.clone().map(OutputFormat::from)
-    }
-    pub fn paddle_ocr_config(&self) -> Option<String> {
-        self.0
-            .paddle_ocr_config
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn element_config(&self) -> Option<OcrElementConfig> {
+        self.0.paddle_ocr_config.as_ref().and_then(|v| serde_json::to_string(v).ok())
         self.0.element_config.clone().map(OcrElementConfig)
-    }
-    pub fn quality_thresholds(&self) -> Option<OcrQualityThresholds> {
         self.0.quality_thresholds.clone().map(OcrQualityThresholds)
-    }
-    pub fn pipeline(&self) -> Option<OcrPipelineConfig> {
         self.0.pipeline.clone().map(OcrPipelineConfig)
-    }
-    pub fn auto_rotate(&self) -> bool {
-        ::serde_json::to_value(&self.0.auto_rotate)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn vlm_config(&self) -> Option<LlmConfig> {
+        ::serde_json::to_value(&self.0.auto_rotate).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.vlm_config.clone().map(LlmConfig)
-    }
-    pub fn vlm_prompt(&self) -> Option<String> {
         self.0.vlm_prompt.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn acceleration(&self) -> Option<AccelerationConfig> {
         self.0.acceleration.clone().map(AccelerationConfig)
-    }
 }
 
 pub struct PageConfig(pub kreuzberg::PageConfig);
-
 impl PageConfig {
     pub fn new(extract_pages: bool, insert_page_markers: bool, marker_format: String) -> PageConfig {
         let mut __target: kreuzberg::PageConfig = ::std::default::Default::default();
         __target.extract_pages = extract_pages;
         __target.insert_page_markers = insert_page_markers;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&marker_format) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.marker_format = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.marker_format = t; }
         }
         PageConfig(__target)
     }
-    pub fn extract_pages(&self) -> bool {
-        ::serde_json::to_value(&self.0.extract_pages)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn insert_page_markers(&self) -> bool {
-        ::serde_json::to_value(&self.0.insert_page_markers)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn marker_format(&self) -> String {
+        ::serde_json::to_value(&self.0.extract_pages).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.insert_page_markers).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.marker_format).unwrap_or_default()
-    }
 }
 
 pub struct PdfConfig(pub kreuzberg::PdfConfig);
-
 impl PdfConfig {
-    pub fn new(
-        extract_images: bool,
-        passwords: Option<Vec<String>>,
-        extract_metadata: bool,
-        hierarchy: Option<HierarchyConfig>,
-        extract_annotations: bool,
-        top_margin_fraction: Option<f32>,
-        bottom_margin_fraction: Option<f32>,
-        allow_single_column_tables: bool,
-    ) -> PdfConfig {
+    pub fn new(extract_images: bool, passwords: Option<Vec<String>>, extract_metadata: bool, hierarchy: Option<HierarchyConfig>, extract_annotations: bool, top_margin_fraction: Option<f32>, bottom_margin_fraction: Option<f32>, allow_single_column_tables: bool) -> PdfConfig {
         let mut __target: kreuzberg::PdfConfig = ::std::default::Default::default();
         __target.extract_images = extract_images;
         if let Ok(__v) = ::serde_json::to_value(passwords) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.passwords = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.passwords = t; }
         }
         __target.extract_metadata = extract_metadata;
-        if let Some(w) = hierarchy {
-            __target.hierarchy = Some(w.0);
-        }
+        if let Some(w) = hierarchy { __target.hierarchy = Some(w.0); }
         __target.extract_annotations = extract_annotations;
         __target.top_margin_fraction = top_margin_fraction;
         __target.bottom_margin_fraction = bottom_margin_fraction;
         __target.allow_single_column_tables = allow_single_column_tables;
         PdfConfig(__target)
     }
-    pub fn extract_images(&self) -> bool {
-        ::serde_json::to_value(&self.0.extract_images)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn passwords(&self) -> Option<Vec<String>> {
-        self.0.passwords.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn extract_metadata(&self) -> bool {
-        ::serde_json::to_value(&self.0.extract_metadata)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn hierarchy(&self) -> Option<HierarchyConfig> {
+        ::serde_json::to_value(&self.0.extract_images).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.passwords.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.extract_metadata).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.hierarchy.clone().map(HierarchyConfig)
-    }
-    pub fn extract_annotations(&self) -> bool {
-        ::serde_json::to_value(&self.0.extract_annotations)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn top_margin_fraction(&self) -> Option<f32> {
-        self.0.top_margin_fraction.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn bottom_margin_fraction(&self) -> Option<f32> {
-        self.0.bottom_margin_fraction.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn allow_single_column_tables(&self) -> bool {
-        ::serde_json::to_value(&self.0.allow_single_column_tables)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.extract_annotations).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.top_margin_fraction.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.bottom_margin_fraction.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.allow_single_column_tables).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct HierarchyConfig(pub kreuzberg::HierarchyConfig);
-
 impl HierarchyConfig {
-    pub fn new(
-        enabled: bool,
-        k_clusters: usize,
-        include_bbox: bool,
-        ocr_coverage_threshold: Option<f32>,
-    ) -> HierarchyConfig {
+    pub fn new(enabled: bool, k_clusters: usize, include_bbox: bool, ocr_coverage_threshold: Option<f32>) -> HierarchyConfig {
         let mut __target: kreuzberg::HierarchyConfig = ::std::default::Default::default();
         __target.enabled = enabled;
         __target.k_clusters = k_clusters;
@@ -3782,126 +2418,54 @@ impl HierarchyConfig {
         __target.ocr_coverage_threshold = ocr_coverage_threshold;
         HierarchyConfig(__target)
     }
-    pub fn enabled(&self) -> bool {
-        ::serde_json::to_value(&self.0.enabled)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn k_clusters(&self) -> usize {
-        ::serde_json::to_value(&self.0.k_clusters)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn include_bbox(&self) -> bool {
-        ::serde_json::to_value(&self.0.include_bbox)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn ocr_coverage_threshold(&self) -> Option<f32> {
-        self.0.ocr_coverage_threshold.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.enabled).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.k_clusters).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.include_bbox).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.ocr_coverage_threshold.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct PostProcessorConfig(pub kreuzberg::PostProcessorConfig);
-
 impl PostProcessorConfig {
-    pub fn new(
-        enabled: bool,
-        enabled_processors: Option<Vec<String>>,
-        disabled_processors: Option<Vec<String>>,
-        enabled_set: Option<String>,
-        disabled_set: Option<String>,
-    ) -> PostProcessorConfig {
+    pub fn new(enabled: bool, enabled_processors: Option<Vec<String>>, disabled_processors: Option<Vec<String>>, enabled_set: Option<String>, disabled_set: Option<String>) -> PostProcessorConfig {
         let mut __target: kreuzberg::PostProcessorConfig = ::std::default::Default::default();
         __target.enabled = enabled;
         if let Ok(__v) = ::serde_json::to_value(enabled_processors) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.enabled_processors = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.enabled_processors = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(disabled_processors) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.disabled_processors = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.disabled_processors = t; }
         }
         if let Some(s) = enabled_set {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.enabled_set = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.enabled_set = Some(t); }
             }
         }
         if let Some(s) = disabled_set {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.disabled_set = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.disabled_set = Some(t); }
             }
         }
         PostProcessorConfig(__target)
     }
-    pub fn enabled(&self) -> bool {
-        ::serde_json::to_value(&self.0.enabled)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn enabled_processors(&self) -> Option<Vec<String>> {
-        self.0.enabled_processors.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn disabled_processors(&self) -> Option<Vec<String>> {
-        self.0.disabled_processors.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn enabled_set(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.enabled).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.enabled_processors.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.disabled_processors.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.enabled_set.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn disabled_set(&self) -> Option<String> {
         self.0.disabled_set.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct ChunkingConfig(pub kreuzberg::ChunkingConfig);
-
 impl ChunkingConfig {
-    pub fn new(
-        max_characters: usize,
-        overlap: usize,
-        trim: bool,
-        chunker_type: ChunkerType,
-        embedding: Option<EmbeddingConfig>,
-        preset: Option<String>,
-        sizing: ChunkSizing,
-        prepend_heading_context: bool,
-        topic_threshold: Option<f32>,
-    ) -> ChunkingConfig {
+    pub fn new(max_characters: usize, overlap: usize, trim: bool, chunker_type: ChunkerType, embedding: Option<EmbeddingConfig>, preset: Option<String>, sizing: ChunkSizing, prepend_heading_context: bool, topic_threshold: Option<f32>) -> ChunkingConfig {
         let mut __target: kreuzberg::ChunkingConfig = ::std::default::Default::default();
         __target.max_characters = max_characters;
         __target.overlap = overlap;
         __target.trim = trim;
         // alef: chunker_type (ChunkerType) is an enum; reverse From not generated — left at default
-        if let Some(w) = embedding {
-            __target.embedding = Some(w.0);
-        }
+        if let Some(w) = embedding { __target.embedding = Some(w.0); }
         if let Some(s) = preset {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.preset = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.preset = Some(t); }
             }
         }
         // alef: sizing (ChunkSizing) is an enum; reverse From not generated — left at default
@@ -3909,63 +2473,20 @@ impl ChunkingConfig {
         __target.topic_threshold = topic_threshold;
         ChunkingConfig(__target)
     }
-    pub fn max_characters(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_characters)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn overlap(&self) -> usize {
-        ::serde_json::to_value(&self.0.overlap)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn trim(&self) -> bool {
-        ::serde_json::to_value(&self.0.trim)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn chunker_type(&self) -> ChunkerType {
+        ::serde_json::to_value(&self.0.max_characters).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.overlap).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.trim).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         ChunkerType::from(self.0.chunker_type.clone())
-    }
-    pub fn embedding(&self) -> Option<EmbeddingConfig> {
         self.0.embedding.clone().map(EmbeddingConfig)
-    }
-    pub fn preset(&self) -> Option<String> {
         self.0.preset.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn sizing(&self) -> ChunkSizing {
         ChunkSizing::from(self.0.sizing.clone())
-    }
-    pub fn prepend_heading_context(&self) -> bool {
-        ::serde_json::to_value(&self.0.prepend_heading_context)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn topic_threshold(&self) -> Option<f32> {
-        self.0.topic_threshold.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.prepend_heading_context).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.topic_threshold.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct EmbeddingConfig(pub kreuzberg::EmbeddingConfig);
-
 impl EmbeddingConfig {
-    pub fn new(
-        model: EmbeddingModelType,
-        normalize: bool,
-        batch_size: usize,
-        show_download_progress: bool,
-        cache_dir: Option<String>,
-        acceleration: Option<AccelerationConfig>,
-        max_embed_duration_secs: Option<u64>,
-    ) -> EmbeddingConfig {
+    pub fn new(model: EmbeddingModelType, normalize: bool, batch_size: usize, show_download_progress: bool, cache_dir: Option<String>, acceleration: Option<AccelerationConfig>, max_embed_duration_secs: Option<u64>) -> EmbeddingConfig {
         let mut __target: kreuzberg::EmbeddingConfig = ::std::default::Default::default();
         // alef: model (EmbeddingModelType) is an enum; reverse From not generated — left at default
         __target.normalize = normalize;
@@ -3973,127 +2494,51 @@ impl EmbeddingConfig {
         __target.show_download_progress = show_download_progress;
         if let Some(s) = cache_dir {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cache_dir = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cache_dir = Some(t); }
             }
         }
-        if let Some(w) = acceleration {
-            __target.acceleration = Some(w.0);
-        }
+        if let Some(w) = acceleration { __target.acceleration = Some(w.0); }
         __target.max_embed_duration_secs = max_embed_duration_secs;
         EmbeddingConfig(__target)
     }
-    pub fn model(&self) -> EmbeddingModelType {
         EmbeddingModelType::from(self.0.model.clone())
-    }
-    pub fn normalize(&self) -> bool {
-        ::serde_json::to_value(&self.0.normalize)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn batch_size(&self) -> usize {
-        ::serde_json::to_value(&self.0.batch_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn show_download_progress(&self) -> bool {
-        ::serde_json::to_value(&self.0.show_download_progress)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cache_dir(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.normalize).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.batch_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.show_download_progress).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.cache_dir.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn acceleration(&self) -> Option<AccelerationConfig> {
         self.0.acceleration.clone().map(AccelerationConfig)
-    }
-    pub fn max_embed_duration_secs(&self) -> Option<u64> {
-        self.0.max_embed_duration_secs.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.max_embed_duration_secs.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct TreeSitterConfig(pub kreuzberg::TreeSitterConfig);
-
 impl TreeSitterConfig {
-    pub fn new(
-        enabled: bool,
-        cache_dir: Option<String>,
-        languages: Option<Vec<String>>,
-        groups: Option<Vec<String>>,
-        process: TreeSitterProcessConfig,
-    ) -> TreeSitterConfig {
+    pub fn new(enabled: bool, cache_dir: Option<String>, languages: Option<Vec<String>>, groups: Option<Vec<String>>, process: TreeSitterProcessConfig) -> TreeSitterConfig {
         let mut __target: kreuzberg::TreeSitterConfig = ::std::default::Default::default();
         __target.enabled = enabled;
         if let Some(s) = cache_dir {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cache_dir = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cache_dir = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(languages) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.languages = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.languages = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(groups) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.groups = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.groups = t; }
         }
         __target.process = process.0;
         TreeSitterConfig(__target)
     }
-    pub fn enabled(&self) -> bool {
-        ::serde_json::to_value(&self.0.enabled)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cache_dir(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.enabled).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.cache_dir.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn languages(&self) -> Option<Vec<String>> {
-        self.0.languages.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn groups(&self) -> Option<Vec<String>> {
-        self.0.groups.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn process(&self) -> TreeSitterProcessConfig {
+        self.0.languages.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.groups.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         TreeSitterProcessConfig(self.0.process.clone())
-    }
 }
 
 pub struct TreeSitterProcessConfig(pub kreuzberg::TreeSitterProcessConfig);
-
 impl TreeSitterProcessConfig {
-    pub fn new(
-        structure: bool,
-        imports: bool,
-        exports: bool,
-        comments: bool,
-        docstrings: bool,
-        symbols: bool,
-        diagnostics: bool,
-        chunk_max_size: Option<usize>,
-        content_mode: CodeContentMode,
-    ) -> TreeSitterProcessConfig {
+    pub fn new(structure: bool, imports: bool, exports: bool, comments: bool, docstrings: bool, symbols: bool, diagnostics: bool, chunk_max_size: Option<usize>, content_mode: CodeContentMode) -> TreeSitterProcessConfig {
         let mut __target: kreuzberg::TreeSitterProcessConfig = ::std::default::Default::default();
         __target.structure = structure;
         __target.imports = imports;
@@ -4106,148 +2551,54 @@ impl TreeSitterProcessConfig {
         // alef: content_mode (CodeContentMode) is an enum; reverse From not generated — left at default
         TreeSitterProcessConfig(__target)
     }
-    pub fn structure(&self) -> bool {
-        ::serde_json::to_value(&self.0.structure)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn imports(&self) -> bool {
-        ::serde_json::to_value(&self.0.imports)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn exports(&self) -> bool {
-        ::serde_json::to_value(&self.0.exports)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn comments(&self) -> bool {
-        ::serde_json::to_value(&self.0.comments)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn docstrings(&self) -> bool {
-        ::serde_json::to_value(&self.0.docstrings)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn symbols(&self) -> bool {
-        ::serde_json::to_value(&self.0.symbols)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn diagnostics(&self) -> bool {
-        ::serde_json::to_value(&self.0.diagnostics)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn chunk_max_size(&self) -> Option<usize> {
-        self.0.chunk_max_size.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn content_mode(&self) -> CodeContentMode {
+        ::serde_json::to_value(&self.0.structure).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.imports).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.exports).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.comments).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.docstrings).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.symbols).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.diagnostics).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.chunk_max_size.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         CodeContentMode::from(self.0.content_mode.clone())
-    }
 }
 
 pub struct SupportedFormat(pub kreuzberg::SupportedFormat);
-
 impl SupportedFormat {
-    pub fn extension_(&self) -> String {
         serde_json::to_string(&self.0.extension).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
 }
 
 pub struct ServerConfig(pub kreuzberg::ServerConfig);
-
 impl ServerConfig {
-    pub fn new(
-        host: String,
-        port: u16,
-        cors_origins: Vec<String>,
-        max_request_body_bytes: usize,
-        max_multipart_field_bytes: usize,
-    ) -> ServerConfig {
+    pub fn new(host: String, port: u16, cors_origins: Vec<String>, max_request_body_bytes: usize, max_multipart_field_bytes: usize) -> ServerConfig {
         let mut __target: kreuzberg::ServerConfig = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&host) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.host = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.host = t; }
         }
         __target.port = port;
         if let Ok(__v) = ::serde_json::to_value(cors_origins) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.cors_origins = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.cors_origins = t; }
         }
         __target.max_request_body_bytes = max_request_body_bytes;
         __target.max_multipart_field_bytes = max_multipart_field_bytes;
         ServerConfig(__target)
     }
-    pub fn host(&self) -> String {
         serde_json::to_string(&self.0.host).unwrap_or_default()
-    }
-    pub fn port(&self) -> u16 {
-        ::serde_json::to_value(&self.0.port)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cors_origins(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.cors_origins)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_request_body_bytes(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_request_body_bytes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_multipart_field_bytes(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_multipart_field_bytes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.port).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.cors_origins).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_request_body_bytes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_multipart_field_bytes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct StructuredDataResult(pub kreuzberg::extraction::structured::StructuredDataResult);
-
 impl StructuredDataResult {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn format(&self) -> String {
         serde_json::to_string(&self.0.format).unwrap_or_default()
-    }
-    pub fn metadata(&self) -> String {
         serde_json::to_string(&self.0.metadata).expect("serializable metadata")
-    }
-    pub fn text_fields(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.text_fields)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.text_fields).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct CharShape(pub kreuzberg::extraction::hwp::model::CharShape);
-
 impl CharShape {
     pub fn new(bold: bool, italic: bool, underline: bool) -> CharShape {
         CharShape(kreuzberg::extraction::hwp::model::CharShape {
@@ -4256,230 +2607,112 @@ impl CharShape {
             underline,
         })
     }
-    pub fn bold(&self) -> bool {
         self.0.bold.clone()
-    }
-    pub fn italic(&self) -> bool {
         self.0.italic.clone()
-    }
-    pub fn underline(&self) -> bool {
         self.0.underline.clone()
-    }
 }
 
 pub struct HwpImage(pub kreuzberg::extraction::hwp::model::HwpImage);
-
 impl HwpImage {
     pub fn new(name: String, data: Vec<u8>) -> HwpImage {
         let mut __target: kreuzberg::extraction::hwp::model::HwpImage = ::std::default::Default::default();
         // alef: name — String fallback in non-serde struct, left at default
-        __target.data = data;
+        __target.data = data.into();
         HwpImage(__target)
     }
-    pub fn name(&self) -> String {
         format!("{:?}", &self.0.name)
-    }
-    pub fn data(&self) -> Vec<u8> {
         self.0.data.to_vec()
-    }
 }
 
 pub struct StreamReader(pub kreuzberg::extraction::hwp::reader::StreamReader);
 
 pub struct ImageOcrResult(pub kreuzberg::extraction::image::ImageOcrResult);
-
 impl ImageOcrResult {
-    pub fn content(&self) -> String {
         format!("{:?}", &self.0.content)
-    }
     // alef: skipped getter `boundaries` — type cannot be bridged through swift-bridge
     // alef: skipped getter `page_contents` — type cannot be bridged through swift-bridge
 }
 
 pub struct HtmlExtractionResult(pub kreuzberg::extraction::html::HtmlExtractionResult);
-
 impl HtmlExtractionResult {
-    pub fn markdown(&self) -> String {
         serde_json::to_string(&self.0.markdown).unwrap_or_default()
-    }
-    pub fn images(&self) -> Vec<ExtractedInlineImage> {
-        self.0
-            .images
-            .iter()
-            .map(|elem| ExtractedInlineImage(elem.clone()))
-            .collect()
-    }
-    pub fn warnings(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.warnings)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.images.iter().map(|elem| ExtractedInlineImage(elem.clone())).collect()
+        ::serde_json::to_value(&self.0.warnings).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ExtractedInlineImage(pub kreuzberg::extraction::html::ExtractedInlineImage);
-
 impl ExtractedInlineImage {
-    pub fn data(&self) -> Vec<u8> {
         self.0.data.to_vec()
-    }
-    pub fn format(&self) -> String {
         serde_json::to_string(&self.0.format).unwrap_or_default()
-    }
-    pub fn filename(&self) -> Option<String> {
         self.0.filename.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn description(&self) -> Option<String> {
         self.0.description.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn dimensions(&self) -> Option<Vec<u32>> {
-        self.0.dimensions.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn attributes(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.attributes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.dimensions.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.attributes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct Drawing(pub kreuzberg::extraction::docx::drawing::Drawing);
-
 impl Drawing {
-    pub fn new(
-        drawing_type: String,
-        extent: Option<String>,
-        doc_properties: Option<String>,
-        image_ref: Option<String>,
-    ) -> Drawing {
+    pub fn new(drawing_type: String, extent: Option<String>, doc_properties: Option<String>, image_ref: Option<String>) -> Drawing {
         let mut __target: kreuzberg::extraction::docx::drawing::Drawing = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&drawing_type) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.drawing_type = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.drawing_type = t; }
         }
         if let Some(s) = extent {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.extent = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.extent = Some(t); }
             }
         }
         if let Some(s) = doc_properties {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.doc_properties = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.doc_properties = Some(t); }
             }
         }
         if let Some(s) = image_ref {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.image_ref = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.image_ref = Some(t); }
             }
         }
         Drawing(__target)
     }
-    pub fn drawing_type(&self) -> String {
         serde_json::to_string(&self.0.drawing_type).unwrap_or_default()
-    }
-    pub fn extent(&self) -> Option<String> {
         self.0.extent.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn doc_properties(&self) -> Option<String> {
-        self.0
-            .doc_properties
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn image_ref(&self) -> Option<String> {
+        self.0.doc_properties.as_ref().and_then(|v| serde_json::to_string(v).ok())
         self.0.image_ref.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct AnchorProperties(pub kreuzberg::extraction::docx::drawing::AnchorProperties);
-
 impl AnchorProperties {
-    pub fn new(
-        behind_doc: bool,
-        layout_in_cell: bool,
-        relative_height: Option<i64>,
-        position_h: Option<String>,
-        position_v: Option<String>,
-        wrap_type: String,
-    ) -> AnchorProperties {
+    pub fn new(behind_doc: bool, layout_in_cell: bool, relative_height: Option<i64>, position_h: Option<String>, position_v: Option<String>, wrap_type: String) -> AnchorProperties {
         let mut __target: kreuzberg::extraction::docx::drawing::AnchorProperties = ::std::default::Default::default();
         __target.behind_doc = behind_doc;
         __target.layout_in_cell = layout_in_cell;
         __target.relative_height = relative_height;
         if let Some(s) = position_h {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.position_h = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.position_h = Some(t); }
             }
         }
         if let Some(s) = position_v {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.position_v = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.position_v = Some(t); }
             }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&wrap_type) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.wrap_type = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.wrap_type = t; }
         }
         AnchorProperties(__target)
     }
-    pub fn behind_doc(&self) -> bool {
-        ::serde_json::to_value(&self.0.behind_doc)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn layout_in_cell(&self) -> bool {
-        ::serde_json::to_value(&self.0.layout_in_cell)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn relative_height(&self) -> Option<i64> {
-        self.0.relative_height.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn position_h(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.behind_doc).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.layout_in_cell).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.relative_height.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.position_h.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn position_v(&self) -> Option<String> {
         self.0.position_v.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn wrap_type(&self) -> String {
         serde_json::to_string(&self.0.wrap_type).unwrap_or_default()
-    }
 }
 
 pub struct PageMarginsPoints(pub kreuzberg::extraction::docx::section::PageMarginsPoints);
-
 impl PageMarginsPoints {
-    pub fn new(
-        top: Option<f64>,
-        right: Option<f64>,
-        bottom: Option<f64>,
-        left: Option<f64>,
-        header: Option<f64>,
-        footer: Option<f64>,
-        gutter: Option<f64>,
-    ) -> PageMarginsPoints {
+    pub fn new(top: Option<f64>, right: Option<f64>, bottom: Option<f64>, left: Option<f64>, header: Option<f64>, footer: Option<f64>, gutter: Option<f64>) -> PageMarginsPoints {
         PageMarginsPoints(kreuzberg::extraction::docx::section::PageMarginsPoints {
             top,
             right,
@@ -4490,60 +2723,28 @@ impl PageMarginsPoints {
             gutter,
         })
     }
-    pub fn top(&self) -> Option<f64> {
         self.0.top.clone()
-    }
-    pub fn right(&self) -> Option<f64> {
         self.0.right.clone()
-    }
-    pub fn bottom(&self) -> Option<f64> {
         self.0.bottom.clone()
-    }
-    pub fn left(&self) -> Option<f64> {
         self.0.left.clone()
-    }
-    pub fn header(&self) -> Option<f64> {
         self.0.header.clone()
-    }
-    pub fn footer(&self) -> Option<f64> {
         self.0.footer.clone()
-    }
-    pub fn gutter(&self) -> Option<f64> {
         self.0.gutter.clone()
-    }
 }
 
 pub struct StyleDefinition(pub kreuzberg::extraction::docx::styles::StyleDefinition);
-
 impl StyleDefinition {
-    pub fn id(&self) -> String {
         format!("{:?}", &self.0.id)
-    }
-    pub fn name(&self) -> Option<String> {
         self.0.name.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn style_type(&self) -> String {
         format!("{:?}", &self.0.style_type)
-    }
-    pub fn based_on(&self) -> Option<String> {
         self.0.based_on.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn next_style(&self) -> Option<String> {
         self.0.next_style.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn is_default(&self) -> bool {
         self.0.is_default.clone()
-    }
-    pub fn paragraph_properties(&self) -> String {
         format!("{:?}", &self.0.paragraph_properties)
-    }
-    pub fn run_properties(&self) -> String {
         format!("{:?}", &self.0.run_properties)
-    }
 }
 
 pub struct ResolvedStyle(pub kreuzberg::extraction::docx::styles::ResolvedStyle);
-
 impl ResolvedStyle {
     pub fn new(paragraph_properties: String, run_properties: String) -> ResolvedStyle {
         let mut __target: kreuzberg::extraction::docx::styles::ResolvedStyle = ::std::default::Default::default();
@@ -4551,151 +2752,84 @@ impl ResolvedStyle {
         // alef: run_properties — String fallback in non-serde struct, left at default
         ResolvedStyle(__target)
     }
-    pub fn paragraph_properties(&self) -> String {
         format!("{:?}", &self.0.paragraph_properties)
-    }
-    pub fn run_properties(&self) -> String {
         format!("{:?}", &self.0.run_properties)
-    }
 }
 
 pub struct TableProperties(pub kreuzberg::extraction::docx::table::TableProperties);
-
 impl TableProperties {
-    pub fn new(
-        style_id: Option<String>,
-        width: Option<String>,
-        alignment: Option<String>,
-        layout: Option<String>,
-        look: Option<String>,
-        borders: Option<String>,
-        cell_margins: Option<String>,
-        indent: Option<String>,
-        caption: Option<String>,
-    ) -> TableProperties {
+    pub fn new(style_id: Option<String>, width: Option<String>, alignment: Option<String>, layout: Option<String>, look: Option<String>, borders: Option<String>, cell_margins: Option<String>, indent: Option<String>, caption: Option<String>) -> TableProperties {
         let mut __target: kreuzberg::extraction::docx::table::TableProperties = ::std::default::Default::default();
         if let Some(s) = style_id {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.style_id = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.style_id = Some(t); }
             }
         }
         if let Some(s) = width {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.width = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.width = Some(t); }
             }
         }
         if let Some(s) = alignment {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.alignment = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.alignment = Some(t); }
             }
         }
         if let Some(s) = layout {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.layout = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.layout = Some(t); }
             }
         }
         if let Some(s) = look {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.look = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.look = Some(t); }
             }
         }
         if let Some(s) = borders {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.borders = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.borders = Some(t); }
             }
         }
         if let Some(s) = cell_margins {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cell_margins = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cell_margins = Some(t); }
             }
         }
         if let Some(s) = indent {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.indent = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.indent = Some(t); }
             }
         }
         if let Some(s) = caption {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.caption = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.caption = Some(t); }
             }
         }
         TableProperties(__target)
     }
-    pub fn style_id(&self) -> Option<String> {
         self.0.style_id.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn width(&self) -> Option<String> {
         self.0.width.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn alignment(&self) -> Option<String> {
         self.0.alignment.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn layout(&self) -> Option<String> {
         self.0.layout.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn look(&self) -> Option<String> {
         self.0.look.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn borders(&self) -> Option<String> {
         self.0.borders.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn cell_margins(&self) -> Option<String> {
         self.0.cell_margins.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn indent(&self) -> Option<String> {
         self.0.indent.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn caption(&self) -> Option<String> {
         self.0.caption.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct XlsxAppProperties(pub kreuzberg::extraction::office_metadata::app_properties::XlsxAppProperties);
-
 impl XlsxAppProperties {
-    pub fn new(
-        application: Option<String>,
-        app_version: Option<String>,
-        doc_security: Option<i32>,
-        scale_crop: Option<bool>,
-        links_up_to_date: Option<bool>,
-        shared_doc: Option<bool>,
-        hyperlinks_changed: Option<bool>,
-        company: Option<String>,
-        worksheet_names: Vec<String>,
-    ) -> XlsxAppProperties {
-        let mut __target: kreuzberg::extraction::office_metadata::app_properties::XlsxAppProperties =
-            ::std::default::Default::default();
+    pub fn new(application: Option<String>, app_version: Option<String>, doc_security: Option<i32>, scale_crop: Option<bool>, links_up_to_date: Option<bool>, shared_doc: Option<bool>, hyperlinks_changed: Option<bool>, company: Option<String>, worksheet_names: Vec<String>) -> XlsxAppProperties {
+        let mut __target: kreuzberg::extraction::office_metadata::app_properties::XlsxAppProperties = ::std::default::Default::default();
         if let Some(s) = application {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.application = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.application = Some(t); }
             }
         }
         if let Some(s) = app_version {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.app_version = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.app_version = Some(t); }
             }
         }
         __target.doc_security = doc_security;
@@ -4705,112 +2839,43 @@ impl XlsxAppProperties {
         __target.hyperlinks_changed = hyperlinks_changed;
         if let Some(s) = company {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.company = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.company = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(worksheet_names) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.worksheet_names = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.worksheet_names = t; }
         }
         XlsxAppProperties(__target)
     }
-    pub fn application(&self) -> Option<String> {
         self.0.application.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn app_version(&self) -> Option<String> {
         self.0.app_version.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn doc_security(&self) -> Option<i32> {
-        self.0.doc_security.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn scale_crop(&self) -> Option<bool> {
-        self.0.scale_crop.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn links_up_to_date(&self) -> Option<bool> {
-        self.0.links_up_to_date.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn shared_doc(&self) -> Option<bool> {
-        self.0.shared_doc.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn hyperlinks_changed(&self) -> Option<bool> {
-        self.0.hyperlinks_changed.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn company(&self) -> Option<String> {
+        self.0.doc_security.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.scale_crop.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.links_up_to_date.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.shared_doc.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.hyperlinks_changed.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.company.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn worksheet_names(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.worksheet_names)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.worksheet_names).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct PptxAppProperties(pub kreuzberg::extraction::office_metadata::app_properties::PptxAppProperties);
-
 impl PptxAppProperties {
-    pub fn new(
-        application: Option<String>,
-        app_version: Option<String>,
-        total_time: Option<i32>,
-        company: Option<String>,
-        doc_security: Option<i32>,
-        scale_crop: Option<bool>,
-        links_up_to_date: Option<bool>,
-        shared_doc: Option<bool>,
-        hyperlinks_changed: Option<bool>,
-        slides: Option<i32>,
-        notes: Option<i32>,
-        hidden_slides: Option<i32>,
-        multimedia_clips: Option<i32>,
-        presentation_format: Option<String>,
-        slide_titles: Vec<String>,
-    ) -> PptxAppProperties {
-        let mut __target: kreuzberg::extraction::office_metadata::app_properties::PptxAppProperties =
-            ::std::default::Default::default();
+    pub fn new(application: Option<String>, app_version: Option<String>, total_time: Option<i32>, company: Option<String>, doc_security: Option<i32>, scale_crop: Option<bool>, links_up_to_date: Option<bool>, shared_doc: Option<bool>, hyperlinks_changed: Option<bool>, slides: Option<i32>, notes: Option<i32>, hidden_slides: Option<i32>, multimedia_clips: Option<i32>, presentation_format: Option<String>, slide_titles: Vec<String>) -> PptxAppProperties {
+        let mut __target: kreuzberg::extraction::office_metadata::app_properties::PptxAppProperties = ::std::default::Default::default();
         if let Some(s) = application {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.application = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.application = Some(t); }
             }
         }
         if let Some(s) = app_version {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.app_version = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.app_version = Some(t); }
             }
         }
         __target.total_time = total_time;
         if let Some(s) = company {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.company = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.company = Some(t); }
             }
         }
         __target.doc_security = doc_security;
@@ -4824,136 +2889,36 @@ impl PptxAppProperties {
         __target.multimedia_clips = multimedia_clips;
         if let Some(s) = presentation_format {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.presentation_format = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.presentation_format = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(slide_titles) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.slide_titles = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.slide_titles = t; }
         }
         PptxAppProperties(__target)
     }
-    pub fn application(&self) -> Option<String> {
         self.0.application.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn app_version(&self) -> Option<String> {
         self.0.app_version.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn total_time(&self) -> Option<i32> {
-        self.0.total_time.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn company(&self) -> Option<String> {
+        self.0.total_time.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.company.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn doc_security(&self) -> Option<i32> {
-        self.0.doc_security.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn scale_crop(&self) -> Option<bool> {
-        self.0.scale_crop.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn links_up_to_date(&self) -> Option<bool> {
-        self.0.links_up_to_date.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn shared_doc(&self) -> Option<bool> {
-        self.0.shared_doc.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn hyperlinks_changed(&self) -> Option<bool> {
-        self.0.hyperlinks_changed.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn slides(&self) -> Option<i32> {
-        self.0.slides.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn notes(&self) -> Option<i32> {
-        self.0.notes.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn hidden_slides(&self) -> Option<i32> {
-        self.0.hidden_slides.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn multimedia_clips(&self) -> Option<i32> {
-        self.0.multimedia_clips.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn presentation_format(&self) -> Option<String> {
-        self.0
-            .presentation_format
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn slide_titles(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.slide_titles)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.doc_security.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.scale_crop.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.links_up_to_date.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.shared_doc.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.hyperlinks_changed.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.slides.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.notes.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.hidden_slides.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.multimedia_clips.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.presentation_format.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        ::serde_json::to_value(&self.0.slide_titles).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct CustomProperties(pub kreuzberg::extraction::office_metadata::CustomProperties);
 
 pub struct OdtProperties(pub kreuzberg::extraction::office_metadata::OdtProperties);
-
 impl OdtProperties {
-    pub fn new(
-        title: Option<String>,
-        subject: Option<String>,
-        creator: Option<String>,
-        initial_creator: Option<String>,
-        keywords: Option<String>,
-        description: Option<String>,
-        date: Option<String>,
-        creation_date: Option<String>,
-        language: Option<String>,
-        generator: Option<String>,
-        editing_duration: Option<String>,
-        editing_cycles: Option<String>,
-        page_count: Option<i32>,
-        word_count: Option<i32>,
-        character_count: Option<i32>,
-        paragraph_count: Option<i32>,
-        table_count: Option<i32>,
-        image_count: Option<i32>,
-    ) -> OdtProperties {
+    pub fn new(title: Option<String>, subject: Option<String>, creator: Option<String>, initial_creator: Option<String>, keywords: Option<String>, description: Option<String>, date: Option<String>, creation_date: Option<String>, language: Option<String>, generator: Option<String>, editing_duration: Option<String>, editing_cycles: Option<String>, page_count: Option<i32>, word_count: Option<i32>, character_count: Option<i32>, paragraph_count: Option<i32>, table_count: Option<i32>, image_count: Option<i32>) -> OdtProperties {
         let mut __target: kreuzberg::extraction::office_metadata::OdtProperties = ::std::default::Default::default();
         // alef: title — String fallback in non-serde struct, left at default
         // alef: subject — String fallback in non-serde struct, left at default
@@ -4975,76 +2940,29 @@ impl OdtProperties {
         __target.image_count = image_count;
         OdtProperties(__target)
     }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn subject(&self) -> Option<String> {
         self.0.subject.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn creator(&self) -> Option<String> {
         self.0.creator.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn initial_creator(&self) -> Option<String> {
         self.0.initial_creator.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn keywords(&self) -> Option<String> {
         self.0.keywords.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn description(&self) -> Option<String> {
         self.0.description.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn date(&self) -> Option<String> {
         self.0.date.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn creation_date(&self) -> Option<String> {
         self.0.creation_date.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn language(&self) -> Option<String> {
         self.0.language.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn generator(&self) -> Option<String> {
         self.0.generator.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn editing_duration(&self) -> Option<String> {
         self.0.editing_duration.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn editing_cycles(&self) -> Option<String> {
         self.0.editing_cycles.as_ref().map(|v| format!("{v:?}"))
-    }
-    pub fn page_count(&self) -> Option<i32> {
         self.0.page_count.clone()
-    }
-    pub fn word_count(&self) -> Option<i32> {
         self.0.word_count.clone()
-    }
-    pub fn character_count(&self) -> Option<i32> {
         self.0.character_count.clone()
-    }
-    pub fn paragraph_count(&self) -> Option<i32> {
         self.0.paragraph_count.clone()
-    }
-    pub fn table_count(&self) -> Option<i32> {
         self.0.table_count.clone()
-    }
-    pub fn image_count(&self) -> Option<i32> {
         self.0.image_count.clone()
-    }
 }
 
 pub struct SecurityLimits(pub kreuzberg::SecurityLimits);
-
 impl SecurityLimits {
-    pub fn new(
-        max_archive_size: usize,
-        max_compression_ratio: usize,
-        max_files_in_archive: usize,
-        max_nesting_depth: usize,
-        max_entity_length: usize,
-        max_content_size: usize,
-        max_iterations: usize,
-        max_xml_depth: usize,
-        max_table_cells: usize,
-    ) -> SecurityLimits {
+    pub fn new(max_archive_size: usize, max_compression_ratio: usize, max_files_in_archive: usize, max_nesting_depth: usize, max_entity_length: usize, max_content_size: usize, max_iterations: usize, max_xml_depth: usize, max_table_cells: usize) -> SecurityLimits {
         let mut __target: kreuzberg::SecurityLimits = ::std::default::Default::default();
         __target.max_archive_size = max_archive_size;
         __target.max_compression_ratio = max_compression_ratio;
@@ -5057,87 +2975,27 @@ impl SecurityLimits {
         __target.max_table_cells = max_table_cells;
         SecurityLimits(__target)
     }
-    pub fn max_archive_size(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_archive_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_compression_ratio(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_compression_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_files_in_archive(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_files_in_archive)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_nesting_depth(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_nesting_depth)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_entity_length(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_entity_length)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_content_size(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_content_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_iterations(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_iterations)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_xml_depth(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_xml_depth)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_table_cells(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_table_cells)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.max_archive_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_compression_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_files_in_archive).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_nesting_depth).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_entity_length).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_content_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_iterations).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_xml_depth).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_table_cells).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ZipBombValidator(pub kreuzberg::extractors::security::ZipBombValidator);
 
 pub struct TokenReductionConfig(pub kreuzberg::TokenReductionConfig);
-
 impl TokenReductionConfig {
-    pub fn new(
-        level: ReductionLevel,
-        language_hint: Option<String>,
-        preserve_markdown: bool,
-        preserve_code: bool,
-        semantic_threshold: f32,
-        enable_parallel: bool,
-        use_simd: bool,
-        custom_stopwords: String,
-        preserve_patterns: Vec<String>,
-        target_reduction: Option<f32>,
-        enable_semantic_clustering: bool,
-    ) -> TokenReductionConfig {
+    pub fn new(level: ReductionLevel, language_hint: Option<String>, preserve_markdown: bool, preserve_code: bool, semantic_threshold: f32, enable_parallel: bool, use_simd: bool, custom_stopwords: String, preserve_patterns: Vec<String>, target_reduction: Option<f32>, enable_semantic_clustering: bool) -> TokenReductionConfig {
         let mut __target: kreuzberg::TokenReductionConfig = ::std::default::Default::default();
         // alef: level (ReductionLevel) is an enum; reverse From not generated — left at default
         if let Some(s) = language_hint {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.language_hint = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.language_hint = Some(t); }
             }
         }
         __target.preserve_markdown = preserve_markdown;
@@ -5146,360 +3004,133 @@ impl TokenReductionConfig {
         __target.enable_parallel = enable_parallel;
         __target.use_simd = use_simd;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&custom_stopwords) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.custom_stopwords = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.custom_stopwords = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(preserve_patterns) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.preserve_patterns = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.preserve_patterns = t; }
         }
         __target.target_reduction = target_reduction;
         __target.enable_semantic_clustering = enable_semantic_clustering;
         TokenReductionConfig(__target)
     }
-    pub fn level(&self) -> ReductionLevel {
         ReductionLevel::from(self.0.level.clone())
-    }
-    pub fn language_hint(&self) -> Option<String> {
-        self.0
-            .language_hint
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn preserve_markdown(&self) -> bool {
-        ::serde_json::to_value(&self.0.preserve_markdown)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn preserve_code(&self) -> bool {
-        ::serde_json::to_value(&self.0.preserve_code)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn semantic_threshold(&self) -> f32 {
-        ::serde_json::to_value(&self.0.semantic_threshold)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn enable_parallel(&self) -> bool {
-        ::serde_json::to_value(&self.0.enable_parallel)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn use_simd(&self) -> bool {
-        ::serde_json::to_value(&self.0.use_simd)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn custom_stopwords(&self) -> String {
+        self.0.language_hint.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        ::serde_json::to_value(&self.0.preserve_markdown).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.preserve_code).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.semantic_threshold).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.enable_parallel).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.use_simd).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.custom_stopwords).expect("serializable custom_stopwords")
-    }
-    pub fn preserve_patterns(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.preserve_patterns)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn target_reduction(&self) -> Option<f32> {
-        self.0.target_reduction.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn enable_semantic_clustering(&self) -> bool {
-        ::serde_json::to_value(&self.0.enable_semantic_clustering)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.preserve_patterns).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.target_reduction.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.enable_semantic_clustering).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct PdfAnnotation(pub kreuzberg::PdfAnnotation);
-
 impl PdfAnnotation {
-    pub fn annotation_type(&self) -> PdfAnnotationType {
         PdfAnnotationType::from(self.0.annotation_type.clone())
-    }
-    pub fn content(&self) -> Option<String> {
         self.0.content.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn page_number(&self) -> usize {
-        ::serde_json::to_value(&self.0.page_number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bounding_box(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.page_number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.bounding_box.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct DjotContent(pub kreuzberg::DjotContent);
-
 impl DjotContent {
-    pub fn plain_text(&self) -> String {
         serde_json::to_string(&self.0.plain_text).unwrap_or_default()
-    }
-    pub fn blocks(&self) -> Vec<FormattedBlock> {
         self.0.blocks.iter().map(|elem| FormattedBlock(elem.clone())).collect()
-    }
-    pub fn metadata(&self) -> Metadata {
         Metadata(self.0.metadata.clone())
-    }
-    pub fn tables(&self) -> Vec<Table> {
         self.0.tables.iter().map(|elem| Table(elem.clone())).collect()
-    }
-    pub fn images(&self) -> Vec<DjotImage> {
         self.0.images.iter().map(|elem| DjotImage(elem.clone())).collect()
-    }
-    pub fn links(&self) -> Vec<DjotLink> {
         self.0.links.iter().map(|elem| DjotLink(elem.clone())).collect()
-    }
-    pub fn footnotes(&self) -> Vec<Footnote> {
         self.0.footnotes.iter().map(|elem| Footnote(elem.clone())).collect()
-    }
-    pub fn attributes(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.attributes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.attributes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct FormattedBlock(pub kreuzberg::FormattedBlock);
-
 impl FormattedBlock {
-    pub fn block_type(&self) -> BlockType {
         BlockType::from(self.0.block_type.clone())
-    }
-    pub fn level(&self) -> Option<usize> {
-        self.0.level.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn inline_content(&self) -> Vec<InlineElement> {
-        self.0
-            .inline_content
-            .iter()
-            .map(|elem| InlineElement(elem.clone()))
-            .collect()
-    }
-    pub fn attributes(&self) -> Option<String> {
+        self.0.level.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.inline_content.iter().map(|elem| InlineElement(elem.clone())).collect()
         self.0.attributes.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn language(&self) -> Option<String> {
         self.0.language.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn code(&self) -> Option<String> {
         self.0.code.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn children(&self) -> Vec<FormattedBlock> {
-        self.0
-            .children
-            .iter()
-            .map(|elem| FormattedBlock(elem.clone()))
-            .collect()
-    }
+        self.0.children.iter().map(|elem| FormattedBlock(elem.clone())).collect()
 }
 
 pub struct InlineElement(pub kreuzberg::InlineElement);
-
 impl InlineElement {
-    pub fn element_type(&self) -> InlineType {
         InlineType::from(self.0.element_type.clone())
-    }
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn attributes(&self) -> Option<String> {
         self.0.attributes.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn metadata(&self) -> String {
         serde_json::to_string(&self.0.metadata).expect("serializable metadata")
-    }
 }
 
 pub struct DjotImage(pub kreuzberg::DjotImage);
-
 impl DjotImage {
-    pub fn src(&self) -> String {
         serde_json::to_string(&self.0.src).unwrap_or_default()
-    }
-    pub fn alt(&self) -> String {
         serde_json::to_string(&self.0.alt).unwrap_or_default()
-    }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn attributes(&self) -> Option<String> {
         self.0.attributes.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct DjotLink(pub kreuzberg::DjotLink);
-
 impl DjotLink {
-    pub fn url(&self) -> String {
         serde_json::to_string(&self.0.url).unwrap_or_default()
-    }
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn attributes(&self) -> Option<String> {
         self.0.attributes.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct Footnote(pub kreuzberg::Footnote);
-
 impl Footnote {
-    pub fn label(&self) -> String {
         serde_json::to_string(&self.0.label).unwrap_or_default()
-    }
-    pub fn content(&self) -> Vec<FormattedBlock> {
         self.0.content.iter().map(|elem| FormattedBlock(elem.clone())).collect()
-    }
 }
 
 pub struct DocumentStructure(pub kreuzberg::DocumentStructure);
-
 impl DocumentStructure {
-    pub fn new(
-        nodes: Vec<DocumentNode>,
-        source_format: Option<String>,
-        relationships: Vec<DocumentRelationship>,
-        node_types: Vec<String>,
-    ) -> DocumentStructure {
+    pub fn new(nodes: Vec<DocumentNode>, source_format: Option<String>, relationships: Vec<DocumentRelationship>, node_types: Vec<String>) -> DocumentStructure {
         let mut __target: kreuzberg::DocumentStructure = ::std::default::Default::default();
         __target.nodes = nodes.into_iter().map(|w| w.0).collect();
         if let Some(s) = source_format {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.source_format = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.source_format = Some(t); }
             }
         }
         __target.relationships = relationships.into_iter().map(|w| w.0).collect();
         if let Ok(__v) = ::serde_json::to_value(node_types) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.node_types = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.node_types = t; }
         }
         DocumentStructure(__target)
     }
-    pub fn nodes(&self) -> Vec<DocumentNode> {
         self.0.nodes.iter().map(|elem| DocumentNode(elem.clone())).collect()
-    }
-    pub fn source_format(&self) -> Option<String> {
-        self.0
-            .source_format
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn relationships(&self) -> Vec<DocumentRelationship> {
-        self.0
-            .relationships
-            .iter()
-            .map(|elem| DocumentRelationship(elem.clone()))
-            .collect()
-    }
-    pub fn node_types(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.node_types)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.source_format.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.relationships.iter().map(|elem| DocumentRelationship(elem.clone())).collect()
+        ::serde_json::to_value(&self.0.node_types).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct DocumentRelationship(pub kreuzberg::DocumentRelationship);
-
 impl DocumentRelationship {
-    pub fn source(&self) -> u32 {
-        ::serde_json::to_value(&self.0.source)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn target(&self) -> u32 {
-        ::serde_json::to_value(&self.0.target)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn kind(&self) -> RelationshipKind {
+        ::serde_json::to_value(&self.0.source).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.target).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         RelationshipKind::from(self.0.kind.clone())
-    }
 }
 
 pub struct DocumentNode(pub kreuzberg::DocumentNode);
-
 impl DocumentNode {
-    pub fn id(&self) -> String {
         serde_json::to_string(&self.0.id).unwrap_or_default()
-    }
-    pub fn content(&self) -> NodeContent {
         NodeContent::from(self.0.content.clone())
-    }
-    pub fn parent(&self) -> Option<u32> {
-        self.0.parent.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn children(&self) -> Vec<u32> {
-        ::serde_json::to_value(&self.0.children)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn content_layer(&self) -> ContentLayer {
+        self.0.parent.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.children).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         ContentLayer::from(self.0.content_layer.clone())
-    }
-    pub fn page(&self) -> Option<u32> {
-        self.0.page.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn page_end(&self) -> Option<u32> {
-        self.0.page_end.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn bbox(&self) -> Option<String> {
+        self.0.page.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.page_end.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.bbox.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn annotations(&self) -> Vec<TextAnnotation> {
-        self.0
-            .annotations
-            .iter()
-            .map(|elem| TextAnnotation(elem.clone()))
-            .collect()
-    }
-    pub fn attributes(&self) -> String {
+        self.0.annotations.iter().map(|elem| TextAnnotation(elem.clone())).collect()
         serde_json::to_string(&self.0.attributes).expect("serializable attributes")
-    }
 }
 
 pub struct TableGrid(pub kreuzberg::TableGrid);
-
 impl TableGrid {
     pub fn new(rows: u32, cols: u32, cells: Vec<GridCell>) -> TableGrid {
         let mut __target: kreuzberg::TableGrid = ::std::default::Default::default();
@@ -5508,363 +3139,125 @@ impl TableGrid {
         __target.cells = cells.into_iter().map(|w| w.0).collect();
         TableGrid(__target)
     }
-    pub fn rows(&self) -> u32 {
-        ::serde_json::to_value(&self.0.rows)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cols(&self) -> u32 {
-        ::serde_json::to_value(&self.0.cols)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cells(&self) -> Vec<GridCell> {
+        ::serde_json::to_value(&self.0.rows).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.cols).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.cells.iter().map(|elem| GridCell(elem.clone())).collect()
-    }
 }
 
 pub struct GridCell(pub kreuzberg::GridCell);
-
 impl GridCell {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn row(&self) -> u32 {
-        ::serde_json::to_value(&self.0.row)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn col(&self) -> u32 {
-        ::serde_json::to_value(&self.0.col)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn row_span(&self) -> u32 {
-        ::serde_json::to_value(&self.0.row_span)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn col_span(&self) -> u32 {
-        ::serde_json::to_value(&self.0.col_span)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn is_header(&self) -> bool {
-        ::serde_json::to_value(&self.0.is_header)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bbox(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.row).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.col).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.row_span).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.col_span).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.is_header).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.bbox.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct TextAnnotation(pub kreuzberg::TextAnnotation);
-
 impl TextAnnotation {
-    pub fn start(&self) -> u32 {
-        ::serde_json::to_value(&self.0.start)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn end(&self) -> u32 {
-        ::serde_json::to_value(&self.0.end)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn kind(&self) -> AnnotationKind {
+        ::serde_json::to_value(&self.0.start).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.end).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         AnnotationKind::from(self.0.kind.clone())
-    }
 }
 
 pub struct ExtractionResult(pub kreuzberg::ExtractionResult);
-
 impl ExtractionResult {
-    pub fn new(
-        content: String,
-        mime_type: String,
-        metadata: Metadata,
-        extraction_method: Option<ExtractionMethod>,
-        tables: Vec<Table>,
-        detected_languages: Option<Vec<String>>,
-        chunks: Option<Vec<Chunk>>,
-        images: Option<Vec<ExtractedImage>>,
-        pages: Option<Vec<PageContent>>,
-        elements: Option<Vec<Element>>,
-        djot_content: Option<DjotContent>,
-        ocr_elements: Option<Vec<OcrElement>>,
-        document: Option<DocumentStructure>,
-        extracted_keywords: Option<Vec<Keyword>>,
-        quality_score: Option<f64>,
-        processing_warnings: Vec<ProcessingWarning>,
-        annotations: Option<Vec<PdfAnnotation>>,
-        children: Option<Vec<ArchiveEntry>>,
-        uris: Option<Vec<Uri>>,
-        structured_output: Option<String>,
-        code_intelligence: Option<String>,
-        llm_usage: Option<Vec<LlmUsage>>,
-        formatted_content: Option<String>,
-    ) -> ExtractionResult {
+    pub fn new(content: String, mime_type: String, metadata: Metadata, extraction_method: Option<ExtractionMethod>, tables: Vec<Table>, detected_languages: Option<Vec<String>>, chunks: Option<Vec<Chunk>>, images: Option<Vec<ExtractedImage>>, pages: Option<Vec<PageContent>>, elements: Option<Vec<Element>>, djot_content: Option<DjotContent>, ocr_elements: Option<Vec<OcrElement>>, document: Option<DocumentStructure>, extracted_keywords: Option<Vec<Keyword>>, quality_score: Option<f64>, processing_warnings: Vec<ProcessingWarning>, annotations: Option<Vec<PdfAnnotation>>, children: Option<Vec<ArchiveEntry>>, uris: Option<Vec<Uri>>, structured_output: Option<String>, code_intelligence: Option<String>, llm_usage: Option<Vec<LlmUsage>>, formatted_content: Option<String>) -> ExtractionResult {
         let mut __target: kreuzberg::ExtractionResult = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&content) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.content = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.content = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&mime_type) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.mime_type = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.mime_type = t; }
         }
         __target.metadata = metadata.0;
         // alef: extraction_method (ExtractionMethod) is an enum; reverse From not generated — left at default
         __target.tables = tables.into_iter().map(|w| w.0).collect();
         if let Ok(__v) = ::serde_json::to_value(detected_languages) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.detected_languages = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.detected_languages = t; }
         }
-        if let Some(v) = chunks {
-            __target.chunks = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(v) = images {
-            __target.images = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(v) = pages {
-            __target.pages = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(v) = elements {
-            __target.elements = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(w) = djot_content {
-            __target.djot_content = Some(w.0);
-        }
-        if let Some(v) = ocr_elements {
-            __target.ocr_elements = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(w) = document {
-            __target.document = Some(w.0);
-        }
-        if let Some(v) = extracted_keywords {
-            __target.extracted_keywords = Some(v.into_iter().map(|w| w.0).collect());
-        }
+        if let Some(v) = chunks { __target.chunks = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(v) = images { __target.images = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(v) = pages { __target.pages = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(v) = elements { __target.elements = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(w) = djot_content { __target.djot_content = Some(w.0); }
+        if let Some(v) = ocr_elements { __target.ocr_elements = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(w) = document { __target.document = Some(w.0); }
+        if let Some(v) = extracted_keywords { __target.extracted_keywords = Some(v.into_iter().map(|w| w.0).collect()); }
         __target.quality_score = quality_score;
         __target.processing_warnings = processing_warnings.into_iter().map(|w| w.0).collect();
-        if let Some(v) = annotations {
-            __target.annotations = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(v) = children {
-            __target.children = Some(v.into_iter().map(|w| w.0).collect());
-        }
-        if let Some(v) = uris {
-            __target.uris = Some(v.into_iter().map(|w| w.0).collect());
-        }
+        if let Some(v) = annotations { __target.annotations = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(v) = children { __target.children = Some(v.into_iter().map(|w| w.0).collect()); }
+        if let Some(v) = uris { __target.uris = Some(v.into_iter().map(|w| w.0).collect()); }
         if let Some(s) = structured_output {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.structured_output = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.structured_output = Some(t); }
             }
         }
         if let Some(s) = code_intelligence {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.code_intelligence = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.code_intelligence = Some(t); }
             }
         }
-        if let Some(v) = llm_usage {
-            __target.llm_usage = Some(v.into_iter().map(|w| w.0).collect());
-        }
+        if let Some(v) = llm_usage { __target.llm_usage = Some(v.into_iter().map(|w| w.0).collect()); }
         if let Some(s) = formatted_content {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.formatted_content = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.formatted_content = Some(t); }
             }
         }
         // alef: excluded field `ocr_internal_document` — actual type is not serializable, left at default
         ExtractionResult(__target)
     }
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
-    pub fn metadata(&self) -> Metadata {
         Metadata(self.0.metadata.clone())
-    }
-    pub fn extraction_method(&self) -> Option<ExtractionMethod> {
         self.0.extraction_method.clone().map(ExtractionMethod::from)
-    }
-    pub fn tables(&self) -> Vec<Table> {
         self.0.tables.iter().map(|elem| Table(elem.clone())).collect()
-    }
-    pub fn detected_languages(&self) -> Option<Vec<String>> {
-        self.0.detected_languages.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn chunks(&self) -> Option<Vec<Chunk>> {
-        self.0
-            .chunks
-            .as_ref()
-            .map(|v| v.iter().map(|elem| Chunk(elem.clone())).collect())
-    }
-    pub fn images(&self) -> Option<Vec<ExtractedImage>> {
-        self.0
-            .images
-            .as_ref()
-            .map(|v| v.iter().map(|elem| ExtractedImage(elem.clone())).collect())
-    }
-    pub fn pages(&self) -> Option<Vec<PageContent>> {
-        self.0
-            .pages
-            .as_ref()
-            .map(|v| v.iter().map(|elem| PageContent(elem.clone())).collect())
-    }
-    pub fn elements(&self) -> Option<Vec<Element>> {
-        self.0
-            .elements
-            .as_ref()
-            .map(|v| v.iter().map(|elem| Element(elem.clone())).collect())
-    }
-    pub fn djot_content(&self) -> Option<DjotContent> {
+        self.0.detected_languages.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.chunks.as_ref().map(|v| v.iter().map(|elem| Chunk(elem.clone())).collect())
+        self.0.images.as_ref().map(|v| v.iter().map(|elem| ExtractedImage(elem.clone())).collect())
+        self.0.pages.as_ref().map(|v| v.iter().map(|elem| PageContent(elem.clone())).collect())
+        self.0.elements.as_ref().map(|v| v.iter().map(|elem| Element(elem.clone())).collect())
         self.0.djot_content.clone().map(DjotContent)
-    }
-    pub fn ocr_elements(&self) -> Option<Vec<OcrElement>> {
-        self.0
-            .ocr_elements
-            .as_ref()
-            .map(|v| v.iter().map(|elem| OcrElement(elem.clone())).collect())
-    }
-    pub fn document(&self) -> Option<DocumentStructure> {
+        self.0.ocr_elements.as_ref().map(|v| v.iter().map(|elem| OcrElement(elem.clone())).collect())
         self.0.document.clone().map(DocumentStructure)
-    }
-    pub fn extracted_keywords(&self) -> Option<Vec<Keyword>> {
-        self.0
-            .extracted_keywords
-            .as_ref()
-            .map(|v| v.iter().map(|elem| Keyword(elem.clone())).collect())
-    }
-    pub fn quality_score(&self) -> Option<f64> {
-        self.0.quality_score.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn processing_warnings(&self) -> Vec<ProcessingWarning> {
-        self.0
-            .processing_warnings
-            .iter()
-            .map(|elem| ProcessingWarning(elem.clone()))
-            .collect()
-    }
-    pub fn annotations(&self) -> Option<Vec<PdfAnnotation>> {
-        self.0
-            .annotations
-            .as_ref()
-            .map(|v| v.iter().map(|elem| PdfAnnotation(elem.clone())).collect())
-    }
-    pub fn children(&self) -> Option<Vec<ArchiveEntry>> {
-        self.0
-            .children
-            .as_ref()
-            .map(|v| v.iter().map(|elem| ArchiveEntry(elem.clone())).collect())
-    }
-    pub fn uris(&self) -> Option<Vec<Uri>> {
-        self.0
-            .uris
-            .as_ref()
-            .map(|v| v.iter().map(|elem| Uri(elem.clone())).collect())
-    }
-    pub fn structured_output(&self) -> Option<String> {
-        self.0
-            .structured_output
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn code_intelligence(&self) -> Option<String> {
-        self.0
-            .code_intelligence
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn llm_usage(&self) -> Option<Vec<LlmUsage>> {
-        self.0
-            .llm_usage
-            .as_ref()
-            .map(|v| v.iter().map(|elem| LlmUsage(elem.clone())).collect())
-    }
-    pub fn formatted_content(&self) -> Option<String> {
-        self.0
-            .formatted_content
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
+        self.0.extracted_keywords.as_ref().map(|v| v.iter().map(|elem| Keyword(elem.clone())).collect())
+        self.0.quality_score.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.processing_warnings.iter().map(|elem| ProcessingWarning(elem.clone())).collect()
+        self.0.annotations.as_ref().map(|v| v.iter().map(|elem| PdfAnnotation(elem.clone())).collect())
+        self.0.children.as_ref().map(|v| v.iter().map(|elem| ArchiveEntry(elem.clone())).collect())
+        self.0.uris.as_ref().map(|v| v.iter().map(|elem| Uri(elem.clone())).collect())
+        self.0.structured_output.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.code_intelligence.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.llm_usage.as_ref().map(|v| v.iter().map(|elem| LlmUsage(elem.clone())).collect())
+        self.0.formatted_content.as_ref().and_then(|v| serde_json::to_string(v).ok())
     // alef: skipped getter `ocr_internal_document` — type cannot be bridged through swift-bridge
 }
 
 pub struct ArchiveEntry(pub kreuzberg::ArchiveEntry);
-
 impl ArchiveEntry {
-    pub fn path(&self) -> String {
         serde_json::to_string(&self.0.path).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
-    pub fn result(&self) -> ExtractionResult {
         ExtractionResult(*self.0.result.clone())
-    }
 }
 
 pub struct ProcessingWarning(pub kreuzberg::ProcessingWarning);
-
 impl ProcessingWarning {
-    pub fn source(&self) -> String {
         serde_json::to_string(&self.0.source).unwrap_or_default()
-    }
-    pub fn message(&self) -> String {
         serde_json::to_string(&self.0.message).unwrap_or_default()
-    }
 }
 
 pub struct LlmUsage(pub kreuzberg::LlmUsage);
-
 impl LlmUsage {
-    pub fn new(
-        model: String,
-        source: String,
-        input_tokens: Option<u64>,
-        output_tokens: Option<u64>,
-        total_tokens: Option<u64>,
-        estimated_cost: Option<f64>,
-        finish_reason: Option<String>,
-    ) -> LlmUsage {
+    pub fn new(model: String, source: String, input_tokens: Option<u64>, output_tokens: Option<u64>, total_tokens: Option<u64>, estimated_cost: Option<f64>, finish_reason: Option<String>) -> LlmUsage {
         let mut __target: kreuzberg::LlmUsage = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&model) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.model = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.model = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&source) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.source = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.source = t; }
         }
         __target.input_tokens = input_tokens;
         __target.output_tokens = output_tokens;
@@ -5872,611 +3265,192 @@ impl LlmUsage {
         __target.estimated_cost = estimated_cost;
         if let Some(s) = finish_reason {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.finish_reason = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.finish_reason = Some(t); }
             }
         }
         LlmUsage(__target)
     }
-    pub fn model(&self) -> String {
         serde_json::to_string(&self.0.model).unwrap_or_default()
-    }
-    pub fn source(&self) -> String {
         serde_json::to_string(&self.0.source).unwrap_or_default()
-    }
-    pub fn input_tokens(&self) -> Option<u64> {
-        self.0.input_tokens.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn output_tokens(&self) -> Option<u64> {
-        self.0.output_tokens.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn total_tokens(&self) -> Option<u64> {
-        self.0.total_tokens.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn estimated_cost(&self) -> Option<f64> {
-        self.0.estimated_cost.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn finish_reason(&self) -> Option<String> {
-        self.0
-            .finish_reason
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
+        self.0.input_tokens.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.output_tokens.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.total_tokens.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.estimated_cost.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.finish_reason.as_ref().and_then(|v| serde_json::to_string(v).ok())
 }
 
 pub struct Chunk(pub kreuzberg::Chunk);
-
 impl Chunk {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn chunk_type(&self) -> ChunkType {
         ChunkType::from(self.0.chunk_type.clone())
-    }
-    pub fn embedding(&self) -> Option<Vec<f32>> {
-        self.0.embedding.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn metadata(&self) -> ChunkMetadata {
+        self.0.embedding.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         ChunkMetadata(self.0.metadata.clone())
-    }
 }
 
 pub struct HeadingContext(pub kreuzberg::HeadingContext);
-
 impl HeadingContext {
-    pub fn headings(&self) -> Vec<HeadingLevel> {
         self.0.headings.iter().map(|elem| HeadingLevel(elem.clone())).collect()
-    }
 }
 
 pub struct HeadingLevel(pub kreuzberg::HeadingLevel);
-
 impl HeadingLevel {
-    pub fn level(&self) -> u8 {
-        ::serde_json::to_value(&self.0.level)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn text(&self) -> String {
+        ::serde_json::to_value(&self.0.level).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
 }
 
 pub struct ChunkMetadata(pub kreuzberg::ChunkMetadata);
-
 impl ChunkMetadata {
-    pub fn byte_start(&self) -> usize {
-        ::serde_json::to_value(&self.0.byte_start)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn byte_end(&self) -> usize {
-        ::serde_json::to_value(&self.0.byte_end)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn token_count(&self) -> Option<usize> {
-        self.0.token_count.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn chunk_index(&self) -> usize {
-        ::serde_json::to_value(&self.0.chunk_index)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn total_chunks(&self) -> usize {
-        ::serde_json::to_value(&self.0.total_chunks)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn first_page(&self) -> Option<usize> {
-        self.0.first_page.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn last_page(&self) -> Option<usize> {
-        self.0.last_page.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn heading_context(&self) -> Option<HeadingContext> {
+        ::serde_json::to_value(&self.0.byte_start).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.byte_end).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.token_count.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.chunk_index).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.total_chunks).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.first_page.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.last_page.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.heading_context.clone().map(HeadingContext)
-    }
 }
 
 pub struct ExtractedImage(pub kreuzberg::ExtractedImage);
-
 impl ExtractedImage {
-    pub fn data(&self) -> Vec<u8> {
         self.0.data.to_vec()
-    }
-    pub fn format(&self) -> String {
         serde_json::to_string(&self.0.format).unwrap_or_default()
-    }
-    pub fn image_index(&self) -> usize {
-        ::serde_json::to_value(&self.0.image_index)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn page_number(&self) -> Option<usize> {
-        self.0.page_number.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn width(&self) -> Option<u32> {
-        self.0.width.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn height(&self) -> Option<u32> {
-        self.0.height.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn colorspace(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.image_index).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.page_number.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.width.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.height.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.colorspace.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn bits_per_component(&self) -> Option<u32> {
-        self.0.bits_per_component.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn is_mask(&self) -> bool {
-        ::serde_json::to_value(&self.0.is_mask)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn description(&self) -> Option<String> {
+        self.0.bits_per_component.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.is_mask).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.description.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn ocr_result(&self) -> Option<ExtractionResult> {
         self.0.ocr_result.clone().map(|w| ExtractionResult(*w))
-    }
-    pub fn bounding_box(&self) -> Option<String> {
         self.0.bounding_box.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn source_path(&self) -> Option<String> {
         self.0.source_path.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn image_kind(&self) -> Option<ImageKind> {
         self.0.image_kind.clone().map(ImageKind::from)
-    }
-    pub fn kind_confidence(&self) -> Option<f32> {
-        self.0.kind_confidence.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn cluster_id(&self) -> Option<u32> {
-        self.0.cluster_id.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.kind_confidence.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.cluster_id.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct ElementMetadata(pub kreuzberg::ElementMetadata);
-
 impl ElementMetadata {
-    pub fn page_number(&self) -> Option<usize> {
-        self.0.page_number.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn filename(&self) -> Option<String> {
+        self.0.page_number.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.filename.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn coordinates(&self) -> Option<String> {
         self.0.coordinates.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn element_index(&self) -> Option<usize> {
-        self.0.element_index.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn additional(&self) -> String {
+        self.0.element_index.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         serde_json::to_string(&self.0.additional).expect("serializable additional")
-    }
 }
 
 pub struct Element(pub kreuzberg::Element);
-
 impl Element {
-    pub fn element_id(&self) -> String {
         serde_json::to_string(&self.0.element_id).unwrap_or_default()
-    }
-    pub fn element_type(&self) -> ElementType {
         ElementType::from(self.0.element_type.clone())
-    }
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn metadata(&self) -> ElementMetadata {
         ElementMetadata(self.0.metadata.clone())
-    }
 }
 
 pub struct ExcelWorkbook(pub kreuzberg::ExcelWorkbook);
-
 impl ExcelWorkbook {
-    pub fn sheets(&self) -> Vec<ExcelSheet> {
         self.0.sheets.iter().map(|elem| ExcelSheet(elem.clone())).collect()
-    }
-    pub fn metadata(&self) -> String {
         serde_json::to_string(&self.0.metadata).expect("serializable metadata")
-    }
 }
 
 pub struct ExcelSheet(pub kreuzberg::ExcelSheet);
-
 impl ExcelSheet {
-    pub fn name(&self) -> String {
         serde_json::to_string(&self.0.name).unwrap_or_default()
-    }
-    pub fn markdown(&self) -> String {
         serde_json::to_string(&self.0.markdown).unwrap_or_default()
-    }
-    pub fn row_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.row_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn col_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.col_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cell_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.cell_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_cells(&self) -> String {
+        ::serde_json::to_value(&self.0.row_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.col_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.cell_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.table_cells).expect("serializable table_cells")
-    }
 }
 
 pub struct XmlExtractionResult(pub kreuzberg::XmlExtractionResult);
-
 impl XmlExtractionResult {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn element_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.element_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn unique_elements(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.unique_elements)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.element_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.unique_elements).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct TextExtractionResult(pub kreuzberg::TextExtractionResult);
-
 impl TextExtractionResult {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn line_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.line_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn word_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.word_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn character_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.character_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn headers(&self) -> Option<Vec<String>> {
-        self.0.headers.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn links(&self) -> Option<Vec<String>> {
-        self.0.links.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn code_blocks(&self) -> Option<Vec<String>> {
-        self.0.code_blocks.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.line_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.word_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.character_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.headers.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.links.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.code_blocks.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct PptxExtractionResult(pub kreuzberg::PptxExtractionResult);
-
 impl PptxExtractionResult {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn metadata(&self) -> PptxMetadata {
         PptxMetadata(self.0.metadata.clone())
-    }
-    pub fn slide_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.slide_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn image_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.image_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.table_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn images(&self) -> Vec<ExtractedImage> {
+        ::serde_json::to_value(&self.0.slide_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.image_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.table_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.images.iter().map(|elem| ExtractedImage(elem.clone())).collect()
-    }
-    pub fn page_structure(&self) -> Option<PageStructure> {
         self.0.page_structure.clone().map(PageStructure)
-    }
-    pub fn page_contents(&self) -> Option<Vec<PageContent>> {
-        self.0
-            .page_contents
-            .as_ref()
-            .map(|v| v.iter().map(|elem| PageContent(elem.clone())).collect())
-    }
-    pub fn document(&self) -> Option<DocumentStructure> {
+        self.0.page_contents.as_ref().map(|v| v.iter().map(|elem| PageContent(elem.clone())).collect())
         self.0.document.clone().map(DocumentStructure)
-    }
-    pub fn hyperlinks(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.hyperlinks)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn office_metadata(&self) -> String {
+        ::serde_json::to_value(&self.0.hyperlinks).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.office_metadata).expect("serializable office_metadata")
-    }
 }
 
 pub struct EmailExtractionResult(pub kreuzberg::EmailExtractionResult);
-
 impl EmailExtractionResult {
-    pub fn subject(&self) -> Option<String> {
         self.0.subject.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn from_email(&self) -> Option<String> {
         self.0.from_email.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn to_emails(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.to_emails)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cc_emails(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.cc_emails)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bcc_emails(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.bcc_emails)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn date(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.to_emails).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.cc_emails).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.bcc_emails).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.date.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn message_id(&self) -> Option<String> {
         self.0.message_id.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn plain_text(&self) -> Option<String> {
         self.0.plain_text.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn html_content(&self) -> Option<String> {
         self.0.html_content.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn attachments(&self) -> Vec<EmailAttachment> {
-        self.0
-            .attachments
-            .iter()
-            .map(|elem| EmailAttachment(elem.clone()))
-            .collect()
-    }
-    pub fn metadata(&self) -> String {
+        self.0.attachments.iter().map(|elem| EmailAttachment(elem.clone())).collect()
         serde_json::to_string(&self.0.metadata).expect("serializable metadata")
-    }
 }
 
 pub struct EmailAttachment(pub kreuzberg::EmailAttachment);
-
 impl EmailAttachment {
-    pub fn name(&self) -> Option<String> {
         self.0.name.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn filename(&self) -> Option<String> {
         self.0.filename.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn mime_type(&self) -> Option<String> {
         self.0.mime_type.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn size(&self) -> Option<usize> {
-        self.0.size.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn is_image(&self) -> bool {
-        ::serde_json::to_value(&self.0.is_image)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn data(&self) -> Option<Vec<u8>> {
+        self.0.size.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.is_image).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.data.as_ref().map(|b| b.to_vec())
-    }
 }
 
 pub struct OcrExtractionResult(pub kreuzberg::OcrExtractionResult);
-
 impl OcrExtractionResult {
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
-    pub fn metadata(&self) -> String {
         serde_json::to_string(&self.0.metadata).expect("serializable metadata")
-    }
-    pub fn tables(&self) -> Vec<OcrTable> {
         self.0.tables.iter().map(|elem| OcrTable(elem.clone())).collect()
-    }
-    pub fn ocr_elements(&self) -> Option<Vec<OcrElement>> {
-        self.0
-            .ocr_elements
-            .as_ref()
-            .map(|v| v.iter().map(|elem| OcrElement(elem.clone())).collect())
-    }
+        self.0.ocr_elements.as_ref().map(|v| v.iter().map(|elem| OcrElement(elem.clone())).collect())
     // alef: skipped getter `internal_document` — type cannot be bridged through swift-bridge
 }
 
 pub struct OcrTable(pub kreuzberg::OcrTable);
-
 impl OcrTable {
-    pub fn cells(&self) -> String {
         serde_json::to_string(&self.0.cells).expect("serializable cells")
-    }
-    pub fn markdown(&self) -> String {
         serde_json::to_string(&self.0.markdown).unwrap_or_default()
-    }
-    pub fn page_number(&self) -> usize {
-        ::serde_json::to_value(&self.0.page_number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bounding_box(&self) -> Option<OcrTableBoundingBox> {
+        ::serde_json::to_value(&self.0.page_number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.bounding_box.clone().map(OcrTableBoundingBox)
-    }
 }
 
 pub struct OcrTableBoundingBox(pub kreuzberg::OcrTableBoundingBox);
-
 impl OcrTableBoundingBox {
-    pub fn left(&self) -> u32 {
-        ::serde_json::to_value(&self.0.left)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn top(&self) -> u32 {
-        ::serde_json::to_value(&self.0.top)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn right(&self) -> u32 {
-        ::serde_json::to_value(&self.0.right)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bottom(&self) -> u32 {
-        ::serde_json::to_value(&self.0.bottom)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.left).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.top).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.right).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.bottom).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ImagePreprocessingConfig(pub kreuzberg::ImagePreprocessingConfig);
-
 impl ImagePreprocessingConfig {
-    pub fn new(
-        target_dpi: i32,
-        auto_rotate: bool,
-        deskew: bool,
-        denoise: bool,
-        contrast_enhance: bool,
-        binarization_method: String,
-        invert_colors: bool,
-    ) -> ImagePreprocessingConfig {
+    pub fn new(target_dpi: i32, auto_rotate: bool, deskew: bool, denoise: bool, contrast_enhance: bool, binarization_method: String, invert_colors: bool) -> ImagePreprocessingConfig {
         let mut __target: kreuzberg::ImagePreprocessingConfig = ::std::default::Default::default();
         __target.target_dpi = target_dpi;
         __target.auto_rotate = auto_rotate;
@@ -6484,97 +3458,34 @@ impl ImagePreprocessingConfig {
         __target.denoise = denoise;
         __target.contrast_enhance = contrast_enhance;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&binarization_method) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.binarization_method = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.binarization_method = t; }
         }
         __target.invert_colors = invert_colors;
         ImagePreprocessingConfig(__target)
     }
-    pub fn target_dpi(&self) -> i32 {
-        ::serde_json::to_value(&self.0.target_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn auto_rotate(&self) -> bool {
-        ::serde_json::to_value(&self.0.auto_rotate)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn deskew(&self) -> bool {
-        ::serde_json::to_value(&self.0.deskew)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn denoise(&self) -> bool {
-        ::serde_json::to_value(&self.0.denoise)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn contrast_enhance(&self) -> bool {
-        ::serde_json::to_value(&self.0.contrast_enhance)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn binarization_method(&self) -> String {
+        ::serde_json::to_value(&self.0.target_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.auto_rotate).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.deskew).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.denoise).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.contrast_enhance).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.binarization_method).unwrap_or_default()
-    }
-    pub fn invert_colors(&self) -> bool {
-        ::serde_json::to_value(&self.0.invert_colors)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.invert_colors).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct TesseractConfig(pub kreuzberg::TesseractConfig);
-
 impl TesseractConfig {
-    pub fn new(
-        language: String,
-        psm: i32,
-        output_format: String,
-        oem: i32,
-        min_confidence: f64,
-        preprocessing: Option<ImagePreprocessingConfig>,
-        enable_table_detection: bool,
-        table_min_confidence: f64,
-        table_column_threshold: i32,
-        table_row_threshold_ratio: f64,
-        use_cache: bool,
-        classify_use_pre_adapted_templates: bool,
-        language_model_ngram_on: bool,
-        tessedit_dont_blkrej_good_wds: bool,
-        tessedit_dont_rowrej_good_wds: bool,
-        tessedit_enable_dict_correction: bool,
-        tessedit_char_whitelist: String,
-        tessedit_char_blacklist: String,
-        tessedit_use_primary_params_model: bool,
-        textord_space_size_is_variable: bool,
-        thresholding_method: bool,
-    ) -> TesseractConfig {
+    pub fn new(language: String, psm: i32, output_format: String, oem: i32, min_confidence: f64, preprocessing: Option<ImagePreprocessingConfig>, enable_table_detection: bool, table_min_confidence: f64, table_column_threshold: i32, table_row_threshold_ratio: f64, use_cache: bool, classify_use_pre_adapted_templates: bool, language_model_ngram_on: bool, tessedit_dont_blkrej_good_wds: bool, tessedit_dont_rowrej_good_wds: bool, tessedit_enable_dict_correction: bool, tessedit_char_whitelist: String, tessedit_char_blacklist: String, tessedit_use_primary_params_model: bool, textord_space_size_is_variable: bool, thresholding_method: bool) -> TesseractConfig {
         let mut __target: kreuzberg::TesseractConfig = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&language) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.language = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.language = t; }
         }
         __target.psm = psm;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&output_format) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.output_format = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.output_format = t; }
         }
         __target.oem = oem;
         __target.min_confidence = min_confidence;
-        if let Some(w) = preprocessing {
-            __target.preprocessing = Some(w.0);
-        }
+        if let Some(w) = preprocessing { __target.preprocessing = Some(w.0); }
         __target.enable_table_detection = enable_table_detection;
         __target.table_min_confidence = table_min_confidence;
         __target.table_column_threshold = table_column_threshold;
@@ -6586,901 +3497,361 @@ impl TesseractConfig {
         __target.tessedit_dont_rowrej_good_wds = tessedit_dont_rowrej_good_wds;
         __target.tessedit_enable_dict_correction = tessedit_enable_dict_correction;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&tessedit_char_whitelist) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.tessedit_char_whitelist = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.tessedit_char_whitelist = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&tessedit_char_blacklist) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.tessedit_char_blacklist = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.tessedit_char_blacklist = t; }
         }
         __target.tessedit_use_primary_params_model = tessedit_use_primary_params_model;
         __target.textord_space_size_is_variable = textord_space_size_is_variable;
         __target.thresholding_method = thresholding_method;
         TesseractConfig(__target)
     }
-    pub fn language(&self) -> String {
         serde_json::to_string(&self.0.language).unwrap_or_default()
-    }
-    pub fn psm(&self) -> i32 {
-        ::serde_json::to_value(&self.0.psm)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn output_format(&self) -> String {
+        ::serde_json::to_value(&self.0.psm).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.output_format).unwrap_or_default()
-    }
-    pub fn oem(&self) -> i32 {
-        ::serde_json::to_value(&self.0.oem)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_confidence(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn preprocessing(&self) -> Option<ImagePreprocessingConfig> {
+        ::serde_json::to_value(&self.0.oem).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.preprocessing.clone().map(ImagePreprocessingConfig)
-    }
-    pub fn enable_table_detection(&self) -> bool {
-        ::serde_json::to_value(&self.0.enable_table_detection)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_min_confidence(&self) -> f64 {
-        ::serde_json::to_value(&self.0.table_min_confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_column_threshold(&self) -> i32 {
-        ::serde_json::to_value(&self.0.table_column_threshold)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_row_threshold_ratio(&self) -> f64 {
-        ::serde_json::to_value(&self.0.table_row_threshold_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn use_cache(&self) -> bool {
-        ::serde_json::to_value(&self.0.use_cache)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn classify_use_pre_adapted_templates(&self) -> bool {
-        ::serde_json::to_value(&self.0.classify_use_pre_adapted_templates)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn language_model_ngram_on(&self) -> bool {
-        ::serde_json::to_value(&self.0.language_model_ngram_on)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn tessedit_dont_blkrej_good_wds(&self) -> bool {
-        ::serde_json::to_value(&self.0.tessedit_dont_blkrej_good_wds)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn tessedit_dont_rowrej_good_wds(&self) -> bool {
-        ::serde_json::to_value(&self.0.tessedit_dont_rowrej_good_wds)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn tessedit_enable_dict_correction(&self) -> bool {
-        ::serde_json::to_value(&self.0.tessedit_enable_dict_correction)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn tessedit_char_whitelist(&self) -> String {
+        ::serde_json::to_value(&self.0.enable_table_detection).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.table_min_confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.table_column_threshold).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.table_row_threshold_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.use_cache).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.classify_use_pre_adapted_templates).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.language_model_ngram_on).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.tessedit_dont_blkrej_good_wds).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.tessedit_dont_rowrej_good_wds).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.tessedit_enable_dict_correction).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.tessedit_char_whitelist).unwrap_or_default()
-    }
-    pub fn tessedit_char_blacklist(&self) -> String {
         serde_json::to_string(&self.0.tessedit_char_blacklist).unwrap_or_default()
-    }
-    pub fn tessedit_use_primary_params_model(&self) -> bool {
-        ::serde_json::to_value(&self.0.tessedit_use_primary_params_model)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn textord_space_size_is_variable(&self) -> bool {
-        ::serde_json::to_value(&self.0.textord_space_size_is_variable)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn thresholding_method(&self) -> bool {
-        ::serde_json::to_value(&self.0.thresholding_method)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.tessedit_use_primary_params_model).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.textord_space_size_is_variable).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.thresholding_method).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ImagePreprocessingMetadata(pub kreuzberg::ImagePreprocessingMetadata);
-
 impl ImagePreprocessingMetadata {
-    pub fn original_dimensions(&self) -> Vec<usize> {
-        ::serde_json::to_value(&self.0.original_dimensions)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn original_dpi(&self) -> Vec<f64> {
-        ::serde_json::to_value(&self.0.original_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn target_dpi(&self) -> i32 {
-        ::serde_json::to_value(&self.0.target_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn scale_factor(&self) -> f64 {
-        ::serde_json::to_value(&self.0.scale_factor)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn auto_adjusted(&self) -> bool {
-        ::serde_json::to_value(&self.0.auto_adjusted)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn final_dpi(&self) -> i32 {
-        ::serde_json::to_value(&self.0.final_dpi)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn new_dimensions(&self) -> Option<Vec<usize>> {
-        self.0.new_dimensions.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn resample_method(&self) -> String {
+        ::serde_json::to_value(&self.0.original_dimensions).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.original_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.target_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.scale_factor).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.auto_adjusted).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.final_dpi).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.new_dimensions.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         serde_json::to_string(&self.0.resample_method).unwrap_or_default()
-    }
-    pub fn dimension_clamped(&self) -> bool {
-        ::serde_json::to_value(&self.0.dimension_clamped)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn calculated_dpi(&self) -> Option<i32> {
-        self.0.calculated_dpi.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn skipped_resize(&self) -> bool {
-        ::serde_json::to_value(&self.0.skipped_resize)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn resize_error(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.dimension_clamped).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.calculated_dpi.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.skipped_resize).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.resize_error.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct Metadata(pub kreuzberg::Metadata);
-
 impl Metadata {
-    pub fn new(
-        title: Option<String>,
-        subject: Option<String>,
-        authors: Option<Vec<String>>,
-        keywords: Option<Vec<String>>,
-        language: Option<String>,
-        created_at: Option<String>,
-        modified_at: Option<String>,
-        created_by: Option<String>,
-        modified_by: Option<String>,
-        pages: Option<PageStructure>,
-        format: Option<FormatMetadata>,
-        image_preprocessing: Option<ImagePreprocessingMetadata>,
-        json_schema: Option<String>,
-        error: Option<ErrorMetadata>,
-        extraction_duration_ms: Option<u64>,
-        category: Option<String>,
-        tags: Option<Vec<String>>,
-        document_version: Option<String>,
-        abstract_text: Option<String>,
-        output_format: Option<String>,
-        additional: String,
-    ) -> Metadata {
+    pub fn new(title: Option<String>, subject: Option<String>, authors: Option<Vec<String>>, keywords: Option<Vec<String>>, language: Option<String>, created_at: Option<String>, modified_at: Option<String>, created_by: Option<String>, modified_by: Option<String>, pages: Option<PageStructure>, format: Option<FormatMetadata>, image_preprocessing: Option<ImagePreprocessingMetadata>, json_schema: Option<String>, error: Option<ErrorMetadata>, extraction_duration_ms: Option<u64>, category: Option<String>, tags: Option<Vec<String>>, document_version: Option<String>, abstract_text: Option<String>, output_format: Option<String>, additional: String) -> Metadata {
         let mut __target: kreuzberg::Metadata = ::std::default::Default::default();
         if let Some(s) = title {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.title = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.title = Some(t); }
             }
         }
         if let Some(s) = subject {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.subject = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.subject = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(authors) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.authors = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.authors = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(keywords) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.keywords = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.keywords = t; }
         }
         if let Some(s) = language {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.language = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.language = Some(t); }
             }
         }
         if let Some(s) = created_at {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.created_at = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.created_at = Some(t); }
             }
         }
         if let Some(s) = modified_at {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.modified_at = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.modified_at = Some(t); }
             }
         }
         if let Some(s) = created_by {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.created_by = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.created_by = Some(t); }
             }
         }
         if let Some(s) = modified_by {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.modified_by = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.modified_by = Some(t); }
             }
         }
-        if let Some(w) = pages {
-            __target.pages = Some(w.0);
-        }
+        if let Some(w) = pages { __target.pages = Some(w.0); }
         // alef: format (FormatMetadata) is an enum; reverse From not generated — left at default
-        if let Some(w) = image_preprocessing {
-            __target.image_preprocessing = Some(w.0);
-        }
+        if let Some(w) = image_preprocessing { __target.image_preprocessing = Some(w.0); }
         if let Some(s) = json_schema {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.json_schema = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.json_schema = Some(t); }
             }
         }
-        if let Some(w) = error {
-            __target.error = Some(w.0);
-        }
+        if let Some(w) = error { __target.error = Some(w.0); }
         __target.extraction_duration_ms = extraction_duration_ms;
         if let Some(s) = category {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.category = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.category = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(tags) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.tags = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.tags = t; }
         }
         if let Some(s) = document_version {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.document_version = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.document_version = Some(t); }
             }
         }
         if let Some(s) = abstract_text {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.abstract_text = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.abstract_text = Some(t); }
             }
         }
         if let Some(s) = output_format {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.output_format = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.output_format = Some(t); }
             }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&additional) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.additional = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.additional = t; }
         }
         Metadata(__target)
     }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn subject(&self) -> Option<String> {
         self.0.subject.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn authors(&self) -> Option<Vec<String>> {
-        self.0.authors.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn keywords(&self) -> Option<Vec<String>> {
-        self.0.keywords.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn language(&self) -> Option<String> {
+        self.0.authors.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.keywords.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.language.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn created_at(&self) -> Option<String> {
         self.0.created_at.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn modified_at(&self) -> Option<String> {
         self.0.modified_at.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn created_by(&self) -> Option<String> {
         self.0.created_by.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn modified_by(&self) -> Option<String> {
         self.0.modified_by.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn pages(&self) -> Option<PageStructure> {
         self.0.pages.clone().map(PageStructure)
-    }
-    pub fn format(&self) -> Option<FormatMetadata> {
         self.0.format.clone().map(FormatMetadata::from)
-    }
-    pub fn image_preprocessing(&self) -> Option<ImagePreprocessingMetadata> {
         self.0.image_preprocessing.clone().map(ImagePreprocessingMetadata)
-    }
-    pub fn json_schema(&self) -> Option<String> {
         self.0.json_schema.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn error(&self) -> Option<ErrorMetadata> {
         self.0.error.clone().map(ErrorMetadata)
-    }
-    pub fn extraction_duration_ms(&self) -> Option<u64> {
-        self.0.extraction_duration_ms.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn category(&self) -> Option<String> {
+        self.0.extraction_duration_ms.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.category.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn tags(&self) -> Option<Vec<String>> {
-        self.0.tags.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn document_version(&self) -> Option<String> {
-        self.0
-            .document_version
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn abstract_text(&self) -> Option<String> {
-        self.0
-            .abstract_text
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn output_format(&self) -> Option<String> {
-        self.0
-            .output_format
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn additional(&self) -> String {
+        self.0.tags.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.document_version.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.abstract_text.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.output_format.as_ref().and_then(|v| serde_json::to_string(v).ok())
         serde_json::to_string(&self.0.additional).expect("serializable additional")
-    }
 }
 
 pub struct ExcelMetadata(pub kreuzberg::ExcelMetadata);
-
 impl ExcelMetadata {
     pub fn new(sheet_count: Option<usize>, sheet_names: Option<Vec<String>>) -> ExcelMetadata {
         let mut __target: kreuzberg::ExcelMetadata = ::std::default::Default::default();
         __target.sheet_count = sheet_count;
         if let Ok(__v) = ::serde_json::to_value(sheet_names) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.sheet_names = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.sheet_names = t; }
         }
         ExcelMetadata(__target)
     }
-    pub fn sheet_count(&self) -> Option<usize> {
-        self.0.sheet_count.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn sheet_names(&self) -> Option<Vec<String>> {
-        self.0.sheet_names.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.sheet_count.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.sheet_names.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct EmailMetadata(pub kreuzberg::EmailMetadata);
-
 impl EmailMetadata {
-    pub fn new(
-        from_email: Option<String>,
-        from_name: Option<String>,
-        to_emails: Vec<String>,
-        cc_emails: Vec<String>,
-        bcc_emails: Vec<String>,
-        message_id: Option<String>,
-        attachments: Vec<String>,
-    ) -> EmailMetadata {
+    pub fn new(from_email: Option<String>, from_name: Option<String>, to_emails: Vec<String>, cc_emails: Vec<String>, bcc_emails: Vec<String>, message_id: Option<String>, attachments: Vec<String>) -> EmailMetadata {
         let mut __target: kreuzberg::EmailMetadata = ::std::default::Default::default();
         if let Some(s) = from_email {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.from_email = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.from_email = Some(t); }
             }
         }
         if let Some(s) = from_name {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.from_name = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.from_name = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(to_emails) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.to_emails = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.to_emails = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(cc_emails) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.cc_emails = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.cc_emails = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(bcc_emails) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.bcc_emails = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.bcc_emails = t; }
         }
         if let Some(s) = message_id {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.message_id = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.message_id = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(attachments) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.attachments = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.attachments = t; }
         }
         EmailMetadata(__target)
     }
-    pub fn from_email(&self) -> Option<String> {
         self.0.from_email.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn from_name(&self) -> Option<String> {
         self.0.from_name.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn to_emails(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.to_emails)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn cc_emails(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.cc_emails)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bcc_emails(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.bcc_emails)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn message_id(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.to_emails).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.cc_emails).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.bcc_emails).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.message_id.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn attachments(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.attachments)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.attachments).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ArchiveMetadata(pub kreuzberg::ArchiveMetadata);
-
 impl ArchiveMetadata {
-    pub fn new(
-        format: String,
-        file_count: usize,
-        file_list: Vec<String>,
-        total_size: usize,
-        compressed_size: Option<usize>,
-    ) -> ArchiveMetadata {
+    pub fn new(format: String, file_count: usize, file_list: Vec<String>, total_size: usize, compressed_size: Option<usize>) -> ArchiveMetadata {
         let mut __target: kreuzberg::ArchiveMetadata = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&format) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.format = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.format = t; }
         }
         __target.file_count = file_count;
         if let Ok(__v) = ::serde_json::to_value(file_list) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.file_list = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.file_list = t; }
         }
         __target.total_size = total_size;
         __target.compressed_size = compressed_size;
         ArchiveMetadata(__target)
     }
-    pub fn format(&self) -> String {
         serde_json::to_string(&self.0.format).unwrap_or_default()
-    }
-    pub fn file_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.file_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn file_list(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.file_list)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn total_size(&self) -> usize {
-        ::serde_json::to_value(&self.0.total_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn compressed_size(&self) -> Option<usize> {
-        self.0.compressed_size.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.file_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.file_list).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.total_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.compressed_size.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct XmlMetadata(pub kreuzberg::XmlMetadata);
-
 impl XmlMetadata {
     pub fn new(element_count: usize, unique_elements: Vec<String>) -> XmlMetadata {
         let mut __target: kreuzberg::XmlMetadata = ::std::default::Default::default();
         __target.element_count = element_count;
         if let Ok(__v) = ::serde_json::to_value(unique_elements) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.unique_elements = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.unique_elements = t; }
         }
         XmlMetadata(__target)
     }
-    pub fn element_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.element_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn unique_elements(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.unique_elements)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.element_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.unique_elements).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct TextMetadata(pub kreuzberg::TextMetadata);
-
 impl TextMetadata {
-    pub fn new(
-        line_count: usize,
-        word_count: usize,
-        character_count: usize,
-        headers: Option<Vec<String>>,
-        links: Option<Vec<String>>,
-        code_blocks: Option<Vec<String>>,
-    ) -> TextMetadata {
+    pub fn new(line_count: usize, word_count: usize, character_count: usize, headers: Option<Vec<String>>, links: Option<Vec<String>>, code_blocks: Option<Vec<String>>) -> TextMetadata {
         let mut __target: kreuzberg::TextMetadata = ::std::default::Default::default();
         __target.line_count = line_count;
         __target.word_count = word_count;
         __target.character_count = character_count;
         if let Ok(__v) = ::serde_json::to_value(headers) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.headers = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.headers = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(links) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.links = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.links = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(code_blocks) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.code_blocks = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.code_blocks = t; }
         }
         TextMetadata(__target)
     }
-    pub fn line_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.line_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn word_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.word_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn character_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.character_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn headers(&self) -> Option<Vec<String>> {
-        self.0.headers.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn links(&self) -> Option<Vec<String>> {
-        self.0.links.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn code_blocks(&self) -> Option<Vec<String>> {
-        self.0.code_blocks.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.line_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.word_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.character_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.headers.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.links.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.code_blocks.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct HeaderMetadata(pub kreuzberg::HeaderMetadata);
-
 impl HeaderMetadata {
-    pub fn level(&self) -> u8 {
-        ::serde_json::to_value(&self.0.level)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn text(&self) -> String {
+        ::serde_json::to_value(&self.0.level).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn id(&self) -> Option<String> {
         self.0.id.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn depth(&self) -> usize {
-        ::serde_json::to_value(&self.0.depth)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn html_offset(&self) -> usize {
-        ::serde_json::to_value(&self.0.html_offset)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.depth).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.html_offset).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct LinkMetadata(pub kreuzberg::LinkMetadata);
-
 impl LinkMetadata {
-    pub fn href(&self) -> String {
         serde_json::to_string(&self.0.href).unwrap_or_default()
-    }
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn link_type(&self) -> LinkType {
         LinkType::from(self.0.link_type.clone())
-    }
-    pub fn rel(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.rel)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn attributes(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.attributes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.rel).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.attributes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ImageMetadataType(pub kreuzberg::ImageMetadataType);
-
 impl ImageMetadataType {
-    pub fn src(&self) -> String {
         serde_json::to_string(&self.0.src).unwrap_or_default()
-    }
-    pub fn alt(&self) -> Option<String> {
         self.0.alt.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn dimensions(&self) -> Option<Vec<u32>> {
-        self.0.dimensions.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn image_type(&self) -> ImageType {
+        self.0.dimensions.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         ImageType::from(self.0.image_type.clone())
-    }
-    pub fn attributes(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.attributes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.attributes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct StructuredData(pub kreuzberg::StructuredData);
-
 impl StructuredData {
-    pub fn data_type(&self) -> StructuredDataType {
         StructuredDataType::from(self.0.data_type.clone())
-    }
-    pub fn raw_json(&self) -> String {
         serde_json::to_string(&self.0.raw_json).unwrap_or_default()
-    }
-    pub fn schema_type(&self) -> Option<String> {
         self.0.schema_type.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct HtmlMetadata(pub kreuzberg::HtmlMetadata);
-
 impl HtmlMetadata {
-    pub fn new(
-        title: Option<String>,
-        description: Option<String>,
-        keywords: Vec<String>,
-        author: Option<String>,
-        canonical_url: Option<String>,
-        base_href: Option<String>,
-        language: Option<String>,
-        text_direction: Option<TextDirection>,
-        open_graph: String,
-        twitter_card: String,
-        meta_tags: String,
-        headers: Vec<HeaderMetadata>,
-        links: Vec<LinkMetadata>,
-        images: Vec<ImageMetadataType>,
-        structured_data: Vec<StructuredData>,
-    ) -> HtmlMetadata {
+    pub fn new(title: Option<String>, description: Option<String>, keywords: Vec<String>, author: Option<String>, canonical_url: Option<String>, base_href: Option<String>, language: Option<String>, text_direction: Option<TextDirection>, open_graph: String, twitter_card: String, meta_tags: String, headers: Vec<HeaderMetadata>, links: Vec<LinkMetadata>, images: Vec<ImageMetadataType>, structured_data: Vec<StructuredData>) -> HtmlMetadata {
         let mut __target: kreuzberg::HtmlMetadata = ::std::default::Default::default();
         if let Some(s) = title {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.title = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.title = Some(t); }
             }
         }
         if let Some(s) = description {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.description = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.description = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(keywords) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.keywords = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.keywords = t; }
         }
         if let Some(s) = author {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.author = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.author = Some(t); }
             }
         }
         if let Some(s) = canonical_url {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.canonical_url = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.canonical_url = Some(t); }
             }
         }
         if let Some(s) = base_href {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.base_href = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.base_href = Some(t); }
             }
         }
         if let Some(s) = language {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.language = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.language = Some(t); }
             }
         }
         // alef: text_direction (TextDirection) is an enum; reverse From not generated — left at default
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&open_graph) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.open_graph = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.open_graph = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&twitter_card) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.twitter_card = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.twitter_card = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&meta_tags) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.meta_tags = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.meta_tags = t; }
         }
         __target.headers = headers.into_iter().map(|w| w.0).collect();
         __target.links = links.into_iter().map(|w| w.0).collect();
@@ -7488,491 +3859,203 @@ impl HtmlMetadata {
         __target.structured_data = structured_data.into_iter().map(|w| w.0).collect();
         HtmlMetadata(__target)
     }
-    pub fn title(&self) -> Option<String> {
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn description(&self) -> Option<String> {
         self.0.description.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn keywords(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.keywords)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn author(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.keywords).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.author.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn canonical_url(&self) -> Option<String> {
-        self.0
-            .canonical_url
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn base_href(&self) -> Option<String> {
+        self.0.canonical_url.as_ref().and_then(|v| serde_json::to_string(v).ok())
         self.0.base_href.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn language(&self) -> Option<String> {
         self.0.language.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn text_direction(&self) -> Option<TextDirection> {
         self.0.text_direction.clone().map(TextDirection::from)
-    }
-    pub fn open_graph(&self) -> String {
         serde_json::to_string(&self.0.open_graph).expect("serializable open_graph")
-    }
-    pub fn twitter_card(&self) -> String {
         serde_json::to_string(&self.0.twitter_card).expect("serializable twitter_card")
-    }
-    pub fn meta_tags(&self) -> String {
         serde_json::to_string(&self.0.meta_tags).expect("serializable meta_tags")
-    }
-    pub fn headers(&self) -> Vec<HeaderMetadata> {
         self.0.headers.iter().map(|elem| HeaderMetadata(elem.clone())).collect()
-    }
-    pub fn links(&self) -> Vec<LinkMetadata> {
         self.0.links.iter().map(|elem| LinkMetadata(elem.clone())).collect()
-    }
-    pub fn images(&self) -> Vec<ImageMetadataType> {
-        self.0
-            .images
-            .iter()
-            .map(|elem| ImageMetadataType(elem.clone()))
-            .collect()
-    }
-    pub fn structured_data(&self) -> Vec<StructuredData> {
-        self.0
-            .structured_data
-            .iter()
-            .map(|elem| StructuredData(elem.clone()))
-            .collect()
-    }
+        self.0.images.iter().map(|elem| ImageMetadataType(elem.clone())).collect()
+        self.0.structured_data.iter().map(|elem| StructuredData(elem.clone())).collect()
 }
 
 pub struct OcrMetadata(pub kreuzberg::OcrMetadata);
-
 impl OcrMetadata {
-    pub fn new(
-        language: String,
-        psm: i32,
-        output_format: String,
-        table_count: usize,
-        table_rows: Option<usize>,
-        table_cols: Option<usize>,
-    ) -> OcrMetadata {
+    pub fn new(language: String, psm: i32, output_format: String, table_count: usize, table_rows: Option<usize>, table_cols: Option<usize>) -> OcrMetadata {
         let mut __target: kreuzberg::OcrMetadata = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&language) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.language = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.language = t; }
         }
         __target.psm = psm;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&output_format) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.output_format = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.output_format = t; }
         }
         __target.table_count = table_count;
         __target.table_rows = table_rows;
         __target.table_cols = table_cols;
         OcrMetadata(__target)
     }
-    pub fn language(&self) -> String {
         serde_json::to_string(&self.0.language).unwrap_or_default()
-    }
-    pub fn psm(&self) -> i32 {
-        ::serde_json::to_value(&self.0.psm)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn output_format(&self) -> String {
+        ::serde_json::to_value(&self.0.psm).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.output_format).unwrap_or_default()
-    }
-    pub fn table_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.table_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn table_rows(&self) -> Option<usize> {
-        self.0.table_rows.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn table_cols(&self) -> Option<usize> {
-        self.0.table_cols.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.table_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.table_rows.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.table_cols.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct ErrorMetadata(pub kreuzberg::ErrorMetadata);
-
 impl ErrorMetadata {
-    pub fn error_type(&self) -> String {
         serde_json::to_string(&self.0.error_type).unwrap_or_default()
-    }
-    pub fn message(&self) -> String {
         serde_json::to_string(&self.0.message).unwrap_or_default()
-    }
 }
 
 pub struct PptxMetadata(pub kreuzberg::PptxMetadata);
-
 impl PptxMetadata {
-    pub fn new(
-        slide_count: usize,
-        slide_names: Vec<String>,
-        image_count: Option<usize>,
-        table_count: Option<usize>,
-    ) -> PptxMetadata {
+    pub fn new(slide_count: usize, slide_names: Vec<String>, image_count: Option<usize>, table_count: Option<usize>) -> PptxMetadata {
         let mut __target: kreuzberg::PptxMetadata = ::std::default::Default::default();
         __target.slide_count = slide_count;
         if let Ok(__v) = ::serde_json::to_value(slide_names) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.slide_names = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.slide_names = t; }
         }
         __target.image_count = image_count;
         __target.table_count = table_count;
         PptxMetadata(__target)
     }
-    pub fn slide_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.slide_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn slide_names(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.slide_names)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn image_count(&self) -> Option<usize> {
-        self.0.image_count.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn table_count(&self) -> Option<usize> {
-        self.0.table_count.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.slide_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.slide_names).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.image_count.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.table_count.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct DocxMetadata(pub kreuzberg::DocxMetadata);
-
 impl DocxMetadata {
-    pub fn new(
-        core_properties: Option<String>,
-        app_properties: Option<String>,
-        custom_properties: String,
-    ) -> DocxMetadata {
+    pub fn new(core_properties: Option<String>, app_properties: Option<String>, custom_properties: String) -> DocxMetadata {
         let mut __target: kreuzberg::DocxMetadata = ::std::default::Default::default();
         if let Some(s) = core_properties {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.core_properties = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.core_properties = Some(t); }
             }
         }
         if let Some(s) = app_properties {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.app_properties = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.app_properties = Some(t); }
             }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&custom_properties) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.custom_properties = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.custom_properties = t; }
         }
         DocxMetadata(__target)
     }
-    pub fn core_properties(&self) -> Option<String> {
-        self.0
-            .core_properties
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn app_properties(&self) -> Option<String> {
-        self.0
-            .app_properties
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn custom_properties(&self) -> String {
+        self.0.core_properties.as_ref().and_then(|v| serde_json::to_string(v).ok())
+        self.0.app_properties.as_ref().and_then(|v| serde_json::to_string(v).ok())
         serde_json::to_string(&self.0.custom_properties).expect("serializable custom_properties")
-    }
 }
 
 pub struct CsvMetadata(pub kreuzberg::CsvMetadata);
-
 impl CsvMetadata {
-    pub fn new(
-        row_count: usize,
-        column_count: usize,
-        delimiter: Option<String>,
-        has_header: bool,
-        column_types: Option<Vec<String>>,
-    ) -> CsvMetadata {
+    pub fn new(row_count: usize, column_count: usize, delimiter: Option<String>, has_header: bool, column_types: Option<Vec<String>>) -> CsvMetadata {
         let mut __target: kreuzberg::CsvMetadata = ::std::default::Default::default();
         __target.row_count = row_count;
         __target.column_count = column_count;
         if let Some(s) = delimiter {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.delimiter = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.delimiter = Some(t); }
             }
         }
         __target.has_header = has_header;
         if let Ok(__v) = ::serde_json::to_value(column_types) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.column_types = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.column_types = t; }
         }
         CsvMetadata(__target)
     }
-    pub fn row_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.row_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn column_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.column_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn delimiter(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.row_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.column_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.delimiter.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn has_header(&self) -> bool {
-        ::serde_json::to_value(&self.0.has_header)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn column_types(&self) -> Option<Vec<String>> {
-        self.0.column_types.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.has_header).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.column_types.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct BibtexMetadata(pub kreuzberg::BibtexMetadata);
-
 impl BibtexMetadata {
-    pub fn new(
-        entry_count: usize,
-        citation_keys: Vec<String>,
-        authors: Vec<String>,
-        year_range: Option<YearRange>,
-        entry_types: String,
-    ) -> BibtexMetadata {
+    pub fn new(entry_count: usize, citation_keys: Vec<String>, authors: Vec<String>, year_range: Option<YearRange>, entry_types: String) -> BibtexMetadata {
         let mut __target: kreuzberg::BibtexMetadata = ::std::default::Default::default();
         __target.entry_count = entry_count;
         if let Ok(__v) = ::serde_json::to_value(citation_keys) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.citation_keys = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.citation_keys = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(authors) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.authors = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.authors = t; }
         }
-        if let Some(w) = year_range {
-            __target.year_range = Some(w.0);
-        }
+        if let Some(w) = year_range { __target.year_range = Some(w.0); }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&entry_types) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.entry_types = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.entry_types = t; }
         }
         BibtexMetadata(__target)
     }
-    pub fn entry_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.entry_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn citation_keys(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.citation_keys)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn authors(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.authors)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn year_range(&self) -> Option<YearRange> {
+        ::serde_json::to_value(&self.0.entry_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.citation_keys).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.authors).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.year_range.clone().map(YearRange)
-    }
-    pub fn entry_types(&self) -> String {
         serde_json::to_string(&self.0.entry_types).expect("serializable entry_types")
-    }
 }
 
 pub struct CitationMetadata(pub kreuzberg::CitationMetadata);
-
 impl CitationMetadata {
-    pub fn new(
-        citation_count: usize,
-        format: Option<String>,
-        authors: Vec<String>,
-        year_range: Option<YearRange>,
-        dois: Vec<String>,
-        keywords: Vec<String>,
-    ) -> CitationMetadata {
+    pub fn new(citation_count: usize, format: Option<String>, authors: Vec<String>, year_range: Option<YearRange>, dois: Vec<String>, keywords: Vec<String>) -> CitationMetadata {
         let mut __target: kreuzberg::CitationMetadata = ::std::default::Default::default();
         __target.citation_count = citation_count;
         if let Some(s) = format {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.format = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.format = Some(t); }
             }
         }
         if let Ok(__v) = ::serde_json::to_value(authors) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.authors = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.authors = t; }
         }
-        if let Some(w) = year_range {
-            __target.year_range = Some(w.0);
-        }
+        if let Some(w) = year_range { __target.year_range = Some(w.0); }
         if let Ok(__v) = ::serde_json::to_value(dois) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.dois = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.dois = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(keywords) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.keywords = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.keywords = t; }
         }
         CitationMetadata(__target)
     }
-    pub fn citation_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.citation_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn format(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.citation_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.format.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn authors(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.authors)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn year_range(&self) -> Option<YearRange> {
+        ::serde_json::to_value(&self.0.authors).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.year_range.clone().map(YearRange)
-    }
-    pub fn dois(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.dois)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn keywords(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.keywords)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.dois).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.keywords).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct YearRange(pub kreuzberg::YearRange);
-
 impl YearRange {
-    pub fn min(&self) -> Option<u32> {
-        self.0.min.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn max(&self) -> Option<u32> {
-        self.0.max.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn years(&self) -> Vec<u32> {
-        ::serde_json::to_value(&self.0.years)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.min.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.max.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.years).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct FictionBookMetadata(pub kreuzberg::FictionBookMetadata);
-
 impl FictionBookMetadata {
     pub fn new(genres: Vec<String>, sequences: Vec<String>, annotation: Option<String>) -> FictionBookMetadata {
         let mut __target: kreuzberg::FictionBookMetadata = ::std::default::Default::default();
         if let Ok(__v) = ::serde_json::to_value(genres) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.genres = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.genres = t; }
         }
         if let Ok(__v) = ::serde_json::to_value(sequences) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.sequences = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.sequences = t; }
         }
         if let Some(s) = annotation {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.annotation = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.annotation = Some(t); }
             }
         }
         FictionBookMetadata(__target)
     }
-    pub fn genres(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.genres)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn sequences(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.sequences)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn annotation(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.genres).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.sequences).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.annotation.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct DbfMetadata(pub kreuzberg::DbfMetadata);
-
 impl DbfMetadata {
     pub fn new(record_count: usize, field_count: usize, fields: Vec<DbfFieldInfo>) -> DbfMetadata {
         let mut __target: kreuzberg::DbfMetadata = ::std::default::Default::default();
@@ -7981,189 +4064,104 @@ impl DbfMetadata {
         __target.fields = fields.into_iter().map(|w| w.0).collect();
         DbfMetadata(__target)
     }
-    pub fn record_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.record_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn field_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.field_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn fields(&self) -> Vec<DbfFieldInfo> {
+        ::serde_json::to_value(&self.0.record_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.field_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.fields.iter().map(|elem| DbfFieldInfo(elem.clone())).collect()
-    }
 }
 
 pub struct DbfFieldInfo(pub kreuzberg::DbfFieldInfo);
-
 impl DbfFieldInfo {
-    pub fn name(&self) -> String {
         serde_json::to_string(&self.0.name).unwrap_or_default()
-    }
-    pub fn field_type(&self) -> String {
         serde_json::to_string(&self.0.field_type).unwrap_or_default()
-    }
 }
 
 pub struct JatsMetadata(pub kreuzberg::JatsMetadata);
-
 impl JatsMetadata {
-    pub fn new(
-        copyright: Option<String>,
-        license: Option<String>,
-        history_dates: String,
-        contributor_roles: Vec<ContributorRole>,
-    ) -> JatsMetadata {
+    pub fn new(copyright: Option<String>, license: Option<String>, history_dates: String, contributor_roles: Vec<ContributorRole>) -> JatsMetadata {
         let mut __target: kreuzberg::JatsMetadata = ::std::default::Default::default();
         if let Some(s) = copyright {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.copyright = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.copyright = Some(t); }
             }
         }
         if let Some(s) = license {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.license = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.license = Some(t); }
             }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&history_dates) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.history_dates = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.history_dates = t; }
         }
         __target.contributor_roles = contributor_roles.into_iter().map(|w| w.0).collect();
         JatsMetadata(__target)
     }
-    pub fn copyright(&self) -> Option<String> {
         self.0.copyright.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn license(&self) -> Option<String> {
         self.0.license.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn history_dates(&self) -> String {
         serde_json::to_string(&self.0.history_dates).expect("serializable history_dates")
-    }
-    pub fn contributor_roles(&self) -> Vec<ContributorRole> {
-        self.0
-            .contributor_roles
-            .iter()
-            .map(|elem| ContributorRole(elem.clone()))
-            .collect()
-    }
+        self.0.contributor_roles.iter().map(|elem| ContributorRole(elem.clone())).collect()
 }
 
 pub struct ContributorRole(pub kreuzberg::ContributorRole);
-
 impl ContributorRole {
-    pub fn name(&self) -> String {
         serde_json::to_string(&self.0.name).unwrap_or_default()
-    }
-    pub fn role(&self) -> Option<String> {
         self.0.role.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct EpubMetadata(pub kreuzberg::EpubMetadata);
-
 impl EpubMetadata {
-    pub fn new(
-        coverage: Option<String>,
-        dc_format: Option<String>,
-        relation: Option<String>,
-        source: Option<String>,
-        dc_type: Option<String>,
-        cover_image: Option<String>,
-    ) -> EpubMetadata {
+    pub fn new(coverage: Option<String>, dc_format: Option<String>, relation: Option<String>, source: Option<String>, dc_type: Option<String>, cover_image: Option<String>) -> EpubMetadata {
         let mut __target: kreuzberg::EpubMetadata = ::std::default::Default::default();
         if let Some(s) = coverage {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.coverage = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.coverage = Some(t); }
             }
         }
         if let Some(s) = dc_format {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.dc_format = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.dc_format = Some(t); }
             }
         }
         if let Some(s) = relation {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.relation = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.relation = Some(t); }
             }
         }
         if let Some(s) = source {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.source = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.source = Some(t); }
             }
         }
         if let Some(s) = dc_type {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.dc_type = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.dc_type = Some(t); }
             }
         }
         if let Some(s) = cover_image {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cover_image = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cover_image = Some(t); }
             }
         }
         EpubMetadata(__target)
     }
-    pub fn coverage(&self) -> Option<String> {
         self.0.coverage.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn dc_format(&self) -> Option<String> {
         self.0.dc_format.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn relation(&self) -> Option<String> {
         self.0.relation.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn source(&self) -> Option<String> {
         self.0.source.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn dc_type(&self) -> Option<String> {
         self.0.dc_type.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn cover_image(&self) -> Option<String> {
         self.0.cover_image.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct PstMetadata(pub kreuzberg::PstMetadata);
-
 impl PstMetadata {
     pub fn new(message_count: usize) -> PstMetadata {
         let mut __target: kreuzberg::PstMetadata = ::std::default::Default::default();
         __target.message_count = message_count;
         PstMetadata(__target)
     }
-    pub fn message_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.message_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.message_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct OcrConfidence(pub kreuzberg::OcrConfidence);
-
 impl OcrConfidence {
     pub fn new(detection: Option<f64>, recognition: f64) -> OcrConfidence {
         let mut __target: kreuzberg::OcrConfidence = ::std::default::Default::default();
@@ -8171,117 +4169,51 @@ impl OcrConfidence {
         __target.recognition = recognition;
         OcrConfidence(__target)
     }
-    pub fn detection(&self) -> Option<f64> {
-        self.0.detection.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn recognition(&self) -> f64 {
-        ::serde_json::to_value(&self.0.recognition)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.detection.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.recognition).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct OcrRotation(pub kreuzberg::OcrRotation);
-
 impl OcrRotation {
-    pub fn angle_degrees(&self) -> f64 {
-        ::serde_json::to_value(&self.0.angle_degrees)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn confidence(&self) -> Option<f64> {
-        self.0.confidence.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        ::serde_json::to_value(&self.0.angle_degrees).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.confidence.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct OcrElement(pub kreuzberg::OcrElement);
-
 impl OcrElement {
-    pub fn new(
-        text: String,
-        geometry: OcrBoundingGeometry,
-        confidence: OcrConfidence,
-        level: OcrElementLevel,
-        rotation: Option<OcrRotation>,
-        page_number: usize,
-        parent_id: Option<String>,
-        backend_metadata: String,
-    ) -> OcrElement {
+    pub fn new(text: String, geometry: OcrBoundingGeometry, confidence: OcrConfidence, level: OcrElementLevel, rotation: Option<OcrRotation>, page_number: usize, parent_id: Option<String>, backend_metadata: String) -> OcrElement {
         let mut __target: kreuzberg::OcrElement = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&text) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.text = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.text = t; }
         }
         // alef: geometry (OcrBoundingGeometry) is an enum; reverse From not generated — left at default
         __target.confidence = confidence.0;
         // alef: level (OcrElementLevel) is an enum; reverse From not generated — left at default
-        if let Some(w) = rotation {
-            __target.rotation = Some(w.0);
-        }
+        if let Some(w) = rotation { __target.rotation = Some(w.0); }
         __target.page_number = page_number;
         if let Some(s) = parent_id {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.parent_id = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.parent_id = Some(t); }
             }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&backend_metadata) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.backend_metadata = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.backend_metadata = t; }
         }
         OcrElement(__target)
     }
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn geometry(&self) -> OcrBoundingGeometry {
         OcrBoundingGeometry::from(self.0.geometry.clone())
-    }
-    pub fn confidence(&self) -> OcrConfidence {
         OcrConfidence(self.0.confidence.clone())
-    }
-    pub fn level(&self) -> OcrElementLevel {
         OcrElementLevel::from(self.0.level.clone())
-    }
-    pub fn rotation(&self) -> Option<OcrRotation> {
         self.0.rotation.clone().map(OcrRotation)
-    }
-    pub fn page_number(&self) -> usize {
-        ::serde_json::to_value(&self.0.page_number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn parent_id(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.page_number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.parent_id.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn backend_metadata(&self) -> String {
         serde_json::to_string(&self.0.backend_metadata).expect("serializable backend_metadata")
-    }
 }
 
 pub struct OcrElementConfig(pub kreuzberg::OcrElementConfig);
-
 impl OcrElementConfig {
-    pub fn new(
-        include_elements: bool,
-        min_level: OcrElementLevel,
-        min_confidence: f64,
-        build_hierarchy: bool,
-    ) -> OcrElementConfig {
+    pub fn new(include_elements: bool, min_level: OcrElementLevel, min_confidence: f64, build_hierarchy: bool) -> OcrElementConfig {
         let mut __target: kreuzberg::OcrElementConfig = ::std::default::Default::default();
         __target.include_elements = include_elements;
         // alef: min_level (OcrElementLevel) is an enum; reverse From not generated — left at default
@@ -8289,353 +4221,132 @@ impl OcrElementConfig {
         __target.build_hierarchy = build_hierarchy;
         OcrElementConfig(__target)
     }
-    pub fn include_elements(&self) -> bool {
-        ::serde_json::to_value(&self.0.include_elements)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_level(&self) -> OcrElementLevel {
+        ::serde_json::to_value(&self.0.include_elements).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         OcrElementLevel::from(self.0.min_level.clone())
-    }
-    pub fn min_confidence(&self) -> f64 {
-        ::serde_json::to_value(&self.0.min_confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn build_hierarchy(&self) -> bool {
-        ::serde_json::to_value(&self.0.build_hierarchy)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.min_confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.build_hierarchy).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct PageStructure(pub kreuzberg::PageStructure);
-
 impl PageStructure {
-    pub fn total_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.total_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn unit_type(&self) -> PageUnitType {
+        ::serde_json::to_value(&self.0.total_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         PageUnitType::from(self.0.unit_type.clone())
-    }
-    pub fn boundaries(&self) -> Option<Vec<PageBoundary>> {
-        self.0
-            .boundaries
-            .as_ref()
-            .map(|v| v.iter().map(|elem| PageBoundary(elem.clone())).collect())
-    }
-    pub fn pages(&self) -> Option<Vec<PageInfo>> {
-        self.0
-            .pages
-            .as_ref()
-            .map(|v| v.iter().map(|elem| PageInfo(elem.clone())).collect())
-    }
+        self.0.boundaries.as_ref().map(|v| v.iter().map(|elem| PageBoundary(elem.clone())).collect())
+        self.0.pages.as_ref().map(|v| v.iter().map(|elem| PageInfo(elem.clone())).collect())
 }
 
 pub struct PageBoundary(pub kreuzberg::PageBoundary);
-
 impl PageBoundary {
-    pub fn byte_start(&self) -> usize {
-        ::serde_json::to_value(&self.0.byte_start)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn byte_end(&self) -> usize {
-        ::serde_json::to_value(&self.0.byte_end)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn page_number(&self) -> usize {
-        ::serde_json::to_value(&self.0.page_number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.byte_start).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.byte_end).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.page_number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct PageInfo(pub kreuzberg::PageInfo);
-
 impl PageInfo {
-    pub fn number(&self) -> usize {
-        ::serde_json::to_value(&self.0.number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn title(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.title.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn dimensions(&self) -> Option<Vec<f64>> {
-        self.0.dimensions.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn image_count(&self) -> Option<usize> {
-        self.0.image_count.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn table_count(&self) -> Option<usize> {
-        self.0.table_count.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn hidden(&self) -> Option<bool> {
-        self.0.hidden.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn is_blank(&self) -> Option<bool> {
-        self.0.is_blank.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn has_vector_graphics(&self) -> bool {
-        ::serde_json::to_value(&self.0.has_vector_graphics)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        self.0.dimensions.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.image_count.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.table_count.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.hidden.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.is_blank.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        ::serde_json::to_value(&self.0.has_vector_graphics).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct PageContent(pub kreuzberg::PageContent);
-
 impl PageContent {
-    pub fn page_number(&self) -> usize {
-        ::serde_json::to_value(&self.0.page_number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn content(&self) -> String {
+        ::serde_json::to_value(&self.0.page_number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn tables(&self) -> Vec<Table> {
         self.0.tables.iter().map(|elem| Table((**elem).clone())).collect()
-    }
-    pub fn images(&self) -> Vec<ExtractedImage> {
-        self.0
-            .images
-            .iter()
-            .map(|elem| ExtractedImage((**elem).clone()))
-            .collect()
-    }
-    pub fn hierarchy(&self) -> Option<PageHierarchy> {
+        self.0.images.iter().map(|elem| ExtractedImage((**elem).clone())).collect()
         self.0.hierarchy.clone().map(PageHierarchy)
-    }
-    pub fn is_blank(&self) -> Option<bool> {
-        self.0.is_blank.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn layout_regions(&self) -> Option<Vec<LayoutRegion>> {
-        self.0
-            .layout_regions
-            .as_ref()
-            .map(|v| v.iter().map(|elem| LayoutRegion(elem.clone())).collect())
-    }
+        self.0.is_blank.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.layout_regions.as_ref().map(|v| v.iter().map(|elem| LayoutRegion(elem.clone())).collect())
 }
 
 pub struct LayoutRegion(pub kreuzberg::LayoutRegion);
-
 impl LayoutRegion {
     pub fn new(class_name: String, confidence: f64, bounding_box: String, area_fraction: f64) -> LayoutRegion {
         let mut __target: kreuzberg::LayoutRegion = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&class_name) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.class_name = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.class_name = t; }
         }
         __target.confidence = confidence;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&bounding_box) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.bounding_box = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.bounding_box = t; }
         }
         __target.area_fraction = area_fraction;
         LayoutRegion(__target)
     }
-    pub fn class_name(&self) -> String {
         serde_json::to_string(&self.0.class_name).unwrap_or_default()
-    }
-    pub fn confidence(&self) -> f64 {
-        ::serde_json::to_value(&self.0.confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bounding_box(&self) -> String {
+        ::serde_json::to_value(&self.0.confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.bounding_box).unwrap_or_default()
-    }
-    pub fn area_fraction(&self) -> f64 {
-        ::serde_json::to_value(&self.0.area_fraction)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.area_fraction).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct PageHierarchy(pub kreuzberg::PageHierarchy);
-
 impl PageHierarchy {
-    pub fn block_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.block_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn blocks(&self) -> Vec<HierarchicalBlock> {
-        self.0
-            .blocks
-            .iter()
-            .map(|elem| HierarchicalBlock(elem.clone()))
-            .collect()
-    }
+        ::serde_json::to_value(&self.0.block_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.blocks.iter().map(|elem| HierarchicalBlock(elem.clone())).collect()
 }
 
 pub struct HierarchicalBlock(pub kreuzberg::HierarchicalBlock);
-
 impl HierarchicalBlock {
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn font_size(&self) -> f32 {
-        ::serde_json::to_value(&self.0.font_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn level(&self) -> String {
+        ::serde_json::to_value(&self.0.font_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.level).unwrap_or_default()
-    }
-    pub fn bbox(&self) -> Option<Vec<f32>> {
-        self.0.bbox.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.bbox.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct Table(pub kreuzberg::Table);
-
 impl Table {
     pub fn new(cells: String, markdown: String, page_number: usize, bounding_box: Option<String>) -> Table {
         let mut __target: kreuzberg::Table = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&cells) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.cells = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.cells = t; }
         }
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&markdown) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.markdown = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.markdown = t; }
         }
         __target.page_number = page_number;
         if let Some(s) = bounding_box {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.bounding_box = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.bounding_box = Some(t); }
             }
         }
         Table(__target)
     }
-    pub fn cells(&self) -> String {
         serde_json::to_string(&self.0.cells).expect("serializable cells")
-    }
-    pub fn markdown(&self) -> String {
         serde_json::to_string(&self.0.markdown).unwrap_or_default()
-    }
-    pub fn page_number(&self) -> usize {
-        ::serde_json::to_value(&self.0.page_number)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bounding_box(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.page_number).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.bounding_box.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct TableCell(pub kreuzberg::TableCell);
-
 impl TableCell {
     pub fn new(content: String, row_span: usize, col_span: usize, is_header: bool) -> TableCell {
         let mut __target: kreuzberg::TableCell = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&content) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.content = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.content = t; }
         }
         __target.row_span = row_span;
         __target.col_span = col_span;
         __target.is_header = is_header;
         TableCell(__target)
     }
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn row_span(&self) -> usize {
-        ::serde_json::to_value(&self.0.row_span)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn col_span(&self) -> usize {
-        ::serde_json::to_value(&self.0.col_span)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn is_header(&self) -> bool {
-        ::serde_json::to_value(&self.0.is_header)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.row_span).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.col_span).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.is_header).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct Uri(pub kreuzberg::Uri);
-
 impl Uri {
-    pub fn url(&self) -> String {
         serde_json::to_string(&self.0.url).unwrap_or_default()
-    }
-    pub fn label(&self) -> Option<String> {
         self.0.label.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn page(&self) -> Option<u32> {
-        self.0.page.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn kind(&self) -> UriKind {
+        self.0.page.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         UriKind::from(self.0.kind.clone())
-    }
 }
 
 pub struct StringBufferPool(pub kreuzberg::utils::pool::StringBufferPool);
@@ -8647,440 +4358,175 @@ pub struct TracingLayer(pub kreuzberg::service::layers::tracing::TracingLayer);
 pub struct ApiDoc(pub kreuzberg::api::openapi::ApiDoc);
 
 pub struct InfoResponse(pub kreuzberg::api::InfoResponse);
-
 impl InfoResponse {
-    pub fn version(&self) -> String {
         serde_json::to_string(&self.0.version).unwrap_or_default()
-    }
-    pub fn rust_backend(&self) -> bool {
-        ::serde_json::to_value(&self.0.rust_backend)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.rust_backend).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ExtractResponse(pub kreuzberg::api::ExtractResponse);
 
 pub struct EmbedRequest(pub kreuzberg::api::EmbedRequest);
-
 impl EmbedRequest {
-    pub fn texts(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.texts)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn config(&self) -> Option<EmbeddingConfig> {
+        ::serde_json::to_value(&self.0.texts).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.config.clone().map(EmbeddingConfig)
-    }
 }
 
 pub struct EmbedResponse(pub kreuzberg::api::EmbedResponse);
-
 impl EmbedResponse {
-    pub fn embeddings(&self) -> String {
         serde_json::to_string(&self.0.embeddings).expect("serializable embeddings")
-    }
-    pub fn model(&self) -> String {
         serde_json::to_string(&self.0.model).unwrap_or_default()
-    }
-    pub fn dimensions(&self) -> usize {
-        ::serde_json::to_value(&self.0.dimensions)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn count(&self) -> usize {
-        ::serde_json::to_value(&self.0.count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.dimensions).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ChunkRequest(pub kreuzberg::api::ChunkRequest);
-
 impl ChunkRequest {
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn config(&self) -> Option<String> {
         self.0.config.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn chunker_type(&self) -> String {
         serde_json::to_string(&self.0.chunker_type).unwrap_or_default()
-    }
 }
 
 pub struct ChunkResponse(pub kreuzberg::api::ChunkResponse);
-
 impl ChunkResponse {
-    pub fn chunks(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.chunks)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn chunk_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.chunk_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn config(&self) -> String {
+        ::serde_json::to_value(&self.0.chunks).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.chunk_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.config).unwrap_or_default()
-    }
-    pub fn input_size_bytes(&self) -> usize {
-        ::serde_json::to_value(&self.0.input_size_bytes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn chunker_type(&self) -> String {
+        ::serde_json::to_value(&self.0.input_size_bytes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.chunker_type).unwrap_or_default()
-    }
 }
 
 pub struct DetectResponse(pub kreuzberg::api::DetectResponse);
-
 impl DetectResponse {
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
-    pub fn filename(&self) -> Option<String> {
         self.0.filename.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
 }
 
 pub struct ManifestEntryResponse(pub kreuzberg::api::ManifestEntryResponse);
-
 impl ManifestEntryResponse {
-    pub fn relative_path(&self) -> String {
         serde_json::to_string(&self.0.relative_path).unwrap_or_default()
-    }
-    pub fn sha256(&self) -> String {
         serde_json::to_string(&self.0.sha256).unwrap_or_default()
-    }
-    pub fn size_bytes(&self) -> u64 {
-        ::serde_json::to_value(&self.0.size_bytes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn source_url(&self) -> String {
+        ::serde_json::to_value(&self.0.size_bytes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.source_url).unwrap_or_default()
-    }
 }
 
 pub struct ManifestResponse(pub kreuzberg::api::ManifestResponse);
-
 impl ManifestResponse {
-    pub fn kreuzberg_version(&self) -> String {
         serde_json::to_string(&self.0.kreuzberg_version).unwrap_or_default()
-    }
-    pub fn total_size_bytes(&self) -> u64 {
-        ::serde_json::to_value(&self.0.total_size_bytes)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn model_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.model_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn models(&self) -> Vec<ManifestEntryResponse> {
-        self.0
-            .models
-            .iter()
-            .map(|elem| ManifestEntryResponse(elem.clone()))
-            .collect()
-    }
+        ::serde_json::to_value(&self.0.total_size_bytes).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.model_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.models.iter().map(|elem| ManifestEntryResponse(elem.clone())).collect()
 }
 
 pub struct WarmResponse(pub kreuzberg::api::WarmResponse);
-
 impl WarmResponse {
-    pub fn cache_dir(&self) -> String {
         serde_json::to_string(&self.0.cache_dir).unwrap_or_default()
-    }
-    pub fn downloaded(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.downloaded)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn already_cached(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.already_cached)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.downloaded).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.already_cached).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct StructuredExtractionResponse(pub kreuzberg::api::StructuredExtractionResponse);
-
 impl StructuredExtractionResponse {
-    pub fn structured_output(&self) -> String {
         serde_json::to_string(&self.0.structured_output).unwrap_or_default()
-    }
-    pub fn content(&self) -> String {
         serde_json::to_string(&self.0.content).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> String {
         serde_json::to_string(&self.0.mime_type).unwrap_or_default()
-    }
 }
 
 pub struct OpenWebDocumentResponse(pub kreuzberg::api::OpenWebDocumentResponse);
-
 impl OpenWebDocumentResponse {
-    pub fn page_content(&self) -> String {
         serde_json::to_string(&self.0.page_content).unwrap_or_default()
-    }
-    pub fn metadata(&self) -> String {
         serde_json::to_string(&self.0.metadata).unwrap_or_default()
-    }
 }
 
 pub struct DoclingCompatResponse(pub kreuzberg::api::DoclingCompatResponse);
-
 impl DoclingCompatResponse {
-    pub fn document(&self) -> String {
         serde_json::to_string(&self.0.document).unwrap_or_default()
-    }
-    pub fn status(&self) -> String {
         serde_json::to_string(&self.0.status).unwrap_or_default()
-    }
 }
 
 pub struct DetectMimeTypeParams(pub kreuzberg::mcp::DetectMimeTypeParams);
-
 impl DetectMimeTypeParams {
-    pub fn path(&self) -> String {
         serde_json::to_string(&self.0.path).unwrap_or_default()
-    }
-    pub fn use_content(&self) -> bool {
-        ::serde_json::to_value(&self.0.use_content)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.use_content).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct CacheWarmParams(pub kreuzberg::mcp::CacheWarmParams);
-
 impl CacheWarmParams {
-    pub fn all_embeddings(&self) -> bool {
-        ::serde_json::to_value(&self.0.all_embeddings)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn embedding_model(&self) -> Option<String> {
-        self.0
-            .embedding_model
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
+        ::serde_json::to_value(&self.0.all_embeddings).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.embedding_model.as_ref().and_then(|v| serde_json::to_string(v).ok())
 }
 
 pub struct EmbedTextParams(pub kreuzberg::mcp::EmbedTextParams);
-
 impl EmbedTextParams {
-    pub fn texts(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.texts)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn preset(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.texts).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.preset.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn model(&self) -> Option<String> {
         self.0.model.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn api_key(&self) -> Option<String> {
         self.0.api_key.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn embedding_plugin(&self) -> Option<String> {
-        self.0
-            .embedding_plugin
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
+        self.0.embedding_plugin.as_ref().and_then(|v| serde_json::to_string(v).ok())
 }
 
 pub struct ExtractStructuredParams(pub kreuzberg::mcp::ExtractStructuredParams);
-
 impl ExtractStructuredParams {
-    pub fn path(&self) -> String {
         serde_json::to_string(&self.0.path).unwrap_or_default()
-    }
-    pub fn schema(&self) -> String {
         serde_json::to_string(&self.0.schema).unwrap_or_default()
-    }
-    pub fn model(&self) -> String {
         serde_json::to_string(&self.0.model).unwrap_or_default()
-    }
-    pub fn schema_name(&self) -> String {
         serde_json::to_string(&self.0.schema_name).unwrap_or_default()
-    }
-    pub fn schema_description(&self) -> Option<String> {
-        self.0
-            .schema_description
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn prompt(&self) -> Option<String> {
+        self.0.schema_description.as_ref().and_then(|v| serde_json::to_string(v).ok())
         self.0.prompt.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn api_key(&self) -> Option<String> {
         self.0.api_key.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn strict(&self) -> bool {
-        ::serde_json::to_value(&self.0.strict)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.strict).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ChunkTextParams(pub kreuzberg::mcp::ChunkTextParams);
-
 impl ChunkTextParams {
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn max_characters(&self) -> Option<usize> {
-        self.0.max_characters.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn overlap(&self) -> Option<usize> {
-        self.0.overlap.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
-    pub fn chunker_type(&self) -> Option<String> {
+        self.0.max_characters.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
+        self.0.overlap.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
         self.0.chunker_type.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn topic_threshold(&self) -> Option<f32> {
-        self.0.topic_threshold.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.topic_threshold.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct DetectedBoundary(pub kreuzberg::chunking::boundary_detection::DetectedBoundary);
-
 impl DetectedBoundary {
-    pub fn byte_offset(&self) -> usize {
-        ::serde_json::to_value(&self.0.byte_offset)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn is_header(&self) -> bool {
-        ::serde_json::to_value(&self.0.is_header)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.byte_offset).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.is_header).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct ChunkingResult(pub kreuzberg::chunking::ChunkingResult);
-
 impl ChunkingResult {
-    pub fn chunks(&self) -> Vec<Chunk> {
         self.0.chunks.iter().map(|elem| Chunk(elem.clone())).collect()
-    }
-    pub fn chunk_count(&self) -> usize {
-        ::serde_json::to_value(&self.0.chunk_count)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.chunk_count).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct MergedChunk(pub kreuzberg::chunking::semantic::merge::MergedChunk);
-
 impl MergedChunk {
-    pub fn text(&self) -> String {
         format!("{:?}", &self.0.text)
-    }
-    pub fn byte_start(&self) -> usize {
         self.0.byte_start.clone()
-    }
-    pub fn byte_end(&self) -> usize {
         self.0.byte_end.clone()
-    }
 }
 
 pub struct EmbeddingPreset(pub kreuzberg::EmbeddingPreset);
-
 impl EmbeddingPreset {
-    pub fn name(&self) -> String {
         serde_json::to_string(&self.0.name).unwrap_or_default()
-    }
-    pub fn chunk_size(&self) -> usize {
-        ::serde_json::to_value(&self.0.chunk_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn overlap(&self) -> usize {
-        ::serde_json::to_value(&self.0.overlap)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn model_repo(&self) -> String {
+        ::serde_json::to_value(&self.0.chunk_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.overlap).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.model_repo).unwrap_or_default()
-    }
-    pub fn pooling(&self) -> String {
         serde_json::to_string(&self.0.pooling).unwrap_or_default()
-    }
-    pub fn model_file(&self) -> String {
         serde_json::to_string(&self.0.model_file).unwrap_or_default()
-    }
-    pub fn dimensions(&self) -> usize {
-        ::serde_json::to_value(&self.0.dimensions)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn description(&self) -> String {
+        ::serde_json::to_value(&self.0.dimensions).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.description).unwrap_or_default()
-    }
 }
 
 pub struct YakeParams(pub kreuzberg::YakeParams);
-
 impl YakeParams {
     pub fn new(window_size: usize) -> YakeParams {
         let mut __target: kreuzberg::YakeParams = ::std::default::Default::default();
         __target.window_size = window_size;
         YakeParams(__target)
     }
-    pub fn window_size(&self) -> usize {
-        ::serde_json::to_value(&self.0.window_size)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.window_size).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct RakeParams(pub kreuzberg::RakeParams);
-
 impl RakeParams {
     pub fn new(min_word_length: usize, max_words_per_phrase: usize) -> RakeParams {
         let mut __target: kreuzberg::RakeParams = ::std::default::Default::default();
@@ -9088,114 +4534,47 @@ impl RakeParams {
         __target.max_words_per_phrase = max_words_per_phrase;
         RakeParams(__target)
     }
-    pub fn min_word_length(&self) -> usize {
-        ::serde_json::to_value(&self.0.min_word_length)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn max_words_per_phrase(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_words_per_phrase)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.min_word_length).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.max_words_per_phrase).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct KeywordConfig(pub kreuzberg::KeywordConfig);
-
 impl KeywordConfig {
-    pub fn new(
-        algorithm: KeywordAlgorithm,
-        max_keywords: usize,
-        min_score: f32,
-        ngram_range: Vec<usize>,
-        language: Option<String>,
-        yake_params: Option<YakeParams>,
-        rake_params: Option<RakeParams>,
-    ) -> KeywordConfig {
+    pub fn new(algorithm: KeywordAlgorithm, max_keywords: usize, min_score: f32, ngram_range: Vec<usize>, language: Option<String>, yake_params: Option<YakeParams>, rake_params: Option<RakeParams>) -> KeywordConfig {
         let mut __target: kreuzberg::KeywordConfig = ::std::default::Default::default();
         // alef: algorithm (KeywordAlgorithm) is an enum; reverse From not generated — left at default
         __target.max_keywords = max_keywords;
         __target.min_score = min_score;
         if let Ok(__v) = ::serde_json::to_value(ngram_range) {
-            if let Ok(t) = ::serde_json::from_value(__v) {
-                __target.ngram_range = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(__v) { __target.ngram_range = t; }
         }
         if let Some(s) = language {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.language = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.language = Some(t); }
             }
         }
-        if let Some(w) = yake_params {
-            __target.yake_params = Some(w.0);
-        }
-        if let Some(w) = rake_params {
-            __target.rake_params = Some(w.0);
-        }
+        if let Some(w) = yake_params { __target.yake_params = Some(w.0); }
+        if let Some(w) = rake_params { __target.rake_params = Some(w.0); }
         KeywordConfig(__target)
     }
-    pub fn algorithm(&self) -> KeywordAlgorithm {
         KeywordAlgorithm::from(self.0.algorithm.clone())
-    }
-    pub fn max_keywords(&self) -> usize {
-        ::serde_json::to_value(&self.0.max_keywords)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn min_score(&self) -> f32 {
-        ::serde_json::to_value(&self.0.min_score)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn ngram_range(&self) -> Vec<usize> {
-        ::serde_json::to_value(&self.0.ngram_range)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn language(&self) -> Option<String> {
+        ::serde_json::to_value(&self.0.max_keywords).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.min_score).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.ngram_range).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         self.0.language.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn yake_params(&self) -> Option<YakeParams> {
         self.0.yake_params.clone().map(YakeParams)
-    }
-    pub fn rake_params(&self) -> Option<RakeParams> {
         self.0.rake_params.clone().map(RakeParams)
-    }
 }
 
 pub struct Keyword(pub kreuzberg::Keyword);
-
 impl Keyword {
-    pub fn text(&self) -> String {
         serde_json::to_string(&self.0.text).unwrap_or_default()
-    }
-    pub fn score(&self) -> f32 {
-        ::serde_json::to_value(&self.0.score)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn algorithm(&self) -> KeywordAlgorithm {
+        ::serde_json::to_value(&self.0.score).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         KeywordAlgorithm::from(self.0.algorithm.clone())
-    }
-    pub fn positions(&self) -> Option<Vec<usize>> {
-        self.0.positions.as_ref().and_then(|v| {
-            ::serde_json::to_value(v)
-                .ok()
-                .and_then(|j| ::serde_json::from_value(j).ok())
-        })
-    }
+        self.0.positions.as_ref().and_then(|v| ::serde_json::to_value(v).ok().and_then(|j| ::serde_json::from_value(j).ok()))
 }
 
 pub struct OcrCacheStats(pub kreuzberg::ocr::OcrCacheStats);
-
 impl OcrCacheStats {
     pub fn new(total_files: usize, total_size_mb: f64) -> OcrCacheStats {
         OcrCacheStats(kreuzberg::ocr::OcrCacheStats {
@@ -9203,58 +4582,29 @@ impl OcrCacheStats {
             total_size_mb,
         })
     }
-    pub fn total_files(&self) -> usize {
         self.0.total_files.clone()
-    }
-    pub fn total_size_mb(&self) -> f64 {
         self.0.total_size_mb.clone()
-    }
 }
 
 pub struct RecognizedTable(pub kreuzberg::RecognizedTable);
-
 impl RecognizedTable {
-    pub fn detection_bbox(&self) -> BBox {
         BBox(self.0.detection_bbox.clone())
-    }
-    pub fn cells(&self) -> String {
         serde_json::to_string(&self.0.cells).expect("serializable cells")
-    }
-    pub fn markdown(&self) -> String {
         serde_json::to_string(&self.0.markdown).unwrap_or_default()
-    }
 }
 
 pub struct TessdataManager(pub kreuzberg::ocr::TessdataManager);
 
 pub struct PaddleOcrConfig(pub kreuzberg::PaddleOcrConfig);
-
 impl PaddleOcrConfig {
-    pub fn new(
-        language: String,
-        cache_dir: Option<String>,
-        use_angle_cls: bool,
-        enable_table_detection: bool,
-        det_db_thresh: f32,
-        det_db_box_thresh: f32,
-        det_db_unclip_ratio: f32,
-        det_limit_side_len: u32,
-        rec_batch_num: u32,
-        padding: u32,
-        drop_score: f32,
-        model_tier: String,
-    ) -> PaddleOcrConfig {
+    pub fn new(language: String, cache_dir: Option<String>, use_angle_cls: bool, enable_table_detection: bool, det_db_thresh: f32, det_db_box_thresh: f32, det_db_unclip_ratio: f32, det_limit_side_len: u32, rec_batch_num: u32, padding: u32, drop_score: f32, model_tier: String) -> PaddleOcrConfig {
         let mut __target: kreuzberg::PaddleOcrConfig = ::std::default::Default::default();
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&language) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.language = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.language = t; }
         }
         if let Some(s) = cache_dir {
             if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.cache_dir = Some(t);
-                }
+                if let Ok(t) = ::serde_json::from_value(v) { __target.cache_dir = Some(t); }
             }
         }
         __target.use_angle_cls = use_angle_cls;
@@ -9267,222 +4617,95 @@ impl PaddleOcrConfig {
         __target.padding = padding;
         __target.drop_score = drop_score;
         if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&model_tier) {
-            if let Ok(t) = ::serde_json::from_value(v) {
-                __target.model_tier = t;
-            }
+            if let Ok(t) = ::serde_json::from_value(v) { __target.model_tier = t; }
         }
         PaddleOcrConfig(__target)
     }
-    pub fn language(&self) -> String {
         serde_json::to_string(&self.0.language).unwrap_or_default()
-    }
-    pub fn cache_dir(&self) -> Option<String> {
         self.0.cache_dir.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn use_angle_cls(&self) -> bool {
-        ::serde_json::to_value(&self.0.use_angle_cls)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn enable_table_detection(&self) -> bool {
-        ::serde_json::to_value(&self.0.enable_table_detection)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn det_db_thresh(&self) -> f32 {
-        ::serde_json::to_value(&self.0.det_db_thresh)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn det_db_box_thresh(&self) -> f32 {
-        ::serde_json::to_value(&self.0.det_db_box_thresh)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn det_db_unclip_ratio(&self) -> f32 {
-        ::serde_json::to_value(&self.0.det_db_unclip_ratio)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn det_limit_side_len(&self) -> u32 {
-        ::serde_json::to_value(&self.0.det_limit_side_len)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn rec_batch_num(&self) -> u32 {
-        ::serde_json::to_value(&self.0.rec_batch_num)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn padding(&self) -> u32 {
-        ::serde_json::to_value(&self.0.padding)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn drop_score(&self) -> f32 {
-        ::serde_json::to_value(&self.0.drop_score)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn model_tier(&self) -> String {
+        ::serde_json::to_value(&self.0.use_angle_cls).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.enable_table_detection).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.det_db_thresh).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.det_db_box_thresh).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.det_db_unclip_ratio).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.det_limit_side_len).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.rec_batch_num).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.padding).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.drop_score).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         serde_json::to_string(&self.0.model_tier).unwrap_or_default()
-    }
 }
 
 pub struct ModelPaths(pub kreuzberg::ModelPaths);
-
 impl ModelPaths {
-    pub fn det_model(&self) -> String {
         serde_json::to_string(&self.0.det_model).unwrap_or_default()
-    }
-    pub fn cls_model(&self) -> String {
         serde_json::to_string(&self.0.cls_model).unwrap_or_default()
-    }
-    pub fn rec_model(&self) -> String {
         serde_json::to_string(&self.0.rec_model).unwrap_or_default()
-    }
-    pub fn dict_file(&self) -> String {
         serde_json::to_string(&self.0.dict_file).unwrap_or_default()
-    }
 }
 
 pub struct OrientationResult(pub kreuzberg::OrientationResult);
-
 impl OrientationResult {
-    pub fn degrees(&self) -> u32 {
-        ::serde_json::to_value(&self.0.degrees)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn confidence(&self) -> f32 {
-        ::serde_json::to_value(&self.0.confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.degrees).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct BBox(pub kreuzberg::BBox);
-
 impl BBox {
-    pub fn x1(&self) -> f32 {
-        ::serde_json::to_value(&self.0.x1)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn y1(&self) -> f32 {
-        ::serde_json::to_value(&self.0.y1)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn x2(&self) -> f32 {
-        ::serde_json::to_value(&self.0.x2)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn y2(&self) -> f32 {
-        ::serde_json::to_value(&self.0.y2)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
+        ::serde_json::to_value(&self.0.x1).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.y1).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.x2).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.y2).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
 }
 
 pub struct LayoutDetection(pub kreuzberg::LayoutDetection);
-
 impl LayoutDetection {
-    pub fn class_name(&self) -> LayoutClass {
         LayoutClass::from(self.0.class_name.clone())
-    }
-    pub fn confidence(&self) -> f32 {
-        ::serde_json::to_value(&self.0.confidence)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn bbox(&self) -> BBox {
+        ::serde_json::to_value(&self.0.confidence).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
         BBox(self.0.bbox.clone())
-    }
 }
 
 pub struct DetectionResult(pub kreuzberg::DetectionResult);
-
 impl DetectionResult {
-    pub fn page_width(&self) -> u32 {
-        ::serde_json::to_value(&self.0.page_width)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn page_height(&self) -> u32 {
-        ::serde_json::to_value(&self.0.page_height)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn detections(&self) -> Vec<LayoutDetection> {
-        self.0
-            .detections
-            .iter()
-            .map(|elem| LayoutDetection(elem.clone()))
-            .collect()
-    }
+        ::serde_json::to_value(&self.0.page_width).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        ::serde_json::to_value(&self.0.page_height).ok().and_then(|j| ::serde_json::from_value(j).ok()).unwrap_or_default()
+        self.0.detections.iter().map(|elem| LayoutDetection(elem.clone())).collect()
 }
 
 pub struct EmbeddedFile(pub kreuzberg::pdf::embedded_files::EmbeddedFile);
-
 impl EmbeddedFile {
-    pub fn name(&self) -> String {
         format!("{:?}", &self.0.name)
-    }
-    pub fn data(&self) -> Vec<u8> {
         self.0.data.to_vec()
-    }
-    pub fn mime_type(&self) -> Option<String> {
         self.0.mime_type.as_ref().map(|v| format!("{v:?}"))
-    }
 }
 
 pub enum ExecutionProviderType {
-    Auto,
-    Cpu,
-    CoreMl,
-    Cuda,
-    TensorRt,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ExecutionProviderType> for ExecutionProviderType {
     fn from(val: kreuzberg::ExecutionProviderType) -> Self {
         match val {
-            kreuzberg::ExecutionProviderType::Auto => Self::Auto,
-            kreuzberg::ExecutionProviderType::Cpu => Self::Cpu,
-            kreuzberg::ExecutionProviderType::CoreMl => Self::CoreMl,
-            kreuzberg::ExecutionProviderType::Cuda => Self::Cuda,
-            kreuzberg::ExecutionProviderType::TensorRt => Self::TensorRt,
+        match val {
+            kreuzberg::ExecutionProviderType:: => Self::,
+            kreuzberg::ExecutionProviderType:: => Self::,
+            kreuzberg::ExecutionProviderType:: => Self::,
+            kreuzberg::ExecutionProviderType:: => Self::,
+            kreuzberg::ExecutionProviderType:: => Self::,
         }
     }
 }
 
 pub enum OutputFormat {
-    Plain,
-    Markdown,
-    Djot,
-    Html,
-    Json,
-    Structured,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
     /// Data variants not directly bridgeable — represented as Unknown.
     Unknown,
 }
@@ -9490,79 +4713,83 @@ pub enum OutputFormat {
 impl From<kreuzberg::OutputFormat> for OutputFormat {
     fn from(val: kreuzberg::OutputFormat) -> Self {
         match val {
-            kreuzberg::OutputFormat::Plain => Self::Plain,
-            kreuzberg::OutputFormat::Markdown => Self::Markdown,
-            kreuzberg::OutputFormat::Djot => Self::Djot,
-            kreuzberg::OutputFormat::Html => Self::Html,
-            kreuzberg::OutputFormat::Json => Self::Json,
-            kreuzberg::OutputFormat::Structured => Self::Structured,
+        match val {
+            kreuzberg::OutputFormat:: => Self::,
+            kreuzberg::OutputFormat:: => Self::,
+            kreuzberg::OutputFormat:: => Self::,
+            kreuzberg::OutputFormat:: => Self::,
+            kreuzberg::OutputFormat:: => Self::,
+            kreuzberg::OutputFormat:: => Self::,
             _ => Self::Unknown,
         }
     }
 }
 
 pub enum HtmlTheme {
-    Default,
-    GitHub,
-    Dark,
-    Light,
-    Unstyled,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::HtmlTheme> for HtmlTheme {
     fn from(val: kreuzberg::HtmlTheme) -> Self {
         match val {
-            kreuzberg::HtmlTheme::Default => Self::Default,
-            kreuzberg::HtmlTheme::GitHub => Self::GitHub,
-            kreuzberg::HtmlTheme::Dark => Self::Dark,
-            kreuzberg::HtmlTheme::Light => Self::Light,
-            kreuzberg::HtmlTheme::Unstyled => Self::Unstyled,
+        match val {
+            kreuzberg::HtmlTheme:: => Self::,
+            kreuzberg::HtmlTheme:: => Self::,
+            kreuzberg::HtmlTheme:: => Self::,
+            kreuzberg::HtmlTheme:: => Self::,
+            kreuzberg::HtmlTheme:: => Self::,
         }
     }
 }
 
 pub enum TableModel {
-    Tatr,
-    SlanetWired,
-    SlanetWireless,
-    SlanetPlus,
-    SlanetAuto,
-    Disabled,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::TableModel> for TableModel {
     fn from(val: kreuzberg::TableModel) -> Self {
         match val {
-            kreuzberg::TableModel::Tatr => Self::Tatr,
-            kreuzberg::TableModel::SlanetWired => Self::SlanetWired,
-            kreuzberg::TableModel::SlanetWireless => Self::SlanetWireless,
-            kreuzberg::TableModel::SlanetPlus => Self::SlanetPlus,
-            kreuzberg::TableModel::SlanetAuto => Self::SlanetAuto,
-            kreuzberg::TableModel::Disabled => Self::Disabled,
+        match val {
+            kreuzberg::TableModel:: => Self::,
+            kreuzberg::TableModel:: => Self::,
+            kreuzberg::TableModel:: => Self::,
+            kreuzberg::TableModel:: => Self::,
+            kreuzberg::TableModel:: => Self::,
+            kreuzberg::TableModel:: => Self::,
         }
     }
 }
 
 pub enum ChunkerType {
-    Text,
-    Markdown,
-    Yaml,
-    Semantic,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ChunkerType> for ChunkerType {
     fn from(val: kreuzberg::ChunkerType) -> Self {
         match val {
-            kreuzberg::ChunkerType::Text => Self::Text,
-            kreuzberg::ChunkerType::Markdown => Self::Markdown,
-            kreuzberg::ChunkerType::Yaml => Self::Yaml,
-            kreuzberg::ChunkerType::Semantic => Self::Semantic,
+        match val {
+            kreuzberg::ChunkerType:: => Self::,
+            kreuzberg::ChunkerType:: => Self::,
+            kreuzberg::ChunkerType:: => Self::,
+            kreuzberg::ChunkerType:: => Self::,
         }
     }
 }
 
 pub enum ChunkSizing {
-    Characters,
+            :: => Self::,
     /// Data variants not directly bridgeable — represented as Unknown.
     Unknown,
 }
@@ -9570,7 +4797,8 @@ pub enum ChunkSizing {
 impl From<kreuzberg::ChunkSizing> for ChunkSizing {
     fn from(val: kreuzberg::ChunkSizing) -> Self {
         match val {
-            kreuzberg::ChunkSizing::Characters => Self::Characters,
+        match val {
+            kreuzberg::ChunkSizing:: => Self::,
             _ => Self::Unknown,
         }
     }
@@ -9584,253 +4812,264 @@ pub enum EmbeddingModelType {
 impl From<kreuzberg::EmbeddingModelType> for EmbeddingModelType {
     fn from(val: kreuzberg::EmbeddingModelType) -> Self {
         match val {
+        match val {
             _ => Self::Unknown,
         }
     }
 }
 
 pub enum CodeContentMode {
-    Chunks,
-    Raw,
-    Structure,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::CodeContentMode> for CodeContentMode {
     fn from(val: kreuzberg::CodeContentMode) -> Self {
         match val {
-            kreuzberg::CodeContentMode::Chunks => Self::Chunks,
-            kreuzberg::CodeContentMode::Raw => Self::Raw,
-            kreuzberg::CodeContentMode::Structure => Self::Structure,
+        match val {
+            kreuzberg::CodeContentMode:: => Self::,
+            kreuzberg::CodeContentMode:: => Self::,
+            kreuzberg::CodeContentMode:: => Self::,
         }
     }
 }
 
 pub enum FracType {
-    Bar,
-    NoBar,
-    Linear,
-    Skewed,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::extraction::docx::math::FracType> for FracType {
     fn from(val: kreuzberg::extraction::docx::math::FracType) -> Self {
         match val {
-            kreuzberg::extraction::docx::math::FracType::Bar => Self::Bar,
-            kreuzberg::extraction::docx::math::FracType::NoBar => Self::NoBar,
-            kreuzberg::extraction::docx::math::FracType::Linear => Self::Linear,
-            kreuzberg::extraction::docx::math::FracType::Skewed => Self::Skewed,
+        match val {
+            kreuzberg::extraction::docx::math::FracType:: => Self::,
+            kreuzberg::extraction::docx::math::FracType:: => Self::,
+            kreuzberg::extraction::docx::math::FracType:: => Self::,
+            kreuzberg::extraction::docx::math::FracType:: => Self::,
         }
     }
 }
 
 pub enum OcrBackendType {
-    Tesseract,
-    EasyOCR,
-    PaddleOCR,
-    Custom,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::plugins::OcrBackendType> for OcrBackendType {
     fn from(val: kreuzberg::plugins::OcrBackendType) -> Self {
         match val {
-            kreuzberg::plugins::OcrBackendType::Tesseract => Self::Tesseract,
-            kreuzberg::plugins::OcrBackendType::EasyOCR => Self::EasyOCR,
-            kreuzberg::plugins::OcrBackendType::PaddleOCR => Self::PaddleOCR,
-            kreuzberg::plugins::OcrBackendType::Custom => Self::Custom,
+        match val {
+            kreuzberg::plugins::OcrBackendType:: => Self::,
+            kreuzberg::plugins::OcrBackendType:: => Self::,
+            kreuzberg::plugins::OcrBackendType:: => Self::,
+            kreuzberg::plugins::OcrBackendType:: => Self::,
         }
     }
 }
 
 pub enum ProcessingStage {
-    Early,
-    Middle,
-    Late,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::plugins::ProcessingStage> for ProcessingStage {
     fn from(val: kreuzberg::plugins::ProcessingStage) -> Self {
         match val {
-            kreuzberg::plugins::ProcessingStage::Early => Self::Early,
-            kreuzberg::plugins::ProcessingStage::Middle => Self::Middle,
-            kreuzberg::plugins::ProcessingStage::Late => Self::Late,
+        match val {
+            kreuzberg::plugins::ProcessingStage:: => Self::,
+            kreuzberg::plugins::ProcessingStage:: => Self::,
+            kreuzberg::plugins::ProcessingStage:: => Self::,
         }
     }
 }
 
 pub enum ReductionLevel {
-    Off,
-    Light,
-    Moderate,
-    Aggressive,
-    Maximum,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ReductionLevel> for ReductionLevel {
     fn from(val: kreuzberg::ReductionLevel) -> Self {
         match val {
-            kreuzberg::ReductionLevel::Off => Self::Off,
-            kreuzberg::ReductionLevel::Light => Self::Light,
-            kreuzberg::ReductionLevel::Moderate => Self::Moderate,
-            kreuzberg::ReductionLevel::Aggressive => Self::Aggressive,
-            kreuzberg::ReductionLevel::Maximum => Self::Maximum,
+        match val {
+            kreuzberg::ReductionLevel:: => Self::,
+            kreuzberg::ReductionLevel:: => Self::,
+            kreuzberg::ReductionLevel:: => Self::,
+            kreuzberg::ReductionLevel:: => Self::,
+            kreuzberg::ReductionLevel:: => Self::,
         }
     }
 }
 
 pub enum PdfAnnotationType {
-    Text,
-    Highlight,
-    Link,
-    Stamp,
-    Underline,
-    StrikeOut,
-    Other,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::PdfAnnotationType> for PdfAnnotationType {
     fn from(val: kreuzberg::PdfAnnotationType) -> Self {
         match val {
-            kreuzberg::PdfAnnotationType::Text => Self::Text,
-            kreuzberg::PdfAnnotationType::Highlight => Self::Highlight,
-            kreuzberg::PdfAnnotationType::Link => Self::Link,
-            kreuzberg::PdfAnnotationType::Stamp => Self::Stamp,
-            kreuzberg::PdfAnnotationType::Underline => Self::Underline,
-            kreuzberg::PdfAnnotationType::StrikeOut => Self::StrikeOut,
-            kreuzberg::PdfAnnotationType::Other => Self::Other,
+        match val {
+            kreuzberg::PdfAnnotationType:: => Self::,
+            kreuzberg::PdfAnnotationType:: => Self::,
+            kreuzberg::PdfAnnotationType:: => Self::,
+            kreuzberg::PdfAnnotationType:: => Self::,
+            kreuzberg::PdfAnnotationType:: => Self::,
+            kreuzberg::PdfAnnotationType:: => Self::,
+            kreuzberg::PdfAnnotationType:: => Self::,
         }
     }
 }
 
 pub enum BlockType {
-    Paragraph,
-    Heading,
-    Blockquote,
-    CodeBlock,
-    ListItem,
-    OrderedList,
-    BulletList,
-    TaskList,
-    DefinitionList,
-    DefinitionTerm,
-    DefinitionDescription,
-    Div,
-    Section,
-    ThematicBreak,
-    RawBlock,
-    MathDisplay,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::BlockType> for BlockType {
     fn from(val: kreuzberg::BlockType) -> Self {
         match val {
-            kreuzberg::BlockType::Paragraph => Self::Paragraph,
-            kreuzberg::BlockType::Heading => Self::Heading,
-            kreuzberg::BlockType::Blockquote => Self::Blockquote,
-            kreuzberg::BlockType::CodeBlock => Self::CodeBlock,
-            kreuzberg::BlockType::ListItem => Self::ListItem,
-            kreuzberg::BlockType::OrderedList => Self::OrderedList,
-            kreuzberg::BlockType::BulletList => Self::BulletList,
-            kreuzberg::BlockType::TaskList => Self::TaskList,
-            kreuzberg::BlockType::DefinitionList => Self::DefinitionList,
-            kreuzberg::BlockType::DefinitionTerm => Self::DefinitionTerm,
-            kreuzberg::BlockType::DefinitionDescription => Self::DefinitionDescription,
-            kreuzberg::BlockType::Div => Self::Div,
-            kreuzberg::BlockType::Section => Self::Section,
-            kreuzberg::BlockType::ThematicBreak => Self::ThematicBreak,
-            kreuzberg::BlockType::RawBlock => Self::RawBlock,
-            kreuzberg::BlockType::MathDisplay => Self::MathDisplay,
+        match val {
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
+            kreuzberg::BlockType:: => Self::,
         }
     }
 }
 
 pub enum InlineType {
-    Text,
-    Strong,
-    Emphasis,
-    Highlight,
-    Subscript,
-    Superscript,
-    Insert,
-    Delete,
-    Code,
-    Link,
-    Image,
-    Span,
-    Math,
-    RawInline,
-    FootnoteRef,
-    Symbol,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::InlineType> for InlineType {
     fn from(val: kreuzberg::InlineType) -> Self {
         match val {
-            kreuzberg::InlineType::Text => Self::Text,
-            kreuzberg::InlineType::Strong => Self::Strong,
-            kreuzberg::InlineType::Emphasis => Self::Emphasis,
-            kreuzberg::InlineType::Highlight => Self::Highlight,
-            kreuzberg::InlineType::Subscript => Self::Subscript,
-            kreuzberg::InlineType::Superscript => Self::Superscript,
-            kreuzberg::InlineType::Insert => Self::Insert,
-            kreuzberg::InlineType::Delete => Self::Delete,
-            kreuzberg::InlineType::Code => Self::Code,
-            kreuzberg::InlineType::Link => Self::Link,
-            kreuzberg::InlineType::Image => Self::Image,
-            kreuzberg::InlineType::Span => Self::Span,
-            kreuzberg::InlineType::Math => Self::Math,
-            kreuzberg::InlineType::RawInline => Self::RawInline,
-            kreuzberg::InlineType::FootnoteRef => Self::FootnoteRef,
-            kreuzberg::InlineType::Symbol => Self::Symbol,
+        match val {
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
+            kreuzberg::InlineType:: => Self::,
         }
     }
 }
 
 pub enum RelationshipKind {
-    FootnoteReference,
-    CitationReference,
-    InternalLink,
-    Caption,
-    Label,
-    TocEntry,
-    CrossReference,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::RelationshipKind> for RelationshipKind {
     fn from(val: kreuzberg::RelationshipKind) -> Self {
         match val {
-            kreuzberg::RelationshipKind::FootnoteReference => Self::FootnoteReference,
-            kreuzberg::RelationshipKind::CitationReference => Self::CitationReference,
-            kreuzberg::RelationshipKind::InternalLink => Self::InternalLink,
-            kreuzberg::RelationshipKind::Caption => Self::Caption,
-            kreuzberg::RelationshipKind::Label => Self::Label,
-            kreuzberg::RelationshipKind::TocEntry => Self::TocEntry,
-            kreuzberg::RelationshipKind::CrossReference => Self::CrossReference,
+        match val {
+            kreuzberg::RelationshipKind:: => Self::,
+            kreuzberg::RelationshipKind:: => Self::,
+            kreuzberg::RelationshipKind:: => Self::,
+            kreuzberg::RelationshipKind:: => Self::,
+            kreuzberg::RelationshipKind:: => Self::,
+            kreuzberg::RelationshipKind:: => Self::,
+            kreuzberg::RelationshipKind:: => Self::,
         }
     }
 }
 
 pub enum ContentLayer {
-    Body,
-    Header,
-    Footer,
-    Footnote,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ContentLayer> for ContentLayer {
     fn from(val: kreuzberg::ContentLayer) -> Self {
         match val {
-            kreuzberg::ContentLayer::Body => Self::Body,
-            kreuzberg::ContentLayer::Header => Self::Header,
-            kreuzberg::ContentLayer::Footer => Self::Footer,
-            kreuzberg::ContentLayer::Footnote => Self::Footnote,
+        match val {
+            kreuzberg::ContentLayer:: => Self::,
+            kreuzberg::ContentLayer:: => Self::,
+            kreuzberg::ContentLayer:: => Self::,
+            kreuzberg::ContentLayer:: => Self::,
         }
     }
 }
 
 pub enum NodeContent {
-    Quote,
-    PageBreak,
-    DefinitionList,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
     /// Data variants not directly bridgeable — represented as Unknown.
     Unknown,
 }
@@ -9838,23 +5077,24 @@ pub enum NodeContent {
 impl From<kreuzberg::NodeContent> for NodeContent {
     fn from(val: kreuzberg::NodeContent) -> Self {
         match val {
-            kreuzberg::NodeContent::Quote => Self::Quote,
-            kreuzberg::NodeContent::PageBreak => Self::PageBreak,
-            kreuzberg::NodeContent::DefinitionList => Self::DefinitionList,
+        match val {
+            kreuzberg::NodeContent:: => Self::,
+            kreuzberg::NodeContent:: => Self::,
+            kreuzberg::NodeContent:: => Self::,
             _ => Self::Unknown,
         }
     }
 }
 
 pub enum AnnotationKind {
-    Bold,
-    Italic,
-    Underline,
-    Strikethrough,
-    Code,
-    Subscript,
-    Superscript,
-    Highlight,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
     /// Data variants not directly bridgeable — represented as Unknown.
     Unknown,
 }
@@ -9862,145 +5102,151 @@ pub enum AnnotationKind {
 impl From<kreuzberg::AnnotationKind> for AnnotationKind {
     fn from(val: kreuzberg::AnnotationKind) -> Self {
         match val {
-            kreuzberg::AnnotationKind::Bold => Self::Bold,
-            kreuzberg::AnnotationKind::Italic => Self::Italic,
-            kreuzberg::AnnotationKind::Underline => Self::Underline,
-            kreuzberg::AnnotationKind::Strikethrough => Self::Strikethrough,
-            kreuzberg::AnnotationKind::Code => Self::Code,
-            kreuzberg::AnnotationKind::Subscript => Self::Subscript,
-            kreuzberg::AnnotationKind::Superscript => Self::Superscript,
-            kreuzberg::AnnotationKind::Highlight => Self::Highlight,
+        match val {
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
+            kreuzberg::AnnotationKind:: => Self::,
             _ => Self::Unknown,
         }
     }
 }
 
 pub enum ExtractionMethod {
-    Native,
-    Ocr,
-    Mixed,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ExtractionMethod> for ExtractionMethod {
     fn from(val: kreuzberg::ExtractionMethod) -> Self {
         match val {
-            kreuzberg::ExtractionMethod::Native => Self::Native,
-            kreuzberg::ExtractionMethod::Ocr => Self::Ocr,
-            kreuzberg::ExtractionMethod::Mixed => Self::Mixed,
+        match val {
+            kreuzberg::ExtractionMethod:: => Self::,
+            kreuzberg::ExtractionMethod:: => Self::,
+            kreuzberg::ExtractionMethod:: => Self::,
         }
     }
 }
 
 pub enum ChunkType {
-    Heading,
-    PartyList,
-    Definitions,
-    OperativeClause,
-    SignatureBlock,
-    Schedule,
-    TableLike,
-    Formula,
-    CodeBlock,
-    Image,
-    OrgChart,
-    Diagram,
-    Unknown,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ChunkType> for ChunkType {
     fn from(val: kreuzberg::ChunkType) -> Self {
         match val {
-            kreuzberg::ChunkType::Heading => Self::Heading,
-            kreuzberg::ChunkType::PartyList => Self::PartyList,
-            kreuzberg::ChunkType::Definitions => Self::Definitions,
-            kreuzberg::ChunkType::OperativeClause => Self::OperativeClause,
-            kreuzberg::ChunkType::SignatureBlock => Self::SignatureBlock,
-            kreuzberg::ChunkType::Schedule => Self::Schedule,
-            kreuzberg::ChunkType::TableLike => Self::TableLike,
-            kreuzberg::ChunkType::Formula => Self::Formula,
-            kreuzberg::ChunkType::CodeBlock => Self::CodeBlock,
-            kreuzberg::ChunkType::Image => Self::Image,
-            kreuzberg::ChunkType::OrgChart => Self::OrgChart,
-            kreuzberg::ChunkType::Diagram => Self::Diagram,
-            kreuzberg::ChunkType::Unknown => Self::Unknown,
+        match val {
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
+            kreuzberg::ChunkType:: => Self::,
         }
     }
 }
 
 pub enum ImageKind {
-    Photograph,
-    Diagram,
-    Chart,
-    Drawing,
-    TextBlock,
-    Decoration,
-    Logo,
-    Icon,
-    TileFragment,
-    Mask,
-    Unknown,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ImageKind> for ImageKind {
     fn from(val: kreuzberg::ImageKind) -> Self {
         match val {
-            kreuzberg::ImageKind::Photograph => Self::Photograph,
-            kreuzberg::ImageKind::Diagram => Self::Diagram,
-            kreuzberg::ImageKind::Chart => Self::Chart,
-            kreuzberg::ImageKind::Drawing => Self::Drawing,
-            kreuzberg::ImageKind::TextBlock => Self::TextBlock,
-            kreuzberg::ImageKind::Decoration => Self::Decoration,
-            kreuzberg::ImageKind::Logo => Self::Logo,
-            kreuzberg::ImageKind::Icon => Self::Icon,
-            kreuzberg::ImageKind::TileFragment => Self::TileFragment,
-            kreuzberg::ImageKind::Mask => Self::Mask,
-            kreuzberg::ImageKind::Unknown => Self::Unknown,
+        match val {
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
+            kreuzberg::ImageKind:: => Self::,
         }
     }
 }
 
 pub enum ResultFormat {
-    Unified,
-    ElementBased,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ResultFormat> for ResultFormat {
     fn from(val: kreuzberg::ResultFormat) -> Self {
         match val {
-            kreuzberg::ResultFormat::Unified => Self::Unified,
-            kreuzberg::ResultFormat::ElementBased => Self::ElementBased,
+        match val {
+            kreuzberg::ResultFormat:: => Self::,
+            kreuzberg::ResultFormat:: => Self::,
         }
     }
 }
 
 pub enum ElementType {
-    Title,
-    NarrativeText,
-    Heading,
-    ListItem,
-    Table,
-    Image,
-    PageBreak,
-    CodeBlock,
-    BlockQuote,
-    Footer,
-    Header,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ElementType> for ElementType {
     fn from(val: kreuzberg::ElementType) -> Self {
         match val {
-            kreuzberg::ElementType::Title => Self::Title,
-            kreuzberg::ElementType::NarrativeText => Self::NarrativeText,
-            kreuzberg::ElementType::Heading => Self::Heading,
-            kreuzberg::ElementType::ListItem => Self::ListItem,
-            kreuzberg::ElementType::Table => Self::Table,
-            kreuzberg::ElementType::Image => Self::Image,
-            kreuzberg::ElementType::PageBreak => Self::PageBreak,
-            kreuzberg::ElementType::CodeBlock => Self::CodeBlock,
-            kreuzberg::ElementType::BlockQuote => Self::BlockQuote,
-            kreuzberg::ElementType::Footer => Self::Footer,
-            kreuzberg::ElementType::Header => Self::Header,
+        match val {
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
+            kreuzberg::ElementType:: => Self::,
         }
     }
 }
@@ -10013,79 +5259,84 @@ pub enum FormatMetadata {
 impl From<kreuzberg::FormatMetadata> for FormatMetadata {
     fn from(val: kreuzberg::FormatMetadata) -> Self {
         match val {
+        match val {
             _ => Self::Unknown,
         }
     }
 }
 
 pub enum TextDirection {
-    LeftToRight,
-    RightToLeft,
-    Auto,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::TextDirection> for TextDirection {
     fn from(val: kreuzberg::TextDirection) -> Self {
         match val {
-            kreuzberg::TextDirection::LeftToRight => Self::LeftToRight,
-            kreuzberg::TextDirection::RightToLeft => Self::RightToLeft,
-            kreuzberg::TextDirection::Auto => Self::Auto,
+        match val {
+            kreuzberg::TextDirection:: => Self::,
+            kreuzberg::TextDirection:: => Self::,
+            kreuzberg::TextDirection:: => Self::,
         }
     }
 }
 
 pub enum LinkType {
-    Anchor,
-    Internal,
-    External,
-    Email,
-    Phone,
-    Other,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::LinkType> for LinkType {
     fn from(val: kreuzberg::LinkType) -> Self {
         match val {
-            kreuzberg::LinkType::Anchor => Self::Anchor,
-            kreuzberg::LinkType::Internal => Self::Internal,
-            kreuzberg::LinkType::External => Self::External,
-            kreuzberg::LinkType::Email => Self::Email,
-            kreuzberg::LinkType::Phone => Self::Phone,
-            kreuzberg::LinkType::Other => Self::Other,
+        match val {
+            kreuzberg::LinkType:: => Self::,
+            kreuzberg::LinkType:: => Self::,
+            kreuzberg::LinkType:: => Self::,
+            kreuzberg::LinkType:: => Self::,
+            kreuzberg::LinkType:: => Self::,
+            kreuzberg::LinkType:: => Self::,
         }
     }
 }
 
 pub enum ImageType {
-    DataUri,
-    InlineSvg,
-    External,
-    Relative,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::ImageType> for ImageType {
     fn from(val: kreuzberg::ImageType) -> Self {
         match val {
-            kreuzberg::ImageType::DataUri => Self::DataUri,
-            kreuzberg::ImageType::InlineSvg => Self::InlineSvg,
-            kreuzberg::ImageType::External => Self::External,
-            kreuzberg::ImageType::Relative => Self::Relative,
+        match val {
+            kreuzberg::ImageType:: => Self::,
+            kreuzberg::ImageType:: => Self::,
+            kreuzberg::ImageType:: => Self::,
+            kreuzberg::ImageType:: => Self::,
         }
     }
 }
 
 pub enum StructuredDataType {
-    JsonLd,
-    Microdata,
-    RDFa,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::StructuredDataType> for StructuredDataType {
     fn from(val: kreuzberg::StructuredDataType) -> Self {
         match val {
-            kreuzberg::StructuredDataType::JsonLd => Self::JsonLd,
-            kreuzberg::StructuredDataType::Microdata => Self::Microdata,
-            kreuzberg::StructuredDataType::RDFa => Self::RDFa,
+        match val {
+            kreuzberg::StructuredDataType:: => Self::,
+            kreuzberg::StructuredDataType:: => Self::,
+            kreuzberg::StructuredDataType:: => Self::,
         }
     }
 }
@@ -10098,337 +5349,282 @@ pub enum OcrBoundingGeometry {
 impl From<kreuzberg::OcrBoundingGeometry> for OcrBoundingGeometry {
     fn from(val: kreuzberg::OcrBoundingGeometry) -> Self {
         match val {
+        match val {
             _ => Self::Unknown,
         }
     }
 }
 
 pub enum OcrElementLevel {
-    Word,
-    Line,
-    Block,
-    Page,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::OcrElementLevel> for OcrElementLevel {
     fn from(val: kreuzberg::OcrElementLevel) -> Self {
         match val {
-            kreuzberg::OcrElementLevel::Word => Self::Word,
-            kreuzberg::OcrElementLevel::Line => Self::Line,
-            kreuzberg::OcrElementLevel::Block => Self::Block,
-            kreuzberg::OcrElementLevel::Page => Self::Page,
+        match val {
+            kreuzberg::OcrElementLevel:: => Self::,
+            kreuzberg::OcrElementLevel:: => Self::,
+            kreuzberg::OcrElementLevel:: => Self::,
+            kreuzberg::OcrElementLevel:: => Self::,
         }
     }
 }
 
 pub enum PageUnitType {
-    Page,
-    Slide,
-    Sheet,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::PageUnitType> for PageUnitType {
     fn from(val: kreuzberg::PageUnitType) -> Self {
         match val {
-            kreuzberg::PageUnitType::Page => Self::Page,
-            kreuzberg::PageUnitType::Slide => Self::Slide,
-            kreuzberg::PageUnitType::Sheet => Self::Sheet,
+        match val {
+            kreuzberg::PageUnitType:: => Self::,
+            kreuzberg::PageUnitType:: => Self::,
+            kreuzberg::PageUnitType:: => Self::,
         }
     }
 }
 
 pub enum UriKind {
-    Hyperlink,
-    Image,
-    Anchor,
-    Citation,
-    Reference,
-    Email,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::UriKind> for UriKind {
     fn from(val: kreuzberg::UriKind) -> Self {
         match val {
-            kreuzberg::UriKind::Hyperlink => Self::Hyperlink,
-            kreuzberg::UriKind::Image => Self::Image,
-            kreuzberg::UriKind::Anchor => Self::Anchor,
-            kreuzberg::UriKind::Citation => Self::Citation,
-            kreuzberg::UriKind::Reference => Self::Reference,
-            kreuzberg::UriKind::Email => Self::Email,
+        match val {
+            kreuzberg::UriKind:: => Self::,
+            kreuzberg::UriKind:: => Self::,
+            kreuzberg::UriKind:: => Self::,
+            kreuzberg::UriKind:: => Self::,
+            kreuzberg::UriKind:: => Self::,
+            kreuzberg::UriKind:: => Self::,
         }
     }
 }
 
 pub enum PoolError {
-    LockPoisoned,
+            :: => Self::,
 }
 
 impl From<kreuzberg::utils::pool::PoolError> for PoolError {
     fn from(val: kreuzberg::utils::pool::PoolError) -> Self {
         match val {
-            kreuzberg::utils::pool::PoolError::LockPoisoned => Self::LockPoisoned,
+        match val {
+            kreuzberg::utils::pool::PoolError:: => Self::,
         }
     }
 }
 
 pub enum KeywordAlgorithm {
-    Yake,
-    Rake,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::KeywordAlgorithm> for KeywordAlgorithm {
     fn from(val: kreuzberg::KeywordAlgorithm) -> Self {
         match val {
-            kreuzberg::KeywordAlgorithm::Yake => Self::Yake,
-            kreuzberg::KeywordAlgorithm::Rake => Self::Rake,
+        match val {
+            kreuzberg::KeywordAlgorithm:: => Self::,
+            kreuzberg::KeywordAlgorithm:: => Self::,
         }
     }
 }
 
 pub enum PSMMode {
-    OsdOnly,
-    AutoOsd,
-    AutoOnly,
-    Auto,
-    SingleColumn,
-    SingleBlockVertical,
-    SingleBlock,
-    SingleLine,
-    SingleWord,
-    CircleWord,
-    SingleChar,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::PSMMode> for PSMMode {
     fn from(val: kreuzberg::PSMMode) -> Self {
         match val {
-            kreuzberg::PSMMode::OsdOnly => Self::OsdOnly,
-            kreuzberg::PSMMode::AutoOsd => Self::AutoOsd,
-            kreuzberg::PSMMode::AutoOnly => Self::AutoOnly,
-            kreuzberg::PSMMode::Auto => Self::Auto,
-            kreuzberg::PSMMode::SingleColumn => Self::SingleColumn,
-            kreuzberg::PSMMode::SingleBlockVertical => Self::SingleBlockVertical,
-            kreuzberg::PSMMode::SingleBlock => Self::SingleBlock,
-            kreuzberg::PSMMode::SingleLine => Self::SingleLine,
-            kreuzberg::PSMMode::SingleWord => Self::SingleWord,
-            kreuzberg::PSMMode::CircleWord => Self::CircleWord,
-            kreuzberg::PSMMode::SingleChar => Self::SingleChar,
+        match val {
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
+            kreuzberg::PSMMode:: => Self::,
         }
     }
 }
 
 pub enum PaddleLanguage {
-    English,
-    Chinese,
-    Japanese,
-    Korean,
-    German,
-    French,
-    Latin,
-    Cyrillic,
-    TraditionalChinese,
-    Thai,
-    Greek,
-    EastSlavic,
-    Arabic,
-    Devanagari,
-    Tamil,
-    Telugu,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::PaddleLanguage> for PaddleLanguage {
     fn from(val: kreuzberg::PaddleLanguage) -> Self {
         match val {
-            kreuzberg::PaddleLanguage::English => Self::English,
-            kreuzberg::PaddleLanguage::Chinese => Self::Chinese,
-            kreuzberg::PaddleLanguage::Japanese => Self::Japanese,
-            kreuzberg::PaddleLanguage::Korean => Self::Korean,
-            kreuzberg::PaddleLanguage::German => Self::German,
-            kreuzberg::PaddleLanguage::French => Self::French,
-            kreuzberg::PaddleLanguage::Latin => Self::Latin,
-            kreuzberg::PaddleLanguage::Cyrillic => Self::Cyrillic,
-            kreuzberg::PaddleLanguage::TraditionalChinese => Self::TraditionalChinese,
-            kreuzberg::PaddleLanguage::Thai => Self::Thai,
-            kreuzberg::PaddleLanguage::Greek => Self::Greek,
-            kreuzberg::PaddleLanguage::EastSlavic => Self::EastSlavic,
-            kreuzberg::PaddleLanguage::Arabic => Self::Arabic,
-            kreuzberg::PaddleLanguage::Devanagari => Self::Devanagari,
-            kreuzberg::PaddleLanguage::Tamil => Self::Tamil,
-            kreuzberg::PaddleLanguage::Telugu => Self::Telugu,
+        match val {
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
+            kreuzberg::PaddleLanguage:: => Self::,
         }
     }
 }
 
 pub enum LayoutClass {
-    Caption,
-    Footnote,
-    Formula,
-    ListItem,
-    PageFooter,
-    PageHeader,
-    Picture,
-    SectionHeader,
-    Table,
-    Text,
-    Title,
-    DocumentIndex,
-    Code,
-    CheckboxSelected,
-    CheckboxUnselected,
-    Form,
-    KeyValueRegion,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
+            :: => Self::,
 }
 
 impl From<kreuzberg::LayoutClass> for LayoutClass {
     fn from(val: kreuzberg::LayoutClass) -> Self {
         match val {
-            kreuzberg::LayoutClass::Caption => Self::Caption,
-            kreuzberg::LayoutClass::Footnote => Self::Footnote,
-            kreuzberg::LayoutClass::Formula => Self::Formula,
-            kreuzberg::LayoutClass::ListItem => Self::ListItem,
-            kreuzberg::LayoutClass::PageFooter => Self::PageFooter,
-            kreuzberg::LayoutClass::PageHeader => Self::PageHeader,
-            kreuzberg::LayoutClass::Picture => Self::Picture,
-            kreuzberg::LayoutClass::SectionHeader => Self::SectionHeader,
-            kreuzberg::LayoutClass::Table => Self::Table,
-            kreuzberg::LayoutClass::Text => Self::Text,
-            kreuzberg::LayoutClass::Title => Self::Title,
-            kreuzberg::LayoutClass::DocumentIndex => Self::DocumentIndex,
-            kreuzberg::LayoutClass::Code => Self::Code,
-            kreuzberg::LayoutClass::CheckboxSelected => Self::CheckboxSelected,
-            kreuzberg::LayoutClass::CheckboxUnselected => Self::CheckboxUnselected,
-            kreuzberg::LayoutClass::Form => Self::Form,
-            kreuzberg::LayoutClass::KeyValueRegion => Self::KeyValueRegion,
+        match val {
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
+            kreuzberg::LayoutClass:: => Self::,
         }
     }
 }
 
-pub fn extract_bytes(
-    content: Vec<u8>,
-    mime_type: String,
-    config: ExtractionConfig,
-) -> Result<ExtractionResult, String> {
+pub fn extract_bytes(content: Vec<u8>, mime_type: String, config: ExtractionConfig) -> Result<ExtractionResult, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            kreuzberg::extract_bytes(&content, &mime_type, &config.0)
-                .await
-                .map_err(|e| e.to_string())
-                .map(ExtractionResult)
-        })
+        .block_on(async { kreuzberg::extract_bytes(&content, &mime_type, &config.0).await.map_err(|e| e.to_string()).map(ExtractionResult) })
 }
 
-pub fn extract_file(
-    path: String,
-    mime_type: Option<String>,
-    config: ExtractionConfig,
-) -> Result<ExtractionResult, String> {
+pub fn extract_file(path: String, mime_type: Option<String>, config: ExtractionConfig) -> Result<ExtractionResult, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            kreuzberg::extract_file(std::path::PathBuf::from(path), mime_type.as_deref(), &config.0)
-                .await
-                .map_err(|e| e.to_string())
-                .map(ExtractionResult)
-        })
+        .block_on(async { kreuzberg::extract_file(std::path::PathBuf::from(path), mime_type.as_deref(), &config.0).await.map_err(|e| e.to_string()).map(ExtractionResult) })
 }
 
-pub fn extract_file_sync(
-    path: String,
-    mime_type: Option<String>,
-    config: ExtractionConfig,
-) -> Result<ExtractionResult, String> {
-    kreuzberg::extract_file_sync(std::path::PathBuf::from(path), mime_type.as_deref(), &config.0)
-        .map_err(|e| e.to_string())
-        .map(ExtractionResult)
+pub fn extract_file_sync(path: String, mime_type: Option<String>, config: ExtractionConfig) -> Result<ExtractionResult, String> {
+    kreuzberg::extract_file_sync(std::path::PathBuf::from(path), mime_type.as_deref(), &config.0).map_err(|e| e.to_string()).map(ExtractionResult)
 }
 
-pub fn extract_bytes_sync(
-    content: Vec<u8>,
-    mime_type: String,
-    config: ExtractionConfig,
-) -> Result<ExtractionResult, String> {
-    kreuzberg::extract_bytes_sync(&content, &mime_type, &config.0)
-        .map_err(|e| e.to_string())
-        .map(ExtractionResult)
+pub fn extract_bytes_sync(content: Vec<u8>, mime_type: String, config: ExtractionConfig) -> Result<ExtractionResult, String> {
+    kreuzberg::extract_bytes_sync(&content, &mime_type, &config.0).map_err(|e| e.to_string()).map(ExtractionResult)
 }
 
-pub fn batch_extract_files_sync(
-    items: Vec<BatchFileItem>,
-    config: ExtractionConfig,
-) -> Result<Vec<ExtractionResult>, String> {
-    kreuzberg::batch_extract_files_sync(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0)
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>())
+pub fn batch_extract_files_sync(items: Vec<BatchFileItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String> {
+    kreuzberg::batch_extract_files_sync(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0).map_err(|e| e.to_string()).map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>())
 }
 
-pub fn batch_extract_bytes_sync(
-    items: Vec<BatchBytesItem>,
-    config: ExtractionConfig,
-) -> Result<Vec<ExtractionResult>, String> {
-    kreuzberg::batch_extract_bytes_sync(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0)
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>())
+pub fn batch_extract_bytes_sync(items: Vec<BatchBytesItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String> {
+    kreuzberg::batch_extract_bytes_sync(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0).map_err(|e| e.to_string()).map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>())
 }
 
-pub fn batch_extract_files(
-    items: Vec<BatchFileItem>,
-    config: ExtractionConfig,
-) -> Result<Vec<ExtractionResult>, String> {
+pub fn batch_extract_files(items: Vec<BatchFileItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            kreuzberg::batch_extract_files(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0)
-                .await
-                .map_err(|e| e.to_string())
-                .map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>())
-        })
+        .block_on(async { kreuzberg::batch_extract_files(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0).await.map_err(|e| e.to_string()).map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>()) })
 }
 
-pub fn batch_extract_bytes(
-    items: Vec<BatchBytesItem>,
-    config: ExtractionConfig,
-) -> Result<Vec<ExtractionResult>, String> {
+pub fn batch_extract_bytes(items: Vec<BatchBytesItem>, config: ExtractionConfig) -> Result<Vec<ExtractionResult>, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            kreuzberg::batch_extract_bytes(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0)
-                .await
-                .map_err(|e| e.to_string())
-                .map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>())
-        })
+        .block_on(async { kreuzberg::batch_extract_bytes(items.into_iter().map(|w| w.0).collect::<Vec<_>>(), &config.0).await.map_err(|e| e.to_string()).map(|v| v.into_iter().map(ExtractionResult).collect::<Vec<_>>()) })
 }
 
 pub fn detect_mime_type_from_bytes(content: Vec<u8>) -> Result<String, String> {
-    kreuzberg::detect_mime_type_from_bytes(&content)
-        .map_err(|e| e.to_string())
-        .map(|s| s.to_string())
+    kreuzberg::detect_mime_type_from_bytes(&content).map_err(|e| e.to_string()).map(|s| s.to_string())
 }
 
 pub fn get_extensions_for_mime(mime_type: String) -> Result<Vec<String>, String> {
-    kreuzberg::get_extensions_for_mime(&mime_type)
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    kreuzberg::get_extensions_for_mime(&mime_type).map_err(|e| e.to_string()).map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
 }
 
 pub fn list_document_extractors() -> Result<Vec<String>, String> {
-    kreuzberg::list_document_extractors()
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    kreuzberg::list_document_extractors().map_err(|e| e.to_string()).map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
 }
 
 pub fn list_ocr_backends() -> Result<Vec<String>, String> {
-    kreuzberg::list_ocr_backends()
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    kreuzberg::list_ocr_backends().map_err(|e| e.to_string()).map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
 }
 
 pub fn clear_ocr_backends() -> Result<(), String> {
@@ -10436,9 +5632,7 @@ pub fn clear_ocr_backends() -> Result<(), String> {
 }
 
 pub fn list_post_processors() -> Result<Vec<String>, String> {
-    kreuzberg::list_post_processors()
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    kreuzberg::list_post_processors().map_err(|e| e.to_string()).map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
 }
 
 pub fn clear_post_processors() -> Result<(), String> {
@@ -10446,9 +5640,7 @@ pub fn clear_post_processors() -> Result<(), String> {
 }
 
 pub fn list_validators() -> Result<Vec<String>, String> {
-    kreuzberg::list_validators()
-        .map_err(|e| e.to_string())
-        .map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
+    kreuzberg::list_validators().map_err(|e| e.to_string()).map(|v| v.into_iter().map(|s| s.to_string()).collect::<Vec<_>>())
 }
 
 pub fn clear_validators() -> Result<(), String> {
@@ -10460,24 +5652,19 @@ pub fn embed_texts_async(texts: Vec<String>, config: EmbeddingConfig) -> Result<
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            kreuzberg::embed_texts_async(texts, &config.0)
-                .await
-                .map_err(|e| e.to_string())
-                .map(|v| serde_json::to_string(&v).expect("serializable return"))
-        })
+        .block_on(async { kreuzberg::embed_texts_async(texts, &config.0).await.map_err(|e| e.to_string()).map(|v| serde_json::to_string(&v).expect("serializable return")) })
+}
+
+pub fn render_pdf_page_to_png(pdf_bytes: Vec<u8>, page_index: usize, dpi: Option<i32>, password: Option<String>) -> Result<Vec<u8>, String> {
+    kreuzberg::render_pdf_page_to_png(&pdf_bytes, page_index, dpi, password.as_deref()).map_err(|e| e.to_string())
 }
 
 pub fn detect_mime_type(path: String, check_exists: bool) -> Result<String, String> {
-    kreuzberg::detect_mime_type(path, check_exists)
-        .map_err(|e| e.to_string())
-        .map(|s| s.to_string())
+    kreuzberg::detect_mime_type(path, check_exists).map_err(|e| e.to_string()).map(|s| s.to_string())
 }
 
 pub fn embed_texts(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String> {
-    kreuzberg::embed_texts(texts, &config.0)
-        .map_err(|e| e.to_string())
-        .map(|v| serde_json::to_string(&v).expect("serializable return"))
+    kreuzberg::embed_texts(texts, &config.0).map_err(|e| e.to_string()).map(|v| serde_json::to_string(&v).expect("serializable return"))
 }
 
 pub fn get_embedding_preset(name: String) -> String {
@@ -10485,185 +5672,99 @@ pub fn get_embedding_preset(name: String) -> String {
 }
 
 pub fn list_embedding_presets() -> Vec<String> {
-    kreuzberg::list_embedding_presets()
-        .into_iter()
-        .map(|s| s.to_string())
-        .collect::<Vec<_>>()
+    kreuzberg::list_embedding_presets().into_iter().map(|s| s.to_string()).collect::<Vec<_>>()
 }
 
 pub struct OcrBackendBox(pub Box<dyn kreuzberg::plugins::OcrBackend + Send + Sync>);
-
 #[doc(hidden)]
-pub fn alef_phantom_vec_ocr_backend() -> Vec<OcrBackendBox> {
-    Vec::new()
-}
-
-pub fn ocr_backend_call_process_image(
-    this: &OcrBackendBox,
-    image_bytes: Vec<u8>,
-    config: OcrConfig,
-) -> Result<ExtractionResult, String> {
+pub fn alef_phantom_vec_ocr_backend() -> Vec<OcrBackendBox> { Vec::new() }
+pub fn ocr_backend_call_process_image(this: &OcrBackendBox, image_bytes: Vec<u8>, config: OcrConfig) -> Result<ExtractionResult, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            this.0
-                .process_image(&image_bytes, &config.0)
-                .await
-                .map(|v| ExtractionResult(v))
-                .map_err(|e| e.to_string())
-        })
+        .block_on(async { this.0.process_image(&image_bytes, &config.0).await.map(|v| ExtractionResult(v)).map_err(|e| e.to_string()) })
 }
-
-pub fn ocr_backend_call_process_image_file(
-    this: &OcrBackendBox,
-    path: String,
-    config: OcrConfig,
-) -> Result<ExtractionResult, String> {
+pub fn ocr_backend_call_process_image_file(this: &OcrBackendBox, path: String, config: OcrConfig) -> Result<ExtractionResult, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            this.0
-                .process_image_file(std::path::Path::new(&path), &config.0)
-                .await
-                .map(|v| ExtractionResult(v))
-                .map_err(|e| e.to_string())
-        })
+        .block_on(async { this.0.process_image_file(std::path::Path::new(&path), &config.0).await.map(|v| ExtractionResult(v)).map_err(|e| e.to_string()) })
 }
-
 pub fn ocr_backend_call_supports_language(this: &OcrBackendBox, lang: String) -> bool {
     this.0.supports_language(&lang)
 }
-
 pub fn ocr_backend_call_backend_type(this: &OcrBackendBox) -> OcrBackendType {
     OcrBackendType::from(this.0.backend_type())
 }
-
 pub fn ocr_backend_call_supported_languages(this: &OcrBackendBox) -> Vec<String> {
     this.0.supported_languages()
 }
-
 pub fn ocr_backend_call_supports_table_detection(this: &OcrBackendBox) -> bool {
     this.0.supports_table_detection()
 }
-
 pub fn ocr_backend_call_supports_document_processing(this: &OcrBackendBox) -> bool {
     this.0.supports_document_processing()
 }
-
-pub fn ocr_backend_call_process_document(
-    this: &OcrBackendBox,
-    path: String,
-    config: OcrConfig,
-) -> Result<ExtractionResult, String> {
+pub fn ocr_backend_call_process_document(this: &OcrBackendBox, path: String, config: OcrConfig) -> Result<ExtractionResult, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            this.0
-                .process_document(std::path::Path::new(&path), &config.0)
-                .await
-                .map(|v| ExtractionResult(v))
-                .map_err(|e| e.to_string())
-        })
+        .block_on(async { this.0.process_document(std::path::Path::new(&path), &config.0).await.map(|v| ExtractionResult(v)).map_err(|e| e.to_string()) })
 }
 
 pub struct PostProcessorBox(pub Box<dyn kreuzberg::plugins::PostProcessor + Send + Sync>);
-
 #[doc(hidden)]
-pub fn alef_phantom_vec_post_processor() -> Vec<PostProcessorBox> {
-    Vec::new()
-}
-
-pub fn post_processor_call_process(
-    this: &PostProcessorBox,
-    mut result: ExtractionResult,
-    config: ExtractionConfig,
-) -> Result<(), String> {
+pub fn alef_phantom_vec_post_processor() -> Vec<PostProcessorBox> { Vec::new() }
+pub fn post_processor_call_process(this: &PostProcessorBox, mut result: ExtractionResult, config: ExtractionConfig) -> Result<(), String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            this.0
-                .process(&mut result.0, &config.0)
-                .await
-                .map_err(|e| e.to_string())
-        })
+        .block_on(async { this.0.process(&mut result.0, &config.0).await.map_err(|e| e.to_string()) })
 }
-
 pub fn post_processor_call_processing_stage(this: &PostProcessorBox) -> ProcessingStage {
     ProcessingStage::from(this.0.processing_stage())
 }
-
-pub fn post_processor_call_should_process(
-    this: &PostProcessorBox,
-    result: ExtractionResult,
-    config: ExtractionConfig,
-) -> bool {
+pub fn post_processor_call_should_process(this: &PostProcessorBox, result: ExtractionResult, config: ExtractionConfig) -> bool {
     this.0.should_process(&result.0, &config.0)
 }
-
 pub fn post_processor_call_estimated_duration_ms(this: &PostProcessorBox, result: ExtractionResult) -> u64 {
     this.0.estimated_duration_ms(&result.0)
 }
-
 pub fn post_processor_call_priority(this: &PostProcessorBox) -> i32 {
     this.0.priority()
 }
 
 pub struct ValidatorBox(pub Box<dyn kreuzberg::plugins::Validator + Send + Sync>);
-
 #[doc(hidden)]
-pub fn alef_phantom_vec_validator() -> Vec<ValidatorBox> {
-    Vec::new()
-}
-
-pub fn validator_call_validate(
-    this: &ValidatorBox,
-    result: ExtractionResult,
-    config: ExtractionConfig,
-) -> Result<(), String> {
+pub fn alef_phantom_vec_validator() -> Vec<ValidatorBox> { Vec::new() }
+pub fn validator_call_validate(this: &ValidatorBox, result: ExtractionResult, config: ExtractionConfig) -> Result<(), String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
         .block_on(async { this.0.validate(&result.0, &config.0).await.map_err(|e| e.to_string()) })
 }
-
 pub fn validator_call_should_validate(this: &ValidatorBox, result: ExtractionResult, config: ExtractionConfig) -> bool {
     this.0.should_validate(&result.0, &config.0)
 }
-
 pub fn validator_call_priority(this: &ValidatorBox) -> i32 {
     this.0.priority()
 }
 
 pub struct EmbeddingBackendBox(pub Box<dyn kreuzberg::plugins::EmbeddingBackend + Send + Sync>);
-
 #[doc(hidden)]
-pub fn alef_phantom_vec_embedding_backend() -> Vec<EmbeddingBackendBox> {
-    Vec::new()
-}
-
+pub fn alef_phantom_vec_embedding_backend() -> Vec<EmbeddingBackendBox> { Vec::new() }
 pub fn embedding_backend_call_dimensions(this: &EmbeddingBackendBox) -> usize {
     this.0.dimensions()
 }
-
 pub fn embedding_backend_call_embed(this: &EmbeddingBackendBox, texts: Vec<String>) -> Result<String, String> {
     ::tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .expect("build tokio runtime")
-        .block_on(async {
-            this.0
-                .embed(texts)
-                .await
-                .map(|v| serde_json::to_string(&v).expect("serializable return"))
-                .map_err(|e| e.to_string())
-        })
+        .block_on(async { this.0.embed(texts).await.map(|v| serde_json::to_string(&v).expect("serializable return")).map_err(|e| e.to_string()) })
 }

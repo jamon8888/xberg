@@ -3256,6 +3256,18 @@ pub fn clear_validators() -> Result(Nil, KreuzbergError)
 @external(erlang, "Elixir.Kreuzberg.Native", "embed_texts_async")
 pub fn embed_texts_async(texts: List(String), config: EmbeddingConfig) -> Result(List(List(Float)), KreuzbergError)
 
+/// Render a single PDF page to PNG bytes.
+///
+/// Returns raw PNG-encoded bytes for the specified page at the given DPI.
+/// Uses pdf_oxide with tiny-skia for pure-Rust rendering.
+///
+/// **Errors:**
+///
+/// Returns `KreuzbergError.Parsing` if the PDF cannot be opened, authenticated,
+/// or rendered, or if `page_index` is out of range.
+@external(erlang, "Elixir.Kreuzberg.Native", "render_pdf_page_to_png")
+pub fn render_pdf_page_to_png(pdf_bytes: BitArray, page_index: Int, dpi: Option(Int), password: Option(String)) -> Result(BitArray, KreuzbergError)
+
 /// Detect the MIME type of a file at the given path.
 ///
 /// Uses the file extension and optionally the file content to determine the MIME type.
@@ -3350,6 +3362,7 @@ pub fn list_embedding_presets() -> List(String)
 /// module is done via the Elixir/Rustler side (existing GenServer pattern).
 @external(erlang, "Elixir.Kreuzberg.Native", "register_ocr_backend")
 pub fn register_ocr_backend(pid: Dynamic, plugin_name: String) -> Nil
+
 /// Send the `process_image` response back to the Rustler reply-registry.
 ///
 /// Call this from your `handle_info/2` after processing a
@@ -3366,6 +3379,7 @@ pub fn register_ocr_backend(pid: Dynamic, plugin_name: String) -> Nil
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_process_image_response")
 pub fn ocr_backend_process_image_response(call_id: Dynamic, result: Result(ExtractionResult, KreuzbergError)) -> Nil
 
@@ -3385,6 +3399,7 @@ pub fn ocr_backend_process_image_response(call_id: Dynamic, result: Result(Extra
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_process_image_file_response")
 pub fn ocr_backend_process_image_file_response(call_id: Dynamic, result: Result(ExtractionResult, KreuzbergError)) -> Nil
 
@@ -3404,6 +3419,7 @@ pub fn ocr_backend_process_image_file_response(call_id: Dynamic, result: Result(
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_supports_language_response")
 pub fn ocr_backend_supports_language_response(call_id: Dynamic, result: Result(Bool, String)) -> Nil
 
@@ -3423,6 +3439,7 @@ pub fn ocr_backend_supports_language_response(call_id: Dynamic, result: Result(B
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_backend_type_response")
 pub fn ocr_backend_backend_type_response(call_id: Dynamic, result: Result(OcrBackendType, String)) -> Nil
 
@@ -3442,6 +3459,7 @@ pub fn ocr_backend_backend_type_response(call_id: Dynamic, result: Result(OcrBac
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_supported_languages_response")
 pub fn ocr_backend_supported_languages_response(call_id: Dynamic, result: Result(List(String), String)) -> Nil
 
@@ -3461,6 +3479,7 @@ pub fn ocr_backend_supported_languages_response(call_id: Dynamic, result: Result
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_supports_table_detection_response")
 pub fn ocr_backend_supports_table_detection_response(call_id: Dynamic, result: Result(Bool, String)) -> Nil
 
@@ -3480,6 +3499,7 @@ pub fn ocr_backend_supports_table_detection_response(call_id: Dynamic, result: R
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_supports_document_processing_response")
 pub fn ocr_backend_supports_document_processing_response(call_id: Dynamic, result: Result(Bool, String)) -> Nil
 
@@ -3499,14 +3519,17 @@ pub fn ocr_backend_supports_document_processing_response(call_id: Dynamic, resul
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "ocr_backend_process_document_response")
 pub fn ocr_backend_process_document_response(call_id: Dynamic, result: Result(ExtractionResult, KreuzbergError)) -> Nil
 
 
 /// Complete a pending trait call with a successful JSON result.
 /// Call this from your GenServer after processing a trait_call message.
+
 @external(erlang, "Elixir.Kreuzberg.Native", "complete_trait_call")
 pub fn complete_trait_call(reply_id: Int, result_json: String) -> Nil
+
 
 /// Fail a pending trait call with an error message.
 /// Call this from your GenServer when processing a trait_call message fails.
@@ -3589,6 +3612,7 @@ pub fn fail_trait_call(reply_id: Int, error_message: String) -> Nil
 /// module is done via the Elixir/Rustler side (existing GenServer pattern).
 @external(erlang, "Elixir.Kreuzberg.Native", "register_post_processor")
 pub fn register_post_processor(pid: Dynamic, plugin_name: String) -> Nil
+
 /// Send the `process` response back to the Rustler reply-registry.
 ///
 /// Call this from your `handle_info/2` after processing a
@@ -3605,6 +3629,7 @@ pub fn register_post_processor(pid: Dynamic, plugin_name: String) -> Nil
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "post_processor_process_response")
 pub fn post_processor_process_response(call_id: Dynamic, result: Result(Nil, KreuzbergError)) -> Nil
 
@@ -3624,6 +3649,7 @@ pub fn post_processor_process_response(call_id: Dynamic, result: Result(Nil, Kre
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "post_processor_processing_stage_response")
 pub fn post_processor_processing_stage_response(call_id: Dynamic, result: Result(ProcessingStage, String)) -> Nil
 
@@ -3643,6 +3669,7 @@ pub fn post_processor_processing_stage_response(call_id: Dynamic, result: Result
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "post_processor_should_process_response")
 pub fn post_processor_should_process_response(call_id: Dynamic, result: Result(Bool, String)) -> Nil
 
@@ -3662,6 +3689,7 @@ pub fn post_processor_should_process_response(call_id: Dynamic, result: Result(B
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "post_processor_estimated_duration_ms_response")
 pub fn post_processor_estimated_duration_ms_response(call_id: Dynamic, result: Result(Int, String)) -> Nil
 
@@ -3681,6 +3709,7 @@ pub fn post_processor_estimated_duration_ms_response(call_id: Dynamic, result: R
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "post_processor_priority_response")
 pub fn post_processor_priority_response(call_id: Dynamic, result: Result(Int, String)) -> Nil
 
@@ -3757,6 +3786,7 @@ pub fn post_processor_priority_response(call_id: Dynamic, result: Result(Int, St
 /// module is done via the Elixir/Rustler side (existing GenServer pattern).
 @external(erlang, "Elixir.Kreuzberg.Native", "register_validator")
 pub fn register_validator(pid: Dynamic, plugin_name: String) -> Nil
+
 /// Send the `validate` response back to the Rustler reply-registry.
 ///
 /// Call this from your `handle_info/2` after processing a
@@ -3773,6 +3803,7 @@ pub fn register_validator(pid: Dynamic, plugin_name: String) -> Nil
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "validator_validate_response")
 pub fn validator_validate_response(call_id: Dynamic, result: Result(Nil, KreuzbergError)) -> Nil
 
@@ -3792,6 +3823,7 @@ pub fn validator_validate_response(call_id: Dynamic, result: Result(Nil, Kreuzbe
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "validator_should_validate_response")
 pub fn validator_should_validate_response(call_id: Dynamic, result: Result(Bool, String)) -> Nil
 
@@ -3811,6 +3843,7 @@ pub fn validator_should_validate_response(call_id: Dynamic, result: Result(Bool,
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "validator_priority_response")
 pub fn validator_priority_response(call_id: Dynamic, result: Result(Int, String)) -> Nil
 
@@ -3873,6 +3906,7 @@ pub fn validator_priority_response(call_id: Dynamic, result: Result(Int, String)
 /// module is done via the Elixir/Rustler side (existing GenServer pattern).
 @external(erlang, "Elixir.Kreuzberg.Native", "register_embedding_backend")
 pub fn register_embedding_backend(pid: Dynamic, plugin_name: String) -> Nil
+
 /// Send the `dimensions` response back to the Rustler reply-registry.
 ///
 /// Call this from your `handle_info/2` after processing a
@@ -3889,6 +3923,7 @@ pub fn register_embedding_backend(pid: Dynamic, plugin_name: String) -> Nil
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "embedding_backend_dimensions_response")
 pub fn embedding_backend_dimensions_response(call_id: Dynamic, result: Result(Int, String)) -> Nil
 
@@ -3908,5 +3943,6 @@ pub fn embedding_backend_dimensions_response(call_id: Dynamic, result: Result(In
 /// //   }
 /// // }
 /// ```
+///
 @external(erlang, "Elixir.Kreuzberg.Native", "embedding_backend_embed_response")
 pub fn embedding_backend_embed_response(call_id: Dynamic, result: Result(List(List(Float)), KreuzbergError)) -> Nil

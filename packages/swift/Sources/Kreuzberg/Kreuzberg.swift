@@ -931,7 +931,7 @@ public enum OutputFormat {
     case structured
     /// Custom renderer registered via the RendererRegistry.
     /// The string is the renderer name (e.g., "docx", "latex").
-    case custom(field0: String)
+    case custom()
 }
 
 /// Built-in HTML theme selection.
@@ -955,21 +955,7 @@ public enum HtmlTheme {
 ///
 /// Controls the model used for table cell detection within layout-detected
 /// table regions.
-public enum TableModel {
-    /// TATR (Table Transformer) -- default, 30MB, DETR-based row/column detection.
-    case tatr
-    /// SLANeXT wired variant -- 365MB, optimized for bordered tables.
-    case slanetWired
-    /// SLANeXT wireless variant -- 365MB, optimized for borderless tables.
-    case slanetWireless
-    /// SLANet-plus -- 7.78MB, lightweight general-purpose.
-    case slanetPlus
-    /// Classifier-routed SLANeXT: auto-select wired/wireless per table.
-    /// Uses PP-LCNet classifier (6.78MB) + both SLANeXT variants (730MB total).
-    case slanetAuto
-    /// Disable table structure model inference entirely; use heuristic path only.
-    case disabled
-}
+public typealias TableModel = RustBridge.TableModel
 
 /// Type of text chunker to use.
 ///
@@ -1004,20 +990,20 @@ public enum ChunkSizing {
     /// Size measured in Unicode characters (default).
     case characters
     /// Size measured in tokens from a HuggingFace tokenizer.
-    case tokenizer(model: String, cacheDir: URL)
+    case tokenizer()
 }
 
 /// Embedding model types supported by Kreuzberg.
 public enum EmbeddingModelType {
     /// Use a preset model configuration (recommended)
-    case preset(name: String)
+    case preset()
     /// Use a custom ONNX model from HuggingFace
-    case custom(modelId: String, dimensions: UInt)
+    case custom()
     /// Provider-hosted embedding model via liter-llm.
     ///
     /// Uses the model specified in the nested `LlmConfig` (e.g.,
     /// `"openai/text-embedding-3-small"`).
-    case llm(llm: LlmConfig)
+    case llm()
     /// In-process embedding backend registered via the plugin system.
     ///
     /// The caller registers an [`EmbeddingBackend`](crate::plugins::EmbeddingBackend) once
@@ -1037,7 +1023,7 @@ public enum EmbeddingModelType {
     /// context window via `max_characters` directly.
     ///
     /// See `register_embedding_backend`.
-    case plugin(name: String)
+    case plugin()
 }
 
 /// Content rendering mode for code extraction.
@@ -1053,12 +1039,7 @@ public enum CodeContentMode {
     case structure
 }
 
-public enum FracType {
-    case bar
-    case noBar
-    case linear
-    case skewed
-}
+public typealias FracType = RustBridge.FracType
 
 /// OCR backend types.
 public enum OcrBackendType {
@@ -1207,53 +1188,53 @@ public enum ContentLayer {
 /// Go/Java/TypeScript bindings.
 public enum NodeContent {
     /// Document title.
-    case title(text: String)
+    case title()
     /// Section heading with level (1-6).
-    case heading(level: UInt8, text: String)
+    case heading()
     /// Body text paragraph.
-    case paragraph(text: String)
+    case paragraph()
     /// List container — children are `ListItem` nodes.
-    case list(ordered: Bool)
+    case list()
     /// Individual list item.
-    case listItem(text: String)
+    case listItem()
     /// Table with structured cell grid.
-    case table(grid: TableGrid)
+    case table()
     /// Image reference.
-    case image(description: String, imageIndex: UInt32, src: String)
+    case image()
     /// Code block.
-    case code(text: String, language: String)
+    case code()
     /// Block quote — container, children carry the quoted content.
     case quote
     /// Mathematical formula / equation.
-    case formula(text: String)
+    case formula()
     /// Footnote reference content.
-    case footnote(text: String)
+    case footnote()
     /// Logical grouping container (section, key-value area).
     ///
     /// `heading_level` + `heading_text` capture the section heading directly
     /// rather than relying on a first-child positional convention.
-    case group(label: String, headingLevel: UInt8, headingText: String)
+    case group()
     /// Page break marker.
     case pageBreak
     /// Presentation slide container — children are the slide's content nodes.
-    case slide(number: UInt32, title: String)
+    case slide()
     /// Definition list container — children are `DefinitionItem` nodes.
     case definitionList
     /// Individual definition list entry with term and definition.
-    case definitionItem(term: String, definition: String)
+    case definitionItem()
     /// Citation or bibliographic reference.
-    case citation(key: String, text: String)
+    case citation()
     /// Admonition / callout container (note, warning, tip, etc.).
     ///
     /// Children carry the admonition body content.
-    case admonition(kind: String, title: String)
+    case admonition()
     /// Raw block preserved verbatim from the source format.
     ///
     /// Used for content that cannot be mapped to a semantic node type
     /// (e.g. JSX in MDX, raw LaTeX in markdown, embedded HTML).
-    case rawBlock(format: String, content: String)
+    case rawBlock()
     /// Structured metadata block (email headers, YAML frontmatter, etc.).
-    case metadataBlock(entries: [String])
+    case metadataBlock()
 }
 
 /// Types of inline text annotations.
@@ -1265,15 +1246,15 @@ public enum AnnotationKind {
     case code
     case subscript_
     case superscript
-    case link(url: String, title: String)
+    case link()
     /// Highlighted text (PDF highlights, HTML `<mark>`).
     case highlight
     /// Text color (CSS-compatible value, e.g. "#ff0000", "red").
-    case color(value: String)
+    case color()
     /// Font size with units (e.g. "12pt", "1.2em", "16px").
-    case fontSize(value: String)
+    case fontSize()
     /// Extensible annotation for format-specific styling.
-    case custom(name: String, value: String)
+    case custom()
 }
 
 /// How the extracted text was produced.
@@ -1389,26 +1370,26 @@ public enum ElementType {
 /// Only one format type can exist per extraction result. This provides
 /// type-safe, clean metadata without nested optionals.
 public enum FormatMetadata {
-    case pdf(field0: String)
-    case docx(field0: DocxMetadata)
-    case excel(field0: ExcelMetadata)
-    case email(field0: EmailMetadata)
-    case pptx(field0: PptxMetadata)
-    case archive(field0: ArchiveMetadata)
-    case image(field0: String)
-    case xml(field0: XmlMetadata)
-    case text(field0: TextMetadata)
-    case html(field0: HtmlMetadata)
-    case ocr(field0: OcrMetadata)
-    case csv(field0: CsvMetadata)
-    case bibtex(field0: BibtexMetadata)
-    case citation(field0: CitationMetadata)
-    case fictionBook(field0: FictionBookMetadata)
-    case dbf(field0: DbfMetadata)
-    case jats(field0: JatsMetadata)
-    case epub(field0: EpubMetadata)
-    case pst(field0: PstMetadata)
-    case code(field0: String)
+    case pdf()
+    case docx()
+    case excel()
+    case email()
+    case pptx()
+    case archive()
+    case image()
+    case xml()
+    case text()
+    case html()
+    case ocr()
+    case csv()
+    case bibtex()
+    case citation()
+    case fictionBook()
+    case dbf()
+    case jats()
+    case epub()
+    case pst()
+    case code()
 }
 
 /// Text direction enumeration for HTML documents.
@@ -1465,12 +1446,12 @@ public enum StructuredDataType {
 /// (from PaddleOCR and rotated text detection).
 public enum OcrBoundingGeometry {
     /// Axis-aligned bounding box (typical for Tesseract output).
-    case rectangle(left: UInt32, top: UInt32, width: UInt32, height: UInt32)
+    case rectangle()
     /// 4-point quadrilateral for rotated/skewed text (PaddleOCR).
     ///
     /// Points are in clockwise order starting from top-left:
     /// `[top_left, top_right, bottom_right, bottom_left]`
-    case quadrilateral(points: String)
+    case quadrilateral()
 }
 
 /// Hierarchical level of an OCR element.
@@ -1517,13 +1498,7 @@ public enum UriKind {
 }
 
 /// Error type for pool operations.
-public enum PoolError {
-    /// The pool's internal mutex was poisoned.
-    ///
-    /// This indicates a panic occurred while holding the lock.
-    /// The pool is in a locked state and cannot be recovered.
-    case lockPoisoned
-}
+public typealias PoolError = RustBridge.PoolError
 
 /// Keyword algorithm selection.
 public enum KeywordAlgorithm {
@@ -1631,46 +1606,41 @@ public enum LayoutClass {
 /// - `UnsupportedFormat` - Unsupported MIME type or file format
 /// - `Other` - Catch-all for uncommon errors
 public enum KreuzbergError: Error {
-    case io(message: String, field0: String)
-    case parsing(message: String, source: String)
-    case ocr(message: String, source: String)
-    case validation(message: String, source: String)
-    case cache(message: String, source: String)
-    case imageProcessing(message: String, source: String)
-    case serialization(message: String, source: String)
-    case missingDependency(message: String, field0: String)
-    case plugin(message: String, pluginName: String)
-    case lockPoisoned(message: String, field0: String)
-    case unsupportedFormat(message: String, field0: String)
-    case embedding(message: String, source: String)
-    case timeout(message: String, elapsedMs: UInt64, limitMs: UInt64)
+    case io()
+    case parsing()
+    case ocr()
+    case validation()
+    case cache()
+    case imageProcessing()
+    case serialization()
+    case missingDependency()
+    case plugin()
+    case lockPoisoned()
+    case unsupportedFormat()
+    case embedding()
+    case timeout()
     case cancelled(message: String)
-    case security(message: String, source: String)
-    case other(message: String, field0: String)
+    case security()
+    case other()
 }
 
-// MARK: - Extraction Wrapper Functions
+// MARK: - Convenience Wrapper Functions
 // These wrappers bridge String / [UInt8] inputs to RustBridge's
-// RustVec<UInt8> requirement. The `config` parameter must be a fully
-// constructed ExtractionConfig (built via the generated initializer);
-// JSON-config decoding is not available because ExtractionConfig is a
-// swift-bridge opaque proxy class, not a Codable Swift struct.
+// RustVec<UInt8> requirement. The config parameter must be a fully
+// constructed opaque type (built via the generated initializer);
+// JSON-config decoding is not available because swift-bridge opaque
+// proxy classes are not Codable Swift structs.
 
-/// Builds a `RustVec<UInt8>` from a Swift byte array by pushing each byte.
-/// `RustVec<T>` only exposes `init()` + `push(value:)` in swift-bridge's
-/// runtime; there is no array-init shorthand.
+/// Converts a Swift `[UInt8]` array to a `RustVec<UInt8>` by pushing each byte.
+/// swift-bridge's `RustVec<T>` runtime only exposes `init()` and `push(value:)`;
+/// no array-initializer shorthand exists.
 private func makeByteVec(_ bytes: [UInt8]) -> RustVec<UInt8> {
     let vec = RustVec<UInt8>()
     for b in bytes { vec.push(value: b) }
     return vec
 }
 
-/// Extract text from UTF-8 string content using the supplied configuration.
-/// - Parameters:
-///   - content: Document bytes as a UTF-8 encoded `String`
-///   - mimeType: MIME type (for example, `"application/pdf"`)
-///   - config: An `ExtractionConfig` constructed via the generated initializer
-/// - Returns: `ExtractionResult` with extracted text
+/// Convenience overload: accepts a UTF-8 `String` and converts it to bytes.
 public func extractBytes(
     content: String,
     mimeType: String,
@@ -1679,12 +1649,7 @@ public func extractBytes(
     return try extractBytesSync(makeByteVec(Array(content.utf8)), mimeType, config)
 }
 
-/// Extract text from raw byte content using the supplied configuration.
-/// - Parameters:
-///   - content: Document bytes as `[UInt8]`
-///   - mimeType: MIME type
-///   - config: An `ExtractionConfig` constructed via the generated initializer
-/// - Returns: `ExtractionResult` with extracted text
+/// Convenience overload: accepts a `[UInt8]` byte array.
 public func extractBytes(
     content: [UInt8],
     mimeType: String,
@@ -1693,12 +1658,41 @@ public func extractBytes(
     return try extractBytesSync(makeByteVec(content), mimeType, config)
 }
 
-/// Extract text from a file at the given path using the supplied configuration.
-/// - Parameters:
-///   - path: File path
-///   - mimeType: Optional MIME type; auto-detected when `nil`
-///   - config: An `ExtractionConfig` constructed via the generated initializer
-/// - Returns: `ExtractionResult` with extracted text
+/// Convenience overload: accepts a UTF-8 `String` and converts it to bytes.
+public func detectMimeTypeFromBytes(
+    content: String
+) throws -> String {
+    return try detectMimeTypeFromBytes(makeByteVec(Array(content.utf8)))
+}
+
+/// Convenience overload: accepts a `[UInt8]` byte array.
+public func detectMimeTypeFromBytes(
+    content: [UInt8]
+) throws -> String {
+    return try detectMimeTypeFromBytes(makeByteVec(content))
+}
+
+/// Convenience overload: accepts a UTF-8 `String` and converts it to bytes.
+public func renderPdfPageToPng(
+    content: String,
+    pageIndex: UInt,
+    dpi: Int32?,
+    password: String?
+) throws -> [UInt8] {
+    return try renderPdfPageToPng(makeByteVec(Array(content.utf8)), pageIndex, dpi, password)
+}
+
+/// Convenience overload: accepts a `[UInt8]` byte array.
+public func renderPdfPageToPng(
+    content: [UInt8],
+    pageIndex: UInt,
+    dpi: Int32?,
+    password: String?
+) throws -> [UInt8] {
+    return try renderPdfPageToPng(makeByteVec(content), pageIndex, dpi, password)
+}
+
+/// Convenience overload: accepts a file path as a `String`.
 public func extractFile(
     path: String,
     mimeType: String? = nil,

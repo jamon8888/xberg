@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace Kreuzberg;
-
 /// <summary>
 /// Bridge interface for OcrBackend trait implementation via native FFI
 /// </summary>
@@ -50,7 +49,6 @@ public interface IOcrBackend {
 
     /// <summary>process_document</summary>
     ExtractionResult ProcessDocument(string Path, OcrConfig Config);
-
 }
 
 /// <summary>
@@ -65,6 +63,7 @@ public sealed class OcrBackendBridge : IDisposable {
     private readonly object[] _delegates;
 
     // Vtable slot delegates (13)
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int NameFn(IntPtr userData, out IntPtr outName);
 
@@ -181,6 +180,7 @@ public sealed class OcrBackendBridge : IDisposable {
         var freeFn = new FreeUserDataFn(FreeUserDataCallback);
         _delegates[12] = freeFn;
         Marshal.WriteIntPtr(_vtable, 96, Marshal.GetFunctionPointerForDelegate(freeFn));
+
     }
 
     private static string ToJsonString<T>(T value) {
@@ -364,6 +364,7 @@ public sealed class OcrBackendBridge : IDisposable {
         }
     }
 
+
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -385,13 +386,11 @@ public static class OcrBackendRegistry {
     private static readonly ConcurrentDictionary<string, OcrBackendBridge> _bridges =
         new ConcurrentDictionary<string, OcrBackendBridge>();
 
-    /// <summary>Register a OcrBackend implementation</summary>
-    public static void Register(IOcrBackend impl) {
+    /// <summary>Register a OcrBackend implementation</summary>    public static void Register(IOcrBackend impl) {
         if (impl == null)
             throw new ArgumentNullException(nameof(impl));
 
-        var name = impl.Name;
-        var bridge = new OcrBackendBridge(impl);
+        var name = impl.Name;        var bridge = new OcrBackendBridge(impl);
 
         try {
             var userDataHandle = GCHandle.Alloc(bridge, GCHandleType.Normal);
@@ -463,7 +462,6 @@ public interface IPostProcessor {
 
     /// <summary>priority</summary>
     int Priority();
-
 }
 
 /// <summary>
@@ -478,6 +476,7 @@ public sealed class PostProcessorBridge : IDisposable {
     private readonly object[] _delegates;
 
     // Vtable slot delegates (10)
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int NameFn(IntPtr userData, out IntPtr outName);
 
@@ -570,6 +569,7 @@ public sealed class PostProcessorBridge : IDisposable {
         var freeFn = new FreeUserDataFn(FreeUserDataCallback);
         _delegates[9] = freeFn;
         Marshal.WriteIntPtr(_vtable, 72, Marshal.GetFunctionPointerForDelegate(freeFn));
+
     }
 
     private static string ToJsonString<T>(T value) {
@@ -706,6 +706,7 @@ public sealed class PostProcessorBridge : IDisposable {
         }
     }
 
+
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -727,13 +728,11 @@ public static class PostProcessorRegistry {
     private static readonly ConcurrentDictionary<string, PostProcessorBridge> _bridges =
         new ConcurrentDictionary<string, PostProcessorBridge>();
 
-    /// <summary>Register a PostProcessor implementation</summary>
-    public static void Register(IPostProcessor impl) {
+    /// <summary>Register a PostProcessor implementation</summary>    public static void Register(IPostProcessor impl) {
         if (impl == null)
             throw new ArgumentNullException(nameof(impl));
 
-        var name = impl.Name;
-        var bridge = new PostProcessorBridge(impl);
+        var name = impl.Name;        var bridge = new PostProcessorBridge(impl);
 
         try {
             var userDataHandle = GCHandle.Alloc(bridge, GCHandleType.Normal);
@@ -799,7 +798,6 @@ public interface IValidator {
 
     /// <summary>priority</summary>
     int Priority();
-
 }
 
 /// <summary>
@@ -814,6 +812,7 @@ public sealed class ValidatorBridge : IDisposable {
     private readonly object[] _delegates;
 
     // Vtable slot delegates (8)
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int NameFn(IntPtr userData, out IntPtr outName);
 
@@ -890,6 +889,7 @@ public sealed class ValidatorBridge : IDisposable {
         var freeFn = new FreeUserDataFn(FreeUserDataCallback);
         _delegates[7] = freeFn;
         Marshal.WriteIntPtr(_vtable, 56, Marshal.GetFunctionPointerForDelegate(freeFn));
+
     }
 
     private static string ToJsonString<T>(T value) {
@@ -998,6 +998,7 @@ public sealed class ValidatorBridge : IDisposable {
         }
     }
 
+
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -1019,13 +1020,11 @@ public static class ValidatorRegistry {
     private static readonly ConcurrentDictionary<string, ValidatorBridge> _bridges =
         new ConcurrentDictionary<string, ValidatorBridge>();
 
-    /// <summary>Register a Validator implementation</summary>
-    public static void Register(IValidator impl) {
+    /// <summary>Register a Validator implementation</summary>    public static void Register(IValidator impl) {
         if (impl == null)
             throw new ArgumentNullException(nameof(impl));
 
-        var name = impl.Name;
-        var bridge = new ValidatorBridge(impl);
+        var name = impl.Name;        var bridge = new ValidatorBridge(impl);
 
         try {
             var userDataHandle = GCHandle.Alloc(bridge, GCHandleType.Normal);
@@ -1088,7 +1087,6 @@ public interface IEmbeddingBackend {
 
     /// <summary>embed</summary>
     List<List<float>> Embed(List<string> Texts);
-
 }
 
 /// <summary>
@@ -1103,6 +1101,7 @@ public sealed class EmbeddingBackendBridge : IDisposable {
     private readonly object[] _delegates;
 
     // Vtable slot delegates (7)
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int NameFn(IntPtr userData, out IntPtr outName);
 
@@ -1171,6 +1170,7 @@ public sealed class EmbeddingBackendBridge : IDisposable {
         var freeFn = new FreeUserDataFn(FreeUserDataCallback);
         _delegates[6] = freeFn;
         Marshal.WriteIntPtr(_vtable, 48, Marshal.GetFunctionPointerForDelegate(freeFn));
+
     }
 
     private static string ToJsonString<T>(T value) {
@@ -1260,6 +1260,7 @@ public sealed class EmbeddingBackendBridge : IDisposable {
         }
     }
 
+
     public void Dispose() {
         if (_disposed) return;
         _disposed = true;
@@ -1281,13 +1282,11 @@ public static class EmbeddingBackendRegistry {
     private static readonly ConcurrentDictionary<string, EmbeddingBackendBridge> _bridges =
         new ConcurrentDictionary<string, EmbeddingBackendBridge>();
 
-    /// <summary>Register a EmbeddingBackend implementation</summary>
-    public static void Register(IEmbeddingBackend impl) {
+    /// <summary>Register a EmbeddingBackend implementation</summary>    public static void Register(IEmbeddingBackend impl) {
         if (impl == null)
             throw new ArgumentNullException(nameof(impl));
 
-        var name = impl.Name;
-        var bridge = new EmbeddingBackendBridge(impl);
+        var name = impl.Name;        var bridge = new EmbeddingBackendBridge(impl);
 
         try {
             var userDataHandle = GCHandle.Alloc(bridge, GCHandleType.Normal);

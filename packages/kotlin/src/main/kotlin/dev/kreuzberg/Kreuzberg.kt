@@ -7,217 +7,9 @@ import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-typealias AccelerationConfig = dev.kreuzberg.AccelerationConfig
-typealias ContentFilterConfig = dev.kreuzberg.ContentFilterConfig
-typealias EmailConfig = dev.kreuzberg.EmailConfig
-typealias ExtractionConfig = dev.kreuzberg.ExtractionConfig
-typealias FileExtractionConfig = dev.kreuzberg.FileExtractionConfig
-typealias BatchBytesItem = dev.kreuzberg.BatchBytesItem
-typealias BatchFileItem = dev.kreuzberg.BatchFileItem
-typealias ImageExtractionConfig = dev.kreuzberg.ImageExtractionConfig
-typealias TokenReductionOptions = dev.kreuzberg.TokenReductionOptions
-typealias LanguageDetectionConfig = dev.kreuzberg.LanguageDetectionConfig
-typealias HtmlOutputConfig = dev.kreuzberg.HtmlOutputConfig
-typealias LayoutDetectionConfig = dev.kreuzberg.LayoutDetectionConfig
-typealias LlmConfig = dev.kreuzberg.LlmConfig
-typealias StructuredExtractionConfig = dev.kreuzberg.StructuredExtractionConfig
-typealias OcrQualityThresholds = dev.kreuzberg.OcrQualityThresholds
-typealias OcrPipelineStage = dev.kreuzberg.OcrPipelineStage
-typealias OcrPipelineConfig = dev.kreuzberg.OcrPipelineConfig
-typealias OcrConfig = dev.kreuzberg.OcrConfig
-typealias PageConfig = dev.kreuzberg.PageConfig
-typealias PdfConfig = dev.kreuzberg.PdfConfig
-typealias HierarchyConfig = dev.kreuzberg.HierarchyConfig
-typealias PostProcessorConfig = dev.kreuzberg.PostProcessorConfig
-typealias ChunkingConfig = dev.kreuzberg.ChunkingConfig
-typealias EmbeddingConfig = dev.kreuzberg.EmbeddingConfig
-typealias TreeSitterConfig = dev.kreuzberg.TreeSitterConfig
-typealias TreeSitterProcessConfig = dev.kreuzberg.TreeSitterProcessConfig
-typealias SupportedFormat = dev.kreuzberg.SupportedFormat
-typealias ServerConfig = dev.kreuzberg.ServerConfig
-typealias StructuredDataResult = dev.kreuzberg.StructuredDataResult
-typealias CharShape = dev.kreuzberg.CharShape
-typealias HwpImage = dev.kreuzberg.HwpImage
-typealias StreamReader = dev.kreuzberg.StreamReader
-typealias ImageOcrResult = dev.kreuzberg.ImageOcrResult
-typealias HtmlExtractionResult = dev.kreuzberg.HtmlExtractionResult
-typealias ExtractedInlineImage = dev.kreuzberg.ExtractedInlineImage
-typealias Drawing = dev.kreuzberg.Drawing
-typealias AnchorProperties = dev.kreuzberg.AnchorProperties
-typealias PageMarginsPoints = dev.kreuzberg.PageMarginsPoints
-typealias StyleDefinition = dev.kreuzberg.StyleDefinition
-typealias ResolvedStyle = dev.kreuzberg.ResolvedStyle
-typealias TableProperties = dev.kreuzberg.TableProperties
-typealias XlsxAppProperties = dev.kreuzberg.XlsxAppProperties
-typealias PptxAppProperties = dev.kreuzberg.PptxAppProperties
-typealias CustomProperties = dev.kreuzberg.CustomProperties
-typealias OdtProperties = dev.kreuzberg.OdtProperties
-typealias SecurityLimits = dev.kreuzberg.SecurityLimits
-typealias ZipBombValidator = dev.kreuzberg.ZipBombValidator
-typealias EmbeddingBackend = dev.kreuzberg.IEmbeddingBackend
-typealias OcrBackend = dev.kreuzberg.IOcrBackend
-typealias PostProcessor = dev.kreuzberg.IPostProcessor
-typealias Validator = dev.kreuzberg.IValidator
-typealias TokenReductionConfig = dev.kreuzberg.TokenReductionConfig
-typealias PdfAnnotation = dev.kreuzberg.PdfAnnotation
-typealias DjotContent = dev.kreuzberg.DjotContent
-typealias FormattedBlock = dev.kreuzberg.FormattedBlock
-typealias InlineElement = dev.kreuzberg.InlineElement
-typealias DjotImage = dev.kreuzberg.DjotImage
-typealias DjotLink = dev.kreuzberg.DjotLink
-typealias Footnote = dev.kreuzberg.Footnote
-typealias DocumentStructure = dev.kreuzberg.DocumentStructure
-typealias DocumentRelationship = dev.kreuzberg.DocumentRelationship
-typealias DocumentNode = dev.kreuzberg.DocumentNode
-typealias TableGrid = dev.kreuzberg.TableGrid
-typealias GridCell = dev.kreuzberg.GridCell
-typealias TextAnnotation = dev.kreuzberg.TextAnnotation
-typealias ExtractionResult = dev.kreuzberg.ExtractionResult
-typealias ArchiveEntry = dev.kreuzberg.ArchiveEntry
-typealias ProcessingWarning = dev.kreuzberg.ProcessingWarning
-typealias LlmUsage = dev.kreuzberg.LlmUsage
-typealias Chunk = dev.kreuzberg.Chunk
-typealias HeadingContext = dev.kreuzberg.HeadingContext
-typealias HeadingLevel = dev.kreuzberg.HeadingLevel
-typealias ChunkMetadata = dev.kreuzberg.ChunkMetadata
-typealias ExtractedImage = dev.kreuzberg.ExtractedImage
-typealias ElementMetadata = dev.kreuzberg.ElementMetadata
-typealias Element = dev.kreuzberg.Element
-typealias ExcelWorkbook = dev.kreuzberg.ExcelWorkbook
-typealias ExcelSheet = dev.kreuzberg.ExcelSheet
-typealias XmlExtractionResult = dev.kreuzberg.XmlExtractionResult
-typealias TextExtractionResult = dev.kreuzberg.TextExtractionResult
-typealias PptxExtractionResult = dev.kreuzberg.PptxExtractionResult
-typealias EmailExtractionResult = dev.kreuzberg.EmailExtractionResult
-typealias EmailAttachment = dev.kreuzberg.EmailAttachment
-typealias OcrExtractionResult = dev.kreuzberg.OcrExtractionResult
-typealias OcrTable = dev.kreuzberg.OcrTable
-typealias OcrTableBoundingBox = dev.kreuzberg.OcrTableBoundingBox
-typealias ImagePreprocessingConfig = dev.kreuzberg.ImagePreprocessingConfig
-typealias TesseractConfig = dev.kreuzberg.TesseractConfig
-typealias ImagePreprocessingMetadata = dev.kreuzberg.ImagePreprocessingMetadata
-typealias Metadata = dev.kreuzberg.Metadata
-typealias ExcelMetadata = dev.kreuzberg.ExcelMetadata
-typealias EmailMetadata = dev.kreuzberg.EmailMetadata
-typealias ArchiveMetadata = dev.kreuzberg.ArchiveMetadata
-typealias XmlMetadata = dev.kreuzberg.XmlMetadata
-typealias TextMetadata = dev.kreuzberg.TextMetadata
-typealias HeaderMetadata = dev.kreuzberg.HeaderMetadata
-typealias LinkMetadata = dev.kreuzberg.LinkMetadata
-typealias ImageMetadataType = dev.kreuzberg.ImageMetadataType
-typealias StructuredData = dev.kreuzberg.StructuredData
-typealias HtmlMetadata = dev.kreuzberg.HtmlMetadata
-typealias OcrMetadata = dev.kreuzberg.OcrMetadata
-typealias ErrorMetadata = dev.kreuzberg.ErrorMetadata
-typealias PptxMetadata = dev.kreuzberg.PptxMetadata
-typealias DocxMetadata = dev.kreuzberg.DocxMetadata
-typealias CsvMetadata = dev.kreuzberg.CsvMetadata
-typealias BibtexMetadata = dev.kreuzberg.BibtexMetadata
-typealias CitationMetadata = dev.kreuzberg.CitationMetadata
-typealias YearRange = dev.kreuzberg.YearRange
-typealias FictionBookMetadata = dev.kreuzberg.FictionBookMetadata
-typealias DbfMetadata = dev.kreuzberg.DbfMetadata
-typealias DbfFieldInfo = dev.kreuzberg.DbfFieldInfo
-typealias JatsMetadata = dev.kreuzberg.JatsMetadata
-typealias ContributorRole = dev.kreuzberg.ContributorRole
-typealias EpubMetadata = dev.kreuzberg.EpubMetadata
-typealias PstMetadata = dev.kreuzberg.PstMetadata
-typealias OcrConfidence = dev.kreuzberg.OcrConfidence
-typealias OcrRotation = dev.kreuzberg.OcrRotation
-typealias OcrElement = dev.kreuzberg.OcrElement
-typealias OcrElementConfig = dev.kreuzberg.OcrElementConfig
-typealias PageStructure = dev.kreuzberg.PageStructure
-typealias PageBoundary = dev.kreuzberg.PageBoundary
-typealias PageInfo = dev.kreuzberg.PageInfo
-typealias PageContent = dev.kreuzberg.PageContent
-typealias LayoutRegion = dev.kreuzberg.LayoutRegion
-typealias PageHierarchy = dev.kreuzberg.PageHierarchy
-typealias HierarchicalBlock = dev.kreuzberg.HierarchicalBlock
-typealias Table = dev.kreuzberg.Table
-typealias TableCell = dev.kreuzberg.TableCell
-typealias Uri = dev.kreuzberg.Uri
-typealias StringBufferPool = dev.kreuzberg.StringBufferPool
-typealias ByteBufferPool = dev.kreuzberg.ByteBufferPool
-typealias TracingLayer = dev.kreuzberg.TracingLayer
-typealias ApiDoc = dev.kreuzberg.ApiDoc
-typealias InfoResponse = dev.kreuzberg.InfoResponse
-typealias ExtractResponse = dev.kreuzberg.ExtractResponse
-typealias EmbedRequest = dev.kreuzberg.EmbedRequest
-typealias EmbedResponse = dev.kreuzberg.EmbedResponse
-typealias ChunkRequest = dev.kreuzberg.ChunkRequest
-typealias ChunkResponse = dev.kreuzberg.ChunkResponse
-typealias DetectResponse = dev.kreuzberg.DetectResponse
-typealias ManifestEntryResponse = dev.kreuzberg.ManifestEntryResponse
-typealias ManifestResponse = dev.kreuzberg.ManifestResponse
-typealias WarmResponse = dev.kreuzberg.WarmResponse
-typealias StructuredExtractionResponse = dev.kreuzberg.StructuredExtractionResponse
-typealias OpenWebDocumentResponse = dev.kreuzberg.OpenWebDocumentResponse
-typealias DoclingCompatResponse = dev.kreuzberg.DoclingCompatResponse
-typealias DetectMimeTypeParams = dev.kreuzberg.DetectMimeTypeParams
-typealias CacheWarmParams = dev.kreuzberg.CacheWarmParams
-typealias EmbedTextParams = dev.kreuzberg.EmbedTextParams
-typealias ExtractStructuredParams = dev.kreuzberg.ExtractStructuredParams
-typealias ChunkTextParams = dev.kreuzberg.ChunkTextParams
-typealias DetectedBoundary = dev.kreuzberg.DetectedBoundary
-typealias ChunkingResult = dev.kreuzberg.ChunkingResult
-typealias MergedChunk = dev.kreuzberg.MergedChunk
-typealias EmbeddingPreset = dev.kreuzberg.EmbeddingPreset
-typealias YakeParams = dev.kreuzberg.YakeParams
-typealias RakeParams = dev.kreuzberg.RakeParams
-typealias KeywordConfig = dev.kreuzberg.KeywordConfig
-typealias Keyword = dev.kreuzberg.Keyword
-typealias OcrCacheStats = dev.kreuzberg.OcrCacheStats
-typealias RecognizedTable = dev.kreuzberg.RecognizedTable
-typealias TessdataManager = dev.kreuzberg.TessdataManager
-typealias PaddleOcrConfig = dev.kreuzberg.PaddleOcrConfig
-typealias ModelPaths = dev.kreuzberg.ModelPaths
-typealias OrientationResult = dev.kreuzberg.OrientationResult
-typealias BBox = dev.kreuzberg.BBox
-typealias LayoutDetection = dev.kreuzberg.LayoutDetection
-typealias DetectionResult = dev.kreuzberg.DetectionResult
-typealias EmbeddedFile = dev.kreuzberg.EmbeddedFile
-
-typealias ExecutionProviderType = dev.kreuzberg.ExecutionProviderType
-typealias OutputFormat = dev.kreuzberg.OutputFormat
-typealias HtmlTheme = dev.kreuzberg.HtmlTheme
-typealias TableModel = dev.kreuzberg.TableModel
-typealias ChunkerType = dev.kreuzberg.ChunkerType
-typealias ChunkSizing = dev.kreuzberg.ChunkSizing
-typealias EmbeddingModelType = dev.kreuzberg.EmbeddingModelType
-typealias CodeContentMode = dev.kreuzberg.CodeContentMode
-typealias FracType = dev.kreuzberg.FracType
-typealias OcrBackendType = dev.kreuzberg.OcrBackendType
-typealias ProcessingStage = dev.kreuzberg.ProcessingStage
-typealias ReductionLevel = dev.kreuzberg.ReductionLevel
-typealias PdfAnnotationType = dev.kreuzberg.PdfAnnotationType
-typealias BlockType = dev.kreuzberg.BlockType
-typealias InlineType = dev.kreuzberg.InlineType
-typealias RelationshipKind = dev.kreuzberg.RelationshipKind
-typealias ContentLayer = dev.kreuzberg.ContentLayer
-typealias NodeContent = dev.kreuzberg.NodeContent
-typealias AnnotationKind = dev.kreuzberg.AnnotationKind
-typealias ExtractionMethod = dev.kreuzberg.ExtractionMethod
-typealias ChunkType = dev.kreuzberg.ChunkType
-typealias ImageKind = dev.kreuzberg.ImageKind
-typealias ResultFormat = dev.kreuzberg.ResultFormat
-typealias ElementType = dev.kreuzberg.ElementType
-typealias FormatMetadata = dev.kreuzberg.FormatMetadata
-typealias TextDirection = dev.kreuzberg.TextDirection
-typealias LinkType = dev.kreuzberg.LinkType
-typealias ImageType = dev.kreuzberg.ImageType
-typealias StructuredDataType = dev.kreuzberg.StructuredDataType
-typealias OcrBoundingGeometry = dev.kreuzberg.OcrBoundingGeometry
-typealias OcrElementLevel = dev.kreuzberg.OcrElementLevel
-typealias PageUnitType = dev.kreuzberg.PageUnitType
-typealias UriKind = dev.kreuzberg.UriKind
-typealias PoolError = dev.kreuzberg.PoolError
-typealias KeywordAlgorithm = dev.kreuzberg.KeywordAlgorithm
-typealias PSMMode = dev.kreuzberg.PSMMode
-typealias PaddleLanguage = dev.kreuzberg.PaddleLanguage
-typealias LayoutClass = dev.kreuzberg.LayoutClass
-
+typealias AccelerationConfig = dev.kreuzberg.AccelerationConfigtypealias ContentFilterConfig = dev.kreuzberg.ContentFilterConfigtypealias EmailConfig = dev.kreuzberg.EmailConfigtypealias ExtractionConfig = dev.kreuzberg.ExtractionConfigtypealias FileExtractionConfig = dev.kreuzberg.FileExtractionConfigtypealias BatchBytesItem = dev.kreuzberg.BatchBytesItemtypealias BatchFileItem = dev.kreuzberg.BatchFileItemtypealias ImageExtractionConfig = dev.kreuzberg.ImageExtractionConfigtypealias TokenReductionOptions = dev.kreuzberg.TokenReductionOptionstypealias LanguageDetectionConfig = dev.kreuzberg.LanguageDetectionConfigtypealias HtmlOutputConfig = dev.kreuzberg.HtmlOutputConfigtypealias LayoutDetectionConfig = dev.kreuzberg.LayoutDetectionConfigtypealias LlmConfig = dev.kreuzberg.LlmConfigtypealias StructuredExtractionConfig = dev.kreuzberg.StructuredExtractionConfigtypealias OcrQualityThresholds = dev.kreuzberg.OcrQualityThresholdstypealias OcrPipelineStage = dev.kreuzberg.OcrPipelineStagetypealias OcrPipelineConfig = dev.kreuzberg.OcrPipelineConfigtypealias OcrConfig = dev.kreuzberg.OcrConfigtypealias PageConfig = dev.kreuzberg.PageConfigtypealias PdfConfig = dev.kreuzberg.PdfConfigtypealias HierarchyConfig = dev.kreuzberg.HierarchyConfigtypealias PostProcessorConfig = dev.kreuzberg.PostProcessorConfigtypealias ChunkingConfig = dev.kreuzberg.ChunkingConfigtypealias EmbeddingConfig = dev.kreuzberg.EmbeddingConfigtypealias TreeSitterConfig = dev.kreuzberg.TreeSitterConfigtypealias TreeSitterProcessConfig = dev.kreuzberg.TreeSitterProcessConfigtypealias SupportedFormat = dev.kreuzberg.SupportedFormattypealias ServerConfig = dev.kreuzberg.ServerConfigtypealias StructuredDataResult = dev.kreuzberg.StructuredDataResulttypealias CharShape = dev.kreuzberg.CharShapetypealias HwpImage = dev.kreuzberg.HwpImagetypealias StreamReader = dev.kreuzberg.StreamReadertypealias ImageOcrResult = dev.kreuzberg.ImageOcrResulttypealias HtmlExtractionResult = dev.kreuzberg.HtmlExtractionResulttypealias ExtractedInlineImage = dev.kreuzberg.ExtractedInlineImagetypealias Drawing = dev.kreuzberg.Drawingtypealias AnchorProperties = dev.kreuzberg.AnchorPropertiestypealias PageMarginsPoints = dev.kreuzberg.PageMarginsPointstypealias StyleDefinition = dev.kreuzberg.StyleDefinitiontypealias ResolvedStyle = dev.kreuzberg.ResolvedStyletypealias TableProperties = dev.kreuzberg.TablePropertiestypealias XlsxAppProperties = dev.kreuzberg.XlsxAppPropertiestypealias PptxAppProperties = dev.kreuzberg.PptxAppPropertiestypealias CustomProperties = dev.kreuzberg.CustomPropertiestypealias OdtProperties = dev.kreuzberg.OdtPropertiestypealias SecurityLimits = dev.kreuzberg.SecurityLimitstypealias ZipBombValidator = dev.kreuzberg.ZipBombValidatortypealias EmbeddingBackend = dev.kreuzberg.IEmbeddingBackendtypealias OcrBackend = dev.kreuzberg.IOcrBackendtypealias PostProcessor = dev.kreuzberg.IPostProcessortypealias Validator = dev.kreuzberg.IValidatortypealias TokenReductionConfig = dev.kreuzberg.TokenReductionConfigtypealias PdfAnnotation = dev.kreuzberg.PdfAnnotationtypealias DjotContent = dev.kreuzberg.DjotContenttypealias FormattedBlock = dev.kreuzberg.FormattedBlocktypealias InlineElement = dev.kreuzberg.InlineElementtypealias DjotImage = dev.kreuzberg.DjotImagetypealias DjotLink = dev.kreuzberg.DjotLinktypealias Footnote = dev.kreuzberg.Footnotetypealias DocumentStructure = dev.kreuzberg.DocumentStructuretypealias DocumentRelationship = dev.kreuzberg.DocumentRelationshiptypealias DocumentNode = dev.kreuzberg.DocumentNodetypealias TableGrid = dev.kreuzberg.TableGridtypealias GridCell = dev.kreuzberg.GridCelltypealias TextAnnotation = dev.kreuzberg.TextAnnotationtypealias ExtractionResult = dev.kreuzberg.ExtractionResulttypealias ArchiveEntry = dev.kreuzberg.ArchiveEntrytypealias ProcessingWarning = dev.kreuzberg.ProcessingWarningtypealias LlmUsage = dev.kreuzberg.LlmUsagetypealias Chunk = dev.kreuzberg.Chunktypealias HeadingContext = dev.kreuzberg.HeadingContexttypealias HeadingLevel = dev.kreuzberg.HeadingLeveltypealias ChunkMetadata = dev.kreuzberg.ChunkMetadatatypealias ExtractedImage = dev.kreuzberg.ExtractedImagetypealias ElementMetadata = dev.kreuzberg.ElementMetadatatypealias Element = dev.kreuzberg.Elementtypealias ExcelWorkbook = dev.kreuzberg.ExcelWorkbooktypealias ExcelSheet = dev.kreuzberg.ExcelSheettypealias XmlExtractionResult = dev.kreuzberg.XmlExtractionResulttypealias TextExtractionResult = dev.kreuzberg.TextExtractionResulttypealias PptxExtractionResult = dev.kreuzberg.PptxExtractionResulttypealias EmailExtractionResult = dev.kreuzberg.EmailExtractionResulttypealias EmailAttachment = dev.kreuzberg.EmailAttachmenttypealias OcrExtractionResult = dev.kreuzberg.OcrExtractionResulttypealias OcrTable = dev.kreuzberg.OcrTabletypealias OcrTableBoundingBox = dev.kreuzberg.OcrTableBoundingBoxtypealias ImagePreprocessingConfig = dev.kreuzberg.ImagePreprocessingConfigtypealias TesseractConfig = dev.kreuzberg.TesseractConfigtypealias ImagePreprocessingMetadata = dev.kreuzberg.ImagePreprocessingMetadatatypealias Metadata = dev.kreuzberg.Metadatatypealias ExcelMetadata = dev.kreuzberg.ExcelMetadatatypealias EmailMetadata = dev.kreuzberg.EmailMetadatatypealias ArchiveMetadata = dev.kreuzberg.ArchiveMetadatatypealias XmlMetadata = dev.kreuzberg.XmlMetadatatypealias TextMetadata = dev.kreuzberg.TextMetadatatypealias HeaderMetadata = dev.kreuzberg.HeaderMetadatatypealias LinkMetadata = dev.kreuzberg.LinkMetadatatypealias ImageMetadataType = dev.kreuzberg.ImageMetadataTypetypealias StructuredData = dev.kreuzberg.StructuredDatatypealias HtmlMetadata = dev.kreuzberg.HtmlMetadatatypealias OcrMetadata = dev.kreuzberg.OcrMetadatatypealias ErrorMetadata = dev.kreuzberg.ErrorMetadatatypealias PptxMetadata = dev.kreuzberg.PptxMetadatatypealias DocxMetadata = dev.kreuzberg.DocxMetadatatypealias CsvMetadata = dev.kreuzberg.CsvMetadatatypealias BibtexMetadata = dev.kreuzberg.BibtexMetadatatypealias CitationMetadata = dev.kreuzberg.CitationMetadatatypealias YearRange = dev.kreuzberg.YearRangetypealias FictionBookMetadata = dev.kreuzberg.FictionBookMetadatatypealias DbfMetadata = dev.kreuzberg.DbfMetadatatypealias DbfFieldInfo = dev.kreuzberg.DbfFieldInfotypealias JatsMetadata = dev.kreuzberg.JatsMetadatatypealias ContributorRole = dev.kreuzberg.ContributorRoletypealias EpubMetadata = dev.kreuzberg.EpubMetadatatypealias PstMetadata = dev.kreuzberg.PstMetadatatypealias OcrConfidence = dev.kreuzberg.OcrConfidencetypealias OcrRotation = dev.kreuzberg.OcrRotationtypealias OcrElement = dev.kreuzberg.OcrElementtypealias OcrElementConfig = dev.kreuzberg.OcrElementConfigtypealias PageStructure = dev.kreuzberg.PageStructuretypealias PageBoundary = dev.kreuzberg.PageBoundarytypealias PageInfo = dev.kreuzberg.PageInfotypealias PageContent = dev.kreuzberg.PageContenttypealias LayoutRegion = dev.kreuzberg.LayoutRegiontypealias PageHierarchy = dev.kreuzberg.PageHierarchytypealias HierarchicalBlock = dev.kreuzberg.HierarchicalBlocktypealias Table = dev.kreuzberg.Tabletypealias TableCell = dev.kreuzberg.TableCelltypealias Uri = dev.kreuzberg.Uritypealias StringBufferPool = dev.kreuzberg.StringBufferPooltypealias ByteBufferPool = dev.kreuzberg.ByteBufferPooltypealias TracingLayer = dev.kreuzberg.TracingLayertypealias ApiDoc = dev.kreuzberg.ApiDoctypealias InfoResponse = dev.kreuzberg.InfoResponsetypealias ExtractResponse = dev.kreuzberg.ExtractResponsetypealias EmbedRequest = dev.kreuzberg.EmbedRequesttypealias EmbedResponse = dev.kreuzberg.EmbedResponsetypealias ChunkRequest = dev.kreuzberg.ChunkRequesttypealias ChunkResponse = dev.kreuzberg.ChunkResponsetypealias DetectResponse = dev.kreuzberg.DetectResponsetypealias ManifestEntryResponse = dev.kreuzberg.ManifestEntryResponsetypealias ManifestResponse = dev.kreuzberg.ManifestResponsetypealias WarmResponse = dev.kreuzberg.WarmResponsetypealias StructuredExtractionResponse = dev.kreuzberg.StructuredExtractionResponsetypealias OpenWebDocumentResponse = dev.kreuzberg.OpenWebDocumentResponsetypealias DoclingCompatResponse = dev.kreuzberg.DoclingCompatResponsetypealias DetectMimeTypeParams = dev.kreuzberg.DetectMimeTypeParamstypealias CacheWarmParams = dev.kreuzberg.CacheWarmParamstypealias EmbedTextParams = dev.kreuzberg.EmbedTextParamstypealias ExtractStructuredParams = dev.kreuzberg.ExtractStructuredParamstypealias ChunkTextParams = dev.kreuzberg.ChunkTextParamstypealias DetectedBoundary = dev.kreuzberg.DetectedBoundarytypealias ChunkingResult = dev.kreuzberg.ChunkingResulttypealias MergedChunk = dev.kreuzberg.MergedChunktypealias EmbeddingPreset = dev.kreuzberg.EmbeddingPresettypealias YakeParams = dev.kreuzberg.YakeParamstypealias RakeParams = dev.kreuzberg.RakeParamstypealias KeywordConfig = dev.kreuzberg.KeywordConfigtypealias Keyword = dev.kreuzberg.Keywordtypealias OcrCacheStats = dev.kreuzberg.OcrCacheStatstypealias RecognizedTable = dev.kreuzberg.RecognizedTabletypealias TessdataManager = dev.kreuzberg.TessdataManagertypealias PaddleOcrConfig = dev.kreuzberg.PaddleOcrConfigtypealias ModelPaths = dev.kreuzberg.ModelPathstypealias OrientationResult = dev.kreuzberg.OrientationResulttypealias BBox = dev.kreuzberg.BBoxtypealias LayoutDetection = dev.kreuzberg.LayoutDetectiontypealias DetectionResult = dev.kreuzberg.DetectionResulttypealias EmbeddedFile = dev.kreuzberg.EmbeddedFile
+typealias ExecutionProviderType = dev.kreuzberg.ExecutionProviderTypetypealias OutputFormat = dev.kreuzberg.OutputFormattypealias HtmlTheme = dev.kreuzberg.HtmlThemetypealias TableModel = dev.kreuzberg.TableModeltypealias ChunkerType = dev.kreuzberg.ChunkerTypetypealias ChunkSizing = dev.kreuzberg.ChunkSizingtypealias EmbeddingModelType = dev.kreuzberg.EmbeddingModelTypetypealias CodeContentMode = dev.kreuzberg.CodeContentModetypealias FracType = dev.kreuzberg.FracTypetypealias OcrBackendType = dev.kreuzberg.OcrBackendTypetypealias ProcessingStage = dev.kreuzberg.ProcessingStagetypealias ReductionLevel = dev.kreuzberg.ReductionLeveltypealias PdfAnnotationType = dev.kreuzberg.PdfAnnotationTypetypealias BlockType = dev.kreuzberg.BlockTypetypealias InlineType = dev.kreuzberg.InlineTypetypealias RelationshipKind = dev.kreuzberg.RelationshipKindtypealias ContentLayer = dev.kreuzberg.ContentLayertypealias NodeContent = dev.kreuzberg.NodeContenttypealias AnnotationKind = dev.kreuzberg.AnnotationKindtypealias ExtractionMethod = dev.kreuzberg.ExtractionMethodtypealias ChunkType = dev.kreuzberg.ChunkTypetypealias ImageKind = dev.kreuzberg.ImageKindtypealias ResultFormat = dev.kreuzberg.ResultFormattypealias ElementType = dev.kreuzberg.ElementTypetypealias FormatMetadata = dev.kreuzberg.FormatMetadatatypealias TextDirection = dev.kreuzberg.TextDirectiontypealias LinkType = dev.kreuzberg.LinkTypetypealias ImageType = dev.kreuzberg.ImageTypetypealias StructuredDataType = dev.kreuzberg.StructuredDataTypetypealias OcrBoundingGeometry = dev.kreuzberg.OcrBoundingGeometrytypealias OcrElementLevel = dev.kreuzberg.OcrElementLeveltypealias PageUnitType = dev.kreuzberg.PageUnitTypetypealias UriKind = dev.kreuzberg.UriKindtypealias PoolError = dev.kreuzberg.PoolErrortypealias KeywordAlgorithm = dev.kreuzberg.KeywordAlgorithmtypealias PSMMode = dev.kreuzberg.PSMModetypealias PaddleLanguage = dev.kreuzberg.PaddleLanguagetypealias LayoutClass = dev.kreuzberg.LayoutClass
 typealias KreuzbergErrorException = dev.kreuzberg.KreuzbergErrorException
-
 object Kreuzberg {
     /**
      * Extract content from a byte array.
@@ -510,6 +302,21 @@ object Kreuzberg {
         return withContext(Dispatchers.IO) {
             Bridge.embedTextsAsync(texts, config)
         }
+    }
+
+    /**
+     * Render a single PDF page to PNG bytes.
+     *
+     * Returns raw PNG-encoded bytes for the specified page at the given DPI.
+     * Uses pdf_oxide with tiny-skia for pure-Rust rendering.
+     *
+     * **Errors:**
+     *
+     * Returns `KreuzbergError.Parsing` if the PDF cannot be opened, authenticated,
+     * or rendered, or if `page_index` is out of range.
+     */
+    fun renderPdfPageToPng(pdfBytes: ByteArray, pageIndex: Long, dpi: Int?, password: String?): ByteArray {
+        return Bridge.renderPdfPageToPng(pdfBytes, pageIndex, dpi, password)
     }
 
     /**
