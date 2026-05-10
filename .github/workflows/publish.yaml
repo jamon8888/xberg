@@ -373,7 +373,7 @@ jobs:
           tag: ${{ needs.prepare.outputs.tag }}
           asset-prefix: kreuzberg-cli-
           assets: |
-            kreuzberg-cli-aarch64-apple-darwin.tar.gz,kreuzberg-cli-aarch64-unknown-linux-gnu.tar.gz,kreuzberg-cli-aarch64-unknown-linux-musl.tar.gz,kreuzberg-cli-x86_64-apple-darwin.tar.gz,kreuzberg-cli-x86_64-unknown-linux-gnu.tar.gz,kreuzberg-cli-x86_64-unknown-linux-musl.tar.gz,kreuzberg-cli-x86_64-pc-windows-msvc.zip
+            kreuzberg-cli-aarch64-apple-darwin.tar.gz,kreuzberg-cli-aarch64-unknown-linux-gnu.tar.gz,kreuzberg-cli-aarch64-unknown-linux-musl.tar.gz,kreuzberg-cli-x86_64-unknown-linux-gnu.tar.gz,kreuzberg-cli-x86_64-unknown-linux-musl.tar.gz,kreuzberg-cli-x86_64-pc-windows-msvc.zip
 
   check-go:
     name: Check GitHub Release for Go FFI assets
@@ -441,7 +441,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest, macos-15-intel]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -458,6 +458,10 @@ jobs:
           upload-artifact: "false"
           # ort/reqwest/hf-hub pull native-tls → openssl-sys; manylinux2014 needs openssl-devel.
           cibw-before-build-linux: "yum install -y openssl-devel pkgconfig && pip install maturin uv && source ~/.cargo/env"
+          # cibw's bundled rustup-init on Windows defaults host triple to gnu, but ort-sys
+          # only ships msvc prebuilt binaries. Force msvc toolchain + target before maturin runs.
+          cibw-before-build-windows: "rustup default stable-x86_64-pc-windows-msvc && rustup target add x86_64-pc-windows-msvc && pip install maturin uv && set PATH=%USERPROFILE%\\.cargo\\bin;%PATH%"
+          cibw-environment-windows: 'MATURIN_BUILD_ARGS="--target x86_64-pc-windows-msvc"'
 
       - name: Upload wheels
         uses: actions/upload-artifact@v7
@@ -509,7 +513,6 @@ jobs:
           - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, target: x86_64-apple-darwin }
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -584,7 +587,6 @@ jobs:
           - { os: ubuntu-latest, label: linux-x86_64 }
           - { os: ubuntu-24.04-arm, label: linux-aarch64 }
           - { os: macos-latest, label: macos-arm64 }
-          - { os: macos-15-intel, label: macos-x86_64 }
           - { os: windows-latest, label: windows-x64 }
     steps:
       - uses: actions/checkout@v6
@@ -629,7 +631,6 @@ jobs:
           - { os: ubuntu-latest, label: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, label: linux-arm64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, label: macos-arm64, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, label: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, label: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -684,7 +685,6 @@ jobs:
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl }
           - { os: macos-latest, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, target: x86_64-apple-darwin }
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -742,7 +742,6 @@ jobs:
           - { os: ubuntu-latest, platform: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, platform: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, platform: macos-arm64, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, platform: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, platform: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -782,7 +781,6 @@ jobs:
           - { os: ubuntu-latest, platform: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, platform: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, platform: macos-arm64, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, platform: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, platform: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -836,7 +834,6 @@ jobs:
           - { os: ubuntu-latest, classifier: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, classifier: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, classifier: macos-arm64, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, classifier: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, classifier: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -909,7 +906,6 @@ jobs:
           - { os: ubuntu-latest, rid: linux-x64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, rid: linux-arm64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, rid: osx-arm64, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, rid: osx-x64, target: x86_64-apple-darwin }
           - { os: windows-latest, rid: win-x64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -983,7 +979,6 @@ jobs:
           - { os: ubuntu-latest, label: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, label: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, label: macos-arm64, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, label: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, label: windows-x86_64, target: x86_64-pc-windows-msvc }
         nif: ["2.16", "2.17"]
     steps:
@@ -1595,7 +1590,7 @@ jobs:
           tag: ${{ needs.prepare.outputs.tag }}
           version: ${{ needs.prepare.outputs.version }}
           lib-name: kreuzberg_nif
-          targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-musl,aarch64-apple-darwin,x86_64-apple-darwin,x86_64-pc-windows-msvc
+          targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-musl,aarch64-apple-darwin,x86_64-pc-windows-msvc
           output-path: packages/elixir/checksum-Elixir.Kreuzberg.Native.exs
 
       - uses: kreuzberg-dev/actions/publish-hex@v1
@@ -1745,7 +1740,6 @@ jobs:
       matrix:
         include:
           - { os: macos-latest, bottle_tag: arm64_sonoma, install_brew: false }
-          - { os: macos-15-intel, bottle_tag: sonoma, install_brew: false }
           - { os: ubuntu-latest, bottle_tag: x86_64_linux, install_brew: true }
           - { os: ubuntu-24.04-arm, bottle_tag: arm64_linux, install_brew: true }
     steps:
