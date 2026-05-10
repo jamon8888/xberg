@@ -46,6 +46,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **PDF layout-classify regression on text-heavy structure-tree PDFs**:
+  three coupled fixes to the layout-for-markdown pipeline that recover
+  quality lost when RT-DETR hints were applied too aggressively.
+  - `apply_spatial_overrides` now content-gates promotion-class hints
+    (Title / SectionHeader / Caption / Footnote / ListItem). A hint is
+    rejected when paragraph text doesn't match the hint type — short
+    text (≤200 chars) for heading/caption/footnote classes; list-marker
+    prefix for ListItem. Prevents promoting long body paragraphs whose
+    bbox happens to overlap a heading hint.
+  - `apply_proportional_overrides` is now bypassed for structure-tree
+    pages (paragraphs without positional data). The fractional-position
+    matching misaligned when paragraphs reordered between font-clustering
+    and RT-DETR. The structure tree's font-size classification is the
+    more reliable signal here; hints are skipped silently.
+  - Heading-promotion thresholds tightened:
+    `MAX_BOLD_HEADING_WORD_COUNT` 15 → 12, body→heading font-size
+    delta `+0.5pt → +1.0pt` in three call sites of `classify.rs`.
+- **PDF Markdown / Djot / Plain quality gates now run by default**:
+  `test_pdf_quality_gate`, `test_pdf_djot_quality_gate`, and
+  `test_pdf_plain_quality_gate` in `crates/kreuzberg/tests/pdf_markdown_regression.rs`
+  no longer carry `#[ignore = "TODO: pdf_oxide upstream"]`. The
+  upstream issue (#484) hasn't been demonstrated to currently trigger
+  these failures, and the calibrated `PDFIUM_GROUND_TRUTH` thresholds
+  are the binding contract for layout-pipeline changes.
 - **swift e2e command**: `[crates.test.swift].e2e` now runs from
   `packages/swift` (was `e2e/swift`). The generated XCTest cases live inside
   `packages/swift/Tests/<Module>Tests/` because SwiftPM 6.0 forbids

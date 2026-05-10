@@ -443,7 +443,6 @@ fn run_quality_gate(
 // Section 1: PDF Path — Quality Gates per Output Format
 // ═══════════════════════════════════════════════════════════════════
 
-#[ignore = "TODO: pdf_oxide upstream — https://github.com/yfedoseev/pdf_oxide/issues/484"]
 #[test]
 fn test_pdf_quality_gate() {
     if !test_documents_available() {
@@ -470,7 +469,6 @@ fn test_pdf_quality_gate() {
     );
 }
 
-#[ignore = "TODO: pdf_oxide upstream — https://github.com/yfedoseev/pdf_oxide/issues/484"]
 #[test]
 fn test_pdf_djot_quality_gate() {
     if !test_documents_available() {
@@ -494,7 +492,6 @@ fn test_pdf_djot_quality_gate() {
     );
 }
 
-#[ignore = "TODO: pdf_oxide upstream — https://github.com/yfedoseev/pdf_oxide/issues/484"]
 #[test]
 fn test_pdf_plain_quality_gate() {
     if !test_documents_available() {
