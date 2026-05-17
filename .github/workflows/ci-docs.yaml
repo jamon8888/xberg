@@ -55,7 +55,7 @@ jobs:
           working-directory: .
           strict: "true"
           validate-snippets: "true"
-          alef-ref: main
+          alef-ref: v0.16.23
 
   build:
     name: Build

@@ -6591,21 +6591,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b6b67fb9a61334225b5b790716f609cd58395f895b3fe8b328786812a40bc3b"
 
 [[package]]
-name = "snippet-runner"
-version = "5.0.0-rc.1"
-dependencies = [
- "clap",
- "rayon",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "toml 1.1.2+spec-1.1.0",
- "walkdir",
- "which",
-]
-
-[[package]]
 name = "socket2"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

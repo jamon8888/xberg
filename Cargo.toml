@@ -12,7 +12,6 @@ members = [
   "packages/dart/rust",
   "packages/swift/rust",
   "tools/benchmark-harness",
-  "tools/snippet-runner",
 ]
 exclude = [
   "e2e/rust",
