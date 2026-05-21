@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (R e2e: 159/160, only env tesseract failure remains)
+
+- **e2e/r**: Regenerated against alef with four R codegen fixes (no-arg-wrapper input leakage, empty `Vec<String>` → `character(0)`, R-side `extra_args` support, FormatMetadata tagged-enum collapse helper + `result_is_bytes`-aware length assertions). Added an R override on `render_pdf_page_to_png` with `extra_args = ["NULL", "NULL"]` to fill in the extendr-required `dpi`/`password` positionals when the fixture omits them. Combined, kreuzberg R e2e moves from 153/158 to 159/160 — the remaining failure (`test_smoke.R:9:3` PNG-with-OCR) is the pre-existing `tesseract not registered` env condition. (`alef.toml`, `e2e/r/`)
+
 ### Fixed (Zig e2e: all 88 tests passing)
 
 - **e2e/zig**: Bumped pinned `alef_version` to 0.17.17 and regenerated `e2e/zig/` against the upstream codegen fix that skips the `chunks_have_heading_context` synthetic assertion. Combined with pre-existing zig-specific overrides (`extract_file` and `extract_bytes` redirected to their `_sync` variants with JSON-struct result parsing, `render_pdf_page_to_png` extra `null, null` args for dpi/password, and FormatMetadata-as-display inline accessor on the `metadata.format` assertion), `task zig:e2e` now reports `Build Summary: 43/43 steps succeeded; 88/88 tests passed`. (`alef.toml`, `e2e/zig/`)

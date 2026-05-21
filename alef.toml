@@ -2699,6 +2699,11 @@ result_is_bytes = true
 result_is_simple = true
 extra_args = ["null", "null"]
 
+[crates.e2e.calls.render_pdf_page_to_png.overrides.r]
+result_is_bytes = true
+result_is_simple = true
+extra_args = ["NULL", "NULL"]
+
 [crates.e2e.calls.bold.overrides.python]
 function = "bold"
 
