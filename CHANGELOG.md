@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (FormatMetadata Display impl)
+
+- **core**: Added `impl std::fmt::Display for FormatMetadata` so generated rust e2e
+  assertions on `metadata.format` can render the variant as a short string ("pdf",
+  "docx", "image"…). The Image variant emits the inner `format` (e.g., "PNG"),
+  matching the fixture's `field_equals` value. Required after alef-e2e/rust
+  switched to Display formatting in `field_access::rust_unwrap_binding`.
+
 ### Fixed (java e2e clear_* methods)
 
 - **java e2e**: `clear_document_extractors()`, `clear_ocr_backends()`,
