@@ -2037,11 +2037,11 @@ jobs:
 
   trigger-pubdev:
     name: Trigger pub.dev publish workflow
-    needs: [prepare, assemble-dart-bundle]
+    needs: [prepare, check-pub, assemble-dart-bundle]
     # pub.dev OIDC rejects tokens from `release` events. We dispatch a separate
     # workflow whose `workflow_dispatch` event produces an accepted token, then
     # have it download the assembled Dart package artifact from this run.
-    if: ${{ needs.prepare.outputs.release_dart == 'true' && needs.prepare.outputs.is_tag == 'true' && needs.prepare.outputs.dry_run != 'true' }}
+    if: ${{ needs.prepare.outputs.release_dart == 'true' && needs.prepare.outputs.is_tag == 'true' && needs.prepare.outputs.dry_run != 'true' && (needs.check-pub.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
