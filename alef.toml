@@ -737,10 +737,10 @@ e2e = "cd e2e/zig && zig build test"
 core_crate = "crates/kreuzberg"
 
 [crates.publish.languages.ruby]
-vendor_mode = "core-only"
+vendor_mode = "registry"
 
 [crates.publish.languages.elixir]
-vendor_mode = "core-only"
+vendor_mode = "registry"
 nif_versions = ["2.16", "2.17"]
 
 [crates.publish.languages.r]
