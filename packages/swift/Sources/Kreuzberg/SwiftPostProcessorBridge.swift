@@ -23,10 +23,10 @@ final class SwiftPostProcessorAdapter {
     self.bridge = bridge
     }
 
-    func processCall(result: ExtractionResult, config: ExtractionConfig) -> String {
+    func processCall(result: ExtractionResult, config: ExtractionConfig) async throws -> String {
         do {
-        let result = try self.bridge.process(result: result, config: config)
-            return marshal_ok_result(result)
+        let result = await try self.bridge.process(result: result, config: config)
+            return marshal_ok_result(Empty())
     } catch {
         return marshal_error_result(error)
     }
@@ -40,6 +40,8 @@ final class SwiftPostProcessorAdapter {
 }
 
 // MARK: - Marshalling helpers
+
+private struct Empty: Codable {}
 
 private func marshal_ok_result<T: Encodable>(_ value: T) -> String {
     let encoder = JSONEncoder()

@@ -28,9 +28,9 @@ final class SwiftEmbeddingBackendAdapter {
         return result
     }
 
-    func embedCall(texts: [String]) -> String {
+    func embedCall(texts: [String]) async throws -> String {
         do {
-        let result = try self.bridge.embed(texts: texts)
+        let result = await try self.bridge.embed(texts: texts)
             return marshal_ok_result(result)
     } catch {
         return marshal_error_result(error)
@@ -40,6 +40,8 @@ final class SwiftEmbeddingBackendAdapter {
 }
 
 // MARK: - Marshalling helpers
+
+private struct Empty: Codable {}
 
 private func marshal_ok_result<T: Encodable>(_ value: T) -> String {
     let encoder = JSONEncoder()

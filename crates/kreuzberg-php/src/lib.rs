@@ -12081,7 +12081,7 @@ impl KreuzbergApi {
 
 /// Wrapper that bridges a foreign Php object to the `OcrBackend` trait.
 pub struct PhpOcrBackendBridge {
-    inner: ext_php_rs::types::Zval,
+    inner: *mut ext_php_rs::types::ZendObject,
     cached_name: String,
 }
 
@@ -12099,13 +12099,10 @@ impl PhpOcrBackendBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // Create a Zval holding the object reference, which manages the refcount.
-        // This ensures the PHP object is not garbage-collected while we hold a reference.
-        let mut zval = ext_php_rs::types::Zval::new();
-        // SAFETY: We are assigning the object to a Zval, which will increment the refcount.
+        // SAFETY: Increment refcount to keep the object alive while registered.
         // The object pointer is valid within the current request context.
         unsafe {
-            zval.object(php_obj);
+            php_obj.inc_count();
         }
 
         // Extract and cache name
@@ -12117,16 +12114,28 @@ impl PhpOcrBackendBridge {
             .to_string();
 
         Self {
-            inner: zval,
+            inner: php_obj as *mut _,
             cached_name,
         }
     }
 }
 
 // SAFETY: PHP is single-threaded within a request context.
-// Zval automatically manages reference counting for the contained object.
+// The raw pointer to ZendObject is managed with inc_count/dec_count pairs.
 unsafe impl Send for PhpOcrBackendBridge {}
 unsafe impl Sync for PhpOcrBackendBridge {}
+
+impl Drop for PhpOcrBackendBridge {
+    fn drop(&mut self) {
+        // SAFETY: Decrement refcount when the bridge is dropped.
+        // The object pointer is guaranteed valid until this point.
+        unsafe {
+            if !self.inner.is_null() {
+                (*self.inner).dec_count();
+            }
+        }
+    }
+}
 
 impl kreuzberg::plugins::Plugin for PhpOcrBackendBridge {
     fn name(&self) -> &str {
@@ -12135,12 +12144,7 @@ impl kreuzberg::plugins::Plugin for PhpOcrBackendBridge {
 
     fn version(&self) -> String {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("version", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("version", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12152,12 +12156,7 @@ impl kreuzberg::plugins::Plugin for PhpOcrBackendBridge {
 
     fn initialize(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("initialize", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("initialize", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12166,12 +12165,7 @@ impl kreuzberg::plugins::Plugin for PhpOcrBackendBridge {
 
     fn shutdown(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("shutdown", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("shutdown", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12186,31 +12180,25 @@ impl kreuzberg::OcrBackend for PhpOcrBackendBridge {
         image_bytes: &[u8],
         config: &kreuzberg::OcrConfig,
     ) -> std::result::Result<kreuzberg::ExtractionResult, kreuzberg::KreuzbergError> {
-        let inner_obj = self.inner.clone();
+        let inner_obj = self.inner;
         let cached_name = self.cached_name.clone();
 
         // SAFETY: PHP objects are single-threaded within a request.
         // The block_on executes within the async runtime.
-        // inner_obj is a Zval clone that maintains the reference count.
         WORKER_RUNTIME.block_on(async {
-            let result = if let Some(obj) = inner_obj.object() {
-                unsafe {
-                    (*obj).try_call_method(
-                        "process_image",
-                        [
-                            ext_php_rs::types::Zval::try_from(format!("{:?}", image_bytes)).unwrap_or_default(),
-                            ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
-                                .unwrap_or_default(),
-                        ]
-                        .iter()
-                        .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                        .collect(),
-                    )
-                }
-            } else {
-                Err(ext_php_rs::error::Error::InvalidObject)
-            };
-            match result {
+            match unsafe {
+                (*inner_obj).try_call_method(
+                    "process_image",
+                    [
+                        ext_php_rs::types::Zval::try_from(format!("{:?}", image_bytes)).unwrap_or_default(),
+                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
+                            .unwrap_or_default(),
+                    ]
+                    .iter()
+                    .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                    .collect(),
+                )
+            } {
                 Ok(val) => {
                     let json_str = val.string().unwrap_or_default();
                     serde_json::from_str(&json_str)
@@ -12226,19 +12214,14 @@ impl kreuzberg::OcrBackend for PhpOcrBackendBridge {
 
     fn supports_language(&self, lang: &str) -> bool {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe {
-                (*obj).try_call_method(
-                    "supports_language",
-                    [ext_php_rs::types::Zval::try_from(lang).unwrap_or_default()]
-                        .iter()
-                        .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                        .collect(),
-                )
-            }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
+        let result = unsafe {
+            (*self.inner).try_call_method(
+                "supports_language",
+                [ext_php_rs::types::Zval::try_from(lang).unwrap_or_default()]
+                    .iter()
+                    .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                    .collect(),
+            )
         };
         match result {
             Ok(val) => {
@@ -12251,12 +12234,7 @@ impl kreuzberg::OcrBackend for PhpOcrBackendBridge {
 
     fn backend_type(&self) -> kreuzberg::OcrBackendType {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("backend_type", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("backend_type", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12313,7 +12291,7 @@ pub fn clear_ocr_backends() -> ext_php_rs::prelude::PhpResult<()> {
 
 /// Wrapper that bridges a foreign Php object to the `PostProcessor` trait.
 pub struct PhpPostProcessorBridge {
-    inner: ext_php_rs::types::Zval,
+    inner: *mut ext_php_rs::types::ZendObject,
     cached_name: String,
 }
 
@@ -12331,13 +12309,10 @@ impl PhpPostProcessorBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // Create a Zval holding the object reference, which manages the refcount.
-        // This ensures the PHP object is not garbage-collected while we hold a reference.
-        let mut zval = ext_php_rs::types::Zval::new();
-        // SAFETY: We are assigning the object to a Zval, which will increment the refcount.
+        // SAFETY: Increment refcount to keep the object alive while registered.
         // The object pointer is valid within the current request context.
         unsafe {
-            zval.object(php_obj);
+            php_obj.inc_count();
         }
 
         // Extract and cache name
@@ -12349,16 +12324,28 @@ impl PhpPostProcessorBridge {
             .to_string();
 
         Self {
-            inner: zval,
+            inner: php_obj as *mut _,
             cached_name,
         }
     }
 }
 
 // SAFETY: PHP is single-threaded within a request context.
-// Zval automatically manages reference counting for the contained object.
+// The raw pointer to ZendObject is managed with inc_count/dec_count pairs.
 unsafe impl Send for PhpPostProcessorBridge {}
 unsafe impl Sync for PhpPostProcessorBridge {}
+
+impl Drop for PhpPostProcessorBridge {
+    fn drop(&mut self) {
+        // SAFETY: Decrement refcount when the bridge is dropped.
+        // The object pointer is guaranteed valid until this point.
+        unsafe {
+            if !self.inner.is_null() {
+                (*self.inner).dec_count();
+            }
+        }
+    }
+}
 
 impl kreuzberg::plugins::Plugin for PhpPostProcessorBridge {
     fn name(&self) -> &str {
@@ -12367,12 +12354,7 @@ impl kreuzberg::plugins::Plugin for PhpPostProcessorBridge {
 
     fn version(&self) -> String {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("version", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("version", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12384,12 +12366,7 @@ impl kreuzberg::plugins::Plugin for PhpPostProcessorBridge {
 
     fn initialize(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("initialize", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("initialize", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12398,12 +12375,7 @@ impl kreuzberg::plugins::Plugin for PhpPostProcessorBridge {
 
     fn shutdown(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("shutdown", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("shutdown", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12418,32 +12390,26 @@ impl kreuzberg::PostProcessor for PhpPostProcessorBridge {
         result: &mut kreuzberg::ExtractionResult,
         config: &kreuzberg::ExtractionConfig,
     ) -> std::result::Result<(), kreuzberg::KreuzbergError> {
-        let inner_obj = self.inner.clone();
+        let inner_obj = self.inner;
         let cached_name = self.cached_name.clone();
 
         // SAFETY: PHP objects are single-threaded within a request.
         // The block_on executes within the async runtime.
-        // inner_obj is a Zval clone that maintains the reference count.
         WORKER_RUNTIME.block_on(async {
-            let result = if let Some(obj) = inner_obj.object() {
-                unsafe {
-                    (*obj).try_call_method(
-                        "process",
-                        [
-                            ext_php_rs::types::Zval::try_from(serde_json::to_string(&result).unwrap_or_default())
-                                .unwrap_or_default(),
-                            ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
-                                .unwrap_or_default(),
-                        ]
-                        .iter()
-                        .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                        .collect(),
-                    )
-                }
-            } else {
-                Err(ext_php_rs::error::Error::InvalidObject)
-            };
-            match result {
+            match unsafe {
+                (*inner_obj).try_call_method(
+                    "process",
+                    [
+                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&result).unwrap_or_default())
+                            .unwrap_or_default(),
+                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
+                            .unwrap_or_default(),
+                    ]
+                    .iter()
+                    .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                    .collect(),
+                )
+            } {
                 Ok(val) => {
                     let json_str = val.string().unwrap_or_default();
                     serde_json::from_str(&json_str)
@@ -12459,12 +12425,7 @@ impl kreuzberg::PostProcessor for PhpPostProcessorBridge {
 
     fn processing_stage(&self) -> kreuzberg::ProcessingStage {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("processing_stage", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("processing_stage", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12515,7 +12476,7 @@ pub fn clear_post_processors() -> ext_php_rs::prelude::PhpResult<()> {
 
 /// Wrapper that bridges a foreign Php object to the `Validator` trait.
 pub struct PhpValidatorBridge {
-    inner: ext_php_rs::types::Zval,
+    inner: *mut ext_php_rs::types::ZendObject,
     cached_name: String,
 }
 
@@ -12533,13 +12494,10 @@ impl PhpValidatorBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // Create a Zval holding the object reference, which manages the refcount.
-        // This ensures the PHP object is not garbage-collected while we hold a reference.
-        let mut zval = ext_php_rs::types::Zval::new();
-        // SAFETY: We are assigning the object to a Zval, which will increment the refcount.
+        // SAFETY: Increment refcount to keep the object alive while registered.
         // The object pointer is valid within the current request context.
         unsafe {
-            zval.object(php_obj);
+            php_obj.inc_count();
         }
 
         // Extract and cache name
@@ -12551,16 +12509,28 @@ impl PhpValidatorBridge {
             .to_string();
 
         Self {
-            inner: zval,
+            inner: php_obj as *mut _,
             cached_name,
         }
     }
 }
 
 // SAFETY: PHP is single-threaded within a request context.
-// Zval automatically manages reference counting for the contained object.
+// The raw pointer to ZendObject is managed with inc_count/dec_count pairs.
 unsafe impl Send for PhpValidatorBridge {}
 unsafe impl Sync for PhpValidatorBridge {}
+
+impl Drop for PhpValidatorBridge {
+    fn drop(&mut self) {
+        // SAFETY: Decrement refcount when the bridge is dropped.
+        // The object pointer is guaranteed valid until this point.
+        unsafe {
+            if !self.inner.is_null() {
+                (*self.inner).dec_count();
+            }
+        }
+    }
+}
 
 impl kreuzberg::plugins::Plugin for PhpValidatorBridge {
     fn name(&self) -> &str {
@@ -12569,12 +12539,7 @@ impl kreuzberg::plugins::Plugin for PhpValidatorBridge {
 
     fn version(&self) -> String {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("version", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("version", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12586,12 +12551,7 @@ impl kreuzberg::plugins::Plugin for PhpValidatorBridge {
 
     fn initialize(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("initialize", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("initialize", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12600,12 +12560,7 @@ impl kreuzberg::plugins::Plugin for PhpValidatorBridge {
 
     fn shutdown(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("shutdown", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("shutdown", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12620,32 +12575,26 @@ impl kreuzberg::Validator for PhpValidatorBridge {
         result: &kreuzberg::ExtractionResult,
         config: &kreuzberg::ExtractionConfig,
     ) -> std::result::Result<(), kreuzberg::KreuzbergError> {
-        let inner_obj = self.inner.clone();
+        let inner_obj = self.inner;
         let cached_name = self.cached_name.clone();
 
         // SAFETY: PHP objects are single-threaded within a request.
         // The block_on executes within the async runtime.
-        // inner_obj is a Zval clone that maintains the reference count.
         WORKER_RUNTIME.block_on(async {
-            let result = if let Some(obj) = inner_obj.object() {
-                unsafe {
-                    (*obj).try_call_method(
-                        "validate",
-                        [
-                            ext_php_rs::types::Zval::try_from(serde_json::to_string(&result).unwrap_or_default())
-                                .unwrap_or_default(),
-                            ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
-                                .unwrap_or_default(),
-                        ]
-                        .iter()
-                        .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                        .collect(),
-                    )
-                }
-            } else {
-                Err(ext_php_rs::error::Error::InvalidObject)
-            };
-            match result {
+            match unsafe {
+                (*inner_obj).try_call_method(
+                    "validate",
+                    [
+                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&result).unwrap_or_default())
+                            .unwrap_or_default(),
+                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
+                            .unwrap_or_default(),
+                    ]
+                    .iter()
+                    .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                    .collect(),
+                )
+            } {
                 Ok(val) => {
                     let json_str = val.string().unwrap_or_default();
                     serde_json::from_str(&json_str)
@@ -12694,7 +12643,7 @@ pub fn clear_validators() -> ext_php_rs::prelude::PhpResult<()> {
 
 /// Wrapper that bridges a foreign Php object to the `EmbeddingBackend` trait.
 pub struct PhpEmbeddingBackendBridge {
-    inner: ext_php_rs::types::Zval,
+    inner: *mut ext_php_rs::types::ZendObject,
     cached_name: String,
 }
 
@@ -12712,13 +12661,10 @@ impl PhpEmbeddingBackendBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // Create a Zval holding the object reference, which manages the refcount.
-        // This ensures the PHP object is not garbage-collected while we hold a reference.
-        let mut zval = ext_php_rs::types::Zval::new();
-        // SAFETY: We are assigning the object to a Zval, which will increment the refcount.
+        // SAFETY: Increment refcount to keep the object alive while registered.
         // The object pointer is valid within the current request context.
         unsafe {
-            zval.object(php_obj);
+            php_obj.inc_count();
         }
 
         // Extract and cache name
@@ -12730,16 +12676,28 @@ impl PhpEmbeddingBackendBridge {
             .to_string();
 
         Self {
-            inner: zval,
+            inner: php_obj as *mut _,
             cached_name,
         }
     }
 }
 
 // SAFETY: PHP is single-threaded within a request context.
-// Zval automatically manages reference counting for the contained object.
+// The raw pointer to ZendObject is managed with inc_count/dec_count pairs.
 unsafe impl Send for PhpEmbeddingBackendBridge {}
 unsafe impl Sync for PhpEmbeddingBackendBridge {}
+
+impl Drop for PhpEmbeddingBackendBridge {
+    fn drop(&mut self) {
+        // SAFETY: Decrement refcount when the bridge is dropped.
+        // The object pointer is guaranteed valid until this point.
+        unsafe {
+            if !self.inner.is_null() {
+                (*self.inner).dec_count();
+            }
+        }
+    }
+}
 
 impl kreuzberg::plugins::Plugin for PhpEmbeddingBackendBridge {
     fn name(&self) -> &str {
@@ -12748,12 +12706,7 @@ impl kreuzberg::plugins::Plugin for PhpEmbeddingBackendBridge {
 
     fn version(&self) -> String {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("version", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("version", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12765,12 +12718,7 @@ impl kreuzberg::plugins::Plugin for PhpEmbeddingBackendBridge {
 
     fn initialize(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("initialize", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("initialize", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12779,12 +12727,7 @@ impl kreuzberg::plugins::Plugin for PhpEmbeddingBackendBridge {
 
     fn shutdown(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("shutdown", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("shutdown", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12796,12 +12739,7 @@ impl kreuzberg::plugins::Plugin for PhpEmbeddingBackendBridge {
 impl kreuzberg::EmbeddingBackend for PhpEmbeddingBackendBridge {
     fn dimensions(&self) -> usize {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("dimensions", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("dimensions", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12812,27 +12750,21 @@ impl kreuzberg::EmbeddingBackend for PhpEmbeddingBackendBridge {
     }
 
     async fn embed(&self, texts: Vec<String>) -> std::result::Result<Vec<Vec<f32>>, kreuzberg::KreuzbergError> {
-        let inner_obj = self.inner.clone();
+        let inner_obj = self.inner;
         let cached_name = self.cached_name.clone();
 
         // SAFETY: PHP objects are single-threaded within a request.
         // The block_on executes within the async runtime.
-        // inner_obj is a Zval clone that maintains the reference count.
         WORKER_RUNTIME.block_on(async {
-            let result = if let Some(obj) = inner_obj.object() {
-                unsafe {
-                    (*obj).try_call_method(
-                        "embed",
-                        [ext_php_rs::types::Zval::try_from(format!("{:?}", texts)).unwrap_or_default()]
-                            .iter()
-                            .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                            .collect(),
-                    )
-                }
-            } else {
-                Err(ext_php_rs::error::Error::InvalidObject)
-            };
-            match result {
+            match unsafe {
+                (*inner_obj).try_call_method(
+                    "embed",
+                    [ext_php_rs::types::Zval::try_from(format!("{:?}", texts)).unwrap_or_default()]
+                        .iter()
+                        .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                        .collect(),
+                )
+            } {
                 Ok(val) => {
                     let json_str = val.string().unwrap_or_default();
                     serde_json::from_str(&json_str)
@@ -12887,7 +12819,7 @@ pub fn clear_embedding_backends() -> ext_php_rs::prelude::PhpResult<()> {
 
 /// Wrapper that bridges a foreign Php object to the `DocumentExtractor` trait.
 pub struct PhpDocumentExtractorBridge {
-    inner: ext_php_rs::types::Zval,
+    inner: *mut ext_php_rs::types::ZendObject,
     cached_name: String,
 }
 
@@ -12905,13 +12837,10 @@ impl PhpDocumentExtractorBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // Create a Zval holding the object reference, which manages the refcount.
-        // This ensures the PHP object is not garbage-collected while we hold a reference.
-        let mut zval = ext_php_rs::types::Zval::new();
-        // SAFETY: We are assigning the object to a Zval, which will increment the refcount.
+        // SAFETY: Increment refcount to keep the object alive while registered.
         // The object pointer is valid within the current request context.
         unsafe {
-            zval.object(php_obj);
+            php_obj.inc_count();
         }
 
         // Extract and cache name
@@ -12923,16 +12852,28 @@ impl PhpDocumentExtractorBridge {
             .to_string();
 
         Self {
-            inner: zval,
+            inner: php_obj as *mut _,
             cached_name,
         }
     }
 }
 
 // SAFETY: PHP is single-threaded within a request context.
-// Zval automatically manages reference counting for the contained object.
+// The raw pointer to ZendObject is managed with inc_count/dec_count pairs.
 unsafe impl Send for PhpDocumentExtractorBridge {}
 unsafe impl Sync for PhpDocumentExtractorBridge {}
+
+impl Drop for PhpDocumentExtractorBridge {
+    fn drop(&mut self) {
+        // SAFETY: Decrement refcount when the bridge is dropped.
+        // The object pointer is guaranteed valid until this point.
+        unsafe {
+            if !self.inner.is_null() {
+                (*self.inner).dec_count();
+            }
+        }
+    }
+}
 
 impl kreuzberg::plugins::Plugin for PhpDocumentExtractorBridge {
     fn name(&self) -> &str {
@@ -12941,12 +12882,7 @@ impl kreuzberg::plugins::Plugin for PhpDocumentExtractorBridge {
 
     fn version(&self) -> String {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("version", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("version", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -12958,12 +12894,7 @@ impl kreuzberg::plugins::Plugin for PhpDocumentExtractorBridge {
 
     fn initialize(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("initialize", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("initialize", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12972,12 +12903,7 @@ impl kreuzberg::plugins::Plugin for PhpDocumentExtractorBridge {
 
     fn shutdown(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("shutdown", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("shutdown", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -12993,33 +12919,27 @@ impl kreuzberg::DocumentExtractor for PhpDocumentExtractorBridge {
         mime_type: &str,
         config: &kreuzberg::ExtractionConfig,
     ) -> std::result::Result<kreuzberg::InternalDocument, kreuzberg::KreuzbergError> {
-        let inner_obj = self.inner.clone();
+        let inner_obj = self.inner;
         let cached_name = self.cached_name.clone();
         let mime_type = mime_type.to_string();
 
         // SAFETY: PHP objects are single-threaded within a request.
         // The block_on executes within the async runtime.
-        // inner_obj is a Zval clone that maintains the reference count.
         WORKER_RUNTIME.block_on(async {
-            let result = if let Some(obj) = inner_obj.object() {
-                unsafe {
-                    (*obj).try_call_method(
-                        "extract_bytes",
-                        [
-                            ext_php_rs::types::Zval::try_from(format!("{:?}", content)).unwrap_or_default(),
-                            ext_php_rs::types::Zval::try_from(mime_type).unwrap_or_default(),
-                            ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
-                                .unwrap_or_default(),
-                        ]
-                        .iter()
-                        .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                        .collect(),
-                    )
-                }
-            } else {
-                Err(ext_php_rs::error::Error::InvalidObject)
-            };
-            match result {
+            match unsafe {
+                (*inner_obj).try_call_method(
+                    "extract_bytes",
+                    [
+                        ext_php_rs::types::Zval::try_from(format!("{:?}", content)).unwrap_or_default(),
+                        ext_php_rs::types::Zval::try_from(mime_type).unwrap_or_default(),
+                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&config).unwrap_or_default())
+                            .unwrap_or_default(),
+                    ]
+                    .iter()
+                    .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                    .collect(),
+                )
+            } {
                 Ok(val) => {
                     let json_str = val.string().unwrap_or_default();
                     serde_json::from_str(&json_str)
@@ -13036,12 +12956,7 @@ impl kreuzberg::DocumentExtractor for PhpDocumentExtractorBridge {
     fn supported_mime_types(&self) -> &[&str] {
         let __types: Vec<String> = {
             // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-            // self.inner is a Zval holding the object, which maintains the reference count.
-            let result = if let Some(obj) = self.inner.object() {
-                unsafe { (*obj).try_call_method("supported_mime_types", vec![]) }
-            } else {
-                Err(ext_php_rs::error::Error::InvalidObject)
-            };
+            let result = unsafe { (*self.inner).try_call_method("supported_mime_types", vec![]) };
             match result {
                 Ok(val) => {
                     let json_str = val.string().unwrap_or_default();
@@ -13098,7 +13013,7 @@ pub fn clear_document_extractors() -> ext_php_rs::prelude::PhpResult<()> {
 
 /// Wrapper that bridges a foreign Php object to the `Renderer` trait.
 pub struct PhpRendererBridge {
-    inner: ext_php_rs::types::Zval,
+    inner: *mut ext_php_rs::types::ZendObject,
     cached_name: String,
 }
 
@@ -13116,13 +13031,10 @@ impl PhpRendererBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // Create a Zval holding the object reference, which manages the refcount.
-        // This ensures the PHP object is not garbage-collected while we hold a reference.
-        let mut zval = ext_php_rs::types::Zval::new();
-        // SAFETY: We are assigning the object to a Zval, which will increment the refcount.
+        // SAFETY: Increment refcount to keep the object alive while registered.
         // The object pointer is valid within the current request context.
         unsafe {
-            zval.object(php_obj);
+            php_obj.inc_count();
         }
 
         // Extract and cache name
@@ -13134,16 +13046,28 @@ impl PhpRendererBridge {
             .to_string();
 
         Self {
-            inner: zval,
+            inner: php_obj as *mut _,
             cached_name,
         }
     }
 }
 
 // SAFETY: PHP is single-threaded within a request context.
-// Zval automatically manages reference counting for the contained object.
+// The raw pointer to ZendObject is managed with inc_count/dec_count pairs.
 unsafe impl Send for PhpRendererBridge {}
 unsafe impl Sync for PhpRendererBridge {}
+
+impl Drop for PhpRendererBridge {
+    fn drop(&mut self) {
+        // SAFETY: Decrement refcount when the bridge is dropped.
+        // The object pointer is guaranteed valid until this point.
+        unsafe {
+            if !self.inner.is_null() {
+                (*self.inner).dec_count();
+            }
+        }
+    }
+}
 
 impl kreuzberg::plugins::Plugin for PhpRendererBridge {
     fn name(&self) -> &str {
@@ -13152,12 +13076,7 @@ impl kreuzberg::plugins::Plugin for PhpRendererBridge {
 
     fn version(&self) -> String {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("version", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("version", vec![]) };
         match result {
             Ok(val) => {
                 let json_str = val.string().unwrap_or_default();
@@ -13169,12 +13088,7 @@ impl kreuzberg::plugins::Plugin for PhpRendererBridge {
 
     fn initialize(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("initialize", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("initialize", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -13183,12 +13097,7 @@ impl kreuzberg::plugins::Plugin for PhpRendererBridge {
 
     fn shutdown(&self) -> std::result::Result<(), kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe { (*obj).try_call_method("shutdown", vec![]) }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
-        };
+        let result = unsafe { (*self.inner).try_call_method("shutdown", vec![]) };
         match result {
             Ok(_) => Ok(()),
             Err(e) => Err(kreuzberg::KreuzbergError::Other(e.to_string())),
@@ -13199,22 +13108,17 @@ impl kreuzberg::plugins::Plugin for PhpRendererBridge {
 impl kreuzberg::Renderer for PhpRendererBridge {
     fn render(&self, doc: &kreuzberg::InternalDocument) -> std::result::Result<String, kreuzberg::KreuzbergError> {
         // SAFETY: PHP objects are single-threaded; method calls are safe within a request.
-        // self.inner is a Zval holding the object, which maintains the reference count.
-        let result = if let Some(obj) = self.inner.object() {
-            unsafe {
-                (*obj).try_call_method(
-                    "render",
-                    [
-                        ext_php_rs::types::Zval::try_from(serde_json::to_string(&doc).unwrap_or_default())
-                            .unwrap_or_default(),
-                    ]
-                    .iter()
-                    .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
-                    .collect(),
-                )
-            }
-        } else {
-            Err(ext_php_rs::error::Error::InvalidObject)
+        let result = unsafe {
+            (*self.inner).try_call_method(
+                "render",
+                [
+                    ext_php_rs::types::Zval::try_from(serde_json::to_string(&doc).unwrap_or_default())
+                        .unwrap_or_default(),
+                ]
+                .iter()
+                .map(|z| z as &dyn ext_php_rs::convert::IntoZvalDyn)
+                .collect(),
+            )
         };
         match result {
             Ok(val) => {

@@ -23,10 +23,10 @@ final class SwiftDocumentExtractorAdapter {
     self.bridge = bridge
     }
 
-    func extractBytesCall(content: Data, mime_type: String, config: ExtractionConfig) -> String {
+    func extractBytesCall(content: Data, mime_type: String, config: ExtractionConfig) async throws -> String {
         do {
-        let result = try self.bridge.extractBytes(content: content, mime_type: mime_type, config: config)
-            return marshal_ok_result(try JSONEncoder().encode(result)...)
+        let result = await try self.bridge.extractBytes(content: content, mime_type: mime_type, config: config)
+            return marshal_ok_result(try JSONEncoder().encode(result))
     } catch {
         return marshal_error_result(error)
     }
@@ -40,6 +40,8 @@ final class SwiftDocumentExtractorAdapter {
 }
 
 // MARK: - Marshalling helpers
+
+private struct Empty: Codable {}
 
 private func marshal_ok_result<T: Encodable>(_ value: T) -> String {
     let encoder = JSONEncoder()
