@@ -3,6 +3,7 @@
 import 'dart:typed_data';
 
 export 'kreuzberg_bridge_generated/lib.dart';
+export 'traits.dart';
 import 'kreuzberg_bridge_generated/lib.dart' as rust_bridge;
 // ignore: duplicate_import
 import 'kreuzberg_bridge_generated/lib.dart';

@@ -3029,10 +3029,10 @@ class EmbeddingConfig {
   final PlatformInt64? maxEmbedDurationSecs;
 
   const EmbeddingConfig({
-    required this.model,
-    required this.normalize,
-    required this.batchSize,
-    required this.showDownloadProgress,
+    this.model = const EmbeddingModelType.preset(name: 'balanced'),
+    this.normalize = true,
+    this.batchSize = 32,
+    this.showDownloadProgress = false,
     this.cacheDir,
     this.acceleration,
     this.maxEmbedDurationSecs,

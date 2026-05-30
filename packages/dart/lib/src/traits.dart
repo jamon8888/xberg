@@ -3,6 +3,42 @@
 import 'kreuzberg_bridge_generated/lib.dart';
 import 'dart:typed_data';
 
+/// OCR backend type enumeration.
+///
+/// Represents the type of OCR backend being used.
+enum OcrBackendType {
+  tesseract,
+  paddleocr,
+  easyocr,
+  plugin,
+}
+
+/// Processing stage enumeration.
+///
+/// Defines when a post-processor should run relative to other processors.
+enum ProcessingStage {
+  early,
+  normal,
+  late,
+}
+
+/// Internal document representation.
+///
+/// Type stub for trait callbacks. In actual use, this is treated as
+/// [ExtractionResult] by the Rust FFI layer.
+typedef InternalDocument = ExtractionResult;
+
+/// Synchronous extractor trait.
+///
+/// Type stub for optional synchronous extraction support.
+abstract class SyncExtractor {
+  Future<ExtractionResult> extractBytesSync(
+    Uint8List content,
+    String mimeType,
+    ExtractionConfig config,
+  );
+}
+
 /// Abstract class for the `OcrBackend` Rust trait.
 ///
 /// Implement this class and register your implementation via:
