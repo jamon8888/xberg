@@ -56,7 +56,7 @@ use std::rc::Rc;
 ///
 /// Returns an error if the PST data cannot be written to a temporary file,
 /// or if the PST format is invalid.
-#[cfg(feature = "email")]
+#[cfg(all(feature = "email", not(target_arch = "wasm32")))]
 pub(crate) fn extract_pst_messages(pst_data: &[u8]) -> Result<(Vec<EmailExtractionResult>, Vec<ProcessingWarning>)> {
     use std::io::Write;
 
@@ -72,6 +72,15 @@ pub(crate) fn extract_pst_messages(pst_data: &[u8]) -> Result<(Vec<EmailExtracti
 
     let (messages, warnings) = extract_from_path(temp_file.path())?;
     Ok((messages, warnings))
+}
+
+/// WASM-safe fallback: PST extraction is not available on WASM due to tempfile incompatibility.
+#[cfg(all(feature = "email", target_arch = "wasm32"))]
+pub(crate) fn extract_pst_messages(_pst_data: &[u8]) -> Result<(Vec<EmailExtractionResult>, Vec<ProcessingWarning>)> {
+    Err(KreuzbergError::Validation {
+        message: "PST extraction is not supported on WebAssembly targets".to_string(),
+        source: None,
+    })
 }
 
 /// Extract PST messages directly from a file path, bypassing the in-memory copy.
