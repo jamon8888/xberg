@@ -18,7 +18,7 @@ class EmbeddingBackendManagementTest {
     @Test
     fun testEmbeddingBackendsClear() = runBlocking {
         // Clear all embedding backends and verify list is empty
-        val result = Kreuzberg.()
+        val result = EmbeddingBackendBridge.clearAll()
     }
 
     @Test

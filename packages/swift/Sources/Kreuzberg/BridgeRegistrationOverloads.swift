@@ -98,11 +98,11 @@ public func registerRenderer(_ bridge: SwiftRendererBridge) throws {
 // report false/empty.
 //
 // Adapter stub names (returned by name() method):
-// - _OcrBackendBridgeAdapter → "swift-bridge-ocr_backend-stub"
-// - _PostProcessorBridgeAdapter → "swift-bridge-post_processor-stub"
+// - _OcrBackendBridgeAdapter → "swift-bridge-ocr-stub"
+// - _PostProcessorBridgeAdapter → "swift-bridge-post-processor-stub"
 // - _ValidatorBridgeAdapter → "swift-bridge-validator-stub"
-// - _EmbeddingBackendBridgeAdapter → "swift-bridge-embedding_backend-stub"
-// - _DocumentExtractorBridgeAdapter → "swift-bridge-document_extractor-stub"
+// - _EmbeddingBackendBridgeAdapter → "swift-bridge-embedding-stub"
+// - _DocumentExtractorBridgeAdapter → "swift-bridge-document-extractor-stub"
 // - _RendererBridgeAdapter → "swift-bridge-renderer-stub"
 //
 // These names are used by e2e test cleanup to unregister stubs after each test.
@@ -115,7 +115,7 @@ private final class _OcrBackendBridgeAdapter: OcrBackend {
     private let bridge: any SwiftOcrBackendBridge
     init(bridge: any SwiftOcrBackendBridge) { self.bridge = bridge }
 
-    func name() -> String { "swift-bridge-ocr_backend-stub" }
+    func name() -> String { "swift-bridge-ocr-stub" }
     func processImage(image_bytes_image_bytes: String, config_config: String) throws -> String {
         throw _BridgeStubError(description: "async bridge processImage cannot be invoked from sync FFI stub")
     }
@@ -130,7 +130,7 @@ private final class _PostProcessorBridgeAdapter: PostProcessor {
     private let bridge: any SwiftPostProcessorBridge
     init(bridge: any SwiftPostProcessorBridge) { self.bridge = bridge }
 
-    func name() -> String { "swift-bridge-post_processor-stub" }
+    func name() -> String { "swift-bridge-post-processor-stub" }
     func process(result_result: String, config_config: String) throws -> String {
         throw _BridgeStubError(description: "async bridge process cannot be invoked from sync FFI stub")
     }
@@ -154,7 +154,7 @@ private final class _EmbeddingBackendBridgeAdapter: EmbeddingBackend {
     private let bridge: any SwiftEmbeddingBackendBridge
     init(bridge: any SwiftEmbeddingBackendBridge) { self.bridge = bridge }
 
-    func name() -> String { "swift-bridge-embedding_backend-stub" }
+    func name() -> String { "swift-bridge-embedding-stub" }
     // TODO: Implement dimensions stub
 
     func embed(texts_texts: String) throws -> String {
@@ -167,7 +167,7 @@ private final class _DocumentExtractorBridgeAdapter: DocumentExtractor {
     private let bridge: any SwiftDocumentExtractorBridge
     init(bridge: any SwiftDocumentExtractorBridge) { self.bridge = bridge }
 
-    func name() -> String { "swift-bridge-document_extractor-stub" }
+    func name() -> String { "swift-bridge-document-extractor-stub" }
     func extractBytes(content_content: String, mime_type_mime_type: String, config_config: String) throws -> String {
         throw _BridgeStubError(description: "async bridge extractBytes cannot be invoked from sync FFI stub")
     }

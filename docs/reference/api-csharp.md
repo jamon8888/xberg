@@ -1256,19 +1256,6 @@ Defaults to `true` (rely on MIME type matching).
 public bool CanHandle(string path, string mimeType)
 ```
 
-#### AsSyncExtractor()
-
-Attempt to get a reference to this extractor as a SyncExtractor.
-
-Returns None if the extractor doesn't support synchronous extraction.
-This is used for WASM and other sync-only environments.
-
-**Signature:**
-
-```csharp
-public SyncExtractor? AsSyncExtractor()
-```
-
 ---
 
 #### DocumentNode

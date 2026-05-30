@@ -18,7 +18,7 @@ class ValidatorManagementTest {
     @Test
     fun testValidatorsClear() = runBlocking {
         // Clear all validators and verify list is empty
-        val result = Kreuzberg.()
+        val result = ValidatorBridge.clearAll()
     }
 
     @Test

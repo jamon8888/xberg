@@ -116,8 +116,6 @@ namespace Kreuzberg
                 => 0;
             public bool CanHandle(string path, string mimeType)
                 => false;
-            public string? AsSyncExtractor()
-                => null;
             public void Initialize() { }
             public void Shutdown() { }
             public string Description()

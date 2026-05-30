@@ -1256,19 +1256,6 @@ Defaults to `true` (rely on MIME type matching).
 pub fn canHandle(self: *const DocumentExtractor, path: [:0]const u8, mime_type: [:0]const u8) bool
 ```
 
-#### asSyncExtractor()
-
-Attempt to get a reference to this extractor as a SyncExtractor.
-
-Returns None if the extractor doesn't support synchronous extraction.
-This is used for WASM and other sync-only environments.
-
-**Signature:**
-
-```zig
-pub fn asSyncExtractor(self: *const DocumentExtractor) ?SyncExtractor
-```
-
 ---
 
 #### DocumentNode

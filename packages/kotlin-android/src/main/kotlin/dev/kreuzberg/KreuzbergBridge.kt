@@ -16,7 +16,7 @@ object KreuzbergBridge {
     init { System.loadLibrary("kreuzberg_jni") }
 
     @Throws(KreuzbergBridgeException::class)
-    external fun nativeExtractBytes(content: String, mimeType: String, config: String): String
+    external fun nativeExtractBytes(content: ByteArray, mimeType: String, config: String): String
 
     @Throws(KreuzbergBridgeException::class)
     external fun nativeExtractFile(path: String, mimeType: String, config: String): String
@@ -25,7 +25,7 @@ object KreuzbergBridge {
     external fun nativeExtractFileSync(path: String, mimeType: String, config: String): String
 
     @Throws(KreuzbergBridgeException::class)
-    external fun nativeExtractBytesSync(content: String, mimeType: String, config: String): String
+    external fun nativeExtractBytesSync(content: ByteArray, mimeType: String, config: String): String
 
     @Throws(KreuzbergBridgeException::class)
     external fun nativeBatchExtractFilesSync(items: String, config: String): String
@@ -40,7 +40,7 @@ object KreuzbergBridge {
     external fun nativeBatchExtractBytes(items: String, config: String): String
 
     @Throws(KreuzbergBridgeException::class)
-    external fun nativeDetectMimeTypeFromBytes(content: String): String
+    external fun nativeDetectMimeTypeFromBytes(content: ByteArray): String
 
     @Throws(KreuzbergBridgeException::class)
     external fun nativeGetExtensionsForMime(mimeType: String): String
@@ -82,7 +82,7 @@ object KreuzbergBridge {
     external fun nativeClearValidators()
 
     @Throws(KreuzbergBridgeException::class)
-    external fun nativeRenderPdfPageToPng(pdfBytes: String, pageIndex: Long, dpi: Int, password: String): ByteArray
+    external fun nativeRenderPdfPageToPng(pdfBytes: ByteArray, pageIndex: Long, dpi: Int, password: String): ByteArray
 
     @Throws(KreuzbergBridgeException::class)
     external fun nativeDetectMimeType(path: String, checkExists: Boolean): String

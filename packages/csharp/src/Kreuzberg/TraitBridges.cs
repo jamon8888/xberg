@@ -2327,9 +2327,6 @@ public interface IDocumentExtractor {
 
     /// <summary>can_handle</summary>
     bool CanHandle(string Path, string MimeType);
-
-    /// <summary>as_sync_extractor</summary>
-    string? AsSyncExtractor();
 }
 
 /// <summary>
@@ -2352,7 +2349,7 @@ public sealed class DocumentExtractorBridge : IDisposable {
     internal static int _nextBridgeId = 1;
     internal static readonly object _registryLock = new();
 
-    // Vtable slot delegates (11)
+    // Vtable slot delegates (10)
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate int NameFn(IntPtr userData, out IntPtr outName);
@@ -2382,15 +2379,12 @@ public sealed class DocumentExtractorBridge : IDisposable {
     private delegate int CanHandleFn(IntPtr userData, IntPtr path, IntPtr mimeType);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate int AsSyncExtractorFn(IntPtr userData, out IntPtr outResult, out IntPtr outError);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void FreeUserDataFn(IntPtr userData);
 
     public DocumentExtractorBridge(IDocumentExtractor impl) {
         _impl = impl ?? throw new ArgumentNullException(nameof(impl));
         _implHandle = GCHandle.Alloc(impl, GCHandleType.Pinned);
-        _delegates = new object[11];
+        _delegates = new object[10];
         _delegatesHandle = GCHandle.Alloc(_delegates, GCHandleType.Normal);
         _vtable = IntPtr.Zero;
         _disposed = false;
@@ -2403,7 +2397,7 @@ public sealed class DocumentExtractorBridge : IDisposable {
 
     private void BuildVtable() {
         // Allocate unmanaged vtable struct (array of function pointers)
-        _vtable = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size * 11);
+        _vtable = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size * 10);
 
         // Slot 0: name_fn
         var nameFn = new NameFn(NameFnCallback);
@@ -2450,15 +2444,10 @@ public sealed class DocumentExtractorBridge : IDisposable {
         _delegates[8] = canHandleFn;
         global::System.Runtime.InteropServices.Marshal.WriteIntPtr(_vtable, 64, global::System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(canHandleFn));
 
-        // Slot 9: as_sync_extractor_fn
-        var asSyncExtractorFn = new AsSyncExtractorFn(AsSyncExtractorFnCallback);
-        _delegates[9] = asSyncExtractorFn;
-        global::System.Runtime.InteropServices.Marshal.WriteIntPtr(_vtable, 72, global::System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(asSyncExtractorFn));
-
-        // Slot 10: free_user_data
+        // Slot 9: free_user_data
         var freeFn = new FreeUserDataFn(FreeUserDataCallback);
-        _delegates[10] = freeFn;
-        global::System.Runtime.InteropServices.Marshal.WriteIntPtr(_vtable, 80, global::System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(freeFn));
+        _delegates[9] = freeFn;
+        global::System.Runtime.InteropServices.Marshal.WriteIntPtr(_vtable, 72, global::System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(freeFn));
 
     }
 
@@ -2775,57 +2764,6 @@ public sealed class DocumentExtractorBridge : IDisposable {
             return methodResult ? 1 : 0;
         } catch (Exception) {
             return 0;
-        } finally {
-            if (_bridgeFromRegistry != null) {
-                try { _bridgeFromRegistry.DecrementCallbackRef(); } catch { /* Bridge already removed from registry */ }
-            }
-        }
-    }
-
-    private int AsSyncExtractorFnCallback(IntPtr userData, out IntPtr outResult, out IntPtr outError) {
-        DocumentExtractorBridge? _bridgeFromRegistry = null;
-        lock (DocumentExtractorBridge._registryLock) {
-            if (DocumentExtractorBridge._bridgeRegistry.TryGetValue(userData, out var bridgeFromRegistry)) {
-                _bridgeFromRegistry = bridgeFromRegistry;
-                // Increment callback refcount to prevent GC while callback executes
-                _bridgeFromRegistry.IncrementCallbackRef();
-            }
-        }
-        if (_bridgeFromRegistry == null) {
-            outResult = IntPtr.Zero;
-            outError = global::System.Runtime.InteropServices.Marshal.StringToCoTaskMemUTF8($"Bridge not found for userData (likely unregistered): {userData}");
-            return 1;
-        }
-        try {
-            var bridge = _bridgeFromRegistry!;
-            var methodResult = bridge._impl.AsSyncExtractor();
-            try {
-                string __result_str = (ToJsonString(methodResult)) ?? string.Empty;
-                outResult = global::System.Runtime.InteropServices.Marshal.StringToCoTaskMemUTF8(__result_str);
-            } catch {
-                outResult = IntPtr.Zero;
-                throw;
-            }
-            outError = IntPtr.Zero;
-            return 0;
-        } catch (Exception ex) {
-            outResult = IntPtr.Zero;
-            outError = IntPtr.Zero;
-            // Attempt to marshal exception message, but on ANY failure just leave outError null
-            try {
-                string _errMsg = null!;
-                try {
-                    _errMsg = ex?.Message ?? ex?.GetType()?.Name ?? "Unknown exception";
-                } catch {
-                    _errMsg = "Callback failed";
-                }
-                if (!string.IsNullOrEmpty(_errMsg)) {
-                    outError = global::System.Runtime.InteropServices.Marshal.StringToCoTaskMemUTF8(_errMsg);
-                }
-            } catch {
-                // Marshalling failed; outError stays null — Rust will see return code 1
-            }
-            return 1;
         } finally {
             if (_bridgeFromRegistry != null) {
                 try { _bridgeFromRegistry.DecrementCallbackRef(); } catch { /* Bridge already removed from registry */ }

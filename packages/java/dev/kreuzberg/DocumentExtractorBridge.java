@@ -26,8 +26,8 @@ public final class DocumentExtractorBridge implements AutoCloseable {
     private static final ConcurrentHashMap<String, DocumentExtractorBridge>
             DOCUMENT_EXTRACTOR_BRIDGES = new ConcurrentHashMap<>();
 
-    // C vtable: 11 fields (4 plugin methods + 6 trait methods + free_user_data)
-    private static final long VTABLE_SIZE = (long) ValueLayout.ADDRESS.byteSize() * 11L;
+    // C vtable: 10 fields (4 plugin methods + 5 trait methods + free_user_data)
+    private static final long VTABLE_SIZE = (long) ValueLayout.ADDRESS.byteSize() * 10L;
 
     private final Arena arena;
     private final MemorySegment vtable;

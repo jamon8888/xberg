@@ -18,7 +18,7 @@ class OcrBackendManagementTest {
     @Test
     fun testOcrBackendsClear() = runBlocking {
         // Clear all OCR backends and verify list is empty
-        val result = Kreuzberg.()
+        val result = OcrBackendBridge.clearAll()
     }
 
     @Test
@@ -30,7 +30,7 @@ class OcrBackendManagementTest {
     @Test
     fun testOcrBackendsUnregister() = runBlocking {
         // Unregister nonexistent OCR backend gracefully
-        val result = Kreuzberg.("nonexistent-backend-xyz")
+        val result = OcrBackendBridge.unregister("nonexistent-backend-xyz")
     }
 
 }

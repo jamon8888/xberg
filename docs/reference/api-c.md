@@ -1256,19 +1256,6 @@ Defaults to `true` (rely on MIME type matching).
 bool kreuzberg_can_handle(const char* path, const char* mime_type);
 ```
 
-#### kreuzberg_as_sync_extractor()
-
-Attempt to get a reference to this extractor as a SyncExtractor.
-
-Returns None if the extractor doesn't support synchronous extraction.
-This is used for WASM and other sync-only environments.
-
-**Signature:**
-
-```c
-KreuzbergSyncExtractor* kreuzberg_as_sync_extractor();
-```
-
 ---
 
 #### KreuzbergDocumentNode

@@ -29,7 +29,6 @@ test "register_document_extractor_trait_bridge" {
         pub fn supported_mime_types(_: *@This()) [*c]const u8 { return "[]"; }
         pub fn priority(_: *@This()) i32 { return 0; }
         pub fn can_handle(_: *@This(), _: [*c]const u8, _: [*c]const u8) i32 { return 0; }
-        pub fn as_sync_extractor(_: *@This()) ?[*c]const u8 { return "{}"; }
     };
     var stub_register_document_extractor_trait_bridge = TestStub_register_document_extractor_trait_bridge{};
     const vtable_register_document_extractor_trait_bridge = kreuzberg.make_document_extractor_vtable(TestStub_register_document_extractor_trait_bridge, &stub_register_document_extractor_trait_bridge);

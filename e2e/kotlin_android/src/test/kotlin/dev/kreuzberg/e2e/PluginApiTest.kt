@@ -18,73 +18,108 @@ class PluginApiTest {
     @Test
     fun testRegisterDocumentExtractorTraitBridge() = runBlocking {
         // register_document_extractor: trait bridge
+        class TestStubRegisterDocumentExtractorTraitBridge : IDocumentExtractor {
+    override fun name(): String = "register_document_extractor_trait_bridge"
+    override suspend fun extractBytes(content: ByteArray, mimeType: String, config: ExtractionConfig): InternalDocument = InternalDocument()
+    override fun supportedMimeTypes(): List<String> = emptyList()
+}
+// register via: DocumentExtractorBridge.register(TestStubRegisterDocumentExtractorTraitBridge())
 
-        val result = Kreuzberg.(/* test_backend unimplemented for Kotlin (JVM) trait_bridge e2e tests not yet implemented */)
+        val result = DocumentExtractorBridge.register(TestStubRegisterDocumentExtractorTraitBridge())
     }
 
     @Test
     fun testRegisterEmbeddingBackendTraitBridge() = runBlocking {
         // register_embedding_backend: trait bridge
+        class TestStubRegisterEmbeddingBackendTraitBridge : IEmbeddingBackend {
+    override fun name(): String = "register_embedding_backend_trait_bridge"
+    override fun dimensions(): Long = 0
+    override suspend fun embed(texts: List<String>): List<List<Float>> = emptyList()
+}
+// register via: EmbeddingBackendBridge.register(TestStubRegisterEmbeddingBackendTraitBridge())
 
-        val result = Kreuzberg.(/* test_backend unimplemented for Kotlin (JVM) trait_bridge e2e tests not yet implemented */)
+        val result = EmbeddingBackendBridge.register(TestStubRegisterEmbeddingBackendTraitBridge())
     }
 
     @Test
     fun testRegisterOcrBackendTraitBridge() = runBlocking {
         // register_ocr_backend: trait bridge
+        class TestStubRegisterOcrBackendTraitBridge : IOcrBackend {
+    override fun name(): String = "register_ocr_backend_trait_bridge"
+    override suspend fun processImage(imageBytes: ByteArray, config: OcrConfig): ExtractionResult = ExtractionResult()
+    override fun supportsLanguage(lang: String): Boolean = false
+    override fun backendType(): OcrBackendType = OcrBackendType()
+}
+// register via: OcrBackendBridge.register(TestStubRegisterOcrBackendTraitBridge())
 
-        val result = Kreuzberg.(/* test_backend unimplemented for Kotlin (JVM) trait_bridge e2e tests not yet implemented */)
+        val result = OcrBackendBridge.register(TestStubRegisterOcrBackendTraitBridge())
     }
 
     @Test
     fun testRegisterPostProcessorTraitBridge() = runBlocking {
         // register_post_processor: trait bridge
+        class TestStubRegisterPostProcessorTraitBridge : IPostProcessor {
+    override fun name(): String = "register_post_processor_trait_bridge"
+    override suspend fun process(result: ExtractionResult, config: ExtractionConfig): Unit = null
+    override fun processingStage(): ProcessingStage = ProcessingStage()
+}
+// register via: PostProcessorBridge.register(TestStubRegisterPostProcessorTraitBridge())
 
-        val result = Kreuzberg.(/* test_backend unimplemented for Kotlin (JVM) trait_bridge e2e tests not yet implemented */)
+        val result = PostProcessorBridge.register(TestStubRegisterPostProcessorTraitBridge())
     }
 
     @Test
     fun testRegisterRendererTraitBridge() = runBlocking {
         // register_renderer: trait bridge
+        class TestStubRegisterRendererTraitBridge : IRenderer {
+    override fun name(): String = "register_renderer_trait_bridge"
+    override fun render(doc: InternalDocument): String = ""
+}
+// register via: RendererBridge.register(TestStubRegisterRendererTraitBridge())
 
-        val result = Kreuzberg.(/* test_backend unimplemented for Kotlin (JVM) trait_bridge e2e tests not yet implemented */)
+        val result = RendererBridge.register(TestStubRegisterRendererTraitBridge())
     }
 
     @Test
     fun testRegisterValidatorTraitBridge() = runBlocking {
         // register_validator: trait bridge
+        class TestStubRegisterValidatorTraitBridge : IValidator {
+    override fun name(): String = "register_validator_trait_bridge"
+    override suspend fun validate(result: ExtractionResult, config: ExtractionConfig): Unit = null
+}
+// register via: ValidatorBridge.register(TestStubRegisterValidatorTraitBridge())
 
-        val result = Kreuzberg.(/* test_backend unimplemented for Kotlin (JVM) trait_bridge e2e tests not yet implemented */)
+        val result = ValidatorBridge.register(TestStubRegisterValidatorTraitBridge())
     }
 
     @Test
     fun testUnregisterDocumentExtractorAfterRegister() = runBlocking {
         // unregister_document_extractor
-        val result = Kreuzberg.("test-extractor")
+        val result = DocumentExtractorBridge.unregister("test-extractor")
     }
 
     @Test
     fun testUnregisterEmbeddingBackendAfterRegister() = runBlocking {
         // unregister_embedding_backend
-        val result = Kreuzberg.("test-embedding-backend")
+        val result = EmbeddingBackendBridge.unregister("test-embedding-backend")
     }
 
     @Test
     fun testUnregisterPostProcessorAfterRegister() = runBlocking {
         // unregister_post_processor
-        val result = Kreuzberg.("test-processor")
+        val result = PostProcessorBridge.unregister("test-processor")
     }
 
     @Test
     fun testUnregisterRendererAfterRegister() = runBlocking {
         // unregister_renderer
-        val result = Kreuzberg.("test-renderer")
+        val result = RendererBridge.unregister("test-renderer")
     }
 
     @Test
     fun testUnregisterValidatorAfterRegister() = runBlocking {
         // unregister_validator
-        val result = Kreuzberg.("test-validator")
+        val result = ValidatorBridge.unregister("test-validator")
     }
 
 }

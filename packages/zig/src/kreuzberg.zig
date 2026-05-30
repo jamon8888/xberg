@@ -26,7 +26,7 @@ pub fn _last_error() ?[]const u8 {
 /// will replace this once the IR exposes per-variant numeric codes.
 inline fn _first_error(comptime E: type) E {
     const fields = @typeInfo(E).error_set orelse return @as(E, error.Unknown);
-    if (fields.len == 0) unreachable;
+    if (fields.len == 0) return @as(E, error.Unknown);
     return @field(E, fields[0].name);
 }
 
@@ -4708,7 +4708,9 @@ pub fn make_ocr_backend_vtable(comptime T: type, instance: *T) IOcrBackend {
                 const self: *T = @ptrCast(@alignCast(ud));
                 _ = image_bytes_len;
                 if (self.process_image(image_bytes_ptr, config)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code
@@ -4721,7 +4723,9 @@ pub fn make_ocr_backend_vtable(comptime T: type, instance: *T) IOcrBackend {
             fn thunk(ud: ?*anyopaque, path: [*c]const u8, config: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.c) i32 {
                 const self: *T = @ptrCast(@alignCast(ud));
                 if (self.process_image_file(path, config)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code
@@ -4777,7 +4781,9 @@ pub fn make_ocr_backend_vtable(comptime T: type, instance: *T) IOcrBackend {
             fn thunk(ud: ?*anyopaque, _path: [*c]const u8, _config: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.c) i32 {
                 const self: *T = @ptrCast(@alignCast(ud));
                 if (self.process_document(_path, _config)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code
@@ -5454,7 +5460,9 @@ pub fn make_embedding_backend_vtable(comptime T: type, instance: *T) IEmbeddingB
             fn thunk(ud: ?*anyopaque, texts: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.c) i32 {
                 const self: *T = @ptrCast(@alignCast(ud));
                 if (self.embed(texts)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code
@@ -5659,7 +5667,9 @@ pub fn make_document_extractor_vtable(comptime T: type, instance: *T) IDocumentE
                 const self: *T = @ptrCast(@alignCast(ud));
                 _ = content_len;
                 if (self.extract_bytes(content_ptr, mime_type, config)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code
@@ -5672,7 +5682,9 @@ pub fn make_document_extractor_vtable(comptime T: type, instance: *T) IDocumentE
             fn thunk(ud: ?*anyopaque, path: [*c]const u8, mime_type: [*c]const u8, config: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.c) i32 {
                 const self: *T = @ptrCast(@alignCast(ud));
                 if (self.extract_file(path, mime_type, config)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code
@@ -5833,7 +5845,9 @@ pub fn make_renderer_vtable(comptime T: type, instance: *T) IRenderer {
             fn thunk(ud: ?*anyopaque, doc: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.c) i32 {
                 const self: *T = @ptrCast(@alignCast(ud));
                 if (self.render(doc)) |value| {
-                    _ = value; _ = out_result; unreachable; // complex return: implement manually
+                    _ = value;
+                    if (out_result) |ptr| ptr.* = null;
+                    return 1; // complex return: implement this vtable slot manually
                 } else |err| {
                     _ = err;
                     if (out_error) |ptr| ptr.* = null; // caller checks error code

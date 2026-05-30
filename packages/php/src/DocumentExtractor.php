@@ -61,12 +61,4 @@ interface DocumentExtractor
      */
     public function can_handle(mixed $_path, string $_mime_type): mixed;
 
-    /**
-     * Attempt to get a reference to this extractor as a SyncExtractor.
-     *
-
-     * @return mixed Return value from the plugin method
-     */
-    public function as_sync_extractor(): mixed;
-
 }

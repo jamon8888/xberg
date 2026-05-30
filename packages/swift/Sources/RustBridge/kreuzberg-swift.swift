@@ -387,11 +387,6 @@ func __swift_bridge__SwiftDocumentExtractorBox_alef_can_handle (_ this: UnsafeMu
     Unmanaged<SwiftDocumentExtractorBox>.fromOpaque(this).takeUnretainedValue().alef_can_handle(path: RustString(ptr: path), mime_type: RustString(ptr: mime_type))
 }
 
-@_cdecl("__swift_bridge__$SwiftDocumentExtractorBox$alef_as_sync_extractor")
-func __swift_bridge__SwiftDocumentExtractorBox_alef_as_sync_extractor (_ this: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
-    { let rustString = Unmanaged<SwiftDocumentExtractorBox>.fromOpaque(this).takeUnretainedValue().alef_as_sync_extractor().intoRustString(); rustString.isOwned = false; return rustString.ptr }()
-}
-
 @_cdecl("__swift_bridge__$SwiftRendererBox$alef_name")
 func __swift_bridge__SwiftRendererBox_alef_name (_ this: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer {
     { let rustString = Unmanaged<SwiftRendererBox>.fromOpaque(this).takeUnretainedValue().alef_name().intoRustString(); rustString.isOwned = false; return rustString.ptr }()

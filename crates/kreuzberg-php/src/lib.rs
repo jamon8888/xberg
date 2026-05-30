@@ -12135,11 +12135,8 @@ impl PhpOcrBackendBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // SAFETY: Increment refcount to keep the object alive while registered.
-        // The object pointer is valid within the current request context.
-        unsafe {
-            php_obj.inc_count();
-        }
+        // Increment refcount to keep the object alive while registered.
+        php_obj.inc_count();
 
         // Extract and cache name
         let cached_name = php_obj
@@ -12353,11 +12350,8 @@ impl PhpPostProcessorBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // SAFETY: Increment refcount to keep the object alive while registered.
-        // The object pointer is valid within the current request context.
-        unsafe {
-            php_obj.inc_count();
-        }
+        // Increment refcount to keep the object alive while registered.
+        php_obj.inc_count();
 
         // Extract and cache name
         let cached_name = php_obj
@@ -12556,11 +12550,8 @@ impl PhpValidatorBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // SAFETY: Increment refcount to keep the object alive while registered.
-        // The object pointer is valid within the current request context.
-        unsafe {
-            php_obj.inc_count();
-        }
+        // Increment refcount to keep the object alive while registered.
+        php_obj.inc_count();
 
         // Extract and cache name
         let cached_name = php_obj
@@ -12747,11 +12738,8 @@ impl PhpEmbeddingBackendBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // SAFETY: Increment refcount to keep the object alive while registered.
-        // The object pointer is valid within the current request context.
-        unsafe {
-            php_obj.inc_count();
-        }
+        // Increment refcount to keep the object alive while registered.
+        php_obj.inc_count();
 
         // Extract and cache name
         let cached_name = php_obj
@@ -12933,11 +12921,8 @@ impl PhpDocumentExtractorBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // SAFETY: Increment refcount to keep the object alive while registered.
-        // The object pointer is valid within the current request context.
-        unsafe {
-            php_obj.inc_count();
-        }
+        // Increment refcount to keep the object alive while registered.
+        php_obj.inc_count();
 
         // Extract and cache name
         let cached_name = php_obj
@@ -13145,11 +13130,8 @@ impl PhpRendererBridge {
         // Validation of required methods is done in the registration function below.
         // Skipping debug_assert in constructor to avoid type issues with get_property.
 
-        // SAFETY: Increment refcount to keep the object alive while registered.
-        // The object pointer is valid within the current request context.
-        unsafe {
-            php_obj.inc_count();
-        }
+        // Increment refcount to keep the object alive while registered.
+        php_obj.inc_count();
 
         // Extract and cache name
         let cached_name = php_obj

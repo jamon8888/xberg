@@ -949,13 +949,6 @@ export interface DocumentExtractor {
    * @returns `true` if the extractor can handle this file, `false` otherwise.
    */
   canHandle?(path: string, mimeType: string): boolean
-  /**
-   * Attempt to get a reference to this extractor as a SyncExtractor.
-   *
-   * Returns None if the extractor doesn't support synchronous extraction.
-   * This is used for WASM and other sync-only environments.
-   */
-  asSyncExtractor?(): SyncExtractor | null
 }
 
 /**

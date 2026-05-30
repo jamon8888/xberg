@@ -18,7 +18,7 @@ class PostProcessorManagementTest {
     @Test
     fun testPostProcessorsClear() = runBlocking {
         // Clear all post-processors and verify list is empty
-        val result = Kreuzberg.()
+        val result = PostProcessorBridge.clearAll()
     }
 
     @Test

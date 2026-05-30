@@ -1256,19 +1256,6 @@ Defaults to `true` (rely on MIME type matching).
 pub fn can_handle(&self, path: PathBuf, mime_type: &str) -> bool
 ```
 
-#### as_sync_extractor()
-
-Attempt to get a reference to this extractor as a SyncExtractor.
-
-Returns None if the extractor doesn't support synchronous extraction.
-This is used for WASM and other sync-only environments.
-
-**Signature:**
-
-```rust
-pub fn as_sync_extractor(&self) -> Option<SyncExtractor>
-```
-
 ---
 
 #### DocumentNode

@@ -28,7 +28,6 @@ final class PluginApiTest extends TestCase
             public function supported_mime_types(): mixed { return []; }
             public function priority(): mixed { return 1; }
             public function can_handle($_path, $_mime_type): mixed { return false; }
-            public function as_sync_extractor(): mixed { return null; }
             public function version(): mixed { return ''; }
             public function initialize(): mixed { return null; }
             public function shutdown(): mixed { return null; }

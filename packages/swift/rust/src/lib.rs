@@ -2860,7 +2860,6 @@ mod ffi {
         fn alef_supported_mime_types(&self) -> Vec<String>;
         fn alef_priority(&self) -> i32;
         fn alef_can_handle(&self, path: String, mime_type: String) -> bool;
-        fn alef_as_sync_extractor(&self) -> String;
     }
 
     extern "Swift" {

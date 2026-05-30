@@ -32,6 +32,7 @@ use std::sync::Arc;
 thread_local! {
     static LAST_ERROR_CODE: RefCell<i32> = const { RefCell::new(0) };
     static LAST_ERROR_CONTEXT: RefCell<Option<CString>> = const { RefCell::new(None) };
+    static LAST_RETURN_LEN: RefCell<usize> = const { RefCell::new(0) };
 }
 
 fn set_last_error(code: i32, message: &str) {
@@ -44,19 +45,27 @@ fn clear_last_error() {
     LAST_ERROR_CONTEXT.with_borrow_mut(|c| *c = None);
 }
 
+fn set_last_return_len(len: usize) {
+    LAST_RETURN_LEN.with_borrow_mut(|c| *c = len);
+}
+
+fn last_return_len() -> usize {
+    LAST_RETURN_LEN.with_borrow(|c| *c)
+}
+
 /// Return the last error code (0 means no error).
 /// # Safety
 /// Caller must ensure all pointer arguments are valid or null.
-/// Returned pointers must be freed with the appropriate free function.
+/// This function does not allocate and returns no owned pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_last_error_code() -> i32 {
     LAST_ERROR_CODE.with_borrow(|c| *c)
 }
 
-/// Return the last error message. The pointer is valid until the next FFI call on this thread.
+/// Return the last error message. The pointer is borrowed and valid until the next FFI call on this thread.
 /// # Safety
 /// Caller must ensure all pointer arguments are valid or null.
-/// Returned pointers must be freed with the appropriate free function.
+/// The returned pointer is borrowed from thread-local storage and must NOT be freed.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_last_error_context() -> *const c_char {
     LAST_ERROR_CONTEXT.with_borrow(|ctx| ctx.as_ref().map_or(std::ptr::null(), |c| c.as_ptr()))
@@ -28222,11 +28231,20 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_files_sync(
     let result = kreuzberg::batch_extract_files_sync(items_rs, &config_rs);
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28235,47 +28253,18 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_files_sync(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_batch_extract_files_sync` would return for
-/// the same arguments, without allocating. Returns 0 when the underlying value is None or an error
-/// occurs. Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_batch_extract_files_sync`.
+/// Return the byte length of the C string most recently returned by
+/// `kreuzberg_batch_extract_files_sync` on this thread. Returns 0 when the primary call returned null
+/// or failed before producing a string. Enables safe slice construction in Zig and Java FFM Panama
+/// without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_batch_extract_files_sync`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_batch_extract_files_sync_len(
-    items: *const std::ffi::c_char,
-    config: *const kreuzberg::ExtractionConfig,
+    _items: *const std::ffi::c_char,
+    _config: *const kreuzberg::ExtractionConfig,
 ) -> usize {
-    clear_last_error();
-    if items.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'items'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees items is a valid pointer; string is valid UTF-8 from caller.
-    let items_rs_str = match unsafe { CStr::from_ptr(items) }.to_str() {
-        Ok(s) => s,
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'items'");
-            return 0;
-        }
-    };
-    let items_rs = match serde_json::from_str::<Vec<kreuzberg::BatchFileItem>>(items_rs_str) {
-        Ok(v) => v,
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            return 0;
-        }
-    };
-    if config.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'config'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees config is a valid pointer.
-    let config_rs = unsafe { &*config };
-    let result = kreuzberg::batch_extract_files_sync(items_rs, &config_rs);
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Synchronous wrapper for `batch_extract_bytes`.
@@ -28335,11 +28324,20 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_bytes_sync(
     let result = kreuzberg::batch_extract_bytes_sync(items_rs, &config_rs);
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28348,47 +28346,18 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_bytes_sync(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_batch_extract_bytes_sync` would return for
-/// the same arguments, without allocating. Returns 0 when the underlying value is None or an error
-/// occurs. Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_batch_extract_bytes_sync`.
+/// Return the byte length of the C string most recently returned by
+/// `kreuzberg_batch_extract_bytes_sync` on this thread. Returns 0 when the primary call returned null
+/// or failed before producing a string. Enables safe slice construction in Zig and Java FFM Panama
+/// without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_batch_extract_bytes_sync`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_batch_extract_bytes_sync_len(
-    items: *const std::ffi::c_char,
-    config: *const kreuzberg::ExtractionConfig,
+    _items: *const std::ffi::c_char,
+    _config: *const kreuzberg::ExtractionConfig,
 ) -> usize {
-    clear_last_error();
-    if items.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'items'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees items is a valid pointer; string is valid UTF-8 from caller.
-    let items_rs_str = match unsafe { CStr::from_ptr(items) }.to_str() {
-        Ok(s) => s,
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'items'");
-            return 0;
-        }
-    };
-    let items_rs = match serde_json::from_str::<Vec<kreuzberg::BatchBytesItem>>(items_rs_str) {
-        Ok(v) => v,
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            return 0;
-        }
-    };
-    if config.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'config'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees config is a valid pointer.
-    let config_rs = unsafe { &*config };
-    let result = kreuzberg::batch_extract_bytes_sync(items_rs, &config_rs);
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Extract content from multiple files concurrently.
@@ -28475,11 +28444,20 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_files(
     let result = get_ffi_runtime().block_on(async { kreuzberg::batch_extract_files(items_rs, &config_rs).await });
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28488,47 +28466,17 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_files(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_batch_extract_files` would return for the
-/// same arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_batch_extract_files` on
+/// this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_batch_extract_files`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_batch_extract_files`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_batch_extract_files_len(
-    items: *const std::ffi::c_char,
-    config: *const kreuzberg::ExtractionConfig,
+    _items: *const std::ffi::c_char,
+    _config: *const kreuzberg::ExtractionConfig,
 ) -> usize {
-    clear_last_error();
-    if items.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'items'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees items is a valid pointer; string is valid UTF-8 from caller.
-    let items_rs_str = match unsafe { CStr::from_ptr(items) }.to_str() {
-        Ok(s) => s,
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'items'");
-            return 0;
-        }
-    };
-    let items_rs = match serde_json::from_str::<Vec<kreuzberg::BatchFileItem>>(items_rs_str) {
-        Ok(v) => v,
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            return 0;
-        }
-    };
-    if config.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'config'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees config is a valid pointer.
-    let config_rs = unsafe { &*config };
-    let result = get_ffi_runtime().block_on(async { kreuzberg::batch_extract_files(items_rs, &config_rs).await });
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Extract content from multiple byte arrays concurrently.
@@ -28611,11 +28559,20 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_bytes(
     let result = get_ffi_runtime().block_on(async { kreuzberg::batch_extract_bytes(items_rs, &config_rs).await });
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28624,47 +28581,17 @@ pub unsafe extern "C" fn kreuzberg_batch_extract_bytes(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_batch_extract_bytes` would return for the
-/// same arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_batch_extract_bytes` on
+/// this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_batch_extract_bytes`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_batch_extract_bytes`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_batch_extract_bytes_len(
-    items: *const std::ffi::c_char,
-    config: *const kreuzberg::ExtractionConfig,
+    _items: *const std::ffi::c_char,
+    _config: *const kreuzberg::ExtractionConfig,
 ) -> usize {
-    clear_last_error();
-    if items.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'items'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees items is a valid pointer; string is valid UTF-8 from caller.
-    let items_rs_str = match unsafe { CStr::from_ptr(items) }.to_str() {
-        Ok(s) => s,
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'items'");
-            return 0;
-        }
-    };
-    let items_rs = match serde_json::from_str::<Vec<kreuzberg::BatchBytesItem>>(items_rs_str) {
-        Ok(v) => v,
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            return 0;
-        }
-    };
-    if config.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'config'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees config is a valid pointer.
-    let config_rs = unsafe { &*config };
-    let result = get_ffi_runtime().block_on(async { kreuzberg::batch_extract_bytes(items_rs, &config_rs).await });
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Detect MIME type from raw file bytes.
@@ -28697,10 +28624,19 @@ pub unsafe extern "C" fn kreuzberg_detect_mime_type_from_bytes(
     };
     let result = kreuzberg::detect_mime_type_from_bytes(&content_rs);
     match result {
-        Ok(val) => match CString::new(val.to_string()) {
-            Ok(cs) => cs.into_raw(),
-            Err(_) => std::ptr::null_mut(),
-        },
+        Ok(val) => {
+            let __alef_return = val.to_string();
+            match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
+            }
+        }
         Err(e) => {
             set_last_error(2, &e.to_string());
             std::ptr::null_mut()
@@ -28708,29 +28644,15 @@ pub unsafe extern "C" fn kreuzberg_detect_mime_type_from_bytes(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_detect_mime_type_from_bytes` would return for
-/// the same arguments, without allocating. Returns 0 when the underlying value is None or an error
-/// occurs. Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_detect_mime_type_from_bytes`.
+/// Return the byte length of the C string most recently returned by
+/// `kreuzberg_detect_mime_type_from_bytes` on this thread. Returns 0 when the primary call returned
+/// null or failed before producing a string. Enables safe slice construction in Zig and Java FFM Panama
+/// without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_detect_mime_type_from_bytes`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn kreuzberg_detect_mime_type_from_bytes_len(content: *const u8, content_len: usize) -> usize {
-    clear_last_error();
-    if content.is_null() && content_len > 0 {
-        set_last_error(1, "Null pointer passed for parameter 'content'");
-        return 0;
-    }
-    // SAFETY: when content is null, content_len is 0 (checked above), so we use an empty slice; otherwise data is valid for len elements.
-    let content_rs = if content.is_null() {
-        Vec::new()
-    } else {
-        unsafe { std::slice::from_raw_parts(content, content_len) }.to_vec()
-    };
-    let result = kreuzberg::detect_mime_type_from_bytes(&content_rs);
-    match result {
-        Ok(val) => val.len(),
-        Err(_) => 0,
-    }
+pub unsafe extern "C" fn kreuzberg_detect_mime_type_from_bytes_len(_content: *const u8, _content_len: usize) -> usize {
+    last_return_len()
 }
 
 /// Get file extensions for a given MIME type.
@@ -28769,11 +28691,20 @@ pub unsafe extern "C" fn kreuzberg_get_extensions_for_mime(
     let result = kreuzberg::get_extensions_for_mime(&mime_type_rs);
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28782,31 +28713,14 @@ pub unsafe extern "C" fn kreuzberg_get_extensions_for_mime(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_get_extensions_for_mime` would return for the
-/// same arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_get_extensions_for_mime`
+/// on this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_get_extensions_for_mime`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_get_extensions_for_mime`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn kreuzberg_get_extensions_for_mime_len(mime_type: *const std::ffi::c_char) -> usize {
-    clear_last_error();
-    if mime_type.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'mime_type'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees mime_type is a valid pointer; string is valid UTF-8 from caller.
-    let mime_type_rs = match unsafe { CStr::from_ptr(mime_type) }.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'mime_type'");
-            return 0;
-        }
-    };
-    let result = kreuzberg::get_extensions_for_mime(&mime_type_rs);
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+pub unsafe extern "C" fn kreuzberg_get_extensions_for_mime_len(_mime_type: *const std::ffi::c_char) -> usize {
+    last_return_len()
 }
 
 /// List the names of all registered embedding backends.
@@ -28821,11 +28735,20 @@ pub unsafe extern "C" fn kreuzberg_list_embedding_backends() -> *mut std::ffi::c
     let result = kreuzberg::list_embedding_backends();
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28834,19 +28757,14 @@ pub unsafe extern "C" fn kreuzberg_list_embedding_backends() -> *mut std::ffi::c
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_embedding_backends` would return for the
-/// same arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_list_embedding_backends`
+/// on this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_list_embedding_backends`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_embedding_backends`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_embedding_backends_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_embedding_backends();
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// List names of all registered document extractors.
@@ -28858,11 +28776,20 @@ pub unsafe extern "C" fn kreuzberg_list_document_extractors() -> *mut std::ffi::
     let result = kreuzberg::list_document_extractors();
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28871,19 +28798,15 @@ pub unsafe extern "C" fn kreuzberg_list_document_extractors() -> *mut std::ffi::
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_document_extractors` would return for
-/// the same arguments, without allocating. Returns 0 when the underlying value is None or an error
-/// occurs. Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_list_document_extractors`.
+/// Return the byte length of the C string most recently returned by
+/// `kreuzberg_list_document_extractors` on this thread. Returns 0 when the primary call returned null
+/// or failed before producing a string. Enables safe slice construction in Zig and Java FFM Panama
+/// without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_document_extractors`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_document_extractors_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_document_extractors();
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// List all registered OCR backends.
@@ -28906,11 +28829,20 @@ pub unsafe extern "C" fn kreuzberg_list_ocr_backends() -> *mut std::ffi::c_char 
     let result = kreuzberg::list_ocr_backends();
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28919,18 +28851,14 @@ pub unsafe extern "C" fn kreuzberg_list_ocr_backends() -> *mut std::ffi::c_char 
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_ocr_backends` would return for the same
-/// arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_list_ocr_backends` on
+/// this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as `kreuzberg_list_ocr_backends`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_ocr_backends`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_ocr_backends_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_ocr_backends();
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// List all registered post-processor names.
@@ -28955,11 +28883,20 @@ pub unsafe extern "C" fn kreuzberg_list_post_processors() -> *mut std::ffi::c_ch
     let result = kreuzberg::list_post_processors();
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -28968,19 +28905,14 @@ pub unsafe extern "C" fn kreuzberg_list_post_processors() -> *mut std::ffi::c_ch
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_post_processors` would return for the
-/// same arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_list_post_processors` on
+/// this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_list_post_processors`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_post_processors`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_post_processors_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_post_processors();
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// List names of all registered renderers.
@@ -28993,11 +28925,20 @@ pub unsafe extern "C" fn kreuzberg_list_renderers() -> *mut std::ffi::c_char {
     let result = kreuzberg::list_renderers();
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -29006,18 +28947,14 @@ pub unsafe extern "C" fn kreuzberg_list_renderers() -> *mut std::ffi::c_char {
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_renderers` would return for the same
-/// arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
-/// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as `kreuzberg_list_renderers`.
+/// Return the byte length of the C string most recently returned by `kreuzberg_list_renderers` on this
+/// thread. Returns 0 when the primary call returned null or failed before producing a string. Enables
+/// safe slice construction in Zig and Java FFM Panama without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_renderers`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_renderers_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_renderers();
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// List names of all registered validators.
@@ -29029,11 +28966,20 @@ pub unsafe extern "C" fn kreuzberg_list_validators() -> *mut std::ffi::c_char {
     let result = kreuzberg::list_validators();
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -29042,18 +28988,14 @@ pub unsafe extern "C" fn kreuzberg_list_validators() -> *mut std::ffi::c_char {
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_validators` would return for the same
-/// arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
-/// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as `kreuzberg_list_validators`.
+/// Return the byte length of the C string most recently returned by `kreuzberg_list_validators` on this
+/// thread. Returns 0 when the primary call returned null or failed before producing a string. Enables
+/// safe slice construction in Zig and Java FFM Panama without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_validators`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_validators_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_validators();
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Generate embeddings asynchronously for a list of text strings.
@@ -29112,11 +29054,20 @@ pub unsafe extern "C" fn kreuzberg_embed_texts_async(
     let result = get_ffi_runtime().block_on(async { kreuzberg::embed_texts_async(texts_rs, &config_rs).await });
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -29125,46 +29076,17 @@ pub unsafe extern "C" fn kreuzberg_embed_texts_async(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_embed_texts_async` would return for the same
-/// arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_embed_texts_async` on
+/// this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as `kreuzberg_embed_texts_async`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_embed_texts_async`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_embed_texts_async_len(
-    texts: *const std::ffi::c_char,
-    config: *const kreuzberg::EmbeddingConfig,
+    _texts: *const std::ffi::c_char,
+    _config: *const kreuzberg::EmbeddingConfig,
 ) -> usize {
-    clear_last_error();
-    if texts.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'texts'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees texts is a valid pointer; string is valid UTF-8 from caller.
-    let texts_rs_str = match unsafe { CStr::from_ptr(texts) }.to_str() {
-        Ok(s) => s,
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'texts'");
-            return 0;
-        }
-    };
-    let texts_rs = match serde_json::from_str::<Vec<String>>(texts_rs_str) {
-        Ok(v) => v,
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            return 0;
-        }
-    };
-    if config.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'config'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees config is a valid pointer.
-    let config_rs = unsafe { &*config };
-    let result = get_ffi_runtime().block_on(async { kreuzberg::embed_texts_async(texts_rs, &config_rs).await });
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Render a single PDF page to PNG bytes.
@@ -29275,10 +29197,19 @@ pub unsafe extern "C" fn kreuzberg_detect_mime_type(
     let check_exists_rs = check_exists != 0;
     let result = kreuzberg::detect_mime_type(path_rs, check_exists_rs);
     match result {
-        Ok(val) => match CString::new(val.to_string()) {
-            Ok(cs) => cs.into_raw(),
-            Err(_) => std::ptr::null_mut(),
-        },
+        Ok(val) => {
+            let __alef_return = val.to_string();
+            match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
+            }
+        }
         Err(e) => {
             set_last_error(2, &e.to_string());
             std::ptr::null_mut()
@@ -29286,31 +29217,14 @@ pub unsafe extern "C" fn kreuzberg_detect_mime_type(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_detect_mime_type` would return for the same
-/// arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_detect_mime_type` on
+/// this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as `kreuzberg_detect_mime_type`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_detect_mime_type`.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn kreuzberg_detect_mime_type_len(path: *const std::ffi::c_char, check_exists: i32) -> usize {
-    clear_last_error();
-    if path.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'path'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees path is a valid pointer; string is valid UTF-8 from caller.
-    let path_rs = match unsafe { CStr::from_ptr(path) }.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'path'");
-            return 0;
-        }
-    };
-    let check_exists_rs = check_exists != 0;
-    let result = kreuzberg::detect_mime_type(path_rs, check_exists_rs);
-    match result {
-        Ok(val) => val.len(),
-        Err(_) => 0,
-    }
+pub unsafe extern "C" fn kreuzberg_detect_mime_type_len(_path: *const std::ffi::c_char, _check_exists: i32) -> usize {
+    last_return_len()
 }
 
 /// Embed a list of texts using the configured embedding model.
@@ -29352,11 +29266,20 @@ pub unsafe extern "C" fn kreuzberg_embed_texts(
     let result = kreuzberg::embed_texts(texts_rs, &config_rs);
     match result {
         Ok(val) => match serde_json::to_string(&val) {
-            Ok(s) => match CString::new(s) {
-                Ok(cs) => cs.into_raw(),
-                Err(_) => std::ptr::null_mut(),
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
             },
-            Err(_) => std::ptr::null_mut(),
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
         },
         Err(e) => {
             set_last_error(2, &e.to_string());
@@ -29365,46 +29288,17 @@ pub unsafe extern "C" fn kreuzberg_embed_texts(
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_embed_texts` would return for the same
-/// arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
-/// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as `kreuzberg_embed_texts`.
+/// Return the byte length of the C string most recently returned by `kreuzberg_embed_texts` on this
+/// thread. Returns 0 when the primary call returned null or failed before producing a string. Enables
+/// safe slice construction in Zig and Java FFM Panama without a NUL-scan.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_embed_texts`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_embed_texts_len(
-    texts: *const std::ffi::c_char,
-    config: *const kreuzberg::EmbeddingConfig,
+    _texts: *const std::ffi::c_char,
+    _config: *const kreuzberg::EmbeddingConfig,
 ) -> usize {
-    clear_last_error();
-    if texts.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'texts'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees texts is a valid pointer; string is valid UTF-8 from caller.
-    let texts_rs_str = match unsafe { CStr::from_ptr(texts) }.to_str() {
-        Ok(s) => s,
-        Err(_) => {
-            set_last_error(1, "Invalid UTF-8 in parameter 'texts'");
-            return 0;
-        }
-    };
-    let texts_rs = match serde_json::from_str::<Vec<String>>(texts_rs_str) {
-        Ok(v) => v,
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            return 0;
-        }
-    };
-    if config.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'config'");
-        return 0;
-    }
-    // SAFETY: null check above guarantees config is a valid pointer.
-    let config_rs = unsafe { &*config };
-    let result = kreuzberg::embed_texts(texts_rs, &config_rs);
-    match result {
-        Ok(val) => serde_json::to_string(&val).map_or(0, |s| s.len()),
-        Err(_) => 0,
-    }
+    last_return_len()
 }
 
 /// Get an embedding preset by name.
@@ -29446,25 +29340,34 @@ pub unsafe extern "C" fn kreuzberg_get_embedding_preset(
 pub unsafe extern "C" fn kreuzberg_list_embedding_presets() -> *mut std::ffi::c_char {
     clear_last_error();
     let result = kreuzberg::list_embedding_presets();
-    match serde_json::to_string(&result) {
-        Ok(s) => match CString::new(s) {
-            Ok(cs) => cs.into_raw(),
-            Err(_) => std::ptr::null_mut(),
-        },
-        Err(_) => std::ptr::null_mut(),
+    {
+        match serde_json::to_string(&result) {
+            Ok(__alef_return) => match CString::new(__alef_return) {
+                Ok(cs) => {
+                    set_last_return_len(cs.as_bytes().len());
+                    cs.into_raw()
+                }
+                Err(_) => {
+                    set_last_return_len(0);
+                    std::ptr::null_mut()
+                }
+            },
+            Err(_) => {
+                set_last_return_len(0);
+                std::ptr::null_mut()
+            }
+        }
     }
 }
 
-/// Return the byte length of the C string that `kreuzberg_list_embedding_presets` would return for the
-/// same arguments, without allocating. Returns 0 when the underlying value is None or an error occurs.
+/// Return the byte length of the C string most recently returned by `kreuzberg_list_embedding_presets`
+/// on this thread. Returns 0 when the primary call returned null or failed before producing a string.
 /// Enables safe slice construction in Zig and Java FFM Panama without a NUL-scan.
-/// \note SAFETY: All pointer parameters obey the same validity rules as
-/// `kreuzberg_list_embedding_presets`.
+/// \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
+/// with `kreuzberg_list_embedding_presets`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kreuzberg_list_embedding_presets_len() -> usize {
-    clear_last_error();
-    let result = kreuzberg::list_embedding_presets();
-    serde_json::to_string(&result).map_or(0, |s| s.len())
+    last_return_len()
 }
 
 /// Write an error message string into an FFI out-error pointer.

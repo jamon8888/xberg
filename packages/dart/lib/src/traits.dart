@@ -511,8 +511,6 @@ abstract class EmbeddingBackend {
 ///   Future<int> priority(...) async { ... }
 ///   @override
 ///   Future<bool> canHandle(...) async { ... }
-///   @override
-///   Future<SyncExtractor?> asSyncExtractor(...) async { ... }
 /// }
 ///
 /// final impl = createDocumentExtractorDartImpl(
@@ -521,7 +519,6 @@ abstract class EmbeddingBackend {
 ///   supportedMimeTypes: (...) => myInstance.supportedMimeTypes(...),
 ///   priority: (...) => myInstance.priority(...),
 ///   canHandle: (...) => myInstance.canHandle(...),
-///   asSyncExtractor: (...) => myInstance.asSyncExtractor(...),
 /// );
 /// ```
 ///
@@ -610,11 +607,6 @@ abstract class DocumentExtractor {
   ///
   /// `true` if the extractor can handle this file, `false` otherwise.
   Future<bool> canHandle(String path, String mimeType);
-  /// Attempt to get a reference to this extractor as a SyncExtractor.
-  ///
-  /// Returns None if the extractor doesn't support synchronous extraction.
-  /// This is used for WASM and other sync-only environments.
-  Future<SyncExtractor?> asSyncExtractor();
 }
 
 /// Abstract class for the `Renderer` Rust trait.

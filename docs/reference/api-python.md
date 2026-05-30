@@ -1258,19 +1258,6 @@ Defaults to `True` (rely on MIME type matching).
 def can_handle(self, path: str, mime_type: str) -> bool
 ```
 
-#### as_sync_extractor()
-
-Attempt to get a reference to this extractor as a SyncExtractor.
-
-Returns None if the extractor doesn't support synchronous extraction.
-This is used for WASM and other sync-only environments.
-
-**Signature:**
-
-```python
-def as_sync_extractor(self) -> SyncExtractor | None
-```
-
 ---
 
 #### DocumentNode

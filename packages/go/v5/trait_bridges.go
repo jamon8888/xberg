@@ -97,6 +97,9 @@ var (
 func (reg *handleRegistry) store(name string, handle cgo.Handle) {
 	reg.mu.Lock()
 	defer reg.mu.Unlock()
+	if old, ok := reg.handles[name]; ok {
+		old.Delete()
+	}
 	reg.handles[name] = handle
 }
 
@@ -500,7 +503,7 @@ func RegisterOcrBackend(impl OcrBackend) error {
 		msg := "failed to register OcrBackend"
 		if cErr != nil {
 			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
+			C.kreuzberg_free_string(cErr)
 		}
 		handle.Delete()
 		return fmt.Errorf("%s", msg)
@@ -519,12 +522,12 @@ func UnregisterOcrBackend(name string) error {
 	rc := C.kreuzberg_unregister_ocr_backend(cName, &cErr)
 
 	if rc != 0 {
-		msg := "failed to unregister OcrBackend"
-		if cErr != nil {
-			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
-		}
-		return fmt.Errorf("%s", msg)
+	msg := "failed to unregister OcrBackend"
+	if cErr != nil {
+		msg = C.GoString(cErr)
+		C.kreuzberg_free_string(cErr)
+	}
+	return fmt.Errorf("%s", msg)
 	}
 
 	// Delete the handle now that Rust has unregistered the plugin
@@ -834,7 +837,7 @@ func RegisterPostProcessor(impl PostProcessor) error {
 		msg := "failed to register PostProcessor"
 		if cErr != nil {
 			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
+			C.kreuzberg_free_string(cErr)
 		}
 		handle.Delete()
 		return fmt.Errorf("%s", msg)
@@ -853,12 +856,12 @@ func UnregisterPostProcessor(name string) error {
 	rc := C.kreuzberg_unregister_post_processor(cName, &cErr)
 
 	if rc != 0 {
-		msg := "failed to unregister PostProcessor"
-		if cErr != nil {
-			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
-		}
-		return fmt.Errorf("%s", msg)
+	msg := "failed to unregister PostProcessor"
+	if cErr != nil {
+		msg = C.GoString(cErr)
+		C.kreuzberg_free_string(cErr)
+	}
+	return fmt.Errorf("%s", msg)
 	}
 
 	// Delete the handle now that Rust has unregistered the plugin
@@ -1107,7 +1110,7 @@ func RegisterValidator(impl Validator) error {
 		msg := "failed to register Validator"
 		if cErr != nil {
 			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
+			C.kreuzberg_free_string(cErr)
 		}
 		handle.Delete()
 		return fmt.Errorf("%s", msg)
@@ -1126,12 +1129,12 @@ func UnregisterValidator(name string) error {
 	rc := C.kreuzberg_unregister_validator(cName, &cErr)
 
 	if rc != 0 {
-		msg := "failed to unregister Validator"
-		if cErr != nil {
-			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
-		}
-		return fmt.Errorf("%s", msg)
+	msg := "failed to unregister Validator"
+	if cErr != nil {
+		msg = C.GoString(cErr)
+		C.kreuzberg_free_string(cErr)
+	}
+	return fmt.Errorf("%s", msg)
 	}
 
 	// Delete the handle now that Rust has unregistered the plugin
@@ -1336,7 +1339,7 @@ func RegisterEmbeddingBackend(impl EmbeddingBackend) error {
 		msg := "failed to register EmbeddingBackend"
 		if cErr != nil {
 			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
+			C.kreuzberg_free_string(cErr)
 		}
 		handle.Delete()
 		return fmt.Errorf("%s", msg)
@@ -1355,12 +1358,12 @@ func UnregisterEmbeddingBackend(name string) error {
 	rc := C.kreuzberg_unregister_embedding_backend(cName, &cErr)
 
 	if rc != 0 {
-		msg := "failed to unregister EmbeddingBackend"
-		if cErr != nil {
-			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
-		}
-		return fmt.Errorf("%s", msg)
+	msg := "failed to unregister EmbeddingBackend"
+	if cErr != nil {
+		msg = C.GoString(cErr)
+		C.kreuzberg_free_string(cErr)
+	}
+	return fmt.Errorf("%s", msg)
 	}
 
 	// Delete the handle now that Rust has unregistered the plugin
@@ -1680,7 +1683,7 @@ func RegisterDocumentExtractor(impl DocumentExtractor) error {
 		msg := "failed to register DocumentExtractor"
 		if cErr != nil {
 			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
+			C.kreuzberg_free_string(cErr)
 		}
 		handle.Delete()
 		return fmt.Errorf("%s", msg)
@@ -1699,12 +1702,12 @@ func UnregisterDocumentExtractor(name string) error {
 	rc := C.kreuzberg_unregister_document_extractor(cName, &cErr)
 
 	if rc != 0 {
-		msg := "failed to unregister DocumentExtractor"
-		if cErr != nil {
-			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
-		}
-		return fmt.Errorf("%s", msg)
+	msg := "failed to unregister DocumentExtractor"
+	if cErr != nil {
+		msg = C.GoString(cErr)
+		C.kreuzberg_free_string(cErr)
+	}
+	return fmt.Errorf("%s", msg)
 	}
 
 	// Delete the handle now that Rust has unregistered the plugin
@@ -1881,7 +1884,7 @@ func RegisterRenderer(impl Renderer) error {
 		msg := "failed to register Renderer"
 		if cErr != nil {
 			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
+			C.kreuzberg_free_string(cErr)
 		}
 		handle.Delete()
 		return fmt.Errorf("%s", msg)
@@ -1900,12 +1903,12 @@ func UnregisterRenderer(name string) error {
 	rc := C.kreuzberg_unregister_renderer(cName, &cErr)
 
 	if rc != 0 {
-		msg := "failed to unregister Renderer"
-		if cErr != nil {
-			msg = C.GoString(cErr)
-			C.free(unsafe.Pointer(cErr))
-		}
-		return fmt.Errorf("%s", msg)
+	msg := "failed to unregister Renderer"
+	if cErr != nil {
+		msg = C.GoString(cErr)
+		C.kreuzberg_free_string(cErr)
+	}
+	return fmt.Errorf("%s", msg)
 	}
 
 	// Delete the handle now that Rust has unregistered the plugin

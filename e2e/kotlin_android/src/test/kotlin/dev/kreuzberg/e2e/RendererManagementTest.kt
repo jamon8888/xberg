@@ -18,7 +18,7 @@ class RendererManagementTest {
     @Test
     fun testRenderersClear() = runBlocking {
         // Clear all renderers and verify list is empty
-        val result = Kreuzberg.()
+        val result = RendererBridge.clearAll()
     }
 
     @Test

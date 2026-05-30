@@ -32,6 +32,9 @@ func lastError() error {
 		return nil
 	}
 	ctx := C.kreuzberg_last_error_context()
+	if ctx == nil {
+		return fmt.Errorf("[%d] native error", code)
+	}
 	message := C.GoString(ctx)
 	return fmt.Errorf("[%d] %s", code, message)
 }

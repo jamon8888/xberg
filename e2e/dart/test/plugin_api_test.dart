@@ -8,12 +8,12 @@
 import 'package:test/test.dart';
 import 'dart:typed_data';
 import 'package:kreuzberg/kreuzberg.dart';
-import 'package:kreuzberg/kreuzberg.dart' show Renderer;
-import 'package:kreuzberg/kreuzberg.dart' show PostProcessor;
-import 'package:kreuzberg/kreuzberg.dart' show EmbeddingBackend;
 import 'package:kreuzberg/kreuzberg.dart' show DocumentExtractor;
-import 'package:kreuzberg/kreuzberg.dart' show OcrBackend;
 import 'package:kreuzberg/kreuzberg.dart' show Validator;
+import 'package:kreuzberg/kreuzberg.dart' show Renderer;
+import 'package:kreuzberg/kreuzberg.dart' show EmbeddingBackend;
+import 'package:kreuzberg/kreuzberg.dart' show OcrBackend;
+import 'package:kreuzberg/kreuzberg.dart' show PostProcessor;
 import 'package:kreuzberg/src/kreuzberg_bridge_generated/frb_generated.dart' show RustLib;
 
 // E2e tests for category: plugin_api
@@ -56,7 +56,6 @@ class TestStubRegisterDocumentExtractorTraitBridge extends DocumentExtractor {
   List<String> supportedMimeTypes() => [];
   int priority() => 0;
   bool canHandle(String path, String mimeType) => false;
-  SyncExtractor? asSyncExtractor() => null;
 }
 final _TestStubRegisterDocumentExtractorTraitBridge_instance = TestStubRegisterDocumentExtractorTraitBridge();
 final _TestStubRegisterDocumentExtractorTraitBridge_wrapped = createDocumentExtractorDartImpl(
@@ -66,8 +65,7 @@ final _TestStubRegisterDocumentExtractorTraitBridge_wrapped = createDocumentExtr
   extractFile: (path, mimeType, config) => _TestStubRegisterDocumentExtractorTraitBridge_instance.extractFile(path, mimeType, config),
   supportedMimeTypes: () => _TestStubRegisterDocumentExtractorTraitBridge_instance.supportedMimeTypes(),
   priority: () => _TestStubRegisterDocumentExtractorTraitBridge_instance.priority(),
-  canHandle: (path, mimeType) => _TestStubRegisterDocumentExtractorTraitBridge_instance.canHandle(path, mimeType),
-  asSyncExtractor: () => _TestStubRegisterDocumentExtractorTraitBridge_instance.asSyncExtractor()
+  canHandle: (path, mimeType) => _TestStubRegisterDocumentExtractorTraitBridge_instance.canHandle(path, mimeType)
 );
 
 

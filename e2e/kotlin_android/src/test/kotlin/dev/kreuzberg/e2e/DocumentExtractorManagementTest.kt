@@ -18,7 +18,7 @@ class DocumentExtractorManagementTest {
     @Test
     fun testDocumentExtractorsClear() = runBlocking {
         // Clear all document extractors and verify list is empty
-        val result = Kreuzberg.()
+        val result = DocumentExtractorBridge.clearAll()
     }
 
     @Test

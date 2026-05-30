@@ -79,14 +79,12 @@ public static class KreuzbergLib
                 NativeMethods.FreeString(jsonPtr);
                 NativeMethods.ExtractionResultFree(nativeResult);
                 var returnValue = JsonSerializer.Deserialize<ExtractionResult>(json ?? "null", JsonOptions)!;
-                contentHandle.Free();
-                if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
                 return returnValue;
             });
         }
         finally
         {
-            contentHandle.Free();
+            if (contentHandle.IsAllocated) contentHandle.Free();
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
         }
     }
@@ -126,6 +124,8 @@ public static class KreuzbergLib
             var msg = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(ctxPtr) ?? "ExtractionConfigFromJson failed";
             throw new KreuzbergException(ec, msg);
         }
+        try
+        {
             return await Task.Run(() =>
             {
                 var nativeResult = NativeMethods.ExtractFile(
@@ -142,9 +142,13 @@ public static class KreuzbergLib
                 NativeMethods.FreeString(jsonPtr);
                 NativeMethods.ExtractionResultFree(nativeResult);
                 var returnValue = JsonSerializer.Deserialize<ExtractionResult>(json ?? "null", JsonOptions)!;
-                if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
                 return returnValue;
             });
+        }
+        finally
+        {
+            if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
+        }
     }
 
     /// <summary>
@@ -173,22 +177,28 @@ public static class KreuzbergLib
             var msg = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(ctxPtr) ?? "ExtractionConfigFromJson failed";
             throw new KreuzbergException(ec, msg);
         }
+        try
+        {
             var nativeResult = NativeMethods.ExtractFileSync(
             path,
             mimeType!,
             configHandle
             );
-        if (nativeResult == IntPtr.Zero)
-        {
-            throw GetLastError();
+            if (nativeResult == IntPtr.Zero)
+            {
+                throw GetLastError();
+            }
+            var jsonPtr = NativeMethods.ExtractionResultToJson(nativeResult);
+            var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(jsonPtr);
+            NativeMethods.FreeString(jsonPtr);
+            NativeMethods.ExtractionResultFree(nativeResult);
+            var returnValue = JsonSerializer.Deserialize<ExtractionResult>(json ?? "null", JsonOptions)!;
+            return returnValue;
         }
-        var jsonPtr = NativeMethods.ExtractionResultToJson(nativeResult);
-        var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(jsonPtr);
-        NativeMethods.FreeString(jsonPtr);
-        NativeMethods.ExtractionResultFree(nativeResult);
-        var returnValue = JsonSerializer.Deserialize<ExtractionResult>(json ?? "null", JsonOptions)!;
-        if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
-        return returnValue;
+        finally
+        {
+            if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
+        }
     }
 
     /// <summary>
@@ -234,13 +244,11 @@ public static class KreuzbergLib
             NativeMethods.FreeString(jsonPtr);
             NativeMethods.ExtractionResultFree(nativeResult);
             var returnValue = JsonSerializer.Deserialize<ExtractionResult>(json ?? "null", JsonOptions)!;
-            contentHandle.Free();
-            if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
             return returnValue;
         }
         finally
         {
-            contentHandle.Free();
+            if (contentHandle.IsAllocated) contentHandle.Free();
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
         }
     }
@@ -279,13 +287,11 @@ public static class KreuzbergLib
             var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult);
             NativeMethods.FreeString(nativeResult);
             var returnValue = JsonSerializer.Deserialize<List<ExtractionResult>>(json ?? "null", JsonOptions)!;
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
-            if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
             return returnValue;
         }
         finally
         {
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
+            if (itemsHandle != global::System.IntPtr.Zero) global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
         }
     }
@@ -326,13 +332,11 @@ public static class KreuzbergLib
             var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult);
             NativeMethods.FreeString(nativeResult);
             var returnValue = JsonSerializer.Deserialize<List<ExtractionResult>>(json ?? "null", JsonOptions)!;
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
-            if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
             return returnValue;
         }
         finally
         {
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
+            if (itemsHandle != global::System.IntPtr.Zero) global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
         }
     }
@@ -388,14 +392,12 @@ public static class KreuzbergLib
                 var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult);
                 NativeMethods.FreeString(nativeResult);
                 var returnValue = JsonSerializer.Deserialize<List<ExtractionResult>>(json ?? "null", JsonOptions)!;
-                global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
-                if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
                 return returnValue;
             });
         }
         finally
         {
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
+            if (itemsHandle != global::System.IntPtr.Zero) global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
         }
     }
@@ -447,14 +449,12 @@ public static class KreuzbergLib
                 var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult);
                 NativeMethods.FreeString(nativeResult);
                 var returnValue = JsonSerializer.Deserialize<List<ExtractionResult>>(json ?? "null", JsonOptions)!;
-                global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
-                if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
                 return returnValue;
             });
         }
         finally
         {
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
+            if (itemsHandle != global::System.IntPtr.Zero) global::System.Runtime.InteropServices.Marshal.FreeHGlobal(itemsHandle);
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.ExtractionConfigFree(configHandle);
         }
     }
@@ -490,12 +490,11 @@ public static class KreuzbergLib
             }
             var returnValue = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult) ?? string.Empty;
             NativeMethods.FreeString(nativeResult);
-            contentHandle.Free();
             return returnValue;
         }
         finally
         {
-            contentHandle.Free();
+            if (contentHandle.IsAllocated) contentHandle.Free();
         }
     }
 
@@ -678,14 +677,12 @@ public static class KreuzbergLib
                 var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult);
                 NativeMethods.FreeString(nativeResult);
                 var returnValue = JsonSerializer.Deserialize<List<List<float>>>(json ?? "null", JsonOptions)!;
-                global::System.Runtime.InteropServices.Marshal.FreeHGlobal(textsHandle);
-                if (configHandle != global::System.IntPtr.Zero) NativeMethods.EmbeddingConfigFree(configHandle);
                 return returnValue;
             });
         }
         finally
         {
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(textsHandle);
+            if (textsHandle != global::System.IntPtr.Zero) global::System.Runtime.InteropServices.Marshal.FreeHGlobal(textsHandle);
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.EmbeddingConfigFree(configHandle);
         }
     }
@@ -737,7 +734,7 @@ public static class KreuzbergLib
         }
         finally
         {
-            pdfBytesHandle.Free();
+            if (pdfBytesHandle.IsAllocated) pdfBytesHandle.Free();
         }
     }
 
@@ -798,13 +795,11 @@ public static class KreuzbergLib
             var json = global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(nativeResult);
             NativeMethods.FreeString(nativeResult);
             var returnValue = JsonSerializer.Deserialize<List<List<float>>>(json ?? "null", JsonOptions)!;
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(textsHandle);
-            if (configHandle != global::System.IntPtr.Zero) NativeMethods.EmbeddingConfigFree(configHandle);
             return returnValue;
         }
         finally
         {
-            global::System.Runtime.InteropServices.Marshal.FreeHGlobal(textsHandle);
+            if (textsHandle != global::System.IntPtr.Zero) global::System.Runtime.InteropServices.Marshal.FreeHGlobal(textsHandle);
             if (configHandle != global::System.IntPtr.Zero) NativeMethods.EmbeddingConfigFree(configHandle);
         }
     }

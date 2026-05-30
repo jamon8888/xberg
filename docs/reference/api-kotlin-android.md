@@ -1251,19 +1251,6 @@ Defaults to `true` (rely on MIME type matching).
 fun canHandle(path: Path, mimeType: String): Boolean
 ```
 
-#### asSyncExtractor()
-
-Attempt to get a reference to this extractor as a SyncExtractor.
-
-Returns None if the extractor doesn't support synchronous extraction.
-This is used for WASM and other sync-only environments.
-
-**Signature:**
-
-```kotlin
-fun asSyncExtractor(): SyncExtractor?
-```
-
 ---
 
 #### DocumentNode
