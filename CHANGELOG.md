@@ -47,6 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **diff**: hoist `similar` dep to workspace root and reference via `workspace = true` in the
+  kreuzberg crate (the prior direct leaf pin would have failed cargo-sort and risked duplicate-version
+  compiles). Doc-comment fixes: `tables_same_shape` now documents the dimensions-only behaviour
+  explicitly (no claim of header-order matching), and the metadata-diff shape doc drops the misleading
+  RFC 6902 reference in favour of describing the actual `{added, removed, changed}` envelope.
+
 - **mime**: accept legacy `application/docx` as an alias for the RFC docx MIME so callers using the non-standard form aren't rejected. (cc kreuzberg-cloud sandbox + production traffic.)
 - **swift**: extract bytes/sync overloads now resolve the first argument against the test-documents/fixtures directories before falling back to UTF-8 string content. Add Bridge-protocol `register*` overloads so trait-stub e2e fixtures compile against the typed Box surface. Add `name:` argument-label overloads for every `unregister*` function.
 - **wasm**: feature-gate `LayoutDetectionConfig`, `TreeSitterConfig`, `FormatMetadata::Code`, and `ExtractionResult.code_intelligence` references that aren't part of `wasm-target`. Fix `WasmEmbeddingBackendBridge::dimensions` to parse JS numbers as `f64`/usize rather than JSON strings. Add explicit cfg-guarded match arm for `FormatMetadata::Code` in the `From<kreuzberg::FormatMetadata>` impl to resolve non-exhaustive match error when compiling with `--all-features` (code variant is feature-gated and only visible when `tree-sitter` or `tree-sitter-wasm` is enabled). Reorder the e2e setup to install the `require('env')` and WASI shims before the wasm bundle is pre-imported. Gate `tempfile`-based PST extraction behind `not(target_arch = "wasm32")` (WASI doesn't expose `mkstemp`).

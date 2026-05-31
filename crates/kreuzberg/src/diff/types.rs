@@ -59,12 +59,15 @@ pub struct ExtractionDiff {
     /// Cell-level changes for table pairs that share the same index and dimensions.
     pub tables_changed: Vec<TableDiff>,
 
-    /// Metadata changes in a simplified add/remove/change map.
+    /// Metadata difference, encoded as a JSON object with three top-level keys:
+    /// `added` (keys present in `b` but not `a`), `removed` (keys present in `a`
+    /// but not `b`), and `changed` (keys whose values differ — each entry is
+    /// `{ "from": <value-in-a>, "to": <value-in-b> }`).
     ///
-    /// Shape: `{ "added": {key: value, ...}, "removed": {key: value, ...},
-    ///           "changed": {key: {from: v1, to: v2}, ...} }`.
-    ///
-    /// Approximates RFC 6902 JSON Patch semantics without pulling in an extra crate.
+    /// This is NOT RFC 6902 JSON Patch — we deliberately chose a flatter shape
+    /// to avoid pulling in a json-patch crate. If you need RFC 6902 semantics
+    /// (with JSON Pointer paths) feed `a.metadata` and `b.metadata` to your
+    /// preferred json-patch impl directly.
     pub metadata_changed: serde_json::Value,
 
     /// Changes to embedded archive children.

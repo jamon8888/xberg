@@ -210,9 +210,13 @@ fn diff_tables(a_tables: &[Table], b_tables: &[Table]) -> (Vec<Table>, Vec<Table
     (tables_added, tables_removed, tables_changed)
 }
 
-/// Two tables are "same shape" when they have identical row/col counts.
+/// Two tables are considered the same shape if and only if their row and column counts match.
 ///
-/// Headers are allowed to differ — only dimensions determine same-shape.
+/// Header content is NOT compared — column reordering with the same dimensions will produce
+/// per-cell `CellChange` entries for every cell whose value differs, not a structural replacement.
+///
+/// TODO: smarter shape-matching that aligns tables by header names (instead of positional
+/// index) is a follow-up; for now dimensions-only is the v1 default.
 fn tables_same_shape(a: &Table, b: &Table) -> bool {
     if a.cells.len() != b.cells.len() {
         return false;
