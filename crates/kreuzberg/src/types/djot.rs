@@ -47,6 +47,7 @@ pub struct DjotContent {
 
     /// Attributes mapped by element identifier (if present)
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[cfg_attr(feature = "api", schema(value_type = serde_json::Value))]
     pub attributes: Vec<(String, Attributes)>,
 }
 
@@ -168,6 +169,7 @@ pub struct Attributes {
 
     /// Key-value pairs (key="value")
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[cfg_attr(feature = "api", schema(value_type = Vec<[String; 2]>))]
     pub key_values: Vec<(String, String)>,
 }
 

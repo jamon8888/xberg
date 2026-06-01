@@ -56,6 +56,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   scanner only fires when the raw formula string is stored verbatim — but that is exactly
   the case for the highest-risk DDE injection payloads.
 
+### Changed
+
+- **api/openapi**: Tuple-typed fields that derive `ToSchema` now emit codegen-compatible
+  schemas. Fields previously emitted as OpenAPI 3.1 `prefixItems` arrays with
+  `items: false` (which crashes openapi-python-client 0.28/0.29 and swagger_parser 1.43)
+  now emit as fixed-length homogeneous arrays (`[String; 2]`, `[f64; 2]`, etc.).
+  Affected types: `Attributes.key_values`, `TextMetadata.links`, `TextMetadata.code_blocks`,
+  `LinkMetadata.attributes`, `ImageMetadataType.attributes/dimensions`,
+  `PageInfo.dimensions`, `HierarchicalBlock.bbox`,
+  `ImagePreprocessingMetadata.original_dimensions/original_dpi/new_dimensions`, and
+  `OcrBoundingGeometry::Quadrilateral.points`. The `DjotContent.attributes` field
+  (heterogeneous tuple `(String, Attributes)`) now emits as `serde_json::Value`.
+  Wire format is unchanged.
+
+- **api/openapi**: `FormatMetadata` discriminated union now emits a flat `oneOf` with
+  direct `$ref` items and a `discriminator` object (property `format_type`, with
+  per-variant mapping). Previously emitted as `oneOf` of `allOf[$ref + inline property]`
+  wrappers, which openapi-python-client rejected with "Invalid property in union". The
+  change requires a manual `PartialSchema + ToSchema` impl in place of the derived one.
+  Wire format and serde behavior are unchanged.
+
 ### Added
 
 - **tools/generate_test_fixtures**: Python-based, deterministic fixture-generation

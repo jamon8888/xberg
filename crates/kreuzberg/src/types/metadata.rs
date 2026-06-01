@@ -57,7 +57,6 @@ mod additional_serde {
 /// Only one format type can exist per extraction result. This provides
 /// type-safe, clean metadata without nested optionals.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 #[serde(tag = "format_type", rename_all = "snake_case")]
 pub enum FormatMetadata {
     #[cfg(feature = "pdf")]
@@ -71,7 +70,6 @@ pub enum FormatMetadata {
     Image(ImageMetadata),
     Xml(XmlMetadata),
     Text(TextMetadata),
-    #[cfg_attr(feature = "api", schema(value_type = HtmlMetadata))]
     Html(Box<HtmlMetadata>),
     Ocr(OcrMetadata),
     Csv(CsvMetadata),
@@ -89,7 +87,6 @@ pub enum FormatMetadata {
     Epub(EpubMetadata),
     Pst(PstMetadata),
     #[cfg(feature = "tree-sitter")]
-    #[cfg_attr(feature = "api", schema(value_type = serde_json::Value))]
     Code(tree_sitter_language_pack::ProcessResult),
 }
 
@@ -146,6 +143,137 @@ impl std::fmt::Display for FormatMetadata {
             #[cfg(feature = "tree-sitter")]
             Self::Code(_) => f.write_str("code"),
         }
+    }
+}
+
+#[cfg(feature = "api")]
+impl utoipa::PartialSchema for FormatMetadata {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        use utoipa::openapi::Ref;
+        use utoipa::openapi::schema::{Discriminator, OneOfBuilder};
+
+        // Emit a flat oneOf with $ref items and a discriminator so that
+        // codegen tools (openapi-python-client, swagger_parser) do not choke
+        // on the allOf-of-ref pattern that utoipa's derive macro would produce.
+        let builder = OneOfBuilder::new()
+            .description(Some(
+                "Format-specific metadata (discriminated union). \
+                 Only one format type can exist per extraction result.",
+            ))
+            .discriminator(Some(Discriminator::with_mapping(
+                "format_type",
+                [
+                    #[cfg(feature = "pdf")]
+                    ("pdf", "#/components/schemas/PdfMetadata"),
+                    #[cfg(feature = "office")]
+                    ("docx", "#/components/schemas/DocxMetadata"),
+                    ("excel", "#/components/schemas/ExcelMetadata"),
+                    ("email", "#/components/schemas/EmailMetadata"),
+                    ("pptx", "#/components/schemas/PptxMetadata"),
+                    ("archive", "#/components/schemas/ArchiveMetadata"),
+                    ("image", "#/components/schemas/ImageMetadata"),
+                    ("xml", "#/components/schemas/XmlMetadata"),
+                    ("text", "#/components/schemas/TextMetadata"),
+                    ("html", "#/components/schemas/HtmlMetadata"),
+                    ("ocr", "#/components/schemas/OcrMetadata"),
+                    ("csv", "#/components/schemas/CsvMetadata"),
+                    #[cfg(feature = "office")]
+                    ("bibtex", "#/components/schemas/BibtexMetadata"),
+                    #[cfg(feature = "office")]
+                    ("citation", "#/components/schemas/CitationMetadata"),
+                    #[cfg(feature = "office")]
+                    ("fiction_book", "#/components/schemas/FictionBookMetadata"),
+                    #[cfg(feature = "office")]
+                    ("dbf", "#/components/schemas/DbfMetadata"),
+                    #[cfg(feature = "xml")]
+                    ("jats", "#/components/schemas/JatsMetadata"),
+                    #[cfg(feature = "office")]
+                    ("epub", "#/components/schemas/EpubMetadata"),
+                    ("pst", "#/components/schemas/PstMetadata"),
+                ],
+            )));
+
+        let builder = {
+            #[cfg(feature = "pdf")]
+            let builder = builder.item(Ref::from_schema_name("PdfMetadata"));
+            #[cfg(not(feature = "pdf"))]
+            let builder = builder;
+
+            #[cfg(feature = "office")]
+            let builder = builder.item(Ref::from_schema_name("DocxMetadata"));
+            #[cfg(not(feature = "office"))]
+            let builder = builder;
+
+            let builder = builder
+                .item(Ref::from_schema_name("ExcelMetadata"))
+                .item(Ref::from_schema_name("EmailMetadata"))
+                .item(Ref::from_schema_name("PptxMetadata"))
+                .item(Ref::from_schema_name("ArchiveMetadata"))
+                .item(Ref::from_schema_name("ImageMetadata"))
+                .item(Ref::from_schema_name("XmlMetadata"))
+                .item(Ref::from_schema_name("TextMetadata"))
+                .item(Ref::from_schema_name("HtmlMetadata"))
+                .item(Ref::from_schema_name("OcrMetadata"))
+                .item(Ref::from_schema_name("CsvMetadata"));
+
+            #[cfg(feature = "office")]
+            let builder = builder
+                .item(Ref::from_schema_name("BibtexMetadata"))
+                .item(Ref::from_schema_name("CitationMetadata"))
+                .item(Ref::from_schema_name("FictionBookMetadata"))
+                .item(Ref::from_schema_name("DbfMetadata"))
+                .item(Ref::from_schema_name("EpubMetadata"));
+            #[cfg(not(feature = "office"))]
+            let builder = builder;
+
+            #[cfg(feature = "xml")]
+            let builder = builder.item(Ref::from_schema_name("JatsMetadata"));
+            #[cfg(not(feature = "xml"))]
+            let builder = builder;
+
+            builder.item(Ref::from_schema_name("PstMetadata"))
+        };
+
+        builder.into()
+    }
+}
+
+#[cfg(feature = "api")]
+impl utoipa::ToSchema for FormatMetadata {
+    fn schemas(schemas: &mut Vec<(String, utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>)>) {
+        use utoipa::{PartialSchema, ToSchema};
+
+        macro_rules! push_schema {
+            ($t:ty) => {
+                schemas.push((<$t as ToSchema>::name().into(), <$t as PartialSchema>::schema()));
+                <$t as ToSchema>::schemas(schemas);
+            };
+        }
+
+        #[cfg(feature = "pdf")]
+        push_schema!(PdfMetadata);
+        #[cfg(feature = "office")]
+        {
+            push_schema!(DocxMetadata);
+            push_schema!(BibtexMetadata);
+            push_schema!(CitationMetadata);
+            push_schema!(FictionBookMetadata);
+            push_schema!(DbfMetadata);
+            push_schema!(EpubMetadata);
+        }
+        #[cfg(feature = "xml")]
+        push_schema!(JatsMetadata);
+        push_schema!(ExcelMetadata);
+        push_schema!(EmailMetadata);
+        push_schema!(PptxMetadata);
+        push_schema!(ArchiveMetadata);
+        push_schema!(ImageMetadata);
+        push_schema!(XmlMetadata);
+        push_schema!(TextMetadata);
+        push_schema!(HtmlMetadata);
+        push_schema!(OcrMetadata);
+        push_schema!(CsvMetadata);
+        push_schema!(PstMetadata);
     }
 }
 
@@ -410,10 +538,12 @@ pub struct TextMetadata {
 
     /// Markdown links as (text, url) tuples (for Markdown files)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "api", schema(value_type = Option<Vec<[String; 2]>>))]
     pub links: Option<Vec<(String, String)>>,
 
     /// Code blocks as (language, code) tuples (for Markdown files)
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "api", schema(value_type = Option<Vec<[String; 2]>>))]
     pub code_blocks: Option<Vec<(String, String)>>,
 }
 
@@ -466,6 +596,7 @@ pub struct LinkMetadata {
     /// Rel attribute values
     pub rel: Vec<String>,
     /// Additional attributes as key-value pairs
+    #[cfg_attr(feature = "api", schema(value_type = Vec<[String; 2]>))]
     pub attributes: Vec<(String, String)>,
 }
 
@@ -501,10 +632,12 @@ pub struct ImageMetadataType {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     /// Image dimensions as (width, height) if available
+    #[cfg_attr(feature = "api", schema(value_type = Option<[u32; 2]>))]
     pub dimensions: Option<(u32, u32)>,
     /// Image type classification
     pub image_type: ImageType,
     /// Additional attributes as key-value pairs
+    #[cfg_attr(feature = "api", schema(value_type = Vec<[String; 2]>))]
     pub attributes: Vec<(String, String)>,
 }
 

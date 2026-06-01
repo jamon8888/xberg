@@ -418,8 +418,10 @@ impl Default for TesseractConfig {
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 pub struct ImagePreprocessingMetadata {
     /// Original image dimensions (width, height) in pixels
+    #[cfg_attr(feature = "api", schema(value_type = [u64; 2]))]
     pub original_dimensions: (usize, usize),
     /// Original image DPI (horizontal, vertical)
+    #[cfg_attr(feature = "api", schema(value_type = [f64; 2]))]
     pub original_dpi: (f64, f64),
     /// Target DPI from configuration
     pub target_dpi: i32,
@@ -430,6 +432,7 @@ pub struct ImagePreprocessingMetadata {
     /// Final DPI after processing
     pub final_dpi: i32,
     /// New dimensions after resizing (if resized)
+    #[cfg_attr(feature = "api", schema(value_type = Option<[u64; 2]>))]
     pub new_dimensions: Option<(usize, usize)>,
     /// Resampling algorithm used ("LANCZOS3", "CATMULLROM", etc.)
     pub resample_method: String,
