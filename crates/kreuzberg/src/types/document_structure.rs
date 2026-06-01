@@ -401,7 +401,10 @@ pub enum NodeContent {
     },
 
     /// Structured metadata block (email headers, YAML frontmatter, etc.).
-    MetadataBlock { entries: Vec<(String, String)> },
+    MetadataBlock {
+        #[cfg_attr(feature = "api", schema(value_type = Vec<[String; 2]>))]
+        entries: Vec<(String, String)>,
+    },
 }
 
 impl NodeContent {
