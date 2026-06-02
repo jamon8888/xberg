@@ -106,6 +106,7 @@ async fn ocr_backend_vtable_process_image_passes_full_length_with_embedded_nuls(
         supports_table_detection: None,
         supports_document_processing: None,
         process_document: None,
+        free_string: None,
         free_user_data: None,
     };
 
@@ -149,6 +150,7 @@ async fn document_extractor_vtable_extract_bytes_passes_full_length_with_embedde
         supported_mime_types: None,
         priority: None,
         can_handle: None,
+        free_string: None,
         free_user_data: None,
     };
 
