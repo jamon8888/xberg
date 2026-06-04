@@ -3082,8 +3082,8 @@ mod ffi {
         #[swift_bridge(swift_name = "knownModels")]
         fn known_models() -> Vec<String>;
         fn redact(result: ExtractionResult, config: RedactionConfig) -> Result<(), String>;
-        #[swift_bridge(swift_name = "findAll")]
-        fn find_all(text: String) -> Vec<PatternMatch>;
+        #[swift_bridge(swift_name = "applyStrategy")]
+        fn apply_strategy(strategy: String, original: String, category: String, counter: TokenCounter) -> String;
         fn summarize(text: String, language: Option<String>, max_tokens: Option<u32>) -> String;
         #[swift_bridge(swift_name = "tokenCount")]
         fn token_count(text: String) -> u32;
@@ -3099,8 +3099,6 @@ mod ffi {
         ) -> Result<Vec<u8>, String>;
         #[swift_bridge(swift_name = "detectMimeType")]
         fn detect_mime_type(path: String, check_exists: bool) -> Result<String, String>;
-        #[swift_bridge(swift_name = "embedTexts")]
-        fn embed_texts(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String>;
         #[swift_bridge(swift_name = "embedTextsAsync")]
         fn embed_texts_async(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String>;
         #[swift_bridge(swift_name = "getEmbeddingPreset")]
@@ -3382,6 +3380,8 @@ mod ffi {
         fn security_limits_from_json(json: String) -> Result<SecurityLimits, String>;
         #[swift_bridge(swift_name = "tokenReductionConfigFromJson")]
         fn token_reduction_config_from_json(json: String) -> Result<TokenReductionConfig, String>;
+        #[swift_bridge(swift_name = "patternMatchFromJson")]
+        fn pattern_match_from_json(json: String) -> Result<PatternMatch, String>;
         #[swift_bridge(swift_name = "pdfAnnotationFromJson")]
         fn pdf_annotation_from_json(json: String) -> Result<PdfAnnotation, String>;
         #[swift_bridge(swift_name = "pageClassificationFromJson")]
@@ -6818,16 +6818,22 @@ pub fn llm_backend_detect_with_custom(
 pub struct PatternMatch(pub kreuzberg::text::redaction::patterns::PatternMatch);
 impl PatternMatch {
     pub fn start(&self) -> usize {
-        self.0.start.clone()
+        ::serde_json::to_value(&self.0.start)
+            .ok()
+            .and_then(|j| ::serde_json::from_value(j).ok())
+            .unwrap_or_default()
     }
     pub fn end(&self) -> usize {
-        self.0.end.clone()
+        ::serde_json::to_value(&self.0.end)
+            .ok()
+            .and_then(|j| ::serde_json::from_value(j).ok())
+            .unwrap_or_default()
     }
     pub fn category(&self) -> String {
         PiiCategory::from(self.0.category.clone()).to_string()
     }
     pub fn text(&self) -> String {
-        format!("{:?}", &self.0.text)
+        self.0.text.clone()
     }
 }
 
@@ -13345,11 +13351,14 @@ pub fn redact(mut result: ExtractionResult, config: RedactionConfig) -> Result<(
     })
 }
 
-pub fn find_all(text: String) -> Vec<PatternMatch> {
-    (kreuzberg::text::redaction::patterns::ssn::find_all(&text))
-        .into_iter()
-        .map(PatternMatch)
-        .collect::<Vec<_>>()
+pub fn apply_strategy(strategy: String, original: String, category: String, mut counter: TokenCounter) -> String {
+    kreuzberg::text::redaction::strategy::apply_strategy(
+        <kreuzberg::RedactionStrategy as ::std::convert::From<String>>::from(strategy),
+        &original,
+        &category.0,
+        &mut counter.0,
+    )
+    .to_string()
 }
 
 pub fn summarize(text: String, language: Option<String>, max_tokens: Option<u32>) -> String {
@@ -13388,12 +13397,6 @@ pub fn detect_mime_type(path: String, check_exists: bool) -> Result<String, Stri
     kreuzberg::detect_mime_type(path, check_exists)
         .map_err(|e| e.to_string())
         .map(|s| s.to_string())
-}
-
-pub fn embed_texts(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String> {
-    kreuzberg::embed_texts(texts, &config.0)
-        .map_err(|e| e.to_string())
-        .map(|v| serde_json::to_string(&v).expect("serializable return"))
 }
 
 pub fn embed_texts_async(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String> {
@@ -14317,6 +14320,11 @@ pub fn security_limits_from_json(json: String) -> Result<SecurityLimits, String>
 pub fn token_reduction_config_from_json(json: String) -> Result<TokenReductionConfig, String> {
     serde_json::from_str::<kreuzberg::TokenReductionConfig>(&json)
         .map(TokenReductionConfig)
+        .map_err(|e| e.to_string())
+}
+pub fn pattern_match_from_json(json: String) -> Result<PatternMatch, String> {
+    serde_json::from_str::<kreuzberg::text::redaction::patterns::PatternMatch>(&json)
+        .map(PatternMatch)
         .map_err(|e| e.to_string())
 }
 pub fn pdf_annotation_from_json(json: String) -> Result<PdfAnnotation, String> {

@@ -54,7 +54,6 @@ export {
   detectMimeTypeFromBytes,
   detectQrCodes,
   downloadModel,
-  embedTexts,
   embedTextsAsync,
   extractBytes,
   extractBytesSync,

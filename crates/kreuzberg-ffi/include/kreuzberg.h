@@ -6249,6 +6249,22 @@ char *kreuzberg_llm_backend_detect_with_custom(const KREUZBERGLlmBackend *this_,
                                                const char *custom_labels);
 
 /**
+ * Create a `PatternMatch` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_pattern_match_free`.
+ */
+KREUZBERGPatternMatch *kreuzberg_pattern_match_from_json(const char *json);
+
+/**
+ * Serialize a `PatternMatch` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_pattern_match_to_json(const KREUZBERGPatternMatch *ptr);
+
+/**
  * Free a `PatternMatch` handle.
  * # Safety
  * Pointer must have been returned by this library, or be null.
@@ -15399,44 +15415,6 @@ int32_t kreuzberg_redact(KREUZBERGExtractionResult *result,
                          const KREUZBERGRedactionConfig *config);
 
 /**
- * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
- * freed with the appropriate free function.
- */
-char *kreuzberg_find_all(const char *_text);
-
-/**
- * Return the byte length of the C string most recently returned by `kreuzberg_find_all` on this
- * thread. Returns 0 when the primary call returned null or failed before producing a string. Enables
- * safe slice construction in Zig and Java FFM Panama without a NUL-scan.
- * \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
- * with `kreuzberg_find_all`.
- */
-uintptr_t kreuzberg_find_all_len(const char *_text);
-
-/**
- * Scan `text` for every PII category in `categories` and return all matches
- * in source-byte order.
- *
- * When `categories` is empty every supported regex-detectable category fires.
- * Person / Organization / Location are *not* covered by the pattern engine â
- * they must be supplied by a NER backend through the redaction engine.
- * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
- * freed with the appropriate free function.
- */
-char *kreuzberg_scan_text(const char *_text,
-                          const char *_categories);
-
-/**
- * Return the byte length of the C string most recently returned by `kreuzberg_scan_text` on this
- * thread. Returns 0 when the primary call returned null or failed before producing a string. Enables
- * safe slice construction in Zig and Java FFM Panama without a NUL-scan.
- * \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
- * with `kreuzberg_scan_text`.
- */
-uintptr_t kreuzberg_scan_text_len(const char *_text,
-                                  const char *_categories);
-
-/**
  * Apply `strategy` to `original` for `category` and return the replacement token.
  *
  * The optional `counter` is required for [`RedactionStrategy::TokenReplace`];
@@ -15635,26 +15613,6 @@ char *kreuzberg_detect_mime_type(const char *path,
  */
 uintptr_t kreuzberg_detect_mime_type_len(const char *_path,
                                          int32_t _check_exists);
-
-/**
- * Embed a list of texts using the configured embedding model.
- *
- * Returns a 2D vector where each inner vector is the embedding for the corresponding text.
- * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
- * freed with the appropriate free function.
- */
-char *kreuzberg_embed_texts(const char *texts,
-                            const KREUZBERGEmbeddingConfig *config);
-
-/**
- * Return the byte length of the C string most recently returned by `kreuzberg_embed_texts` on this
- * thread. Returns 0 when the primary call returned null or failed before producing a string. Enables
- * safe slice construction in Zig and Java FFM Panama without a NUL-scan.
- * \note SAFETY: Pointer arguments are ignored and are present only to keep the companion ABI aligned
- * with `kreuzberg_embed_texts`.
- */
-uintptr_t kreuzberg_embed_texts_len(const char *_texts,
-                                    const KREUZBERGEmbeddingConfig *_config);
 
 /**
  * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be

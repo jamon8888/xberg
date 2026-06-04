@@ -117,20 +117,6 @@ Future<List<ExtractionResult>> batchExtractFilesSync({
   config: config,
 );
 
-/// Synchronous wrapper for `batch_extract_bytes`.
-///
-/// Uses the global Tokio runtime for optimal performance.
-/// With the `tokio-runtime` feature, this blocks the current thread using the global
-/// Tokio runtime. Without it (WASM), this calls a truly synchronous implementation
-/// that iterates through items and calls `extract_bytes_sync()`.
-Future<List<ExtractionResult>> batchExtractBytesSync({
-  required List<BatchBytesItem> items,
-  required ExtractionConfig config,
-}) => RustLib.instance.api.crateBatchExtractBytesSync(
-  items: items,
-  config: config,
-);
-
 /// Extract content from multiple files concurrently.
 ///
 /// This function processes multiple files in parallel, automatically managing
@@ -164,34 +150,6 @@ Future<List<ExtractionResult>> batchExtractFiles({
   required List<BatchFileItem> items,
   required ExtractionConfig config,
 }) => RustLib.instance.api.crateBatchExtractFiles(items: items, config: config);
-
-/// Extract content from multiple byte arrays concurrently.
-///
-/// This function processes multiple byte arrays in parallel, automatically managing
-/// concurrency to prevent resource exhaustion. The concurrency limit can be
-/// configured via `ExtractionConfig.max_concurrent_extractions` or defaults
-/// to `(num_cpus * 1.5).ceil()`.
-///
-/// Each item can optionally specify a `FileExtractionConfig` that overrides specific
-/// fields from the batch-level `config`. Pass `null` as the config to use
-/// the batch-level defaults for that item.
-///
-///   MIME type, and optional per-item configuration overrides.
-///
-/// - `config` - Batch-level extraction configuration
-///
-/// **Returns:**
-///
-/// A vector of `ExtractionResult` in the same order as the input items.
-///
-/// Simple usage with no per-item overrides:
-///
-///
-/// Per-item configuration overrides:
-Future<List<ExtractionResult>> batchExtractBytes({
-  required List<BatchBytesItem> items,
-  required ExtractionConfig config,
-}) => RustLib.instance.api.crateBatchExtractBytes(items: items, config: config);
 
 /// Detect MIME type from raw file bytes.
 ///
@@ -471,14 +429,6 @@ Future<String> detectMimeType({
   checkExists: checkExists,
 );
 
-/// Embed a list of texts using the configured embedding model.
-///
-/// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
-Future<List<Float64List>> embedTexts({
-  required List<String> texts,
-  required EmbeddingConfig config,
-}) => RustLib.instance.api.crateEmbedTexts(texts: texts, config: config);
-
 Future<List<Float64List>> embedTextsAsync({
   required List<String> texts,
   required EmbeddingConfig config,
@@ -660,6 +610,9 @@ Future<SecurityLimits> createSecurityLimitsFromJson({required String json}) =>
 Future<TokenReductionConfig> createTokenReductionConfigFromJson({
   required String json,
 }) => RustLib.instance.api.crateCreateTokenReductionConfigFromJson(json: json);
+
+Future<PatternMatch> createPatternMatchFromJson({required String json}) =>
+    RustLib.instance.api.crateCreatePatternMatchFromJson(json: json);
 
 Future<PdfAnnotation> createPdfAnnotationFromJson({required String json}) =>
     RustLib.instance.api.crateCreatePdfAnnotationFromJson(json: json);

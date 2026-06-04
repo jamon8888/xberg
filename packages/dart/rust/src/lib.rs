@@ -10244,19 +10244,6 @@ pub fn batch_extract_files_sync(
     .map_err(|e| e.to_string())
 }
 
-/// Synchronous wrapper for `batch_extract_bytes`.
-///
-/// Uses the global Tokio runtime for optimal performance.
-/// With the `tokio-runtime` feature, this blocks the current thread using the global
-/// Tokio runtime. Without it (WASM), this calls a truly synchronous implementation
-/// that iterates through items and calls `extract_bytes_sync()`.
-pub fn batch_extract_bytes_sync(
-    items: Vec<BatchBytesItem>,
-    config: ExtractionConfig,
-) -> Result<Vec<ExtractionResult>, String> {
-    ::std::unimplemented!("this method is listed in dart.stub_methods and cannot be bridged through FRB")
-}
-
 /// Extract content from multiple files concurrently.
 ///
 /// This function processes multiple files in parallel, automatically managing
@@ -10300,36 +10287,6 @@ pub async fn batch_extract_files(
     .await
     .map(|v: Vec<_>| v.into_iter().map(ExtractionResult::from).collect::<Vec<_>>())
     .map_err(|e| e.to_string())
-}
-
-/// Extract content from multiple byte arrays concurrently.
-///
-/// This function processes multiple byte arrays in parallel, automatically managing
-/// concurrency to prevent resource exhaustion. The concurrency limit can be
-/// configured via `ExtractionConfig.max_concurrent_extractions` or defaults
-/// to `(num_cpus * 1.5).ceil()`.
-///
-/// Each item can optionally specify a `FileExtractionConfig` that overrides specific
-/// fields from the batch-level `config`. Pass `null` as the config to use
-/// the batch-level defaults for that item.
-///
-///   MIME type, and optional per-item configuration overrides.
-///
-/// - `config` - Batch-level extraction configuration
-///
-/// **Returns:**
-///
-/// A vector of `ExtractionResult` in the same order as the input items.
-///
-/// Simple usage with no per-item overrides:
-///
-///
-/// Per-item configuration overrides:
-pub async fn batch_extract_bytes(
-    items: Vec<BatchBytesItem>,
-    config: ExtractionConfig,
-) -> Result<Vec<ExtractionResult>, String> {
-    ::std::unimplemented!("this method is listed in dart.stub_methods and cannot be bridged through FRB")
 }
 
 /// Detect MIME type from raw file bytes.
@@ -10678,19 +10635,6 @@ pub fn detect_mime_type(path: String, check_exists: bool) -> Result<String, Stri
         .map_err(|e| e.to_string())
 }
 
-/// Embed a list of texts using the configured embedding model.
-///
-/// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
-pub fn embed_texts(texts: Vec<String>, config: EmbeddingConfig) -> Result<Vec<Vec<f64>>, String> {
-    kreuzberg::embed_texts(texts, &kreuzberg::EmbeddingConfig::from(config))
-        .map(|v| {
-            v.into_iter()
-                .map(|row| row.into_iter().map(|x| x as f64).collect::<Vec<_>>())
-                .collect::<Vec<_>>()
-        })
-        .map_err(|e| e.to_string())
-}
-
 pub async fn embed_texts_async(_texts: Vec<String>, _config: EmbeddingConfig) -> Result<Vec<Vec<f64>>, String> {
     kreuzberg::embed_texts_async(_texts, &kreuzberg::EmbeddingConfig::from(_config))
         .await
@@ -11027,6 +10971,13 @@ pub fn create_security_limits_from_json(json: String) -> Result<SecurityLimits, 
 pub fn create_token_reduction_config_from_json(json: String) -> Result<TokenReductionConfig, String> {
     serde_json::from_str::<kreuzberg::TokenReductionConfig>(&json)
         .map(TokenReductionConfig::from)
+        .map_err(|e| e.to_string())
+}
+
+#[frb]
+pub fn create_pattern_match_from_json(json: String) -> Result<PatternMatch, String> {
+    serde_json::from_str::<kreuzberg::text::redaction::patterns::PatternMatch>(&json)
+        .map(PatternMatch::from)
         .map_err(|e| e.to_string())
 }
 

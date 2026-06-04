@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.23.0"
+alef_version = "0.23.2"
 languages = [
   "python",
   "node",
@@ -203,6 +203,7 @@ exclude_types = [
 exclude_fields = ["FormatMetadata.Code"]
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 reexported_types = [
   "ExtractionResult",
@@ -221,6 +222,7 @@ exclude_types = [
 ]
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.node.extra_dependencies]
@@ -232,6 +234,7 @@ serde_with = "3"
 gem_name = "kreuzberg"
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.ruby.stubs]
@@ -259,6 +262,7 @@ exclude_types = [
 ]
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.elixir]
@@ -272,6 +276,7 @@ exclude_functions = [
   "batch_extract_files",
   "batch_extract_bytes",
   "calculate_quality_score",
+  "embed_texts",
 ]
 exclude_types = [
   # Trait types cannot be FFI-bound
@@ -376,6 +381,9 @@ visitor_callbacks = false
 plugin_error_constructor = "kreuzberg::KreuzbergError::Plugin { message: msg, plugin_name: String::new() }"
 exclude_functions = [
   "calculate_quality_score",
+  "find_all",
+  "scan_text",
+  "embed_texts",
 ]
 
 # x86_64-linux-android (emulator) lacks a pyke ORT prebuilt. The C FFI cdylib is
@@ -428,6 +436,7 @@ module = "github.com/kreuzberg-dev/kreuzberg/v5"
 package_name = "kreuzberg"
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 exclude_types = [
   # Internal DTO used only at the FFI boundary (JSON-marshalled). Generated
@@ -452,6 +461,7 @@ exclude_types = [
 ]
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.dart]
@@ -462,6 +472,7 @@ features = ["full"]
 stub_methods = ["batch_extract_bytes", "batch_extract_bytes_sync"]
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 # x86_64-linux-android (emulator) and x86_64-apple-ios (deprecated intel iOS
@@ -503,6 +514,7 @@ exclude_types = [
 exclude_fields = ["ExtractionResult.ocr_internal_document", "OcrExtractionResult.internal_document"]
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.csharp]
@@ -512,18 +524,21 @@ namespace = "Kreuzberg"
 project_file = "packages/csharp/Kreuzberg/Kreuzberg.csproj"
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.r]
 package_name = "kreuzberg"
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.zig]
 module_name = "kreuzberg"
 exclude_functions = [
   "calculate_quality_score",
+  "embed_texts",
 ]
 
 [crates.output]

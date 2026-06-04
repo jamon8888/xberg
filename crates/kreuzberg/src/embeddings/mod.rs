@@ -887,6 +887,7 @@ pub(crate) fn generate_embeddings_for_chunks(
 /// assert_eq!(embeddings[0].len(), 768); // balanced preset = 768 dims
 /// ```
 #[cfg(feature = "embeddings")]
+#[doc(hidden)]
 pub fn embed_texts<T: AsRef<str>>(
     texts: &[T],
     config: &crate::core::config::EmbeddingConfig,

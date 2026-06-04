@@ -2129,7 +2129,38 @@ internal extension SecurityLimits {
 public typealias TokenReductionConfig = RustBridge.TokenReductionConfig
 
 /// One detected PII span in the input text.
-public typealias PatternMatch = RustBridge.PatternMatch
+public struct PatternMatch: Codable, Sendable, Hashable {
+    /// Inclusive byte-offset start of the match in the source text.
+    public let start: UInt
+    /// Exclusive byte-offset end of the match.
+    public let end: UInt
+    /// Category the match belongs to.
+    public let category: PiiCategory
+    /// Matched substring (owned copy — pattern engine returns owned data so the
+    /// caller can free the original text if needed before replacement).
+    public let text: String
+    public init(start: UInt, end: UInt, category: PiiCategory, text: String) {
+        self.start = start
+        self.end = end
+        self.category = category
+        self.text = text
+    }
+}
+
+// MARK: - Internal FFI conversions for PatternMatch
+internal extension PatternMatch {
+    init(_ rb: RustBridge.PatternMatchRef) throws {
+        self.start = rb.start()
+        self.end = rb.end()
+        self.category = try JSONDecoder().decode(PiiCategory.self, from: ((rb.category().toString()).data(using: .utf8) ?? Data("null".utf8)))
+        self.text = rb.text().toString()
+    }
+    func intoRust() throws -> RustBridge.PatternMatch {
+        let data = try JSONEncoder().encode(self)
+        let json = String(data: data, encoding: .utf8) ?? "{}"
+        return try RustBridge.patternMatchFromJson(json)
+    }
+}
 
 /// A PDF annotation extracted from a document page.
 public struct PdfAnnotation: Codable, Sendable, Hashable {
@@ -7963,6 +7994,11 @@ public func tokenReductionConfigFromJson(_ json: String) throws -> TokenReductio
     return try RustBridge.tokenReductionConfigFromJson(json)
 }
 
+public func patternMatchFromJson(_ json: String) throws -> PatternMatch {
+    let data = json.data(using: .utf8) ?? Data()
+    return try JSONDecoder().decode(PatternMatch.self, from: data)
+}
+
 public func pdfAnnotationFromJson(_ json: String) throws -> PdfAnnotation {
     let data = json.data(using: .utf8) ?? Data()
     return try JSONDecoder().decode(PdfAnnotation.self, from: data)
@@ -9173,7 +9209,7 @@ public func redact(result: ExtractionResult, config: RedactionConfig) async thro
 }
 
 public func findAll(text: String) -> [PatternMatch] {
-    return RustBridge.findAll(text).map { ref in var item = try RustBridge.PatternMatch(ptr: ref.ptr); item.isOwned = false; return item }
+    return RustBridge.findAll(text).map { ref in var item = try PatternMatch(ref); item.isOwned = false; return item }
 }
 
 /// Scan `text` for every PII category in `categories` and return all matches
@@ -9184,7 +9220,7 @@ public func findAll(text: String) -> [PatternMatch] {
 /// they must be supplied by a NER backend through the redaction engine.
 public func scanText(text: String, categories: [PiiCategory]) throws -> [PatternMatch] {
     let _rb_categories: RustVec<RustString> = try ({ () throws -> RustVec<RustString> in let v = RustVec<RustString>(); for item in categories { let data = try JSONEncoder().encode(item); let json = String(data: data, encoding: .utf8) ?? "null"; v.push(value: RustString(json)) }; return v }())
-    return RustBridge.scanText(text, _rb_categories).map { ref in var item = try RustBridge.PatternMatch(ptr: ref.ptr); item.isOwned = false; return item }
+    return RustBridge.scanText(text, _rb_categories).map { ref in var item = try PatternMatch(ref); item.isOwned = false; return item }
 }
 
 /// Apply `strategy` to `original` for `category` and return the replacement token.
@@ -9340,16 +9376,6 @@ public func renderPdfPageToPng(pdfBytes: [UInt8], pageIndex: UInt, dpi: Int32?, 
 /// Set `check_exists` to `true` to verify the file exists before detection.
 public func detectMimeType(path: String, checkExists: Bool) throws -> String {
     return try RustBridge.detectMimeType(path, checkExists).toString()
-}
-
-/// Embed a list of texts using the configured embedding model.
-///
-/// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
-public func embedTexts(texts: [String], config: EmbeddingConfig) throws -> [[Float]] {
-    let _rb_texts: RustVec<RustString> = { let v = RustVec<RustString>(); for s in texts { v.push(value: RustString(s)) }; return v }()
-    let _rb_json = try RustBridge.embedTexts(_rb_texts, config).toString()
-    let _rb_data = _rb_json.data(using: .utf8) ?? Data()
-    return try JSONDecoder().decode([[Float]].self, from: _rb_data)
 }
 
 public func embedTextsAsync(texts: [String], config: EmbeddingConfig) async throws -> [[Float]] {

@@ -368,14 +368,6 @@ render_pdf_page_to_png <- function(pdf_bytes, page_index, dpi = NULL, password =
 #' @return Character string.
 #' @export
 detect_mime_type <- function(path, check_exists) .Call("wrap__detect_mime_type", path, check_exists, PACKAGE = "kreuzberg")
-#' Embed a list of texts using the configured embedding model
-#'
-#' Returns a 2D vector where each inner vector is the embedding for the corresponding text.
-#' @param texts List of character string.
-#' @param config EmbeddingConfig object (list with class attribute).
-#' @return List of list of numeric.
-#' @export
-embed_texts <- function(texts, config = EmbeddingConfig$default()) .Call("wrap__embed_texts", texts, config, PACKAGE = "kreuzberg")
 #' embed_texts_async
 #' @param _texts List of character string.
 #' @param _config EmbeddingConfig object (list with class attribute).
