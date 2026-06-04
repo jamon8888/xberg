@@ -248,6 +248,24 @@ impl GlineBackend {
 #[cfg(all(feature = "liter-llm", not(target_os = "windows")))]
 pub use llm::region_extractor::RegionKind;
 
+// Stub for Windows (no liter-llm `llm` module compiled) so alef-generated FFI bindings
+// compile. RegionKind methods return errors at runtime if called.
+#[cfg(any(not(feature = "liter-llm"), target_os = "windows"))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RegionKind {
+    Figure,
+    DenseTable,
+    ComplexLayout,
+    Caption,
+}
+
+#[cfg(any(not(feature = "liter-llm"), target_os = "windows"))]
+impl RegionKind {
+    pub fn default_prompt(self) -> &'static str {
+        ""
+    }
+}
+
 #[cfg(feature = "redaction")]
 pub use text::redaction::strategy::TokenCounter;
 
