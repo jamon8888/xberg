@@ -4,18 +4,8 @@ on:
   pull_request:
     paths:
       - "docs/**"
-      - "packages/**/README.md"
+      - "packages/**"
       - "crates/*/README.md"
-      - "packages/python/pyproject.toml"
-      - "packages/typescript/package.json"
-      - "packages/ruby/kreuzberg.gemspec"
-      - "packages/php/composer.json"
-      - "packages/go/v5/go.mod"
-      - "packages/java/pom.xml"
-      - "packages/csharp/**/Kreuzberg.csproj"
-      - "packages/elixir/mix.exs"
-      - "packages/r/DESCRIPTION"
-      - "packages/dart/pubspec.yaml"
       - "zensical.toml"
       - "mkdocs.yml"
       - "alef.toml"
@@ -24,10 +14,9 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "packages/**/README.md"
+      - "packages/**"
       - "crates/*/README.md"
       - "zensical.toml"
-      - "pyproject.toml"
       - "alef.toml"
       - "CHANGELOG.md"
       - ".github/workflows/ci-docs.yaml"
