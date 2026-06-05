@@ -154,49 +154,34 @@ jobs:
         include:
           - lang: python
             python-version: "3.13"
-            test-cmd: "pip install maturin && cd packages/python && maturin develop --release && cd ../../e2e/python && python3 -m pytest tests/ -q"
           - lang: node
             node-version: "24"
-            test-cmd: "cd crates/kreuzberg-node && npm run build && cd ../../e2e/node && npx vitest run"
           - lang: go
             go-version: "1.26"
-            test-cmd: "cd e2e/go && go test ./... -count=1 -v"
           - lang: ruby
             ruby-version: "3.4"
-            test-cmd: "cd packages/ruby && bundle install && bundle exec rake compile && cd ../../e2e/ruby && bundle install && bundle exec rspec"
           - lang: java
             java-version: "25"
-            test-cmd: "cd packages/java && mvn -q package -DskipTests && cd ../../e2e/java && mvn test -q"
           - lang: csharp
             dotnet-version: "10.0.x"
-            test-cmd: "cd e2e/csharp && dotnet test"
           - lang: php
             php-version: "8.4"
-            test-cmd: 'cd crates/kreuzberg-php && cargo build --release && echo "extension=$(pwd)/../../target/release/libkreuzberg_php.so" | sudo tee -a "$(php -r ''echo php_ini_loaded_file();'')" >/dev/null && cd ../../e2e/php && composer install -q && vendor/bin/phpunit'
           - lang: elixir
             elixir-version: "1.19"
             otp-version: "28"
-            test-cmd: "cd e2e/elixir && KREUZBERG_BUILD=true mix deps.get && KREUZBERG_BUILD=true mix test"
           - lang: wasm
             node-version: "24"
-            test-cmd: 'curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && export PATH="$HOME/.cargo/bin:$PATH" && export RUSTFLAGS=''--cfg getrandom_backend="wasm_js"'' && cd crates/kreuzberg-wasm && wasm-pack build --release --target web --out-dir ../../packages/wasm/pkg && cd ../../e2e/wasm && npm install && npm test'
           - lang: rust
-            test-cmd: "cd e2e/rust && cargo test"
           - lang: r
             r-version: "4.3"
-            test-cmd: "cd e2e/r && Rscript run_tests.R"
           - lang: dart
             dart-version: "3.11"
-            test-cmd: "cargo build --release -p kreuzberg-dart && mkdir -p packages/dart/rust/target/release && cp target/release/libkreuzberg_dart.* packages/dart/rust/target/release/ 2>/dev/null || true && cd packages/dart && dart pub get && cd ../../e2e/dart && dart pub get && dart test"
-          - lang: kotlin_android
+          - lang: kotlin-android
             java-version: "25"
-            test-cmd: "cd e2e/kotlin_android && gradle test --no-daemon"
           - lang: swift
             swift-version: "6.0"
-            test-cmd: "cd e2e/swift_e2e && swift test"
           - lang: zig
             zig-version: "0.16.0"
-            test-cmd: 'FFI_ABS="$PWD/target/release" && cd e2e/zig && zig build test -Dffi_path="$FFI_ABS"'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -296,7 +281,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       - name: Setup Android SDK
-        if: matrix.lang == 'kotlin_android'
+        if: matrix.lang == 'kotlin-android'
         uses: android-actions/setup-android@v3
         with:
           # setup-android@v3 dropped the `api-level` / `build-tools-version`
@@ -308,7 +293,7 @@ jobs:
           accept-android-sdk-licenses: true
 
       - name: Setup Gradle
-        if: matrix.lang == 'kotlin_android'
+        if: matrix.lang == 'kotlin-android'
         uses: kreuzberg-dev/actions/setup-gradle@v1
         with:
           gradle-version: "9.1.0"
@@ -365,7 +350,7 @@ jobs:
         if: |
           matrix.lang == 'go' || matrix.lang == 'java' ||
           matrix.lang == 'csharp' || matrix.lang == 'elixir' ||
-          matrix.lang == 'r' || matrix.lang == 'kotlin_android' ||
+          matrix.lang == 'r' || matrix.lang == 'kotlin-android' ||
           matrix.lang == 'swift' || matrix.lang == 'zig'
         shell: bash
         run: |
@@ -382,8 +367,8 @@ jobs:
         working-directory: packages/ruby
         run: bundle install && bundle exec rake compile
 
-      - name: Run tests
-        run: ${{ matrix.test-cmd }}
+      - name: Run e2e tests
+        run: task ${{ matrix.lang }}:e2e
         shell: bash
         env:
           PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
