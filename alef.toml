@@ -821,8 +821,11 @@ e2e = "cd e2e/dart && DYLD_FALLBACK_LIBRARY_PATH=$PWD/../../target/release LD_LI
 [crates.test.zig]
 precondition = "command -v zig >/dev/null 2>&1"
 before = "cargo build --release -p kreuzberg-ffi"
-command = "cd packages/zig && zig build test"
-e2e = "cd e2e/zig && zig build test"
+# Pass absolute ffi_path/ffi_include_path: zig bakes DT_RUNPATH as a literal
+# string and the test binaries run with cwd=test_documents/, so the default
+# `../../target/release` resolves outside the repo at runtime.
+command = "cd packages/zig && zig build test -Dffi_path=$PWD/../../target/release -Dffi_include_path=$PWD/../../crates/kreuzberg-ffi/include"
+e2e = "cd e2e/zig && zig build test -Dffi_path=$PWD/../../target/release -Dffi_include_path=$PWD/../../crates/kreuzberg-ffi/include"
 
 [crates.publish]
 core_crate = "crates/kreuzberg"
