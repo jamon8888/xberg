@@ -15,8 +15,6 @@ name = "kreuzberg_jni"
 
 [dependencies]
 base64 = "0.22"
-# jni 0.22 split JNIEnv into Env + EnvUnowned; migration to with_env(|env| ...) pattern is deferred.
-# Pin to 0.21 until kreuzberg-jni is rewritten against the new API.
 jni = "0.22"
 kreuzberg-ffi = { path = "../kreuzberg-ffi" }
 

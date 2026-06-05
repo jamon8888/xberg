@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **chore(deny)**: add `symphonia-common` to MPL-2.0 license exceptions. After `cargo upgrade --incompatible` pulled `symphonia-common 0.6.0` as a new sub-crate transitive of the transcription extractor, `cargo-deny` rejected the MPL-2.0 license and `CI Lint` failed. `symphonia-common` is a file-scoped copyleft sub-crate identical in legal posture to the already-allowlisted `symphonia`/`symphonia-core` siblings; using it imposes no share-alike on kreuzberg.
+- **chore(jni)**: remove stale comment in `crates/kreuzberg-jni/Cargo.toml` claiming the dependency is pinned to `0.21` — the actual pin is `0.22` after the Phase A1 port.
+
 ### Added
 
 - **feat(taskfile)**: add `e2e:lang` dispatcher task for uniform e2e invocation by language. Enables CI workflows to call `task e2e:lang LANG=<language>` instead of per-language if-gates. All 15 language e2e targets now available: `{rust,python,go,node,ruby,php,java,csharp,elixir,wasm,r,dart,kotlin-android,swift,zig}:e2e`.

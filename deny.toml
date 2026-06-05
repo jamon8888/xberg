@@ -56,6 +56,7 @@ exceptions = [
   # Required for clean decode of mp3/mp4/m4a/wav/webm to 16kHz mono f32 PCM for Whisper.
   { allow = ["MPL-2.0"], crate = "symphonia" },
   { allow = ["MPL-2.0"], crate = "symphonia-core" },
+  { allow = ["MPL-2.0"], crate = "symphonia-common" },
   { allow = ["MPL-2.0"], crate = "symphonia-bundle-mp3" },
   { allow = ["MPL-2.0"], crate = "symphonia-format-isomp4" },
   { allow = ["MPL-2.0"], crate = "symphonia-format-mkv" },
