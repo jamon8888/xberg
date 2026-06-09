@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Windows MSVC CRT mismatch in PHP and Elixir cdylibs.** Linking `kreuzberg_php.dll` /
+  `kreuzberg_nif.dll` on `x86_64-pc-windows-msvc` failed with
+  `LNK1319: mismatch detected for 'RuntimeLibrary': MT_StaticRelease vs MD_DynamicRelease`.
+  `libkreuzberg_tesseract.rlib` is built by cmake-rs which defaults to `/MD`; `libesaxx_rs.rlib`
+  (transitively pulled in by `gliner` → `tokenizers` → `esaxx-rs`) is built by cc-rs which fell
+  back to `/MT`. `alef.toml` `[crates.scaffold.cargo.env]` now sets
+  `CFLAGS_{x86_64,i686}_pc_windows_msvc = "/MD"` and the matching `CXXFLAGS_*`, propagated to
+  `.cargo/config.toml [env]`. cc-rs honors these target-suffixed env vars only when actually
+  building for that target, so non-Windows builds are unaffected. Same fix unblocks Elixir NIF
+  Windows build (recurring failure since rc.7).
+
 ## [5.0.0-rc.10] - 2026-06-09
 
 ### Changed

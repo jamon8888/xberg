@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.23.58"
+alef_version = "0.23.60"
 languages = [
   "python",
   "node",
@@ -3231,6 +3231,19 @@ authors = ["Na'aman Hirschfeld <naaman@kreuzberg.dev>"]
 keywords = ["document", "extraction", "pdf", "ocr", "text"]
 
 [crates.scaffold.cargo]
+
+# Force dynamic CRT (/MD) for cc-rs MSVC builds. kreuzberg-tesseract uses
+# cmake-rs which picks /MD, but cc-rs builds (e.g. esaxx-rs via gliner via
+# tokenizers) default to /MT. When both rlibs are linked into the same
+# cdylib (kreuzberg_php.dll, kreuzberg_nif.dll) the mismatch trips
+# LNK1319 "RuntimeLibrary mismatch detected". cc-rs honors target-suffixed
+# env vars (CFLAGS_<target>, CXXFLAGS_<target>) only when actually
+# compiling for that target, so this is safe on non-Windows builds.
+[crates.scaffold.cargo.env]
+CFLAGS_x86_64_pc_windows_msvc = "/MD"
+CXXFLAGS_x86_64_pc_windows_msvc = "/MD"
+CFLAGS_i686_pc_windows_msvc = "/MD"
+CXXFLAGS_i686_pc_windows_msvc = "/MD"
 
 [crates.readme]
 template_dir = "templates/readme"
