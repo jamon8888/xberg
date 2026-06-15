@@ -435,11 +435,18 @@ jobs:
     if: ${{ needs.prepare.outputs.release_python == 'true' && (needs.check-pypi.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
     runs-on: ${{ matrix.os }}
     env:
-      MACOSX_DEPLOYMENT_TARGET: "10.12"
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+        # macos-13 (Ventura, x86_64) is pinned over macos-latest because Homebrew
+        # bottles for libheif and its codec deps (libx265, libde265, libaom,
+        # libsharpyuv, libvmaf) on macos-15 are built with a 15.0 minimum target.
+        # cibuildwheel's wheel-repair step refuses to repair a
+        # 11.0/13.0 wheel that bundles 15.0-min dylibs (observed rc.13-rc.15
+        # Python wheels macos jobs). macos-13 ships 13.0-min bottles and matches
+        # the wheel platform tag.
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13]
     steps:
       - uses: actions/checkout@v6
         with:

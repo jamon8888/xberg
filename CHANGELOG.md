@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **CI: drop `--offline` from musl Docker builds.** `docker/Dockerfile.musl-build`, `docker/Dockerfile.musl-ffi`, and `docker/Dockerfile.musl-rustler` all ran `cargo build --offline` against a fresh Alpine image whose `~/.cargo/registry` cache was never populated. Every dependency resolved to `error: no matching package named 'async-trait' found` (and similar), failing every CI musl build matrix cell for at least rc.13 → rc.15. Drop `--offline` so cargo can fetch from the network using `Cargo.lock` as a resolution hint; the slimmed manifest is still rewritten in the layer, so `--locked` cannot be used here.
+- **CI: pin Python wheel macOS runner to `macos-13`.** macOS-15 (current `macos-latest`) ships Homebrew bottles for libheif and its codec deps (`libx265`, `libde265`, `libaom`, `libsharpyuv`, `libvmaf`) built with a 15.0 minimum target. cibuildwheel's wheel-repair step refuses to repair a wheel claiming `macosx_11_0_arm64` compatibility when the bundled dylibs require 15.0, failing the `Build Python wheels (macos-latest)` job for rc.13 → rc.15. Pin the matrix entry to `macos-13` (Ventura) so the bottled deps carry a 13.0-min target that matches the wheel platform tag; `MACOSX_DEPLOYMENT_TARGET` env bumped 10.12 → 13.0 to match.
+- **`EncodeWarning::UnsupportedDirection` is now `#[cfg(feature = "svg")]`-gated.** The variant is only constructed in the SVG-feature-gated raster→SVG rejection branch of `re_encode`. On `windows-target` (which omits `svg`), the variant became dead code and tripped `-D dead_code → -D warnings`, breaking Build C FFI distribution (windows-x86_64), Build Dart server native (windows-x86_64), Build Java natives (windows-x86_64), and Build Go FFI library (windows-x86_64) on rc.15 Publish run 27524121424. Gating the variant and its Display match arm together keeps the match exhaustive and the enum minimal under every aggregate.
+
+---
+
 ## [5.0.0-rc.15] - 2026-06-15
 
 ### Fixed

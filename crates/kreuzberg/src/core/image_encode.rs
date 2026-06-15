@@ -55,6 +55,12 @@ pub(crate) enum EncodeWarning {
     ///
     /// The image bytes are left untouched.  This is a non-fatal warning: the
     /// pipeline emits the warning and continues with the original image.
+    ///
+    /// Gated on `svg`: raster→SVG is the only direction the pipeline rejects with
+    /// this variant, and that branch only exists when the `svg` feature is active.
+    /// Without the gate, Windows/mobile aggregates that omit `svg` trip
+    /// `-D dead-code` on the unconstructed variant.
+    #[cfg(feature = "svg")]
     UnsupportedDirection {
         /// Format of the source image (e.g. `"jpeg"`, `"png"`).
         from_format: String,
@@ -79,6 +85,7 @@ impl std::fmt::Display for EncodeWarning {
             EncodeWarning::EncoderUnavailable { target_format, message } => {
                 write!(f, "encoder for {target_format} is unavailable: {message}")
             }
+            #[cfg(feature = "svg")]
             EncodeWarning::UnsupportedDirection { from_format, to_format } => {
                 write!(
                     f,
