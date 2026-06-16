@@ -11,6 +11,9 @@
 //!   handing each crop to TrOCR.
 //! - `paddleocr-vl` — PaddleOCR-VL 0.9B vision-language model. Full-page
 //!   multi-task: OCR, tables, formulas, charts. Emits markdown directly.
+//! - `glm-ocr` — Z.ai GLM-OCR 0.9B vision-language model (CogViT + GLM-4 +
+//!   Multi-Token Prediction). Full-page multi-task: OCR, tables, formulas,
+//!   charts, key-information extraction. Emits markdown directly.
 //!
 //! ## Device acceleration
 //!
@@ -34,6 +37,7 @@ pub use candle_core::DType;
 pub enum ModelKind {
     Trocr,
     PaddleOcrVl,
+    GlmOcr,
 }
 
 /// Output produced by a candle OCR engine for a single image.
