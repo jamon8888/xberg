@@ -630,7 +630,7 @@ tokenizers = { version = "0.23", optional = true, default-features = false, feat
 tokio = { workspace = true, optional = true }
 toml = { workspace = true }
 tower = { version = "0.5", features = ["timeout", "limit", "util"], optional = true }
-tower-http = { version = "0.6", features = [
+tower-http = { version = "0.7", features = [
     "cors",
     "trace",
     "limit",

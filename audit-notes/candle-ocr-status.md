@@ -33,7 +33,7 @@ Wave 1 audit findings (now all fixed under `cdcd286655`, `78eff152f1`,
   the construction-time default only when no override is present.
 - `PaddleOcrVlEngine` image normalisation ran a per-pixel triple loop; now
   vectorised via `Tensor::affine` + `broadcast_sub` + `broadcast_div`.
-- `from_mmaped_safetensors` was misspelled as `from_mapped_safetensors` in
+- `from_mapped_safetensors` was misspelled as `from_mapped_safetensors` in
   `models/trocr.rs`; that prevented `--features trocr` from building at all.
 - Both backends parsed their own device strings; now consume the central
   `AccelerationConfig` via a shared `resolve_device_preference` helper that
@@ -99,7 +99,7 @@ README for details.
 
 ## Coverage
 
-```
+```text
 cargo test -p kreuzberg --lib candle_ocr:: \
     --features candle-trocr,candle-paddleocr-vl
 # 15 tests passing — backend constructors, parse_options, device resolution,
@@ -148,7 +148,7 @@ on one of:
 
 ## Commits on this branch since the audit started
 
-```
+```text
 989e0c0021 style(candle-ocr): rustfmt long lines in paddleocr_vl engine + test
 5973fe8ee1 docs(registry): drop got-ocr / glm-ocr from candle registration comment
 <integration-test commit>

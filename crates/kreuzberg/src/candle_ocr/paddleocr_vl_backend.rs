@@ -21,9 +21,9 @@ use crate::types::ExtractionResult;
 #[cfg(not(target_arch = "wasm32"))]
 use kreuzberg_candle_ocr::DType;
 use kreuzberg_candle_ocr::DevicePreference;
-use kreuzberg_candle_ocr::models::PaddleOcrVlTask;
 #[cfg(not(target_arch = "wasm32"))]
 use kreuzberg_candle_ocr::models::PaddleOcrVlEngine;
+use kreuzberg_candle_ocr::models::PaddleOcrVlTask;
 
 /// Process-wide engine pool keyed by `(task, device_preference)`.
 ///
@@ -45,10 +45,7 @@ static ENGINE_POOL: LazyLock<RwLock<AHashMap<(PaddleOcrVlTask, DevicePreference)
 /// Uses a read → miss → write → double-check pattern so that two racing callers
 /// do not both pay the initialisation cost.
 #[cfg(not(target_arch = "wasm32"))]
-fn get_or_init_engine(
-    task: PaddleOcrVlTask,
-    preference: DevicePreference,
-) -> crate::Result<Arc<PaddleOcrVlEngine>> {
+fn get_or_init_engine(task: PaddleOcrVlTask, preference: DevicePreference) -> crate::Result<Arc<PaddleOcrVlEngine>> {
     let key = (task, preference);
 
     // Fast path: engine already in pool.
@@ -66,11 +63,9 @@ fn get_or_init_engine(
     })?;
 
     tracing::info!(task = ?task, preference = ?preference, "Initialising PaddleOCR-VL engine (cold start)");
-    let new_engine = PaddleOcrVlEngine::new(task, device, DType::F32).map_err(|e| {
-        crate::KreuzbergError::Ocr {
-            message: format!("PaddleOCR-VL engine initialisation failed: {e}"),
-            source: None,
-        }
+    let new_engine = PaddleOcrVlEngine::new(task, device, DType::F32).map_err(|e| crate::KreuzbergError::Ocr {
+        message: format!("PaddleOCR-VL engine initialisation failed: {e}"),
+        source: None,
     })?;
     let new_engine = Arc::new(new_engine);
 

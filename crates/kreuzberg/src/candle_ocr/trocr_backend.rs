@@ -135,11 +135,12 @@ impl OcrBackend for TrocrBackend {
             })?;
 
             // Load engine from HF Hub (weights are cached locally after first download)
-            let engine = kreuzberg_candle_ocr::models::TrocrEngine::new(variant, candle_device)
-                .map_err(|e| crate::KreuzbergError::Ocr {
+            let engine = kreuzberg_candle_ocr::models::TrocrEngine::new(variant, candle_device).map_err(|e| {
+                crate::KreuzbergError::Ocr {
                     message: format!("TrOCR engine initialization failed: {}", e),
                     source: None,
-                })?;
+                }
+            })?;
 
             // Process image through encoder-decoder pipeline
             let output = engine
