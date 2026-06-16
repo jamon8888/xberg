@@ -229,7 +229,28 @@ mod imp {
                 .and_then(|t| t.reshape((batch, new_num_tokens, c_out)))
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Connector reshape to (B,N',C): {}", e)))?;
 
-            // SwiGLU merger: silu(gate(x)) * up(x) -> down -> proj -> layernorm
+            // Upstream Glm4vVisionPatchMerger.forward order (transformers
+            // modeling_glm4v.py lines 126-129):
+            //   hidden = proj(hidden)
+            //   hidden = gelu(post_projection_norm(hidden))
+            //   return down_proj(silu(gate_proj(hidden)) * up_proj(hidden))
+            //
+            // i.e. proj -> LayerNorm -> GELU -> SwiGLU. The earlier version of
+            // this function inverted the entire flow — SwiGLU -> down_proj ->
+            // proj -> LayerNorm — which scrambles vision features beyond any
+            // useful signal. Match upstream exactly.
+            let x = x
+                .apply(&self.proj)
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger proj: {}", e)))?;
+
+            let x = x
+                .apply(&self.post_projection_norm)
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger post_projection_norm: {}", e)))?;
+
+            let x = x
+                .gelu()
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger post_projection_norm gelu: {}", e)))?;
+
             let gate = x
                 .apply(&self.gate_proj)
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger gate_proj: {}", e)))?;
@@ -244,14 +265,6 @@ mod imp {
             let x = hidden
                 .apply(&self.down_proj)
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger down_proj: {}", e)))?;
-
-            let x = x
-                .apply(&self.proj)
-                .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger proj: {}", e)))?;
-
-            let x = x
-                .apply(&self.post_projection_norm)
-                .map_err(|e| CandleOcrError::InferenceFailed(format!("Merger post_projection_norm: {}", e)))?;
 
             Ok(x)
         }
