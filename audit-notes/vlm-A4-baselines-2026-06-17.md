@@ -9,7 +9,9 @@
 ## Benchmark Harness Architecture
 
 ### Layout
+
 Located at `tools/benchmark-harness/`:
+
 - **Pipelines registry** (`src/types.rs` / `src/comparison.rs`): `KreuzbergPipeline` enum + `Pipeline` enum
   - Current Kreuzberg pipelines: `Baseline`, `Layout`, `PaddleOcr`, `CandleTrocr`, `CandlePaddleocrVl`, `CandleGlmOcr`
   - Reference pipelines: `Docling`, `PaddleOcrPython`, `RapidOcr`, `Tesseract`, `Paddle` (native mobile), etc.
@@ -21,7 +23,9 @@ Located at `tools/benchmark-harness/`:
 - **Quality combine**: `quality_score = 0.5 * f1_text + 0.2 * f1_numeric + 0.3 * f1_layout`
 
 ### Subprocess Adapter Pattern
+
 Python scripts live in `scripts/` and follow a standard interface:
+
 1. `extract_sync(file_path: str) -> dict[str, Any]`: single-file sync extraction
 2. `extract_batch(file_paths: list[str]) -> list[dict]`: multi-file batch extraction
 3. `server()`: persistent stdin/stdout mode
@@ -30,7 +34,9 @@ Python scripts live in `scripts/` and follow a standard interface:
 **Example** (`scripts/pdfplumber_extract.py`): ~120 lines, handles pdf.pages, extracts text, measures peak memory.
 
 ### Existing Reference Baselines
+
 Vendored reference outputs (not Python scripts) live under `vendored/`:
+
 - **`vendored/paddleocr-python/`**: timing (`.ms`) and markdown (`.md`) for 6 PDF fixtures
 - **`vendored/docling/`**: timing and markdown for Nougat/other fixtures
 - **`vendored/rapidocr/`**: similar structure
@@ -46,11 +52,13 @@ These are **expected outputs** from upstream reference implementations, used for
 **HuggingFace repo**: `deepseek-ai/DeepSeek-OCR` (latest: 1.0.1, released ~May 2026)
 
 **Architecture**: End-to-end VLM (Vision Language Model):
+
 - Encoder: Qwen2-VL vision tower (multi-scale image patches)
 - Decoder: Qwen2 language model (1B params)
 - Output: Markdown directly (no layout reconstruction needed)
 
 **Python pipeline** (expected; not yet surveyed):
+
 ```python
 # pip install transformers pillow
 from transformers import AutoModel, AutoTokenizer
@@ -74,11 +82,13 @@ outputs = model.generate(**inputs, max_length=4096)  # Text or markdown
 **HuggingFace repo**: `tencent/Hunyuan-OCR` (public preview, ~June 2026)
 
 **Architecture**: End-to-end VLM:
+
 - Encoder: Hunyuan's proprietary vision transformer
 - Decoder: Language model (6.7B params)
 - Output: Markdown directly
 
 **Python pipeline** (expected):
+
 ```python
 # pip install paddlex or direct transformers
 from transformers import AutoModel, AutoTokenizer
@@ -100,11 +110,13 @@ model = AutoModel.from_pretrained("tencent/Hunyuan-OCR", trust_remote_code=True)
 **HuggingFace model variant**: `paddlepaddle/PP-Structure-v2-ONNX` or `paddlepaddle/paddleocr-v4` (vision-language branch)
 
 **Architecture**: Paddling-optimized VLM:
+
 - Vision: PP-VisionTransformer
 - Language: PP-Language (lightweight, ~600M params)
 - Output: Markdown directly
 
 **Python pipeline** (expected):
+
 ```python
 # pip install paddlex or paddleocr-v4
 from paddleocr import OCR  # or paddlex.vision.Document
@@ -133,6 +145,7 @@ result = ocr.ocr(image_path, cls=True)  # JSON or structured output
 ### Recommendation: Path (B) — Scaffold Python Scripts + Run Baselines
 
 **Rationale**:
+
 1. No comprehensive baselines exist for any of the three models across the 157-fixture corpus.
 2. Phase 6 benchmark gate requires ≥90% F1 vs reference; scoring is impossible without reference baselines.
 3. Vendored `paddleocr-python/` outputs (6 fixtures) are too sparse for corpus-wide comparison.
@@ -143,7 +156,8 @@ result = ocr.ocr(image_path, cls=True)  # JSON or structured output
 #### Phase 1C Deliverables
 
 1. **Scaffold `tools/benchmark-harness/scripts/`**:
-   ```
+
+   ```text
    scripts/
      deepseek_ocr_baseline.py    (~100 lines; transformers API)
      hunyuan_ocr_baseline.py     (~100 lines; transformers API)
@@ -151,7 +165,8 @@ result = ocr.ocr(image_path, cls=True)  # JSON or structured output
    ```
 
 2. **Scaffold `tools/benchmark-harness/python_baselines/`** (output directory):
-   ```
+
+   ```text
    python_baselines/
      deepseek_ocr/               # Created by deepseek_ocr_baseline.py run
        <fixture_id>.deepseek.expected.txt
@@ -180,6 +195,7 @@ result = ocr.ocr(image_path, cls=True)  # JSON or structured output
    - How to regenerate baselines if models are updated
 
 #### Expected Timeline
+
 - **Phase 1C**: 4–5 days (scaffold 3 scripts, wire harness, test on 1 fixture each)
 - **Baseline generation**: 1–2 hours per model on GPU (3 models × 157 fixtures)
 - **Phase 6 ready**: Once baselines committed to repo
@@ -189,6 +205,7 @@ result = ocr.ocr(image_path, cls=True)  # JSON or structured output
 ## Implementation Notes
 
 ### DeepSeek-OCR Script Entry Point
+
 ```python
 def extract_sync(file_path: str) -> dict[str, Any]:
     """DeepSeek-OCR end-to-end extraction."""
@@ -202,14 +219,18 @@ def extract_sync(file_path: str) -> dict[str, Any]:
 ```
 
 ### PaddleOCR-VL Script Expansion
+
 Current 6-fixture vendored outputs are static. New script should:
+
 1. Run live `paddleocr-v4` model on all 157 fixtures
 2. Emit per-fixture `.expected.md` + `.expected.txt`
 3. Save timing/memory to `.ms` file (matching vendored convention)
 4. Overwrite or append to `python_baselines/paddleocr_vl/`
 
 ### Quality Gate Logic (Phase 6)
+
 Once baselines exist, in `tools/benchmark-harness/src/comparison.rs`:
+
 ```rust
 let reference_baseline = load_baseline(&baseline_path, fixture.name)?;
 let rust_output = extract_with_candle_backend(...)?;
@@ -222,6 +243,7 @@ assert!(f1 >= 0.90, "Rust {} failed F1 gate: {:.2}% (need ≥90%)", model_name, 
 ## Summary (≤250 words)
 
 **Baseline Status**:
+
 - **DeepSeek-OCR** (HF: `deepseek-ai/DeepSeek-OCR`): No baselines exist. 1B-param VLM, ~2.7 GB, CUDA recommended. Needs new Phase 1C script + corpus run.
 - **Hunyuan-OCR** (HF: `tencent/Hunyuan-OCR`): No baselines exist. 6.7B-param VLM, ~15 GB, CUDA required (24+ GB VRAM). Needs new Phase 1C script + corpus run.
 - **PaddleOCR-VL 1.5** (paddlepaddle): Partial baselines for 6 PDFs exist; corpus (157 fixtures) missing. Lightweight (~700 MB–2 GB), CPU-feasible. Needs Phase 1C script expansion.

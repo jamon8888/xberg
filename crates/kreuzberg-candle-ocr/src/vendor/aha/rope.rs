@@ -126,20 +126,11 @@ pub fn apply_rotary_pos_emb(
 ///
 /// `cos`/`sin` are `(seq_len, head_dim)`; a head axis is inserted to give
 /// `(seq_len, 1, head_dim)` before broadcast multiplication.
-pub fn apply_rotary_pos_emb_vision(
-    q: &Tensor,
-    k: &Tensor,
-    cos: &Tensor,
-    sin: &Tensor,
-) -> Result<(Tensor, Tensor)> {
+pub fn apply_rotary_pos_emb_vision(q: &Tensor, k: &Tensor, cos: &Tensor, sin: &Tensor) -> Result<(Tensor, Tensor)> {
     let cos = cos.unsqueeze(D::Minus2)?.to_dtype(q.dtype())?;
     let sin = sin.unsqueeze(D::Minus2)?.to_dtype(q.dtype())?;
-    let q_embed = q
-        .broadcast_mul(&cos)?
-        .add(&rotate_half(q)?.broadcast_mul(&sin)?)?;
-    let k_embed = k
-        .broadcast_mul(&cos)?
-        .add(&rotate_half(k)?.broadcast_mul(&sin)?)?;
+    let q_embed = q.broadcast_mul(&cos)?.add(&rotate_half(q)?.broadcast_mul(&sin)?)?;
+    let k_embed = k.broadcast_mul(&cos)?.add(&rotate_half(k)?.broadcast_mul(&sin)?)?;
     Ok((q_embed, k_embed))
 }
 
@@ -148,12 +139,7 @@ pub fn apply_rotary_pos_emb_vision(
 /// Decomposes the last dimension into real/imaginary interleaved pairs and
 /// applies complex multiplication.  Required by the shared `common::modules`
 /// layer used by all three VLM-OCR backends.
-pub fn apply_rotary_pos_emb_roformer(
-    q: &Tensor,
-    k: &Tensor,
-    cos: &Tensor,
-    sin: &Tensor,
-) -> Result<(Tensor, Tensor)> {
+pub fn apply_rotary_pos_emb_roformer(q: &Tensor, k: &Tensor, cos: &Tensor, sin: &Tensor) -> Result<(Tensor, Tensor)> {
     let ori_dtype = q.dtype();
     let (bs, n_head, seq_len, dim) = q.dims4()?;
     let half_dim = dim / 2;
@@ -161,15 +147,11 @@ pub fn apply_rotary_pos_emb_roformer(
     let rotr = cos.narrow(D::Minus1, 0, half_dim)?.to_dtype(DType::F32)?;
     let roti = sin.narrow(D::Minus1, 0, half_dim)?.to_dtype(DType::F32)?;
 
-    let q_f = q
-        .reshape((bs, n_head, seq_len, half_dim, 2))?
-        .to_dtype(DType::F32)?;
+    let q_f = q.reshape((bs, n_head, seq_len, half_dim, 2))?.to_dtype(DType::F32)?;
     let qr = q_f.narrow(D::Minus1, 0, 1)?.squeeze(D::Minus1)?;
     let qi = q_f.narrow(D::Minus1, 1, 1)?.squeeze(D::Minus1)?;
 
-    let k_f = k
-        .reshape((bs, n_head, seq_len, half_dim, 2))?
-        .to_dtype(DType::F32)?;
+    let k_f = k.reshape((bs, n_head, seq_len, half_dim, 2))?.to_dtype(DType::F32)?;
     let kr = k_f.narrow(D::Minus1, 0, 1)?.squeeze(D::Minus1)?;
     let ki = k_f.narrow(D::Minus1, 1, 1)?.squeeze(D::Minus1)?;
 
@@ -219,12 +201,7 @@ impl RoPE {
     /// # Errors
     ///
     /// Returns [`CandleOcrError::Candle`] on tensor operation failure.
-    pub fn forward(
-        &self,
-        seqlen_offset: usize,
-        seq_len: usize,
-        device: &Device,
-    ) -> Result<(Tensor, Tensor)> {
+    pub fn forward(&self, seqlen_offset: usize, seq_len: usize, device: &Device) -> Result<(Tensor, Tensor)> {
         let positions = Tensor::arange(
             seqlen_offset as f32,
             (seqlen_offset + seq_len) as f32,
@@ -309,17 +286,9 @@ impl Qwen2_5VLTextRotaryEmbedding {
     /// # Errors
     ///
     /// Returns [`CandleOcrError::Candle`] on tensor operation failure.
-    pub fn forward(
-        &self,
-        position_ids: &Tensor,
-        dtype: DType,
-        mrope_section: Vec<usize>,
-    ) -> Result<(Tensor, Tensor)> {
+    pub fn forward(&self, position_ids: &Tensor, dtype: DType, mrope_section: Vec<usize>) -> Result<(Tensor, Tensor)> {
         // (3, bs, seq_len) -> (3, bs, 1, seq_len)
-        let position_ids_expanded = position_ids
-            .unsqueeze(D::Minus2)?
-            .to_dtype(DType::F32)?
-            .contiguous()?;
+        let position_ids_expanded = position_ids.unsqueeze(D::Minus2)?.to_dtype(DType::F32)?.contiguous()?;
 
         // inv_freq -> (1, 1, head_dim/2, 1) -> broadcast (3, bs, head_dim/2, 1)
         let bs = position_ids.dim(1)?;
@@ -333,9 +302,7 @@ impl Qwen2_5VLTextRotaryEmbedding {
         .contiguous()?;
 
         // (3, bs, head_dim/2, 1) @ (3, bs, 1, seq_len) -> (3, bs, seq_len, head_dim/2)
-        let freqs = inv_freq_expanded
-            .matmul(&position_ids_expanded)?
-            .transpose(2, 3)?;
+        let freqs = inv_freq_expanded.matmul(&position_ids_expanded)?.transpose(2, 3)?;
 
         // (3, bs, seq_len, head_dim/2) -> (3, bs, seq_len, head_dim)
         let emb = Tensor::cat(&[&freqs, &freqs], D::Minus1)?.contiguous()?;
@@ -343,8 +310,7 @@ impl Qwen2_5VLTextRotaryEmbedding {
         let sin_full = emb.sin()?;
 
         // Double section sizes because emb is head_dim (not head_dim/2)
-        let section_doubled: Vec<usize> =
-            mrope_section.iter().chain(mrope_section.iter()).copied().collect();
+        let section_doubled: Vec<usize> = mrope_section.iter().chain(mrope_section.iter()).copied().collect();
 
         // For each of the 2*N sections, index dim-0 (the "3" axis) by i % 3
         let last_dim_full = cos_full.rank() - 1;
@@ -353,18 +319,14 @@ impl Qwen2_5VLTextRotaryEmbedding {
             .enumerate()
             .map(|(i, m)| m.i(i % 3).map_err(CandleOcrError::from))
             .collect::<Result<Vec<_>>>()?;
-        let cos = Tensor::cat(&cos_select, D::Minus1)?
-            .unsqueeze(1)?
-            .contiguous()?;
+        let cos = Tensor::cat(&cos_select, D::Minus1)?.unsqueeze(1)?.contiguous()?;
 
         let sin_select: Vec<Tensor> = split_tensor(&sin_full, &section_doubled, last_dim_full)?
             .into_iter()
             .enumerate()
             .map(|(i, m)| m.i(i % 3).map_err(CandleOcrError::from))
             .collect::<Result<Vec<_>>>()?;
-        let sin = Tensor::cat(&sin_select, D::Minus1)?
-            .unsqueeze(1)?
-            .contiguous()?;
+        let sin = Tensor::cat(&sin_select, D::Minus1)?.unsqueeze(1)?.contiguous()?;
 
         Ok((cos.to_dtype(dtype)?, sin.to_dtype(dtype)?))
     }
@@ -403,8 +365,7 @@ impl Qwen2_5VisionRotaryEmbedding {
     /// Returns [`CandleOcrError::Candle`] on tensor operation failure.
     pub fn forward(&self, seqlen: usize, device: &Device) -> Result<Tensor> {
         let seq = Tensor::arange(0.0_f32, seqlen as f32, device)?.reshape((seqlen, 1))?;
-        let inv_freq =
-            Tensor::from_vec(self.inv_freq.clone(), (1, self.inv_freq.len()), device)?;
+        let inv_freq = Tensor::from_vec(self.inv_freq.clone(), (1, self.inv_freq.len()), device)?;
         Ok(seq.matmul(&inv_freq)?)
     }
 }
@@ -452,12 +413,8 @@ pub fn get_xd_cos_sin(
     }
 
     // (bs, x_dim, seq_len, dim) -> (bs, seq_len, x_dim, dim)
-    let cos_stacked = Tensor::stack(&cos_vec, 0)?
-        .permute((0, 2, 1, 3))?
-        .contiguous()?;
-    let sin_stacked = Tensor::stack(&sin_vec, 0)?
-        .permute((0, 2, 1, 3))?
-        .contiguous()?;
+    let cos_stacked = Tensor::stack(&cos_vec, 0)?.permute((0, 2, 1, 3))?.contiguous()?;
+    let sin_stacked = Tensor::stack(&sin_vec, 0)?.permute((0, 2, 1, 3))?.contiguous()?;
 
     // Double section sizes because cos/sin carry head_dim not head_dim/2
     let section_doubled: Vec<usize> = xdrope_section.iter().map(|&s| s * 2).collect();

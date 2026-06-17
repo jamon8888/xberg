@@ -125,7 +125,11 @@ fn parse_options_glm_ocr_rejects_non_object_json_by_returning_defaults() {
     // Scalar value.
     let mut config2 = OcrConfig::default();
     config2.backend_options = Some(serde_json::json!("ocr"));
-    assert_eq!(backend.name(), "candle-glm-ocr", "backend remains coherent after scalar options");
+    assert_eq!(
+        backend.name(),
+        "candle-glm-ocr",
+        "backend remains coherent after scalar options"
+    );
 }
 
 /// Hunyuan-OCR: non-object backend_options yields defaults without panicking.
@@ -292,7 +296,11 @@ async fn candle_hunyuan_ocr_e2e_extraction() {
         "Hunyuan-OCR must emit text/markdown"
     );
 
-    println!("Hunyuan-OCR result ({} chars): {}", result.content.len(), result.content);
+    println!(
+        "Hunyuan-OCR result ({} chars): {}",
+        result.content.len(),
+        result.content
+    );
 }
 
 /// End-to-end DeepSeek-OCR extraction through `OcrBackend::process_image`.
@@ -336,7 +344,11 @@ async fn candle_deepseek_ocr_e2e_extraction() {
         "DeepSeek-OCR must emit text/markdown"
     );
 
-    println!("DeepSeek-OCR result ({} chars): {}", result.content.len(), result.content);
+    println!(
+        "DeepSeek-OCR result ({} chars): {}",
+        result.content.len(),
+        result.content
+    );
 }
 
 /// End-to-end PaddleOCR-VL extraction through `OcrBackend::process_image`.
@@ -381,5 +393,9 @@ async fn candle_paddleocr_vl_e2e_extraction() {
         "PaddleOCR-VL must emit text/markdown"
     );
 
-    println!("PaddleOCR-VL result ({} chars): {}", result.content.len(), result.content);
+    println!(
+        "PaddleOCR-VL result ({} chars): {}",
+        result.content.len(),
+        result.content
+    );
 }

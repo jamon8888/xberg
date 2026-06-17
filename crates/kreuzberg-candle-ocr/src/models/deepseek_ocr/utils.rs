@@ -83,7 +83,9 @@ pub fn index_select_2d(t: &Tensor, index: &Tensor) -> Result<Tensor> {
         }
     }
     if result.is_empty() {
-        return Err(CandleOcrError::InferenceFailed("index_select_2d produced empty result".to_string()));
+        return Err(CandleOcrError::InferenceFailed(
+            "index_select_2d produced empty result".to_string(),
+        ));
     }
     Tensor::stack(&result, 0).map_err(|e| CandleOcrError::InferenceFailed(format!("stack failed: {e}")))
 }
@@ -145,9 +147,7 @@ pub fn attn_masked_fill(on_true: &Tensor, mask: &Tensor, on_false: f32) -> Resul
     let (_mask_rows, _mask_cols) = mask.dims2()?;
     let on_false_tensor = Tensor::new(&[on_false], on_true.device())?;
     let mask_expanded = mask.unsqueeze(0)?.unsqueeze(0)?;
-    let _mask_bool = mask_expanded
-        .broadcast_as(on_true.shape())?
-        .to_dtype(DType::U8)?;
+    let _mask_bool = mask_expanded.broadcast_as(on_true.shape())?.to_dtype(DType::U8)?;
     let result = on_true.where_cond(&mask_expanded, &on_false_tensor)?;
     Ok(result)
 }
@@ -201,10 +201,8 @@ pub fn topk(input: &Tensor, k: usize) -> Result<(Tensor, Tensor)> {
     let top_weights_flat: Vec<f32> = top_weights_vec.into_iter().flatten().collect();
     let top_indices_flat: Vec<u32> = top_indices_vec.into_iter().flatten().collect();
 
-    let weights = Tensor::new(top_weights_flat.as_slice(), input.device())?
-        .reshape((batch_size, k))?;
-    let indices = Tensor::new(top_indices_flat.as_slice(), input.device())?
-        .reshape((batch_size, k))?;
+    let weights = Tensor::new(top_weights_flat.as_slice(), input.device())?.reshape((batch_size, k))?;
+    let indices = Tensor::new(top_indices_flat.as_slice(), input.device())?.reshape((batch_size, k))?;
 
     Ok((indices, weights))
 }

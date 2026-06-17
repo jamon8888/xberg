@@ -6,11 +6,11 @@ use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
 use tokenizers::Tokenizer;
 
-use crate::error::{Result, CandleOcrError};
+use crate::CandleOcrOutput;
+use crate::error::{CandleOcrError, Result};
 use crate::models::hunyuan_ocr::config::{HunYuanVLConfig, HunyuanOCRGenerationConfig};
 use crate::models::hunyuan_ocr::model::HunyuanVLModel;
 use crate::models::hunyuan_ocr::processor::HunyuanVLProcessor;
-use crate::{CandleOcrOutput};
 use crate::vendor::aha::InferenceModel;
 
 /// Hunyuan-OCR inference engine: manages model, processor, and generation config.
@@ -62,12 +62,7 @@ impl HunyuanOCREngine {
         // Find and mmap safetensors files.
         let model_files: Vec<String> = std::fs::read_dir(path)?
             .filter_map(|entry| entry.ok())
-            .filter(|entry| {
-                entry
-                    .path()
-                    .extension()
-                    .is_some_and(|ext| ext == "safetensors")
-            })
+            .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "safetensors"))
             .filter_map(|entry| entry.path().to_str().map(|s| s.to_string()))
             .collect();
 
@@ -166,7 +161,9 @@ impl HunyuanOCREngine {
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze batch: {}", e)))?;
 
         // Use the processor to build full multimodal data with image preprocessing, mask and position IDs
-        let hunyuan_data = self.processor.process_images_and_text(&[img], input_ids.clone(), prompt_text)?;
+        let hunyuan_data = self
+            .processor
+            .process_images_and_text(&[img], input_ids.clone(), prompt_text)?;
 
         // Prepare multimodal data for the model's forward_initial call
         // The model expects: [pixel_values, image_grid_thw, image_mask, position_ids]
@@ -187,7 +184,8 @@ impl HunyuanOCREngine {
 
         // For a simple first implementation, use the logits from forward_initial to get the next token
         // In a full implementation, this would be an autoregressive loop
-        let seq_len = output_ids.dim(1)
+        let seq_len = output_ids
+            .dim(1)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Output seq len: {}", e)))?;
 
         let last_logits = output_ids

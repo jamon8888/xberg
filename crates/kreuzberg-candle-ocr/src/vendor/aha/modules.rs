@@ -21,9 +21,8 @@
 
 use candle_core::{D, IndexOp, Tensor};
 use candle_nn::{
-    Activation, Conv1d, Conv1dConfig, Conv2d, Conv2dConfig, LayerNorm, LayerNormConfig, Linear,
-    Module, RmsNorm, VarBuilder, conv1d, conv1d_no_bias, conv2d, conv2d_no_bias, layer_norm,
-    linear_b, ops::sigmoid, rms_norm,
+    Activation, Conv1d, Conv1dConfig, Conv2d, Conv2dConfig, LayerNorm, LayerNormConfig, Linear, Module, RmsNorm,
+    VarBuilder, conv1d, conv1d_no_bias, conv2d, conv2d_no_bias, layer_norm, linear_b, ops::sigmoid, rms_norm,
 };
 
 use crate::{
@@ -98,11 +97,15 @@ impl GateUpDownMLP {
         let down_pp = down_pp_name.unwrap_or("down_proj");
         let gate_proj =
             linear_b(hidden_size, intermediate_size, bias, vb.pp(gate_pp)).map_err(CandleOcrError::Candle)?;
-        let up_proj =
-            linear_b(hidden_size, intermediate_size, bias, vb.pp(up_pp)).map_err(CandleOcrError::Candle)?;
+        let up_proj = linear_b(hidden_size, intermediate_size, bias, vb.pp(up_pp)).map_err(CandleOcrError::Candle)?;
         let down_proj =
             linear_b(intermediate_size, hidden_size, bias, vb.pp(down_pp)).map_err(CandleOcrError::Candle)?;
-        Ok(Self { gate_proj, up_proj, down_proj, act_fn })
+        Ok(Self {
+            gate_proj,
+            up_proj,
+            down_proj,
+            act_fn,
+        })
     }
 }
 
@@ -145,10 +148,8 @@ impl TwoLinearMLP {
         linear1_pp_name: &str,
         linear2_pp_name: &str,
     ) -> Result<Self> {
-        let linear1 =
-            linear_b(in_dim, middle_dim, bias, vb.pp(linear1_pp_name)).map_err(CandleOcrError::Candle)?;
-        let linear2 =
-            linear_b(middle_dim, out_dim, bias, vb.pp(linear2_pp_name)).map_err(CandleOcrError::Candle)?;
+        let linear1 = linear_b(in_dim, middle_dim, bias, vb.pp(linear1_pp_name)).map_err(CandleOcrError::Candle)?;
+        let linear2 = linear_b(middle_dim, out_dim, bias, vb.pp(linear2_pp_name)).map_err(CandleOcrError::Candle)?;
         Ok(Self { linear1, linear2, act })
     }
 
@@ -215,34 +216,14 @@ impl NaiveAttention {
         let k_name = k_proj_pp_name.unwrap_or("k_proj");
         let v_name = v_proj_pp_name.unwrap_or("v_proj");
         let o_name = o_proj_pp_name.unwrap_or("o_proj");
-        let q_proj = linear_b(
-            hidden_size,
-            num_attention_heads * head_dim,
-            bias,
-            vb.pp(q_name),
-        )
-        .map_err(CandleOcrError::Candle)?;
-        let k_proj = linear_b(
-            hidden_size,
-            num_key_value_heads * head_dim,
-            bias,
-            vb.pp(k_name),
-        )
-        .map_err(CandleOcrError::Candle)?;
-        let v_proj = linear_b(
-            hidden_size,
-            num_key_value_heads * head_dim,
-            bias,
-            vb.pp(v_name),
-        )
-        .map_err(CandleOcrError::Candle)?;
-        let o_proj = linear_b(
-            num_attention_heads * head_dim,
-            hidden_size,
-            bias,
-            vb.pp(o_name),
-        )
-        .map_err(CandleOcrError::Candle)?;
+        let q_proj = linear_b(hidden_size, num_attention_heads * head_dim, bias, vb.pp(q_name))
+            .map_err(CandleOcrError::Candle)?;
+        let k_proj = linear_b(hidden_size, num_key_value_heads * head_dim, bias, vb.pp(k_name))
+            .map_err(CandleOcrError::Candle)?;
+        let v_proj = linear_b(hidden_size, num_key_value_heads * head_dim, bias, vb.pp(v_name))
+            .map_err(CandleOcrError::Candle)?;
+        let o_proj = linear_b(num_attention_heads * head_dim, hidden_size, bias, vb.pp(o_name))
+            .map_err(CandleOcrError::Candle)?;
         Ok(Self {
             q_proj,
             k_proj,
@@ -306,9 +287,7 @@ impl NaiveAttention {
         let attn_output = attn_output
             .reshape((b_sz, q_len, self.middle_size))
             .map_err(CandleOcrError::Candle)?;
-        attn_output
-            .apply(&self.o_proj)
-            .map_err(CandleOcrError::Candle)
+        attn_output.apply(&self.o_proj).map_err(CandleOcrError::Candle)
     }
 
     /// Stateful forward pass — appends to the internal KV cache.
@@ -351,10 +330,8 @@ impl NaiveAttention {
         let (key_states, value_states) = match &self.kv_cache {
             None => (key_states, value_states),
             Some((prev_k, prev_v)) => {
-                let key_states =
-                    Tensor::cat(&[prev_k, &key_states], 2).map_err(CandleOcrError::Candle)?;
-                let value_states =
-                    Tensor::cat(&[prev_v, &value_states], 2).map_err(CandleOcrError::Candle)?;
+                let key_states = Tensor::cat(&[prev_k, &key_states], 2).map_err(CandleOcrError::Candle)?;
+                let value_states = Tensor::cat(&[prev_v, &value_states], 2).map_err(CandleOcrError::Candle)?;
                 (key_states, value_states)
             }
         };
@@ -371,9 +348,7 @@ impl NaiveAttention {
         let attn_output = attn_output
             .reshape((b_sz, q_len, self.middle_size))
             .map_err(CandleOcrError::Candle)?;
-        attn_output
-            .apply(&self.o_proj)
-            .map_err(CandleOcrError::Candle)
+        attn_output.apply(&self.o_proj).map_err(CandleOcrError::Candle)
     }
 
     /// Clear the accumulated KV cache.
@@ -419,20 +394,10 @@ impl QKVCatAttention {
         let head_dim = head_dim.unwrap_or(hidden_size / num_attention_heads);
         let qkv_name = qkv_proj_pp_name.unwrap_or("qkv_proj");
         let o_name = o_proj_pp_name.unwrap_or("out_proj");
-        let qkv_proj = linear_b(
-            hidden_size,
-            3 * num_attention_heads * head_dim,
-            bias,
-            vb.pp(qkv_name),
-        )
-        .map_err(CandleOcrError::Candle)?;
-        let o_proj = linear_b(
-            num_attention_heads * head_dim,
-            hidden_size,
-            bias,
-            vb.pp(o_name),
-        )
-        .map_err(CandleOcrError::Candle)?;
+        let qkv_proj = linear_b(hidden_size, 3 * num_attention_heads * head_dim, bias, vb.pp(qkv_name))
+            .map_err(CandleOcrError::Candle)?;
+        let o_proj = linear_b(num_attention_heads * head_dim, hidden_size, bias, vb.pp(o_name))
+            .map_err(CandleOcrError::Candle)?;
         let scaling = 1f64 / f64::sqrt(head_dim as f64);
         Ok(Self {
             qkv_proj,
@@ -503,12 +468,8 @@ impl QKVCatAttention {
             attention_mask,
             self.scaling,
         )?;
-        let attn_output = attn_output
-            .reshape((b, q_len, ()))
-            .map_err(CandleOcrError::Candle)?;
-        attn_output
-            .apply(&self.o_proj)
-            .map_err(CandleOcrError::Candle)
+        let attn_output = attn_output.reshape((b, q_len, ())).map_err(CandleOcrError::Candle)?;
+        attn_output.apply(&self.o_proj).map_err(CandleOcrError::Candle)
     }
 
     /// Stateful forward pass — appends to the internal KV cache.
@@ -559,10 +520,8 @@ impl QKVCatAttention {
         let (key_states, value_states) = match &self.kv_cache {
             None => (key_states, value_states),
             Some((prev_k, prev_v)) => {
-                let key_states =
-                    Tensor::cat(&[prev_k, &key_states], 2).map_err(CandleOcrError::Candle)?;
-                let value_states =
-                    Tensor::cat(&[prev_v, &value_states], 2).map_err(CandleOcrError::Candle)?;
+                let key_states = Tensor::cat(&[prev_k, &key_states], 2).map_err(CandleOcrError::Candle)?;
+                let value_states = Tensor::cat(&[prev_v, &value_states], 2).map_err(CandleOcrError::Candle)?;
                 (key_states, value_states)
             }
         };
@@ -575,12 +534,8 @@ impl QKVCatAttention {
             attention_mask,
             self.scaling,
         )?;
-        let attn_output = attn_output
-            .reshape((b, q_len, ()))
-            .map_err(CandleOcrError::Candle)?;
-        attn_output
-            .apply(&self.o_proj)
-            .map_err(CandleOcrError::Candle)
+        let attn_output = attn_output.reshape((b, q_len, ())).map_err(CandleOcrError::Candle)?;
+        attn_output.apply(&self.o_proj).map_err(CandleOcrError::Candle)
     }
 
     /// Clear the accumulated KV cache.
@@ -652,11 +607,14 @@ impl NaiveAttnTwoLinearMLPBlock {
             linear1_pp_name,
             linear2_pp_name,
         )?;
-        let input_layernorm =
-            get_layer_norm(vb.pp(input_norm_pp_name), norm_eps, hidden_size, true)?;
-        let post_attention_layernorm =
-            get_layer_norm(vb.pp(post_norm_pp_name), norm_eps, hidden_size, true)?;
-        Ok(Self { self_attn, mlp, input_layernorm, post_attention_layernorm })
+        let input_layernorm = get_layer_norm(vb.pp(input_norm_pp_name), norm_eps, hidden_size, true)?;
+        let post_attention_layernorm = get_layer_norm(vb.pp(post_norm_pp_name), norm_eps, hidden_size, true)?;
+        Ok(Self {
+            self_attn,
+            mlp,
+            input_layernorm,
+            post_attention_layernorm,
+        })
     }
 
     /// Run pre-norm attention + pre-norm MLP with residuals.
@@ -673,13 +631,8 @@ impl NaiveAttnTwoLinearMLPBlock {
         tof32: bool,
     ) -> Result<Tensor> {
         let residual = xs.clone();
-        let xs = self
-            .input_layernorm
-            .forward(xs)
-            .map_err(CandleOcrError::Candle)?;
-        let xs = self
-            .self_attn
-            .forward(&xs, cos, sin, attention_mask, tof32)?;
+        let xs = self.input_layernorm.forward(xs).map_err(CandleOcrError::Candle)?;
+        let xs = self.self_attn.forward(&xs, cos, sin, attention_mask, tof32)?;
         let residual = residual.add(&xs).map_err(CandleOcrError::Candle)?;
         let xs = self
             .post_attention_layernorm
@@ -756,7 +709,12 @@ impl NaiveAttnGateUpDownMLPBlock {
             rms_norm(hidden_size, norm_eps, vb.pp(input_norm_pp_name)).map_err(CandleOcrError::Candle)?;
         let post_attention_layernorm =
             rms_norm(hidden_size, norm_eps, vb.pp(post_norm_pp_name)).map_err(CandleOcrError::Candle)?;
-        Ok(Self { self_attn, mlp, input_layernorm, post_attention_layernorm })
+        Ok(Self {
+            self_attn,
+            mlp,
+            input_layernorm,
+            post_attention_layernorm,
+        })
     }
 
     /// Run pre-norm attention + pre-norm MLP with residuals.
@@ -774,13 +732,10 @@ impl NaiveAttnGateUpDownMLPBlock {
         attention_mask: Option<&Tensor>,
     ) -> Result<Tensor> {
         let residual = xs.clone();
+        let xs = self.input_layernorm.forward(xs).map_err(CandleOcrError::Candle)?;
         let xs = self
-            .input_layernorm
-            .forward(xs)
-            .map_err(CandleOcrError::Candle)?;
-        let xs =
-            self.self_attn
-                .forward_with_cache(&xs, Some(cos), Some(sin), attention_mask, false)?;
+            .self_attn
+            .forward_with_cache(&xs, Some(cos), Some(sin), attention_mask, false)?;
         let residual = residual.add(&xs).map_err(CandleOcrError::Candle)?;
         let xs = self
             .post_attention_layernorm
@@ -851,13 +806,11 @@ pub fn eager_attention_forward(
             .broadcast_add(&mask.to_dtype(attn_weights.dtype()).map_err(CandleOcrError::Candle)?)
             .map_err(CandleOcrError::Candle)?,
     };
-    let attn_weights =
-        candle_nn::ops::softmax_last_dim(&attn_weights).map_err(CandleOcrError::Candle)?
-            .contiguous()
-            .map_err(CandleOcrError::Candle)?;
-    let attn_output = attn_weights
-        .matmul(&value_states)
+    let attn_weights = candle_nn::ops::softmax_last_dim(&attn_weights)
+        .map_err(CandleOcrError::Candle)?
+        .contiguous()
         .map_err(CandleOcrError::Candle)?;
+    let attn_output = attn_weights.matmul(&value_states).map_err(CandleOcrError::Candle)?;
     // (b, n_head, seq_len, dim) -> (b, seq_len, n_head, dim)
     attn_output
         .transpose(1, 2)
@@ -889,7 +842,13 @@ pub fn get_conv2d(
     groups: usize,
     bias: bool,
 ) -> Result<Conv2d> {
-    let cfg = Conv2dConfig { padding, stride, dilation, groups, cudnn_fwd_algo: None };
+    let cfg = Conv2dConfig {
+        padding,
+        stride,
+        dilation,
+        groups,
+        cudnn_fwd_algo: None,
+    };
     let layer = if bias {
         conv2d(in_c, out_c, kernel_size, cfg, vb).map_err(CandleOcrError::Candle)?
     } else {
@@ -915,7 +874,13 @@ pub fn get_conv1d(
     groups: usize,
     bias: bool,
 ) -> Result<Conv1d> {
-    let cfg = Conv1dConfig { padding, stride, dilation, groups, cudnn_fwd_algo: None };
+    let cfg = Conv1dConfig {
+        padding,
+        stride,
+        dilation,
+        groups,
+        cudnn_fwd_algo: None,
+    };
     let layer = if bias {
         conv1d(in_c, out_c, kernel_size, cfg, vb).map_err(CandleOcrError::Candle)?
     } else {

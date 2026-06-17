@@ -70,14 +70,9 @@ fn hunyuan_ocr_extracts_text_from_sample_image() {
 
     let image_bytes = include_bytes!("../../../fixtures/images/test_hello_world.png");
 
-    eprintln!(
-        "Constructing Hunyuan-OCR engine from {}…",
-        model_path
-    );
-    let mut engine =
-        HunyuanOCREngine::init(&model_path, None, None).expect(
-            "HunyuanOCREngine::init should succeed with a valid model directory",
-        );
+    eprintln!("Constructing Hunyuan-OCR engine from {}…", model_path);
+    let mut engine = HunyuanOCREngine::init(&model_path, None, None)
+        .expect("HunyuanOCREngine::init should succeed with a valid model directory");
 
     eprintln!("Engine ready. Running inference on test fixture…");
     let output = engine

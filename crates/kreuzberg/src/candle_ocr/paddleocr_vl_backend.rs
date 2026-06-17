@@ -42,8 +42,7 @@ type PooledEngine = Arc<Mutex<PaddleOcrVlEngine>>;
 ///
 /// Engines are wrapped in `Mutex` because `PaddleOcrVlEngine::process_image`
 /// takes `&mut self` (it manages an internal KV cache).
-static ENGINE_POOL: LazyLock<RwLock<AHashMap<PoolKey, PooledEngine>>> =
-    LazyLock::new(|| RwLock::new(AHashMap::new()));
+static ENGINE_POOL: LazyLock<RwLock<AHashMap<PoolKey, PooledEngine>>> = LazyLock::new(|| RwLock::new(AHashMap::new()));
 
 /// Return a cached engine for `(task, preference)`, initialising one on first use.
 ///
@@ -80,13 +79,12 @@ fn get_or_init_engine(
         preference = ?preference,
         "Initialising PaddleOCR-VL engine (cold start)"
     );
-    let new_engine =
-        PaddleOcrVlEngine::new(model_path, task, candle_device, DType::F32).map_err(|e| {
-            crate::KreuzbergError::Ocr {
-                message: format!("PaddleOCR-VL engine initialisation failed: {e}"),
-                source: Some(Box::new(e)),
-            }
-        })?;
+    let new_engine = PaddleOcrVlEngine::new(model_path, task, candle_device, DType::F32).map_err(|e| {
+        crate::KreuzbergError::Ocr {
+            message: format!("PaddleOCR-VL engine initialisation failed: {e}"),
+            source: Some(Box::new(e)),
+        }
+    })?;
     let new_engine = Arc::new(Mutex::new(new_engine));
 
     let mut pool = ENGINE_POOL.write();
@@ -206,7 +204,8 @@ impl OcrBackend for PaddleOcrVlBackend {
         }
 
         let model_path = model_path.ok_or_else(|| crate::KreuzbergError::Validation {
-            message: "PaddleOCR-VL requires `model_path` in backend_options pointing to the local model directory".to_string(),
+            message: "PaddleOCR-VL requires `model_path` in backend_options pointing to the local model directory"
+                .to_string(),
             source: None,
         })?;
 

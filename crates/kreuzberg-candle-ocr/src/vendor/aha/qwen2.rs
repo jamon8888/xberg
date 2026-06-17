@@ -139,8 +139,7 @@ impl Qwen2Attention {
         let value_states = value_states
             .reshape((b_sz, q_len, self.num_kv_heads, self.head_dim))?
             .transpose(1, 2)?;
-        let (query_states, key_states) =
-            apply_rotary_pos_emb(&query_states, &key_states, cos, sin, false)?;
+        let (query_states, key_states) = apply_rotary_pos_emb(&query_states, &key_states, cos, sin, false)?;
         let (key_states, value_states) = match &self.kv_cache {
             None => (key_states, value_states),
             Some((prev_k, prev_v)) => {
@@ -193,8 +192,7 @@ impl Qwen2Attention {
         let value_states = value_states
             .reshape((b_sz, q_len, self.num_kv_heads, self.head_dim))?
             .transpose(1, 2)?;
-        let (query_states, key_states) =
-            apply_rotary_pos_emb(&query_states, &key_states, cos, sin, false)?;
+        let (query_states, key_states) = apply_rotary_pos_emb(&query_states, &key_states, cos, sin, false)?;
 
         let scale = 1f64 / f64::sqrt(self.head_dim as f64);
         let attn_output = eager_attention_forward(
@@ -251,13 +249,8 @@ impl Qwen2DecoderLayer {
             None,
             None,
         )?;
-        let input_layernorm =
-            rms_norm(cfg.hidden_size, cfg.rms_norm_eps, vb.pp("input_layernorm"))?;
-        let post_attention_layernorm = rms_norm(
-            cfg.hidden_size,
-            cfg.rms_norm_eps,
-            vb.pp("post_attention_layernorm"),
-        )?;
+        let input_layernorm = rms_norm(cfg.hidden_size, cfg.rms_norm_eps, vb.pp("input_layernorm"))?;
+        let post_attention_layernorm = rms_norm(cfg.hidden_size, cfg.rms_norm_eps, vb.pp("post_attention_layernorm"))?;
         Ok(Self {
             self_attn,
             mlp,
@@ -304,9 +297,7 @@ impl Qwen2DecoderLayer {
     ) -> Result<Tensor> {
         let residual = xs;
         let xs = self.input_layernorm.forward(xs)?;
-        let xs = self
-            .self_attn
-            .forward_no_cache(&xs, cos, sin, attention_mask)?;
+        let xs = self.self_attn.forward_no_cache(&xs, cos, sin, attention_mask)?;
         let xs = (xs + residual)?;
         let residual = &xs;
         let xs = xs.apply(&self.post_attention_layernorm)?.apply(&self.mlp)?;
@@ -379,9 +370,7 @@ impl Qwen2Decoder {
         seqlen_offset: usize,
     ) -> Result<Tensor> {
         let seq_len = xs.dim(1)?;
-        let (cos, sin) = self
-            .rotary_emb
-            .forward(seqlen_offset, seq_len, xs.device())?;
+        let (cos, sin) = self.rotary_emb.forward(seqlen_offset, seq_len, xs.device())?;
         let mut xs = xs.clone();
         for layer in self.layers.iter() {
             xs = layer.forward_no_cache(&xs, &cos, &sin, attention_mask)?;

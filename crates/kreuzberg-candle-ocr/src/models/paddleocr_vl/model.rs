@@ -507,12 +507,12 @@ impl Ernie4_5Model {
 
         let position_ids = match position_ids {
             Some(ids) => ids.clone(),
-            None => Tensor::arange(
+            None => Tensor::arrange(
                 seqlen_offset as u32,
                 (seq_len + seqlen_offset) as u32,
                 inputs_embeds.device(),
             )
-            .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange: {}", e)))?
+            .map_err(|e| CandleOcrError::InferenceFailed(format!("Arrange: {}", e)))?
             .unsqueeze(0)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze 1: {}", e)))?
             .unsqueeze(0)
@@ -674,8 +674,8 @@ impl PaddleOCRVLModel {
                                     0
                                 };
 
-                                let pos_ids = Tensor::arange(start_idx, start_idx + text_len, input_ids_i.device())
-                                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange: {}", e)))?
+                                let pos_ids = Tensor::arrange(start_idx, start_idx + text_len, input_ids_i.device())
+                                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Arrange: {}", e)))?
                                     .unsqueeze(0)
                                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze: {}", e)))?
                                     .broadcast_as((3usize, text_len as usize))
@@ -684,12 +684,12 @@ impl PaddleOCRVLModel {
                                 llm_pos_ids_list.push(pos_ids);
 
                                 // Vision patch position IDs
-                                let h_index = Tensor::arange(
+                                let h_index = Tensor::arrange(
                                     start_idx + text_len,
                                     start_idx + text_len + llm_grid_h,
                                     input_ids_i.device(),
                                 )
-                                .map_err(|e| CandleOcrError::InferenceFailed(format!("H arange: {}", e)))?
+                                .map_err(|e| CandleOcrError::InferenceFailed(format!("H arrange: {}", e)))?
                                 .unsqueeze(0)
                                 .map_err(|e| CandleOcrError::InferenceFailed(format!("H unsqueeze: {}", e)))?
                                 .broadcast_as((llm_grid_h as usize, llm_grid_w as usize))
@@ -697,12 +697,12 @@ impl PaddleOCRVLModel {
                                 .flatten_all()
                                 .map_err(|e| CandleOcrError::InferenceFailed(format!("H flatten: {}", e)))?;
 
-                                let w_index = Tensor::arange(
+                                let w_index = Tensor::arrange(
                                     start_idx + text_len,
                                     start_idx + text_len + llm_grid_w,
                                     input_ids_i.device(),
                                 )
-                                .map_err(|e| CandleOcrError::InferenceFailed(format!("W arange: {}", e)))?
+                                .map_err(|e| CandleOcrError::InferenceFailed(format!("W arrange: {}", e)))?
                                 .unsqueeze(0)
                                 .map_err(|e| CandleOcrError::InferenceFailed(format!("W unsqueeze: {}", e)))?
                                 .broadcast_as((llm_grid_h as usize, llm_grid_w as usize))
@@ -738,8 +738,8 @@ impl PaddleOCRVLModel {
                     };
 
                     let text_len = (input_len as u32) - text_start;
-                    let pos_ids = Tensor::arange(start_idx, start_idx + text_len, input_ids_i.device())
-                        .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange: {}", e)))?
+                    let pos_ids = Tensor::arrange(start_idx, start_idx + text_len, input_ids_i.device())
+                        .map_err(|e| CandleOcrError::InferenceFailed(format!("Arrange: {}", e)))?
                         .unsqueeze(0)
                         .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze: {}", e)))?
                         .broadcast_as((3usize, text_len as usize))
@@ -780,8 +780,8 @@ impl PaddleOCRVLModel {
             Ok((position_ids.contiguous()?, mrope_position_deltas))
         } else {
             // No vision: simple text-only position IDs
-            let position_ids = Tensor::arange(0_u32, input_ids.dim(D::Minus1)? as u32, input_ids.device())
-                .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange: {}", e)))?
+            let position_ids = Tensor::arrange(0_u32, input_ids.dim(D::Minus1)? as u32, input_ids.device())
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Arrange: {}", e)))?
                 .unsqueeze(0)
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze 1: {}", e)))?
                 .unsqueeze(0)
@@ -839,8 +839,8 @@ impl PaddleOCRVLModel {
                 let [t, h, w] = [grid_row[0], grid_row[1], grid_row[2]];
                 let numel = h * w;
 
-                let image_position_ids = Tensor::arange(0, numel, pixel_values.device())
-                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange: {}", e)))?
+                let image_position_ids = Tensor::arrange(0, numel, pixel_values.device())
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Arrange: {}", e)))?
                     .repeat(t as usize)
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Repeat: {}", e)))?;
 
@@ -915,8 +915,8 @@ impl PaddleOCRVLModel {
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Zeros: {}", e)))?
             };
 
-            position_ids = Tensor::arange(0u32, seq_len as u32, input_ids.device())
-                .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange: {}", e)))?
+            position_ids = Tensor::arrange(0u32, seq_len as u32, input_ids.device())
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Arrange: {}", e)))?
                 .unsqueeze(0)
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze 1: {}", e)))?
                 .broadcast_as((bs, seq_len))
@@ -996,7 +996,7 @@ impl InferenceModel for PaddleOCRVLModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use candle_core::{Device, DType, Tensor};
+    use candle_core::{DType, Device, Tensor};
     use candle_nn::VarBuilder;
 
     fn tiny_vision_config() -> PaddleOCRVLVisionConfig {
@@ -1132,7 +1132,7 @@ mod tests {
         let batch = 1usize;
         let seq_len = 6usize;
         // All tokens are plain text (no vision_start_token_id among them).
-        let input_ids = Tensor::arange(0u32, (batch * seq_len) as u32, &dev)
+        let input_ids = Tensor::arrange(0u32, (batch * seq_len) as u32, &dev)
             .map_err(|e| crate::CandleOcrError::InferenceFailed(e.to_string()))?
             .reshape((batch, seq_len))
             .map_err(|e| crate::CandleOcrError::InferenceFailed(e.to_string()))?;
@@ -1173,8 +1173,14 @@ mod tests {
         let decoded: PaddleOCRVLConfig =
             serde_json::from_str(&json).expect("PaddleOCRVLConfig should deserialize from JSON");
 
-        assert_eq!(decoded.hidden_size, cfg.hidden_size, "hidden_size should survive serde round-trip");
-        assert_eq!(decoded.vocab_size, cfg.vocab_size, "vocab_size should survive serde round-trip");
+        assert_eq!(
+            decoded.hidden_size, cfg.hidden_size,
+            "hidden_size should survive serde round-trip"
+        );
+        assert_eq!(
+            decoded.vocab_size, cfg.vocab_size,
+            "vocab_size should survive serde round-trip"
+        );
         assert_eq!(
             decoded.vision_config.num_hidden_layers, cfg.vision_config.num_hidden_layers,
             "vision_config.num_hidden_layers should survive serde round-trip"
@@ -1216,10 +1222,22 @@ mod tests {
             serde_json::from_str(&json).expect("PaddleOCRVLPreprocessorConfig should deserialize");
 
         assert_eq!(decoded.do_normalize, cfg.do_normalize);
-        assert_eq!(decoded.patch_size, cfg.patch_size, "patch_size should survive round-trip");
-        assert_eq!(decoded.merge_size, cfg.merge_size, "merge_size should survive round-trip");
-        assert_eq!(decoded.max_pixels, cfg.max_pixels, "max_pixels should survive round-trip");
-        assert_eq!(decoded.min_pixels, cfg.min_pixels, "min_pixels should survive round-trip");
+        assert_eq!(
+            decoded.patch_size, cfg.patch_size,
+            "patch_size should survive round-trip"
+        );
+        assert_eq!(
+            decoded.merge_size, cfg.merge_size,
+            "merge_size should survive round-trip"
+        );
+        assert_eq!(
+            decoded.max_pixels, cfg.max_pixels,
+            "max_pixels should survive round-trip"
+        );
+        assert_eq!(
+            decoded.min_pixels, cfg.min_pixels,
+            "min_pixels should survive round-trip"
+        );
         assert_eq!(
             decoded.image_mean, cfg.image_mean,
             "image_mean should survive round-trip"

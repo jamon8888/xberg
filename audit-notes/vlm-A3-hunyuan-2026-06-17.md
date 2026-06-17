@@ -1,9 +1,10 @@
 # Audit A3: Hunyuan-OCR End-to-End Port Feasibility
+
 ## Source: jhqxxx/aha Candle 0.9.2
 
-**Date**: 2026-06-17  
-**Scope**: `src/models/hunyuan_ocr/` (config.rs, model.rs, processor.rs, generate.rs, mod.rs)  
-**Total LOC**: 1076 (clean, well-organized)  
+**Date**: 2026-06-17
+**Scope**: `src/models/hunyuan_ocr/` (config.rs, model.rs, processor.rs, generate.rs, mod.rs)
+**Total LOC**: 1076 (clean, well-organized)
 **Port Risk Level**: **LOW** (isolated, minimal external deps, explicit control flow)
 
 ---
@@ -18,7 +19,8 @@
 | generate.rs | 101 | HunyuanOCRGenerateModel + GenerationDataProvider impl | 3 unwrap_or | 0 | 0 | 0 | 0 |
 | mod.rs | 4 | Module re-exports | 0 | 0 | 0 | 0 | 0 |
 
-### Error-handling assessment:
+### Error-handling assessment
+
 - **config.rs**: Pure data structures, no error paths.
 - **model.rs**: All ops return `Result<T>`, no defensive `.unwrap()` — errors propagated.
 - **processor.rs**: 2 `assert!()` calls for path/file validation (L27, L32) — replaceable with `Result<Err>`.
@@ -87,6 +89,7 @@
 ## 3. Architectural Notes
 
 ### Vision Backbone
+
 - **Type**: Vision Transformer (ViT) with patch merging.
 - **Components**:
   - `HunYuanVisionPatchEmbed`: Conv2d patch embedding + bilinear interpolated position embeddings.
@@ -94,23 +97,27 @@
   - `HunYuanVisionTransformer`: 24-layer naive attention + MLP transformer stack; outputs merged patch tokens.
 
 ### Decoder
+
 - **Type**: Causal transformer (text-only after vision injection).
 - `HunYuanVLTextModel`: Embeddings → 24 `HunYuanVLDecoderLayer` → final norm.
 - `HunYuanVLDecoderLayer`: Pre-norm residuals (input_layernorm → attention → residual) + (post_attention_layernorm → GateUpDownMLP → residual).
 
 ### Position Embeddings
+
 - **Scheme**: XD-RoPE with section-wise frequency scaling.
 - **Implementation**: `RoPE::new()` initialized once with base = `rope_theta * alpha^(head_dim / (head_dim-2))`.
 - **Multi-dimensional**: Supports 2D positional coordinates (h, w, t) via `get_xd_cos_sin()` + xdrope_section mapping.
 - **Used**: Applied to Q, K in attention layer 0 with image grid coordinates; standard RoPE for subsequent layers.
 
 ### KV Cache Management
+
 - **Owner**: Each `HunYuanVLAttention` instance.
 - **Lifecycle**: Initialized as `None`; accumulated in `forward()` → concatenated with fresh K, V each step.
 - **Clear**: Explicit `clear_kv_cache()` after generation step.
 - **Caller contract**: `HunyuanVLModel.forward_step()` expects single-token input; seqlen_offset tracks position.
 
 ### Generation Loop Integration
+
 - **Interface**: `GenerationDataProvider` trait (`get_data()`, `get_temperature()`, `get_top_p()`, `get_top_k()`).
 - **Macro**: `impl_generate_model!(HunyuanOCRGenerateModel)` — aha's generation loop macro expands into step/sample loop.
 - **Data flow**: ChatCompletionParameters → processor → (input_ids, MultiModalData with 4-element vec) → common::generate loop.
@@ -123,16 +130,19 @@
 ### Verdict: **PLUG-IN COMPATIBLE WITH ONE REFACTOR**
 
 **What works out-of-box**:
+
 - Hunyuan implements `InferenceModel` trait (`forward_initial`, `forward_step`, `clear_cache`, `stop_token_ids`).
 - `HunYuanVLAttention.kv_cache` is self-managed; no caller-provided cache required.
 - RoPE is pre-computed per step; no position-id provider needed.
 
 **Architectural issue**: Multi-dimensional position IDs.
+
 - Hunyuan uses 4D position tensor: `[batch, 4, seq_len]` where dims are (1D baseline, h, w, t).
 - Current aha `common::generate` loop calls `model.forward_step(input_ids: &Tensor, seqlen_offset: usize)`.
 - aha's seqlen_offset is a scalar; Hunyuan needs the 4D grid coordinate tuple.
 
 **Required refactor** (estimated 4–6 hours):
+
 1. Extend `InferenceModel::forward_step()` signature to accept optional per-model metadata, OR
 2. Add a new trait method `fn forward_step_with_position_ids(&mut self, input_ids: &Tensor, position_ids: Option<&Tensor>, seqlen_offset: usize) -> Result<Tensor>` with a default impl that calls `forward_step()`, OR
 3. Wrap Hunyuan in a thin adapter that caches position_ids state and calls `forward()` directly with all arguments.
@@ -144,6 +154,7 @@
 ## 5. Port Effort Estimate
 
 ### Analogues
+
 - **PaddleOCR-VL port (aha → kreuzberg-ocr)**: ~12 hours (included vendoring infra, LoRA adapter cleanup, checkpoint format conversion).
 - **Hunyuan complexity delta**:
   - **Same**: ViT + causal transformer + RoPE, multimodal processor.
@@ -151,6 +162,7 @@
   - **Harder**: XD-RoPE with section mapping; 4D position tensor for coordinate interpolation.
 
 ### Breakdown (hours)
+
 | Task | Est. Hours | Notes |
 |------|-----------|-------|
 | Vendor shared infra (Phase 3) | 3–5 | rope.rs, tensor_utils.rs, img_utils.rs (~2.5 kloc total); filter out unrequired symbols |
@@ -168,7 +180,8 @@
 ## 6. Key Dependencies Summary
 
 ### Vendorable Subset (Phase 3 output)
-```
+
+```text
 ├── position_embed/rope.rs         (RoPE, apply_rotary_pos_emb, get_xd_cos_sin)
 ├── utils/
 │   ├── tensor_utils.rs            (masked_scatter_dim0, prepare_causal_attention_mask, split_tensor, get_eq_indices, get_equal_mask, index_select_2d)
@@ -181,6 +194,7 @@
 ```
 
 ### Not Needed for Hunyuan
+
 - models/common/embedding.rs, reranker.rs, gguf.rs
 - position_embed/sinusoidal_pe.rs
 - utils/video_utils.rs, response_utils.rs

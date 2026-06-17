@@ -74,12 +74,11 @@ fn get_or_init_engine(
         "Initialising DeepSeek-OCR engine (cold start)"
     );
 
-    let new_engine = DeepseekOCREngine::init(model_path, device, dtype, version).map_err(|e| {
-        crate::KreuzbergError::Ocr {
+    let new_engine =
+        DeepseekOCREngine::init(model_path, device, dtype, version).map_err(|e| crate::KreuzbergError::Ocr {
             message: format!("DeepSeek-OCR engine initialisation failed: {e}"),
             source: Some(Box::new(e)),
-        }
-    })?;
+        })?;
     let new_engine = Arc::new(parking_lot::Mutex::new(new_engine));
 
     let mut pool = ENGINE_POOL.write();
@@ -120,9 +119,7 @@ impl DeepseekOcrBackend {
     ///
     /// The data type defaults to `F32`. Use [`DeepseekOcrBackend::with_dtype`] to override.
     pub fn new() -> Self {
-        Self {
-            dtype: DType::F32,
-        }
+        Self { dtype: DType::F32 }
     }
 
     /// Override the floating-point precision used by the candle engine.
@@ -211,12 +208,12 @@ impl OcrBackend for DeepseekOcrBackend {
         let content = tokio::task::spawn_blocking(move || {
             let engine = get_or_init_engine(device, dtype, &model_path, version)?;
             let mut engine_guard = engine.lock();
-            let output = engine_guard.process_image(&image_bytes, None).map_err(|e| {
-                crate::KreuzbergError::Ocr {
+            let output = engine_guard
+                .process_image(&image_bytes, None)
+                .map_err(|e| crate::KreuzbergError::Ocr {
                     message: format!("DeepSeek-OCR inference failed: {e}"),
                     source: Some(Box::new(e)),
-                }
-            })?;
+                })?;
             Ok::<String, crate::KreuzbergError>(output)
         })
         .await

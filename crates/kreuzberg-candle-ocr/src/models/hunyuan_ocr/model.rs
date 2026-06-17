@@ -3,21 +3,16 @@
 //! Hunyuan-VL model architecture: vision encoder + text decoder with XD-RoPE.
 
 use candle_core::{D, IndexOp, Tensor};
-use candle_nn::{
-    Conv2d, Embedding, Init, Linear, Module, RmsNorm, VarBuilder, embedding, linear, linear_b,
-    rms_norm,
-};
+use candle_nn::{Conv2d, Embedding, Init, Linear, Module, RmsNorm, VarBuilder, embedding, linear, linear_b, rms_norm};
 
-use crate::error::{Result, CandleOcrError};
+use crate::error::{CandleOcrError, Result};
 use crate::models::hunyuan_ocr::config::{HunYuanVLConfig, HunYuanVLVisionConfig};
 
 // Re-export from vendored aha infrastructure.
-use crate::vendor::aha::modules::{
-    GateUpDownMLP, NaiveAttnTwoLinearMLPBlock, eager_attention_forward, get_conv2d,
-};
+use crate::vendor::aha::image::interpolate_bilinear;
+use crate::vendor::aha::modules::{GateUpDownMLP, NaiveAttnTwoLinearMLPBlock, eager_attention_forward, get_conv2d};
 use crate::vendor::aha::rope::{RoPE, apply_rotary_pos_emb, get_xd_cos_sin};
 use crate::vendor::aha::{InferenceModel, MultiModalData};
-use crate::vendor::aha::image::interpolate_bilinear;
 
 /// Vision patch embedding layer: convolutional projection + positional embeddings.
 pub struct HunYuanVisionPatchEmbed {
@@ -41,7 +36,8 @@ impl HunYuanVisionPatchEmbed {
             1,
             1,
             true,
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("patch_embedding conv: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("patch_embedding conv: {}", e)))?;
 
         let num_channels = config.num_channels;
         let patch_size = config.patch_size;
@@ -49,9 +45,8 @@ impl HunYuanVisionPatchEmbed {
         let num_positions = (position_edge).pow(2) + 1;
         let embed_dim = config.hidden_size;
 
-        let position_embedding =
-            embedding(num_positions, embed_dim, vb.pp("position_embedding"))
-                .map_err(|e| CandleOcrError::ModelLoadFailed(format!("position_embedding: {}", e)))?;
+        let position_embedding = embedding(num_positions, embed_dim, vb.pp("position_embedding"))
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("position_embedding: {}", e)))?;
 
         let patch_pos_embed = position_embedding
             .embeddings()
@@ -78,12 +73,7 @@ impl HunYuanVisionPatchEmbed {
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Dims2: {}", e)))?;
 
         let pixel_values = pixel_values
-            .reshape((
-                num_patches,
-                self.num_channels,
-                self.patch_size,
-                self.patch_size,
-            ))
+            .reshape((num_patches, self.num_channels, self.patch_size, self.patch_size))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Reshape pixels: {}", e)))?;
 
         let patch_embeds = self
@@ -173,7 +163,8 @@ impl HunYuanVisionPatchMerger {
             1,
             1,
             true,
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("proj_0: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("proj_0: {}", e)))?;
 
         let proj_2 = get_conv2d(
             vb.pp("proj.2"),
@@ -185,30 +176,29 @@ impl HunYuanVisionPatchMerger {
             1,
             1,
             true,
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("proj_2: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("proj_2: {}", e)))?;
 
         let mlp = linear(config.hidden_size * 4, config.out_hidden_size, vb.pp("mlp"))
             .map_err(|e| CandleOcrError::ModelLoadFailed(format!("mlp: {}", e)))?;
 
-        let image_newline =
-            vb.get_with_hints(config.hidden_size * 4, "image_newline", Init::Const(0.))
-                .map_err(|e| CandleOcrError::ModelLoadFailed(format!("image_newline: {}", e)))?;
+        let image_newline = vb
+            .get_with_hints(config.hidden_size * 4, "image_newline", Init::Const(0.))
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("image_newline: {}", e)))?;
 
-        let image_begin =
-            vb.get_with_hints(config.out_hidden_size, "image_begin", Init::Const(0.))
-                .map_err(|e| CandleOcrError::ModelLoadFailed(format!("image_begin: {}", e)))?;
+        let image_begin = vb
+            .get_with_hints(config.out_hidden_size, "image_begin", Init::Const(0.))
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("image_begin: {}", e)))?;
 
-        let image_end = vb.get_with_hints(config.out_hidden_size, "image_end", Init::Const(0.))
+        let image_end = vb
+            .get_with_hints(config.out_hidden_size, "image_end", Init::Const(0.))
             .map_err(|e| CandleOcrError::ModelLoadFailed(format!("image_end: {}", e)))?;
 
         let before_rms = rms_norm(config.hidden_size, config.rms_norm_eps, vb.pp("before_rms"))
             .map_err(|e| CandleOcrError::ModelLoadFailed(format!("before_rms: {}", e)))?;
 
-        let after_rms = rms_norm(
-            config.out_hidden_size,
-            config.rms_norm_eps,
-            vb.pp("after_rms"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("after_rms: {}", e)))?;
+        let after_rms = rms_norm(config.out_hidden_size, config.rms_norm_eps, vb.pp("after_rms"))
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("after_rms: {}", e)))?;
 
         Ok(Self {
             proj_0,
@@ -233,7 +223,13 @@ impl HunYuanVisionPatchMerger {
         let xs = xs
             .permute((0, 2, 1))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Permute: {}", e)))?
-            .reshape((xs.dim(0).map_err(|e| CandleOcrError::InferenceFailed(format!("Dim 0: {}", e)))?, (), h, w))
+            .reshape((
+                xs.dim(0)
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Dim 0: {}", e)))?,
+                (),
+                h,
+                w,
+            ))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Reshape: {}", e)))?;
 
         let xs = self
@@ -279,7 +275,12 @@ impl HunYuanVisionPatchMerger {
             .image_begin
             .reshape((1, 1, ()))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Reshape begin: {}", e)))?
-            .broadcast_as((b, 1, xs.dim(D::Minus1).map_err(|e| CandleOcrError::InferenceFailed(format!("Dim -1: {}", e)))?))
+            .broadcast_as((
+                b,
+                1,
+                xs.dim(D::Minus1)
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Dim -1: {}", e)))?,
+            ))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Broadcast begin: {}", e)))?
             .to_dtype(xs.dtype())
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Dtype begin: {}", e)))?;
@@ -288,7 +289,12 @@ impl HunYuanVisionPatchMerger {
             .image_end
             .reshape((1, 1, ()))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Reshape end: {}", e)))?
-            .broadcast_as((b, 1, xs.dim(D::Minus1).map_err(|e| CandleOcrError::InferenceFailed(format!("Dim -1: {}", e)))?))
+            .broadcast_as((
+                b,
+                1,
+                xs.dim(D::Minus1)
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Dim -1: {}", e)))?,
+            ))
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Broadcast end: {}", e)))?
             .to_dtype(xs.dtype())
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Dtype end: {}", e)))?;
@@ -338,7 +344,8 @@ impl HunYuanVisionTransformer {
                 config.rms_norm_eps,
                 "input_layernorm",
                 "post_attention_layernorm",
-            ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("Layer {}: {}", i, e)))?;
+            )
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Layer {}: {}", i, e)))?;
 
             layers.push(layer_i);
         }
@@ -450,28 +457,32 @@ impl HunYuanVLAttention {
             num_attention_heads * head_dim,
             attention_bias,
             vb.pp("q_proj"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("q_proj: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("q_proj: {}", e)))?;
 
         let k_proj = linear_b(
             hidden_size,
             num_key_value_heads * head_dim,
             attention_bias,
             vb.pp("k_proj"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("k_proj: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("k_proj: {}", e)))?;
 
         let v_proj = linear_b(
             hidden_size,
             num_key_value_heads * head_dim,
             attention_bias,
             vb.pp("v_proj"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("v_proj: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("v_proj: {}", e)))?;
 
         let o_proj = linear_b(
             num_attention_heads * head_dim,
             hidden_size,
             attention_bias,
             vb.pp("o_proj"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("o_proj: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("o_proj: {}", e)))?;
 
         let query_layernorm = rms_norm(head_dim, rms_norm_eps, vb.pp("query_layernorm"))
             .map_err(|e| CandleOcrError::ModelLoadFailed(format!("query_layernorm: {}", e)))?;
@@ -567,7 +578,8 @@ impl HunYuanVLAttention {
             Some(self.num_kv_groups),
             attention_mask,
             self.scaling,
-        ).map_err(|e| CandleOcrError::InferenceFailed(format!("Attention forward: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::InferenceFailed(format!("Attention forward: {}", e)))?;
 
         let attn_output = attn_output
             .reshape((b_sz, q_len, self.num_attention_heads * self.head_dim))
@@ -605,7 +617,8 @@ impl HunYuanVLDecoderLayer {
             config.num_key_value_heads,
             config.attention_bias,
             config.rms_norm_eps,
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("Self-attn: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Self-attn: {}", e)))?;
 
         let mlp = GateUpDownMLP::new(
             vb.pp("mlp"),
@@ -616,19 +629,18 @@ impl HunYuanVLDecoderLayer {
             None,
             None,
             None,
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("MLP: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("MLP: {}", e)))?;
 
-        let input_layernorm = rms_norm(
-            config.hidden_size,
-            config.rms_norm_eps,
-            vb.pp("input_layernorm"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("Input LN: {}", e)))?;
+        let input_layernorm = rms_norm(config.hidden_size, config.rms_norm_eps, vb.pp("input_layernorm"))
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Input LN: {}", e)))?;
 
         let post_attention_layernorm = rms_norm(
             config.hidden_size,
             config.rms_norm_eps,
             vb.pp("post_attention_layernorm"),
-        ).map_err(|e| CandleOcrError::ModelLoadFailed(format!("Post-attn LN: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Post-attn LN: {}", e)))?;
 
         Ok(Self {
             self_attn,
@@ -748,11 +760,8 @@ impl HunYuanVLTextModel {
             None
         } else {
             Some(
-                prepare_causal_attention_mask(
-                    b_size,
-                    seq_len,
-                    inputs_embeds.device(),
-                ).map_err(|e| CandleOcrError::InferenceFailed(format!("Causal mask: {}", e)))?
+                prepare_causal_attention_mask(b_size, seq_len, inputs_embeds.device())
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Causal mask: {}", e)))?,
             )
         };
 
@@ -768,14 +777,17 @@ impl HunYuanVLTextModel {
                 if let Some(pos_ids) = position_ids {
                     let (cos, sin) = get_xd_cos_sin(&cos, &sin, pos_ids, self.xdrope_section.clone())
                         .map_err(|e| CandleOcrError::InferenceFailed(format!("XD-RoPE: {}", e)))?;
-                    xs = layer.forward(&xs, &cos, &sin, attention_mask.as_ref())
+                    xs = layer
+                        .forward(&xs, &cos, &sin, attention_mask.as_ref())
                         .map_err(|e| CandleOcrError::InferenceFailed(format!("Layer {}: {}", i, e)))?;
                 } else {
-                    xs = layer.forward(&xs, &cos, &sin, attention_mask.as_ref())
+                    xs = layer
+                        .forward(&xs, &cos, &sin, attention_mask.as_ref())
                         .map_err(|e| CandleOcrError::InferenceFailed(format!("Layer {}: {}", i, e)))?;
                 }
             } else {
-                xs = layer.forward(&xs, &cos, &sin, attention_mask.as_ref())
+                xs = layer
+                    .forward(&xs, &cos, &sin, attention_mask.as_ref())
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Layer {}: {}", i, e)))?;
             }
         }
@@ -839,9 +851,7 @@ impl HunyuanVLModel {
             .forward(input_ids)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Embed tokens: {}", e)))?;
 
-        if let (Some(pixel_values), Some(grid_thw), Some(image_mask)) =
-            (pixel_values, image_grid_thw, image_mask)
-        {
+        if let (Some(pixel_values), Some(grid_thw), Some(image_mask)) = (pixel_values, image_grid_thw, image_mask) {
             let image_embeds = self
                 .vit
                 .forward(pixel_values, grid_thw)
@@ -881,15 +891,11 @@ impl HunyuanVLModel {
 }
 
 impl InferenceModel for HunyuanVLModel {
-    fn forward_initial(
-        &mut self,
-        input_ids: &Tensor,
-        seqlen_offset: usize,
-        data: MultiModalData,
-    ) -> Result<Tensor> {
+    fn forward_initial(&mut self, input_ids: &Tensor, seqlen_offset: usize, data: MultiModalData) -> Result<Tensor> {
         if data.data_vec.len() != 4 {
             return Err(CandleOcrError::InferenceFailed(
-                "Hunyuan-VL requires 4 multimodal data items: pixel_values, image_grid_thw, image_mask, position_ids".to_string()
+                "Hunyuan-VL requires 4 multimodal data items: pixel_values, image_grid_thw, image_mask, position_ids"
+                    .to_string(),
             ));
         }
 
@@ -930,8 +936,10 @@ fn split_tensor(t: &Tensor, splits: &[usize], dim: usize) -> Result<Vec<Tensor>>
     let mut results: Vec<Tensor> = Vec::with_capacity(splits.len());
     let mut offset = 0;
     for &size in splits {
-        results.push(t.narrow(dim, offset, size)
-            .map_err(|e| CandleOcrError::InferenceFailed(format!("Narrow: {}", e)))?);
+        results.push(
+            t.narrow(dim, offset, size)
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Narrow: {}", e)))?,
+        );
         offset += size;
     }
     Ok(results)
@@ -956,9 +964,11 @@ fn prepare_causal_attention_mask(batch_size: usize, seq_len: usize, device: &can
 
 /// Scatter image embeddings into position placeholders using a mask.
 fn masked_scatter_dim0(base: &Tensor, image_embeds: &Tensor, mask: &Tensor) -> Result<Tensor> {
-    let mask_vec = mask.to_vec1::<u32>()
+    let mask_vec = mask
+        .to_vec1::<u32>()
         .map_err(|e| CandleOcrError::InferenceFailed(format!("Mask vec: {}", e)))?;
-    let base_len = base.dim(0)
+    let base_len = base
+        .dim(0)
         .map_err(|e| CandleOcrError::InferenceFailed(format!("Base dim: {}", e)))?;
 
     // Collect rows to build the output tensor.
@@ -966,33 +976,35 @@ fn masked_scatter_dim0(base: &Tensor, image_embeds: &Tensor, mask: &Tensor) -> R
     let mut img_idx = 0;
 
     for (pos, &is_image) in mask_vec.iter().enumerate() {
-        if is_image == 1 && img_idx < image_embeds.dim(0)
-            .map_err(|e| CandleOcrError::InferenceFailed(format!("Img dim: {}", e)))?
+        if is_image == 1
+            && img_idx
+                < image_embeds
+                    .dim(0)
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Img dim: {}", e)))?
         {
-            let img_embed = image_embeds.i(img_idx)
+            let img_embed = image_embeds
+                .i(img_idx)
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Index image: {}", e)))?;
             result_rows.push(img_embed);
             img_idx += 1;
         } else if pos < base_len {
-            let base_row = base.i(pos)
+            let base_row = base
+                .i(pos)
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Index base: {}", e)))?;
             result_rows.push(base_row);
         }
     }
 
-    Tensor::stack(&result_rows, 0)
-        .map_err(|e| CandleOcrError::InferenceFailed(format!("Stack: {}", e)))
+    Tensor::stack(&result_rows, 0).map_err(|e| CandleOcrError::InferenceFailed(format!("Stack: {}", e)))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use candle_core::{Device, DType, Tensor};
+    use candle_core::{DType, Device, Tensor};
     use candle_nn::Activation;
 
-    use crate::models::hunyuan_ocr::config::{
-        HunYuanVLConfig, HunYuanVLRopeScaling, HunYuanVLVisionConfig,
-    };
+    use crate::models::hunyuan_ocr::config::{HunYuanVLConfig, HunYuanVLRopeScaling, HunYuanVLVisionConfig};
 
     // -----------------------------------------------------------------------
     // Minimal config helpers
@@ -1089,8 +1101,7 @@ mod tests {
         let vb = VarBuilder::zeros(DType::F32, &dev);
 
         let _attn = HunYuanVLAttention::new(
-            vb,
-            256,  // hidden_size
+            vb, 256,  // hidden_size
             64,   // head_dim
             4,    // num_attention_heads
             2,    // num_key_value_heads
@@ -1136,14 +1147,8 @@ mod tests {
         assert_eq!(cfg.patch_size, 14, "patch_size mismatch");
         assert_eq!(cfg.out_hidden_size, 3584, "out_hidden_size mismatch");
         assert_eq!(cfg.num_channels, 3, "num_channels must be 3 for RGB");
-        assert_eq!(
-            cfg.spatial_merge_size, 2,
-            "spatial_merge_size mismatch"
-        );
-        assert_eq!(
-            cfg.interpolate_mode, "bilinear",
-            "interpolate_mode mismatch"
-        );
+        assert_eq!(cfg.spatial_merge_size, 2, "spatial_merge_size mismatch");
+        assert_eq!(cfg.interpolate_mode, "bilinear", "interpolate_mode mismatch");
     }
 
     // -----------------------------------------------------------------------
@@ -1171,8 +1176,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn should_produce_correct_output_shape_from_vision_patch_embed_given_single_patch() -> Result<()>
-    {
+    fn should_produce_correct_output_shape_from_vision_patch_embed_given_single_patch() -> Result<()> {
         let dev = Device::Cpu;
         let vb = VarBuilder::zeros(DType::F32, &dev);
         let cfg = tiny_vision_config();
@@ -1219,8 +1223,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn should_produce_output_with_hidden_size_dim_when_text_model_forward_called_without_position_ids(
-    ) -> Result<()> {
+    fn should_produce_output_with_hidden_size_dim_when_text_model_forward_called_without_position_ids() -> Result<()> {
         let dev = Device::Cpu;
         let vb = VarBuilder::zeros(DType::F32, &dev);
         let cfg = tiny_full_config();
@@ -1248,8 +1251,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn should_accept_position_ids_and_produce_output_when_text_model_forward_uses_xd_rope_path(
-    ) -> Result<()> {
+    fn should_accept_position_ids_and_produce_output_when_text_model_forward_uses_xd_rope_path() -> Result<()> {
         let dev = Device::Cpu;
         let vb = VarBuilder::zeros(DType::F32, &dev);
         let cfg = tiny_full_config();

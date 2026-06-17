@@ -41,8 +41,7 @@ type PooledEngine = Arc<parking_lot::Mutex<HunyuanOCREngine>>;
 /// A single engine instance handles all tasks via the generation loop, so the
 /// pool key does not include the task. Two callers requesting the same
 /// `(device, dtype)` share one engine and avoid loading weights twice.
-static ENGINE_POOL: LazyLock<RwLock<AHashMap<PoolKey, PooledEngine>>> =
-    LazyLock::new(|| RwLock::new(AHashMap::new()));
+static ENGINE_POOL: LazyLock<RwLock<AHashMap<PoolKey, PooledEngine>>> = LazyLock::new(|| RwLock::new(AHashMap::new()));
 
 /// Return a cached engine for `(preference, dtype)`, initialising one on first use.
 ///
@@ -54,11 +53,7 @@ static ENGINE_POOL: LazyLock<RwLock<AHashMap<PoolKey, PooledEngine>>> =
 ///
 /// Returns [`crate::KreuzbergError::Ocr`] if device selection fails or the
 /// engine cannot be initialised from the model directory.
-fn get_or_init_engine(
-    model_path: &str,
-    preference: DevicePreference,
-    dtype: DType,
-) -> crate::Result<PooledEngine> {
+fn get_or_init_engine(model_path: &str, preference: DevicePreference, dtype: DType) -> crate::Result<PooledEngine> {
     let key: PoolKey = (preference, dtype);
 
     // Fast path: engine already in pool.
@@ -81,13 +76,12 @@ fn get_or_init_engine(
         "Initialising Hunyuan-OCR engine (cold start)"
     );
 
-    let new_engine =
-        HunyuanOCREngine::init(model_path, Some(&candle_device), Some(dtype)).map_err(|e| {
-            crate::KreuzbergError::Ocr {
-                message: format!("Hunyuan-OCR engine initialisation failed: {e}"),
-                source: Some(Box::new(e)),
-            }
-        })?;
+    let new_engine = HunyuanOCREngine::init(model_path, Some(&candle_device), Some(dtype)).map_err(|e| {
+        crate::KreuzbergError::Ocr {
+            message: format!("Hunyuan-OCR engine initialisation failed: {e}"),
+            source: Some(Box::new(e)),
+        }
+    })?;
     let new_engine = Arc::new(parking_lot::Mutex::new(new_engine));
 
     let mut pool = ENGINE_POOL.write();
@@ -203,7 +197,8 @@ impl OcrBackend for HunyuanOcrBackend {
         }
 
         let model_path = model_path.ok_or_else(|| crate::KreuzbergError::Validation {
-            message: "Hunyuan-OCR requires `model_path` in backend_options pointing to the local model directory".to_string(),
+            message: "Hunyuan-OCR requires `model_path` in backend_options pointing to the local model directory"
+                .to_string(),
             source: None,
         })?;
 

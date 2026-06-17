@@ -56,11 +56,7 @@ fn lcm(a: u32, b: u32) -> u32 {
         }
         a
     }
-    if a == 0 || b == 0 {
-        0
-    } else {
-        a / gcd(a, b) * b
-    }
+    if a == 0 || b == 0 { 0 } else { a / gcd(a, b) * b }
 }
 
 // ---------------------------------------------------------------------------
@@ -186,20 +182,11 @@ pub fn find_closest_aspect_ratio(
 /// Returns [`CandleOcrError::InferenceFailed`] if the number of cropped tiles
 /// does not match the expected `grid_width * grid_height` (guards against logic
 /// bugs in the calling code).
-pub fn crop_img(
-    image: &DynamicImage,
-    grid_height: u32,
-    grid_width: u32,
-    image_size: u32,
-) -> Result<Vec<DynamicImage>> {
+pub fn crop_img(image: &DynamicImage, grid_height: u32, grid_width: u32, image_size: u32) -> Result<Vec<DynamicImage>> {
     let target_width = image_size * grid_width;
     let target_height = image_size * grid_height;
     let blocks = grid_width * grid_height;
-    let mut resized_img = image.resize_exact(
-        target_width,
-        target_height,
-        imageops::FilterType::CatmullRom,
-    );
+    let mut resized_img = image.resize_exact(target_width, target_height, imageops::FilterType::CatmullRom);
     let mut processed_images = Vec::with_capacity(blocks as usize);
     for i in 0..blocks {
         let x1 = (i % grid_width) * image_size;
@@ -230,25 +217,11 @@ pub fn dynamic_preprocess(
     let orig_height = image.height();
     let aspect_ratio = orig_width as f64 / orig_height as f64;
     let target_ratios = generate_target_ratios_sorted(min_num, max_num);
-    let target_aspect_ratio = find_closest_aspect_ratio(
-        aspect_ratio,
-        &target_ratios,
-        orig_width,
-        orig_height,
-        image_size,
-    );
-    let mut processed_images = crop_img(
-        image,
-        target_aspect_ratio.1,
-        target_aspect_ratio.0,
-        image_size,
-    )?;
+    let target_aspect_ratio =
+        find_closest_aspect_ratio(aspect_ratio, &target_ratios, orig_width, orig_height, image_size);
+    let mut processed_images = crop_img(image, target_aspect_ratio.1, target_aspect_ratio.0, image_size)?;
     if use_thumbnail && processed_images.len() != 1 {
-        let thumbnail_img = image.resize_exact(
-            image_size,
-            image_size,
-            imageops::FilterType::CatmullRom,
-        );
+        let thumbnail_img = image.resize_exact(image_size, image_size, imageops::FilterType::CatmullRom);
         processed_images.push(thumbnail_img);
     }
     Ok((processed_images, target_aspect_ratio))
@@ -256,18 +229,12 @@ pub fn dynamic_preprocess(
 
 /// Resize an image to exactly `(width, height)`, padding with `color` if the
 /// original aspect ratio does not match.
-pub fn resize_with_edge_padding(
-    img: &DynamicImage,
-    width: u32,
-    height: u32,
-    color: [u8; 3],
-) -> DynamicImage {
+pub fn resize_with_edge_padding(img: &DynamicImage, width: u32, height: u32, color: [u8; 3]) -> DynamicImage {
     let mut img = img.resize(width, height, imageops::FilterType::CatmullRom);
     if img.height() != height || img.width() != width {
         let (img_h, img_w) = (img.height(), img.width());
         let img_buffer = img.to_rgb8();
-        let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> =
-            RgbImage::from_pixel(width, height, Rgb(color));
+        let mut canvas: ImageBuffer<Rgb<u8>, Vec<u8>> = RgbImage::from_pixel(width, height, Rgb(color));
         let x_offset = (width - img_w) / 2;
         let y_offset = (height - img_h) / 2;
         imageops::overlay(&mut canvas, &img_buffer, x_offset as i64, y_offset as i64);
@@ -284,13 +251,7 @@ pub fn resize_with_edge_padding(
 ///
 /// The image is rescaled to `[0, 1]` and then z-score normalised with the
 /// provided per-channel `mean` and `std` tensors (shape `(3, 1, 1)`).
-pub fn img_transform(
-    img: &DynamicImage,
-    mean: &Tensor,
-    std: &Tensor,
-    device: &Device,
-    dtype: DType,
-) -> Result<Tensor> {
+pub fn img_transform(img: &DynamicImage, mean: &Tensor, std: &Tensor, device: &Device, dtype: DType) -> Result<Tensor> {
     let img_h = img.height();
     let img_w = img.width();
     let img_vec = img.to_rgb8().into_raw();
@@ -333,13 +294,7 @@ pub fn img_transform_with_resize(
 /// - The absolute aspect ratio stays below 200:1.
 ///
 /// Returns `(height, width)`.
-pub fn img_smart_resize(
-    img_h: u32,
-    img_w: u32,
-    factor: u32,
-    min_pixels: u32,
-    max_pixels: u32,
-) -> Result<(u32, u32)> {
+pub fn img_smart_resize(img_h: u32, img_w: u32, factor: u32, min_pixels: u32, max_pixels: u32) -> Result<(u32, u32)> {
     if std::cmp::max(img_h, img_w) / std::cmp::min(img_h, img_w) > 200 {
         return Err(CandleOcrError::UnsupportedConfig(format!(
             "absolute aspect ratio must be smaller than 200, got {}",
@@ -352,14 +307,8 @@ pub fn img_smart_resize(
 
     if h_bar * w_bar > max_pixels {
         let beta = ((img_h * img_w) as f32 / max_pixels as f32).sqrt();
-        h_bar = std::cmp::max(
-            image_factor,
-            floor_by_factor(img_h as f32 / beta, image_factor),
-        );
-        w_bar = std::cmp::max(
-            image_factor,
-            floor_by_factor(img_w as f32 / beta, image_factor),
-        );
+        h_bar = std::cmp::max(image_factor, floor_by_factor(img_h as f32 / beta, image_factor));
+        w_bar = std::cmp::max(image_factor, floor_by_factor(img_w as f32 / beta, image_factor));
     } else if h_bar * w_bar < min_pixels {
         let beta = (min_pixels as f32 / (img_h * img_w) as f32).sqrt();
         h_bar = ceil_by_factor(img_h as f32 * beta, image_factor);
@@ -416,14 +365,8 @@ pub fn video_smart_resize(
 
     if t_bar * h_bar * w_bar > max_pixels {
         let beta = ((num_frames * height * width) as f32 / max_pixels as f32).sqrt();
-        h_bar = std::cmp::max(
-            image_factor,
-            floor_by_factor(height as f32 / beta, image_factor),
-        );
-        w_bar = std::cmp::max(
-            image_factor,
-            floor_by_factor(width as f32 / beta, image_factor),
-        );
+        h_bar = std::cmp::max(image_factor, floor_by_factor(height as f32 / beta, image_factor));
+        w_bar = std::cmp::max(image_factor, floor_by_factor(width as f32 / beta, image_factor));
     } else if t_bar * h_bar * w_bar < min_pixels {
         let beta = (min_pixels as f32 / (num_frames * height * width) as f32).sqrt();
         h_bar = ceil_by_factor(height as f32 * beta, image_factor);
@@ -447,11 +390,7 @@ fn compute_scale(input_size: usize, output_size: usize, align_corners: bool) -> 
 
 /// Compute the source-space coordinates for an up/down-sampling operation along
 /// one spatial dimension.
-pub fn compute_1d_coords(
-    input_size: usize,
-    output_size: usize,
-    align_corner: Option<bool>,
-) -> Result<Vec<f32>> {
+pub fn compute_1d_coords(input_size: usize, output_size: usize, align_corner: Option<bool>) -> Result<Vec<f32>> {
     if input_size == 0 {
         return Err(CandleOcrError::InferenceFailed(
             "compute_1d_coords: input_size must be > 0".into(),
@@ -516,10 +455,8 @@ pub fn interpolate_bilinear_standard(
                 let q01 = input_data[c][y0][x1];
                 let q10 = input_data[c][y1][x0];
                 let q11 = input_data[c][y1][x1];
-                output_data[c][i][j] = q00 * (1.0 - dx) * (1.0 - dy)
-                    + q01 * dx * (1.0 - dy)
-                    + q10 * (1.0 - dx) * dy
-                    + q11 * dx * dy;
+                output_data[c][i][j] =
+                    q00 * (1.0 - dx) * (1.0 - dy) + q01 * dx * (1.0 - dy) + q10 * (1.0 - dx) * dy + q11 * dx * dy;
             }
         }
     }
@@ -543,10 +480,7 @@ fn antialias_filter(x: f32) -> f32 {
 // from floating-point center coordinates; the needless_range_loop lint's
 // suggested iterator form would obscure the bilinear math without benefit.
 #[allow(clippy::needless_range_loop)]
-pub fn interpolate_bilinear_antialias(
-    input: &Tensor,
-    target_size: (usize, usize),
-) -> Result<Tensor> {
+pub fn interpolate_bilinear_antialias(input: &Tensor, target_size: (usize, usize)) -> Result<Tensor> {
     let (bs, channels, input_height, input_width) = input.dims4()?;
     let (target_height, target_width) = target_size;
 
@@ -627,9 +561,7 @@ pub fn interpolate_bilinear(
         return Ok(input.clone());
     }
 
-    let output = if antialias.unwrap_or(false)
-        && (target_height < input_height || target_width < input_width)
-    {
+    let output = if antialias.unwrap_or(false) && (target_height < input_height || target_width < input_width) {
         interpolate_bilinear_antialias(input, target_size)?
     } else {
         interpolate_bilinear_standard(input, target_size, align_corner)?

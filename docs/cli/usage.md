@@ -425,7 +425,7 @@ kreuzberg cache stats
 | `--ocr-auto-rotate <true\|false>` | Automatically rotate images before OCR based on detected orientation.                                                        |
 | `--disable-ocr <true\|false>`     | Disable OCR entirely, even for images.                                                                                       |
 
-!!! info "Added in v5.0.0-rc.18"
+!!! Info "Added in v5.0.0-rc.18"
     Candle-based backends (`candle-trocr`, `candle-paddleocr-vl`, `candle-paddleocr-vl-15`, `candle-glm-ocr`, `candle-hunyuan-ocr`, `candle-deepseek-ocr`) are pure-Rust VLM and vision-transformer OCR engines. No ONNX Runtime required; GPU-accelerated on Metal (macOS) and CUDA (Linux).
 
 ```bash title="Terminal"

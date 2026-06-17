@@ -8,8 +8,8 @@ use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
 use tokenizers::Tokenizer;
 
-use crate::error::Result;
 use crate::CandleOcrError;
+use crate::error::Result;
 use crate::vendor::aha::InferenceModel;
 
 use super::{config::DeepseekOCRConfig, model::DeepseekOCRModel, processor::DeepseekOCRProcessor};
@@ -84,35 +84,28 @@ impl DeepseekOCREngine {
     /// - Config or tokenizer files are missing or malformed
     /// - Weight loading fails
     /// - Model initialization fails
-    pub fn init(
-        model_path: &str,
-        device: Device,
-        dtype: DType,
-        version: usize,
-    ) -> Result<Self> {
+    pub fn init(model_path: &str, device: Device, dtype: DType, version: usize) -> Result<Self> {
         let path = Path::new(model_path);
 
         // Load config.json
         let config_file = path.join("config.json");
-        let config_str = std::fs::read_to_string(&config_file).map_err(|e| {
-            CandleOcrError::ModelLoadFailed(format!("Failed to read DeepSeek-OCR config: {}", e))
-        })?;
-        let config: DeepseekOCRConfig = serde_json::from_str(&config_str).map_err(|e| {
-            CandleOcrError::ModelLoadFailed(format!("Failed to parse DeepSeek-OCR config: {}", e))
-        })?;
+        let config_str = std::fs::read_to_string(&config_file)
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Failed to read DeepSeek-OCR config: {}", e)))?;
+        let config: DeepseekOCRConfig = serde_json::from_str(&config_str)
+            .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Failed to parse DeepSeek-OCR config: {}", e)))?;
 
         // Load tokenizer
         let tokenizer_file = path.join("tokenizer.json");
-        let tokenizer = Tokenizer::from_file(&tokenizer_file).map_err(|e| {
-            CandleOcrError::Tokenizer(format!("Failed to load DeepSeek-OCR tokenizer: {}", e))
-        })?;
+        let tokenizer = Tokenizer::from_file(&tokenizer_file)
+            .map_err(|e| CandleOcrError::Tokenizer(format!("Failed to load DeepSeek-OCR tokenizer: {}", e)))?;
 
         // Load safetensors weights
         let model_file = path.join("model.safetensors");
         if !model_file.exists() {
-            return Err(CandleOcrError::ModelLoadFailed(
-                format!("DeepSeek-OCR weights not found at: {}", model_file.display()),
-            ));
+            return Err(CandleOcrError::ModelLoadFailed(format!(
+                "DeepSeek-OCR weights not found at: {}",
+                model_file.display()
+            )));
         }
 
         // SAFETY: We're using mmaped_safetensors with a valid, checked file path.
@@ -122,9 +115,7 @@ impl DeepseekOCREngine {
         #[allow(unsafe_code)]
         let vb = unsafe {
             VarBuilder::from_mmaped_safetensors(&[model_file.as_path()], dtype, &device)
-                .map_err(|e| {
-                    CandleOcrError::ModelLoadFailed(format!("Failed to load DeepSeek-OCR weights: {}", e))
-                })?
+                .map_err(|e| CandleOcrError::ModelLoadFailed(format!("Failed to load DeepSeek-OCR weights: {}", e)))?
         };
 
         // Create processor and model
@@ -195,11 +186,7 @@ impl DeepseekOCREngine {
         let channels = 3usize;
 
         // Resize image to standard size using simple bilinear resize
-        let resized = img.resize_exact(
-            img_w as u32,
-            img_h as u32,
-            image::imageops::FilterType::Triangle,
-        );
+        let resized = img.resize_exact(img_w as u32, img_h as u32, image::imageops::FilterType::Triangle);
         let rgb_img = resized.to_rgb8();
 
         // Convert to tensor (batch, channels, height, width)
@@ -210,12 +197,8 @@ impl DeepseekOCREngine {
             pixels.push(pixel[2] as f32 / 255.0);
         }
 
-        let images_ori = Tensor::from_slice(
-            &pixels,
-            (batch_size, channels, img_h, img_w),
-            &self.device,
-        )
-        .map_err(|e| CandleOcrError::InferenceFailed(format!("Images tensor: {}", e)))?;
+        let images_ori = Tensor::from_slice(&pixels, (batch_size, channels, img_h, img_w), &self.device)
+            .map_err(|e| CandleOcrError::InferenceFailed(format!("Images tensor: {}", e)))?;
 
         // Placeholder tensors for crop, mask, spatial_crop (all zeros for Phase 5)
         let image_crop = Tensor::zeros((0, channels, 64, 64), self.dtype, &self.device)

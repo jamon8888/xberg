@@ -5,7 +5,7 @@
 use candle_core::{DType, Device, IndexOp, Shape, Tensor};
 use image::DynamicImage;
 
-use crate::error::{Result, CandleOcrError};
+use crate::error::{CandleOcrError, Result};
 use crate::models::hunyuan_ocr::config::HunyuanOCRPreprocessorConfig;
 use crate::vendor::aha::image::{img_smart_resize, img_transform};
 
@@ -78,12 +78,7 @@ impl HunyuanVLProcessor {
     }
 
     /// Preprocess a single image: resize, normalize, and return tensor.
-    pub fn process_img(
-        &self,
-        img: &DynamicImage,
-        img_mean: &Tensor,
-        img_std: &Tensor,
-    ) -> Result<Tensor> {
+    pub fn process_img(&self, img: &DynamicImage, img_mean: &Tensor, img_std: &Tensor) -> Result<Tensor> {
         let img_h = img.height();
         let img_w = img.width();
 
@@ -93,7 +88,8 @@ impl HunyuanVLProcessor {
             (self.process_cfg.patch_size * self.process_cfg.merge_size) as u32,
             self.process_cfg.min_pixels as u32,
             self.process_cfg.max_pixels as u32,
-        ).map_err(|e| CandleOcrError::InferenceFailed(format!("Smart resize: {}", e)))?;
+        )
+        .map_err(|e| CandleOcrError::InferenceFailed(format!("Smart resize: {}", e)))?;
 
         let img = img.resize_exact(resize_w, resize_h, image::imageops::FilterType::CatmullRom);
 
@@ -156,11 +152,8 @@ impl HunyuanVLProcessor {
             .contiguous()
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Contiguous: {}", e)))?;
 
-        let grid_thw = Tensor::from_vec(
-            vec![grid_t as u32, grid_h as u32, grid_w as u32],
-            (1, 3),
-            &self.device,
-        ).map_err(|e| CandleOcrError::InferenceFailed(format!("Grid tensor: {}", e)))?;
+        let grid_thw = Tensor::from_vec(vec![grid_t as u32, grid_h as u32, grid_w as u32], (1, 3), &self.device)
+            .map_err(|e| CandleOcrError::InferenceFailed(format!("Grid tensor: {}", e)))?;
 
         Ok((img_tensor, grid_thw))
     }
@@ -200,12 +193,7 @@ impl HunyuanVLProcessor {
     /// 4. Creates image mask
     ///
     /// Note: Tokenization is not performed here; callers must provide pre-tokenized `input_ids`.
-    pub fn process_images_and_text(
-        &self,
-        imgs: &[DynamicImage],
-        input_ids: Tensor,
-        text: &str,
-    ) -> Result<HunyuanData> {
+    pub fn process_images_and_text(&self, imgs: &[DynamicImage], input_ids: Tensor, text: &str) -> Result<HunyuanData> {
         let img_mean = Tensor::from_slice(&self.process_cfg.image_mean, (3, 1, 1), &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Mean tensor: {}", e)))?
             .to_dtype(self.dtype)
@@ -226,7 +214,9 @@ impl HunyuanVLProcessor {
         let mut image_tokens_cumsum = vec![0];
         let mut text = text.to_string();
 
-        if !imgs.is_empty() && let Some(grid_thw) = image_grid_thw.as_ref() {
+        if !imgs.is_empty()
+            && let Some(grid_thw) = image_grid_thw.as_ref()
+        {
             let mut index = 0;
             while text.contains(&self.image_token) {
                 let grid_i = grid_thw
@@ -263,25 +253,28 @@ impl HunyuanVLProcessor {
             .dim(1)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Seq len: {}", e)))?;
 
-        let position_ids = Tensor::arange(0, seq_len as u32, &self.device)
+        let position_ids = Tensor::arrange(0, seq_len as u32, &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Position IDs: {}", e)))?;
 
-        let mut position_ids_w = Tensor::arange(0, seq_len as u32, &self.device)
+        let mut position_ids_w = Tensor::arrange(0, seq_len as u32, &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Position IDs W: {}", e)))?;
 
-        let mut position_ids_h = Tensor::arange(0, seq_len as u32, &self.device)
+        let mut position_ids_h = Tensor::arrange(0, seq_len as u32, &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Position IDs H: {}", e)))?;
 
-        let mut position_ids_t = Tensor::arange(0, seq_len as u32, &self.device)
+        let mut position_ids_t = Tensor::arrange(0, seq_len as u32, &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Position IDs T: {}", e)))?;
 
-        if !imgs.is_empty() && let Some(grid_thw) = image_grid_thw.as_ref() {
+        if !imgs.is_empty()
+            && let Some(grid_thw) = image_grid_thw.as_ref()
+        {
             let image_token_pos_indices = get_eq_indices(
                 &input_ids
                     .i(0)
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Input IDs [0]: {}", e)))?,
                 self.image_token_id,
-            ).map_err(|e| CandleOcrError::InferenceFailed(format!("Get indices: {}", e)))?;
+            )
+            .map_err(|e| CandleOcrError::InferenceFailed(format!("Get indices: {}", e)))?;
 
             #[allow(clippy::needless_range_loop)]
             for i in 0..grid_thw
@@ -329,9 +322,7 @@ impl HunyuanVLProcessor {
                     )
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Assign pos_w: {}", e)))?;
 
-                let pos_h: Vec<u32> = (0..patch_h)
-                    .flat_map(|h| vec![h; (patch_w + 1) as usize])
-                    .collect();
+                let pos_h: Vec<u32> = (0..patch_h).flat_map(|h| vec![h; (patch_w + 1) as usize]).collect();
                 #[allow(clippy::single_range_in_vec_init)]
                 let range_h = start_pos..start_pos + replace_num;
                 position_ids_h = position_ids_h
@@ -354,10 +345,8 @@ impl HunyuanVLProcessor {
             }
         }
 
-        let position_ids = Tensor::stack(
-            &[position_ids, position_ids_h, position_ids_w, position_ids_t],
-            0,
-        ).map_err(|e| CandleOcrError::InferenceFailed(format!("Stack positions: {}", e)))?
+        let position_ids = Tensor::stack(&[position_ids, position_ids_h, position_ids_w, position_ids_t], 0)
+            .map_err(|e| CandleOcrError::InferenceFailed(format!("Stack positions: {}", e)))?
             .unsqueeze(0)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze positions: {}", e)))?;
 
@@ -382,7 +371,8 @@ impl HunyuanVLProcessor {
 
 /// Find indices where tensor equals a target value.
 fn get_eq_indices(tensor: &Tensor, target: u32) -> Result<Tensor> {
-    let vec = tensor.to_vec1::<u32>()
+    let vec = tensor
+        .to_vec1::<u32>()
         .map_err(|e| CandleOcrError::InferenceFailed(format!("To vec: {}", e)))?;
 
     let indices: Vec<u32> = vec
@@ -398,13 +388,11 @@ fn get_eq_indices(tensor: &Tensor, target: u32) -> Result<Tensor> {
 
 /// Create a binary mask where positions equal to target are 1, others are 0.
 fn get_equal_mask(tensor: &Tensor, target: u32) -> Result<Tensor> {
-    let vec = tensor.to_vec1::<u32>()
+    let vec = tensor
+        .to_vec1::<u32>()
         .map_err(|e| CandleOcrError::InferenceFailed(format!("To vec: {}", e)))?;
 
-    let mask: Vec<u32> = vec
-        .iter()
-        .map(|&v| if v == target { 1 } else { 0 })
-        .collect();
+    let mask: Vec<u32> = vec.iter().map(|&v| if v == target { 1 } else { 0 }).collect();
 
     Tensor::from_vec(mask, (vec.len(),), tensor.device())
         .map_err(|e| CandleOcrError::InferenceFailed(format!("Create mask: {}", e)))

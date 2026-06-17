@@ -16,26 +16,26 @@ use std::f32;
 
 use candle_core::{D, IndexOp, Tensor};
 use candle_nn::{
-    Activation, Conv2d, Embedding, Init, LayerNorm, Linear, Module, RmsNorm, VarBuilder,
-    embedding, linear, linear_no_bias,
+    Activation, Conv2d, Embedding, Init, LayerNorm, Linear, Module, RmsNorm, VarBuilder, embedding, linear,
+    linear_no_bias,
     ops::{sigmoid, softmax},
 };
 use candle_transformers::models::segment_anything::LayerNorm2d;
 
 use crate::error::{CandleOcrError, Result};
 use crate::vendor::aha::{
+    InferenceModel, MultiModalData,
     modules::{
-        GateUpDownMLP, NaiveAttention, QKVCatAttention, TwoLinearMLP, eager_attention_forward,
-        get_conv2d, get_layer_norm, quick_gelu,
+        GateUpDownMLP, NaiveAttention, QKVCatAttention, TwoLinearMLP, eager_attention_forward, get_conv2d,
+        get_layer_norm, quick_gelu,
     },
     rope::RoPE,
-    InferenceModel, MultiModalData,
 };
 
 use super::config::{DeepseekOCRConfig, DeepseekV2Config};
 use super::utils::{
-    attn_masked_fill, interpolate_bicubic, interpolate_linear_1d, index_select_2d, masked_scatter_dim0,
-    nonzero, onehot, prepare_causal_attention_mask, topk,
+    attn_masked_fill, index_select_2d, interpolate_bicubic, interpolate_linear_1d, masked_scatter_dim0, nonzero,
+    onehot, prepare_causal_attention_mask, topk,
 };
 
 /// Patch embedding layer for vision encoder.
@@ -120,8 +120,7 @@ impl Attention {
         if use_rel_pos {
             let input_size = input_size.ok_or_else(|| {
                 CandleOcrError::UnsupportedConfig(
-                    "Input size must be provided if using relative positional encoding."
-                        .to_string(),
+                    "Input size must be provided if using relative positional encoding.".to_string(),
                 )
             })?;
             let h_len = 2 * input_size.0 - 1;
@@ -149,8 +148,7 @@ impl Attention {
                 .t()?
                 .unsqueeze(0)?
                 .contiguous()?;
-            let rel_pos_resized =
-                interpolate_linear_1d(&rel_pos_t, max_rel_dist, None)?;
+            let rel_pos_resized = interpolate_linear_1d(&rel_pos_t, max_rel_dist, None)?;
             rel_pos_resized
                 .squeeze(0)?
                 .t()?
@@ -172,9 +170,7 @@ impl Attention {
             .broadcast_sub(&k_coords)?
             .affine(1.0, (k_size - 1) as f64)?
             .affine((q_size as f64 / k_size as f64).max(1.0), 0.0)?;
-        let relative_coords = relative_coords
-            .to_dtype(candle_core::DType::U32)?
-            .contiguous()?;
+        let relative_coords = relative_coords.to_dtype(candle_core::DType::U32)?.contiguous()?;
         let rel_pos_resized = rel_pos_resized.contiguous()?;
         let res = index_select_2d(&rel_pos_resized, &relative_coords)?;
         Ok(res)
@@ -199,12 +195,8 @@ impl Attention {
         let rel_h = r_q_.broadcast_mul(&rh_)?.sum(D::Minus1)?;
         let rw_ = rw.unsqueeze(0)?.unsqueeze(0)?;
         let rel_w = r_q_.broadcast_mul(&rw_)?.sum(D::Minus1)?;
-        let rel_h = rel_h
-            .unsqueeze(D::Minus1)?
-            .reshape((b, q_h * q_w, k_h, 1))?;
-        let rel_w = rel_w
-            .unsqueeze(D::Minus2)?
-            .reshape((b, q_h * q_w, 1, k_w))?;
+        let rel_h = rel_h.unsqueeze(D::Minus1)?.reshape((b, q_h * q_w, k_h, 1))?;
+        let rel_w = rel_w.unsqueeze(D::Minus2)?.reshape((b, q_h * q_w, 1, k_w))?;
         Ok((rel_h, rel_w))
     }
 
@@ -237,12 +229,10 @@ impl Attention {
             let rel_h = rel_h.reshape((b, self.num_heads, rel_h_dim1, rel_h_dim2, rel_h_dim3))?;
             let (_, rel_w_dim1, rel_w_dim2, rel_w_dim3) = rel_w.dims4()?;
             let rel_w = rel_w.reshape((b, self.num_heads, rel_w_dim1, rel_w_dim2, rel_w_dim3))?;
-            let attn_bias = rel_h.broadcast_add(&rel_w)?.reshape((
-                b,
-                self.num_heads,
-                rel_h_dim1,
-                rel_h_dim2 * rel_w_dim3,
-            ))?;
+            let attn_bias =
+                rel_h
+                    .broadcast_add(&rel_w)?
+                    .reshape((b, self.num_heads, rel_h_dim1, rel_h_dim2 * rel_w_dim3))?;
             eager_attention_forward(
                 &query_states,
                 &key_states,
@@ -252,14 +242,7 @@ impl Attention {
                 self.scaling,
             )?
         } else {
-            eager_attention_forward(
-                &query_states,
-                &key_states,
-                &value_states,
-                None,
-                None,
-                self.scaling,
-            )?
+            eager_attention_forward(&query_states, &key_states, &value_states, None, None, self.scaling)?
         };
         let xs = xs.reshape((b, h * w, ()))?.reshape((b, h, w, ()))?;
         let xs = self.proj.forward(&xs)?;
@@ -301,14 +284,7 @@ impl Block {
         } else {
             Some((window_size, window_size))
         };
-        let attn = Attention::new(
-            vb.pp("attn"),
-            dim,
-            num_heads,
-            qkv_bias,
-            use_rel_pos,
-            input_size,
-        )?;
+        let attn = Attention::new(vb.pp("attn"), dim, num_heads, qkv_bias, use_rel_pos, input_size)?;
         let norm2 = get_layer_norm(vb.pp("norm2"), eps, dim, true)?;
         let mlp_dim = (dim as f32 * mlp_ratio) as usize;
         let mlp = TwoLinearMLP::new(vb.pp("mlp"), dim, mlp_dim, dim, act, true, "lin1", "lin2")?;
@@ -321,11 +297,7 @@ impl Block {
         })
     }
 
-    fn window_partition(
-        &self,
-        x: &Tensor,
-        window_size: usize,
-    ) -> Result<(Tensor, (usize, usize))> {
+    fn window_partition(&self, x: &Tensor, window_size: usize) -> Result<(Tensor, (usize, usize))> {
         let (b, h, w, c) = x.dims4()?;
         let pad_h = (window_size - h % window_size) % window_size;
         let pad_w = (window_size - w % window_size) % window_size;
@@ -337,20 +309,11 @@ impl Block {
         };
         let hp = h + pad_h;
         let wp = w + pad_w;
-        let x = x.reshape((
-            b,
-            hp / window_size,
-            window_size,
-            wp / window_size,
-            window_size,
-            c,
-        ))?;
-        let windows = x.permute((0, 1, 3, 2, 4, 5))?.contiguous()?.reshape((
-            (),
-            window_size,
-            window_size,
-            c,
-        ))?;
+        let x = x.reshape((b, hp / window_size, window_size, wp / window_size, window_size, c))?;
+        let windows = x
+            .permute((0, 1, 3, 2, 4, 5))?
+            .contiguous()?
+            .reshape(((), window_size, window_size, c))?;
         Ok((windows, (hp, wp)))
     }
 
@@ -373,10 +336,7 @@ impl Block {
             window_size,
             last_dim,
         ])?;
-        let mut x = x
-            .permute((0, 1, 3, 2, 4, 5))?
-            .contiguous()?
-            .reshape((b, hp, wp, ()))?;
+        let mut x = x.permute((0, 1, 3, 2, 4, 5))?.contiguous()?.reshape((b, hp, wp, ()))?;
         if hp > h || wp > w {
             x = x.i((.., 0..h, 0..w, ..))?
         }
@@ -483,14 +443,7 @@ impl ImageEncoderViT {
         global_attn_indexes: Vec<usize>,
         version: usize,
     ) -> Result<Self> {
-        let patch_embed = PatchEmbed::new(
-            vb.pp("patch_embed"),
-            in_chans,
-            embed_dim,
-            patch_size,
-            patch_size,
-            0,
-        )?;
+        let patch_embed = PatchEmbed::new(vb.pp("patch_embed"), in_chans, embed_dim, patch_size, patch_size, 0)?;
         let pos_embed = if use_abs_pos {
             Some(vb.get_with_hints(
                 (1, img_size / patch_size, img_size / patch_size, embed_dim),
@@ -542,13 +495,7 @@ impl ImageEncoderViT {
         let src_size = abs_pos.dim(1)?;
         if src_size != tgt_size {
             let old_pos_embed = abs_pos.permute((0, 3, 1, 2))?;
-            let new_pos_embed =
-                interpolate_bicubic(
-                    &old_pos_embed,
-                    (tgt_size, tgt_size),
-                    Some(false),
-                    Some(true),
-                )?;
+            let new_pos_embed = interpolate_bicubic(&old_pos_embed, (tgt_size, tgt_size), Some(false), Some(true))?;
             let new_pos_embed = new_pos_embed.permute((0, 2, 3, 1))?;
             Ok(new_pos_embed)
         } else {
@@ -601,8 +548,7 @@ impl CLIPVisionEmbeddings {
         patch_size: usize,
         num_channels: usize,
     ) -> Result<Self> {
-        let class_embedding =
-            vb.get_with_hints(hidden_size, "class_embedding", Init::Const(0.0))?;
+        let class_embedding = vb.get_with_hints(hidden_size, "class_embedding", Init::Const(0.0))?;
 
         let patch_embedding = get_conv2d(
             vb.pp("patch_embedding"),
@@ -618,9 +564,8 @@ impl CLIPVisionEmbeddings {
 
         let num_patches = (image_size / patch_size).pow(2);
         let num_positions = num_patches + 1;
-        let position_embedding =
-            embedding(num_positions, hidden_size, vb.pp("position_embedding"))?;
-        let position_ids = Tensor::arange(0u32, num_positions as u32, vb.device())?;
+        let position_embedding = embedding(num_positions, hidden_size, vb.pp("position_embedding"))?;
+        let position_ids = Tensor::arrange(0u32, num_positions as u32, vb.device())?;
         let pos_embeds = position_embedding.forward(&position_ids)?;
         Ok(Self {
             class_embedding,
@@ -642,13 +587,7 @@ impl CLIPVisionEmbeddings {
                 .reshape((1, src_size, src_size, dim))?
                 .permute((0, 3, 1, 2))?
                 .contiguous()?;
-            let new_pos_embed =
-                interpolate_bicubic(
-                    &old_pos_embed,
-                    (tgt_size, tgt_size),
-                    Some(false),
-                    Some(true),
-                )?;
+            let new_pos_embed = interpolate_bicubic(&old_pos_embed, (tgt_size, tgt_size), Some(false), Some(true))?;
             let new_pos_embed = new_pos_embed
                 .permute((0, 2, 3, 1))?
                 .reshape((tgt_size * tgt_size, dim))?;
@@ -727,13 +666,7 @@ impl NoTPTransformerBlock {
     /// # Errors
     ///
     /// Returns [`CandleOcrError`] if layer initialization fails.
-    pub fn new(
-        vb: VarBuilder,
-        hidden_size: usize,
-        num_heads: usize,
-        ffn_hidden_size: usize,
-        eps: f64,
-    ) -> Result<Self> {
+    pub fn new(vb: VarBuilder, hidden_size: usize, num_heads: usize, ffn_hidden_size: usize, eps: f64) -> Result<Self> {
         let self_attn = QKVCatAttention::new(
             vb.pp("self_attn"),
             hidden_size,
@@ -793,13 +726,7 @@ impl NoTPTransformer {
         let mut layers = Vec::new();
         let vb_layers = vb.pp("layers");
         for i in 0..num_layers {
-            let blocks = NoTPTransformerBlock::new(
-                vb_layers.pp(i),
-                hidden_size,
-                num_heads,
-                ffn_hidden_size,
-                eps,
-            )?;
+            let blocks = NoTPTransformerBlock::new(vb_layers.pp(i), hidden_size, num_heads, ffn_hidden_size, eps)?;
             layers.push(blocks);
         }
         Ok(Self { layers })
@@ -844,13 +771,8 @@ impl VitModel {
         ffn_hidden_size: usize,
         eps: f64,
     ) -> Result<Self> {
-        let embeddings = CLIPVisionEmbeddings::new(
-            vb.pp("embeddings"),
-            hidden_size,
-            image_size,
-            patch_size,
-            num_channels,
-        )?;
+        let embeddings =
+            CLIPVisionEmbeddings::new(vb.pp("embeddings"), hidden_size, image_size, patch_size, num_channels)?;
         let transformer = NoTPTransformer::new(
             vb.pp("transformer"),
             num_layers,
@@ -859,7 +781,7 @@ impl VitModel {
             ffn_hidden_size,
             eps,
         )?;
-        let pre_layrnorm = get_layer_norm(vb.pp("pre_layrnorm"), eps, hidden_size, true)?;
+        let pre_layernorm = get_layer_norm(vb.pp("pre_layernorm"), eps, hidden_size, true)?;
         Ok(Self {
             embeddings,
             transformer,
@@ -917,10 +839,7 @@ impl MoEGate {
     pub fn forward(&self, xs: &Tensor) -> Result<(Tensor, Tensor)> {
         let (_, _, dim) = xs.dims3()?;
         let xs = xs.reshape(((), dim))?;
-        let logits = self
-            .linear
-            .forward(&xs)?
-            .to_dtype(candle_core::DType::F32)?;
+        let logits = self.linear.forward(&xs)?.to_dtype(candle_core::DType::F32)?;
         let scores = if self.scoring_func == "softmax" {
             softmax(&logits, D::Minus1)?
         } else if self.scoring_func == "sigmoid" {
@@ -1020,12 +939,10 @@ impl DeepseekV2MoE {
             let select_tokens = xs.index_select(&token_id_tensor, 0)?;
             let select_xs = expert.forward(&select_tokens)?;
             let topk_id_u32: Vec<u32> = topk_id.iter().map(|x| *x as u32).collect();
-            let select_weight = topk_weight
-                .index_select(&token_id_tensor, 0)?
-                .gather(
-                    &Tensor::new(topk_id_u32.as_slice(), xs.device())?.unsqueeze(D::Minus1)?,
-                    D::Minus1,
-                )?;
+            let select_weight = topk_weight.index_select(&token_id_tensor, 0)?.gather(
+                &Tensor::new(topk_id_u32.as_slice(), xs.device())?.unsqueeze(D::Minus1)?,
+                D::Minus1,
+            )?;
             let select_xs = select_xs.broadcast_mul(&select_weight)?;
             final_xs = final_xs.index_add(&token_id_tensor, &select_xs, 0)?;
         }
@@ -1072,14 +989,12 @@ impl DeepseekV2Proj {
     /// Returns [`CandleOcrError`] if forward computation fails.
     pub fn forward(&self, xs: &Tensor) -> Result<Tensor> {
         match self {
-            DeepseekV2Proj::MLP(model) => model.forward(xs).map_err(|e| {
-                CandleOcrError::InferenceFailed(format!("MLP forward failed: {e}"))
-            }),
-            DeepseekV2Proj::MOE(model) => {
-                model.forward(xs).map_err(|e| {
-                    CandleOcrError::InferenceFailed(format!("MoE forward failed: {e}"))
-                })
-            }
+            DeepseekV2Proj::MLP(model) => model
+                .forward(xs)
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("MLP forward failed: {e}"))),
+            DeepseekV2Proj::MOE(model) => model
+                .forward(xs)
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("MoE forward failed: {e}"))),
         }
     }
 }
@@ -1112,8 +1027,7 @@ impl DeepseekV2DecoderLayer {
             None,
             None,
         )?;
-        let mlp = if layer_id >= config.first_k_dense_replace && layer_id.is_multiple_of(config.moe_layer_freq)
-        {
+        let mlp = if layer_id >= config.first_k_dense_replace && layer_id.is_multiple_of(config.moe_layer_freq) {
             DeepseekV2Proj::MOE(DeepseekV2MoE::new(vb.pp("mlp"), config)?)
         } else {
             DeepseekV2Proj::MLP(GateUpDownMLP::new(
@@ -1127,11 +1041,7 @@ impl DeepseekV2DecoderLayer {
                 None,
             )?)
         };
-        let input_layernorm = candle_nn::rms_norm(
-            config.hidden_size,
-            config.rms_norm_eps,
-            vb.pp("input_layernorm"),
-        )?;
+        let input_layernorm = candle_nn::rms_norm(config.hidden_size, config.rms_norm_eps, vb.pp("input_layernorm"))?;
         let post_attention_layernorm = candle_nn::rms_norm(
             config.hidden_size,
             config.rms_norm_eps,
@@ -1217,22 +1127,13 @@ impl DeepseekV2Model {
     /// Returns [`CandleOcrError`] if forward computation fails.
     pub fn forward(&mut self, xs: &Tensor, seqlen_offset: usize) -> Result<Tensor> {
         let (_bs, seq_len, _) = xs.dims3()?;
-        let (cos, sin) = self
-            .rope
-            .forward(seqlen_offset, seq_len, xs.device())?;
+        let (cos, sin) = self.rope.forward(seqlen_offset, seq_len, xs.device())?;
 
         let attention_mask: Option<Tensor> = {
             if seq_len <= 1 {
                 None
             } else {
-                Some(
-                    prepare_causal_attention_mask(
-                        xs.dim(0)?,
-                        seq_len,
-                        0,
-                        xs.device(),
-                    )?,
-                )
+                Some(prepare_causal_attention_mask(xs.dim(0)?, seq_len, 0, xs.device())?)
             }
         };
         let mut xs = xs.clone();
@@ -1332,9 +1233,7 @@ impl Qwen2Decoder2Encoder {
             .unsqueeze(0)?
             .to_dtype(candle_core::DType::F32)?;
         let attn_mask = attn_masked_fill(&on_true, &mask, f32::NEG_INFINITY)?;
-        let xs = self
-            .model
-            .forward_no_cache(&x_combined, Some(&attn_mask), 0)?;
+        let xs = self.model.forward_no_cache(&x_combined, Some(&attn_mask), 0)?;
         let xs = xs.narrow(1, n_query, n_query)?;
         Ok(xs)
     }
@@ -1358,7 +1257,7 @@ pub struct DeepseekOCRModel {
     projector: Linear,
     language_model: DeepseekV2Model,
     image_newline: Option<Tensor>,
-    view_seperator: Tensor,
+    view_separator: Tensor,
     lm_head: Linear,
     stop_token_ids: Vec<u32>,
 }
@@ -1386,29 +1285,14 @@ impl DeepseekOCRModel {
             true,
             true,
             14,
-            config
-                .vision_config
-                .width
-                .sam_vit_b
-                .global_attn_indexes
-                .clone(),
+            config.vision_config.width.sam_vit_b.global_attn_indexes.clone(),
             version,
         )?;
         let (vision_model, image_newline) = if version == 2 {
             let qwen2 = Qwen2Decoder2Encoder::new(vb_m.pp("qwen2_model"))?;
             (VisionModel::Qwen2(qwen2), None)
         } else {
-            let vision_model = VitModel::new(
-                vb_m.pp("vision_model"),
-                224,
-                14,
-                3,
-                24,
-                1024,
-                16,
-                4096,
-                1e-5,
-            )?;
+            let vision_model = VitModel::new(vb_m.pp("vision_model"), 224, 14, 3, 24, 1024, 16, 4096, 1e-5)?;
             let image_newline = vb_m.get_with_hints(1280, "image_newline", Init::Const(0.))?;
             (VisionModel::Vit(vision_model), Some(image_newline))
         };
@@ -1419,7 +1303,7 @@ impl DeepseekOCRModel {
             vb_m.pp("projector.layers"),
         )?;
 
-        let view_seperator = vb_m.get_with_hints(1280, "view_seperator", Init::Const(0.))?;
+        let view_separator = vb_m.get_with_hints(1280, "view_separator", Init::Const(0.))?;
         let language_model = DeepseekV2Model::new(vb_m, config.language_config.clone())?;
         let lm_head = linear_no_bias(config.hidden_size, config.vocab_size, vb.pp("lm_head"))?;
         let stop_token_ids = vec![config.eos_token_id, config.bos_token_id];
@@ -1429,7 +1313,7 @@ impl DeepseekOCRModel {
             projector,
             language_model,
             image_newline,
-            view_seperator,
+            view_separator,
             lm_head,
             stop_token_ids,
         })
@@ -1471,13 +1355,10 @@ impl DeepseekOCRModel {
                     let local_feature_1 = self.sam_model.forward(&image_crop_i)?;
                     let local_features = match &self.vision_model {
                         VisionModel::Vit(vit) => {
-                            let local_feature_2 =
-                                vit.forward(&image_crop_i, Some(&local_feature_1))?;
-                            let local_feature_1 =
-                                local_feature_1.flatten(2, 3)?.permute((0, 2, 1))?;
+                            let local_feature_2 = vit.forward(&image_crop_i, Some(&local_feature_1))?;
+                            let local_feature_1 = local_feature_1.flatten(2, 3)?.permute((0, 2, 1))?;
                             let local_feature_2 = local_feature_2.i((.., 1..))?;
-                            Tensor::cat(&[local_feature_2, local_feature_1], D::Minus1)?
-                                .contiguous()?
+                            Tensor::cat(&[local_feature_2, local_feature_1], D::Minus1)?.contiguous()?
                         }
                         VisionModel::Qwen2(qwen2) => qwen2.forward(&local_feature_1)?,
                     };
@@ -1485,10 +1366,8 @@ impl DeepseekOCRModel {
                     let global_features_1 = self.sam_model.forward(&image_ori_i)?;
                     let global_features = match &self.vision_model {
                         VisionModel::Vit(vit) => {
-                            let global_features_2 =
-                                vit.forward(&image_ori_i, Some(&global_features_1))?;
-                            let global_features_1 =
-                                global_features_1.flatten(2, 3)?.permute((0, 2, 1))?;
+                            let global_features_2 = vit.forward(&image_ori_i, Some(&global_features_1))?;
+                            let global_features_1 = global_features_1.flatten(2, 3)?.permute((0, 2, 1))?;
                             let global_features_2 = global_features_2.i((.., 1..))?;
                             Tensor::cat(&[global_features_2, global_features_1], D::Minus1)?
                         }
@@ -1497,9 +1376,7 @@ impl DeepseekOCRModel {
                     let global_features = self.projector.forward(&global_features)?;
                     let (_, hw, n_dim) = global_features.dims3()?;
                     let (_, hw2, n_dim2) = local_features.dims3()?;
-                    let (global_features, local_features) = if let Some(image_newline) =
-                        &self.image_newline
-                    {
+                    let (global_features, local_features) = if let Some(image_newline) = &self.image_newline {
                         let h = (hw as f32).sqrt() as usize;
                         let w = h;
                         let h2 = (hw2 as f32).sqrt() as usize;
@@ -1521,22 +1398,13 @@ impl DeepseekOCRModel {
 
                     let global_features = global_features.reshape(((), n_dim))?;
                     let local_features = local_features.reshape(((), n_dim2))?;
-                    Tensor::cat(
-                        &[
-                            local_features,
-                            global_features,
-                            self.view_seperator.unsqueeze(0)?,
-                        ],
-                        0,
-                    )?
+                    Tensor::cat(&[local_features, global_features, self.view_separator.unsqueeze(0)?], 0)?
                 } else {
                     let global_features_1 = self.sam_model.forward(&image_ori_i)?;
                     let global_features = match &self.vision_model {
                         VisionModel::Vit(vit) => {
-                            let global_features_2 =
-                                vit.forward(&image_ori_i, Some(&global_features_1))?;
-                            let global_features_1 =
-                                global_features_1.flatten(2, 3)?.permute((0, 2, 1))?;
+                            let global_features_2 = vit.forward(&image_ori_i, Some(&global_features_1))?;
+                            let global_features_1 = global_features_1.flatten(2, 3)?.permute((0, 2, 1))?;
                             let global_features_2 = global_features_2.i((.., 1..))?;
                             Tensor::cat(&[global_features_2, global_features_1], D::Minus1)?
                         }
@@ -1556,13 +1424,12 @@ impl DeepseekOCRModel {
                     };
 
                     let global_features = global_features.reshape(((), n_dim))?;
-                    Tensor::cat(&[global_features, self.view_seperator.unsqueeze(0)?], 0)?
+                    Tensor::cat(&[global_features, self.view_separator.unsqueeze(0)?], 0)?
                 };
                 images_in_this_batch.push(global_local_features);
             }
             let images_in_this_batch = Tensor::cat(&images_in_this_batch, 0)?;
-            input_embeds =
-                masked_scatter_dim0(&input_embeds, &images_in_this_batch, images_seq_mask)?;
+            input_embeds = masked_scatter_dim0(&input_embeds, &images_in_this_batch, images_seq_mask)?;
         }
         let outputs = self.language_model.forward(&input_embeds, seqlen_offset)?;
         let seq_len = outputs.dim(1)?;
@@ -1578,12 +1445,7 @@ impl DeepseekOCRModel {
 }
 
 impl InferenceModel for DeepseekOCRModel {
-    fn forward_initial(
-        &mut self,
-        input_ids: &Tensor,
-        seqlen_offset: usize,
-        data: MultiModalData,
-    ) -> Result<Tensor> {
+    fn forward_initial(&mut self, input_ids: &Tensor, seqlen_offset: usize, data: MultiModalData) -> Result<Tensor> {
         if data.data_vec.len() != 4 {
             return Err(CandleOcrError::InferenceFailed(
                 "DeepseekOCR requires exactly 4 data items: images_ori, image_crop, images_seq_mask, images_spatial_crop".to_string(),
@@ -1703,43 +1565,24 @@ mod tests {
     /// exact field values matching the source document.
     #[test]
     fn config_deserializes_with_exact_field_values() {
-        let cfg: DeepseekOCRConfig =
-            serde_json::from_str(MINIMAL_CONFIG_JSON).expect("config must deserialize");
+        let cfg: DeepseekOCRConfig = serde_json::from_str(MINIMAL_CONFIG_JSON).expect("config must deserialize");
 
         assert_eq!(cfg.vocab_size, 100264, "vocab_size mismatch");
         assert_eq!(cfg.hidden_size, 4096, "hidden_size mismatch");
         assert_eq!(cfg.eos_token_id, 100257, "eos_token_id mismatch");
         assert_eq!(cfg.bos_token_id, 100256, "bos_token_id mismatch");
-        assert_eq!(
-            cfg.projector_config.input_dim, 768,
-            "projector input_dim mismatch"
-        );
-        assert_eq!(
-            cfg.projector_config.n_embed, 1280,
-            "projector n_embed mismatch"
-        );
-        assert_eq!(
-            cfg.vision_config.image_size, 1024,
-            "vision image_size mismatch"
-        );
+        assert_eq!(cfg.projector_config.input_dim, 768, "projector input_dim mismatch");
+        assert_eq!(cfg.projector_config.n_embed, 1280, "projector n_embed mismatch");
+        assert_eq!(cfg.vision_config.image_size, 1024, "vision image_size mismatch");
         assert_eq!(
             cfg.vision_config.width.sam_vit_b.global_attn_indexes,
             vec![2usize, 5, 8, 11],
             "global_attn_indexes mismatch"
         );
         // Language config sub-struct
-        assert_eq!(
-            cfg.language_config.hidden_size, 4096,
-            "language hidden_size mismatch"
-        );
-        assert_eq!(
-            cfg.language_config.n_routed_experts, 64,
-            "n_routed_experts mismatch"
-        );
-        assert_eq!(
-            cfg.language_config.topk_method, "greedy",
-            "topk_method mismatch"
-        );
+        assert_eq!(cfg.language_config.hidden_size, 4096, "language hidden_size mismatch");
+        assert_eq!(cfg.language_config.n_routed_experts, 64, "n_routed_experts mismatch");
+        assert_eq!(cfg.language_config.topk_method, "greedy", "topk_method mismatch");
     }
 
     /// Fields with serde defaults must be populated correctly when absent from JSON.
@@ -1747,8 +1590,7 @@ mod tests {
     fn config_serde_defaults_are_applied_when_fields_absent() {
         // A minimal JSON without moe_layer_freq, routed_scaling_factor,
         // scoring_func, norm_topk_prob — all have serde defaults.
-        let cfg: DeepseekOCRConfig =
-            serde_json::from_str(MINIMAL_CONFIG_JSON).expect("config must deserialize");
+        let cfg: DeepseekOCRConfig = serde_json::from_str(MINIMAL_CONFIG_JSON).expect("config must deserialize");
 
         // moe_layer_freq defaults to 1
         assert_eq!(
@@ -1825,27 +1667,27 @@ mod tests {
 
         let encoder = ImageEncoderViT::new(
             vb,
-            64,                   // img_size
-            16,                   // patch_size
-            3,                    // in_chans
-            16,                   // embed_dim (tiny)
-            1,                    // depth (one block, fast)
-            2,                    // num_heads (16/2 = 8 per head)
-            4.0,                  // mlp_ratio
-            256,                  // out_chans (must be 256 — hardcoded in net_2 input)
-            true,                 // qkv_bias
-            Activation::Gelu,     // act
-            true,                 // use_abs_pos
-            false,                // use_rel_pos (off avoids rel_pos buffers in tiny test)
-            0,                    // window_size (0 = global attention for all blocks)
-            vec![0usize],         // global_attn_indexes (block 0 is global)
-            1,                    // version (net_3 outputs 1024 channels)
+            64,               // img_size
+            16,               // patch_size
+            3,                // in_chans
+            16,               // embed_dim (tiny)
+            1,                // depth (one block, fast)
+            2,                // num_heads (16/2 = 8 per head)
+            4.0,              // mlp_ratio
+            256,              // out_chans (must be 256 — hardcoded in net_2 input)
+            true,             // qkv_bias
+            Activation::Gelu, // act
+            true,             // use_abs_pos
+            false,            // use_rel_pos (off avoids rel_pos buffers in tiny test)
+            0,                // window_size (0 = global attention for all blocks)
+            vec![0usize],     // global_attn_indexes (block 0 is global)
+            1,                // version (net_3 outputs 1024 channels)
         )
         .expect("ImageEncoderViT must construct from zeros");
 
         // Input: (batch=1, channels=3, height=64, width=64)
-        let input = Tensor::zeros((1usize, 3usize, 64usize, 64usize), DType::F32, &dev)
-            .expect("synthetic input must allocate");
+        let input =
+            Tensor::zeros((1usize, 3usize, 64usize, 64usize), DType::F32, &dev).expect("synthetic input must allocate");
 
         let output = encoder.forward(&input).expect("forward must succeed");
 
@@ -1884,8 +1726,7 @@ mod tests {
         )
         .expect("ImageEncoderViT v2 must construct");
 
-        let input = Tensor::zeros((1usize, 3usize, 64usize, 64usize), DType::F32, &dev)
-            .expect("input allocation");
+        let input = Tensor::zeros((1usize, 3usize, 64usize, 64usize), DType::F32, &dev).expect("input allocation");
         let output = encoder.forward(&input).expect("v2 forward must succeed");
 
         let shape = output.dims().to_vec();
@@ -1934,13 +1775,12 @@ mod tests {
         let dev = Device::Cpu;
         let vb = VarBuilder::zeros(DType::F32, &dev);
 
-        let encoder =
-            Qwen2Decoder2Encoder::new(vb).expect("Qwen2Decoder2Encoder must construct");
+        let encoder = Qwen2Decoder2Encoder::new(vb).expect("Qwen2Decoder2Encoder must construct");
 
         // Input shape: (batch, channels, h, w) — after flatten_from(2) + transpose(1,2)
         // we get (batch, h*w, channels).  Here h*w = 4 (2×2), which is not 144 or 256.
-        let bad_input = Tensor::zeros((1usize, 896usize, 2usize, 2usize), DType::F32, &dev)
-            .expect("bad input allocation");
+        let bad_input =
+            Tensor::zeros((1usize, 896usize, 2usize, 2usize), DType::F32, &dev).expect("bad input allocation");
 
         let result = encoder.forward(&bad_input);
         assert!(

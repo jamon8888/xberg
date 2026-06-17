@@ -154,7 +154,9 @@ impl Pipeline {
             "candle-glm-ocr" | "candle_glm_ocr" | "glm-ocr" => Some(Pipeline::CandleGlmOcr),
             "candle-hunyuan-ocr" | "candle_hunyuan_ocr" | "hunyuan-ocr" => Some(Pipeline::CandleHunyuanOcr),
             "candle-deepseek-ocr" | "candle_deepseek_ocr" | "deepseek-ocr" => Some(Pipeline::CandleDeepseekOcr),
-            "candle-paddleocr-vl-15" | "candle_paddleocr_vl_15" | "paddleocr-vl-15" => Some(Pipeline::CandlePaddleocrVl15),
+            "candle-paddleocr-vl-15" | "candle_paddleocr_vl_15" | "paddleocr-vl-15" => {
+                Some(Pipeline::CandlePaddleocrVl15)
+            }
             _ => None,
         }
     }

@@ -578,8 +578,8 @@ impl ExtractionOverrides {
         let Some(ref s) = self.ocr_backend_options else {
             return Ok(None);
         };
-        let value: serde_json::Value = serde_json::from_str(s)
-            .with_context(|| format!("invalid --ocr-backend-options JSON: {s}"))?;
+        let value: serde_json::Value =
+            serde_json::from_str(s).with_context(|| format!("invalid --ocr-backend-options JSON: {s}"))?;
         if !value.is_object() {
             bail!("--ocr-backend-options must be a JSON object");
         }

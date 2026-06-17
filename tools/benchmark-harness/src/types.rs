@@ -113,7 +113,9 @@ impl FromStr for KreuzbergPipeline {
             "candle-glm-ocr" | "candle_glm_ocr" | "glm-ocr" => Ok(KreuzbergPipeline::CandleGlmOcr),
             "candle-hunyuan-ocr" | "candle_hunyuan_ocr" | "hunyuan-ocr" => Ok(KreuzbergPipeline::CandleHunyuanOcr),
             "candle-deepseek-ocr" | "candle_deepseek_ocr" | "deepseek-ocr" => Ok(KreuzbergPipeline::CandleDeepseekOcr),
-            "candle-paddleocr-vl-15" | "candle_paddleocr_vl_15" | "paddleocr-vl-15" => Ok(KreuzbergPipeline::CandlePaddleocrVl15),
+            "candle-paddleocr-vl-15" | "candle_paddleocr_vl_15" | "paddleocr-vl-15" => {
+                Ok(KreuzbergPipeline::CandlePaddleocrVl15)
+            }
             _ => Err(format!(
                 "unknown Kreuzberg pipeline: {}. Valid: baseline, layout, paddle-ocr, candle-trocr, candle-paddleocr-vl, candle-glm-ocr, candle-hunyuan-ocr, candle-deepseek-ocr, candle-paddleocr-vl-15",
                 s

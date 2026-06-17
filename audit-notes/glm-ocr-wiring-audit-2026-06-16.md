@@ -457,6 +457,7 @@ Chart extraction has no dedicated GLM-OCR task (no `GlmOcrTask::Chart`). Current
 **Proposed fix scope:**
 
 Implement multi-token speculative decoding in the generation loop:
+
 1. Run `num_tokens_per_step` forward passes on the decoder to predict a sequence
 2. Validate the sequence against a single autoregressive pass
 3. Accept/reject/adjust predictions based on confidence
@@ -512,4 +513,3 @@ TrOCR works correctly for its documented use case (line-level crops). Adding a d
 **Rationale for deferral:**
 
 This is a performance optimization that does not affect correctness. The MVP ships with on-demand layout detection loading. Pooling will improve throughput in batch scenarios (baseline: ~2× faster per call in paired mode). Deferring allows the release to ship without layout-detector pooling, with a clear performance roadmap for a follow-up sprint.
-

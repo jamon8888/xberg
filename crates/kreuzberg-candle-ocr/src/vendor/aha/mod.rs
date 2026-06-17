@@ -15,9 +15,8 @@ pub mod qwen2;
 pub mod rope;
 
 pub use modules::{
-    GateUpDownMLP, NaiveAttnGateUpDownMLPBlock, NaiveAttnTwoLinearMLPBlock, NaiveAttention,
-    QKVCatAttention, TwoLinearMLP, eager_attention_forward, get_conv1d, get_conv2d,
-    get_layer_norm, quick_gelu,
+    GateUpDownMLP, NaiveAttention, NaiveAttnGateUpDownMLPBlock, NaiveAttnTwoLinearMLPBlock, QKVCatAttention,
+    TwoLinearMLP, eager_attention_forward, get_conv1d, get_conv2d, get_layer_norm, quick_gelu,
 };
 
 use candle_core::Tensor;
@@ -66,12 +65,7 @@ pub trait InferenceModel {
     /// # Errors
     ///
     /// Returns [`crate::error::CandleOcrError`] on any inference failure.
-    fn forward_initial(
-        &mut self,
-        input_ids: &Tensor,
-        seqlen_offset: usize,
-        data: MultiModalData,
-    ) -> Result<Tensor> {
+    fn forward_initial(&mut self, input_ids: &Tensor, seqlen_offset: usize, data: MultiModalData) -> Result<Tensor> {
         let _ = data;
         self.forward_step(input_ids, seqlen_offset)
     }

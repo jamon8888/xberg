@@ -49,8 +49,7 @@ fn glm_ocr_paired_pipeline_smoke_via_process_image_with_task() {
     let dtype = kreuzberg_candle_ocr::DType::F32;
 
     eprintln!("Constructing GLM-OCR engine (downloading weights if needed)...");
-    let engine =
-        GlmOcrEngine::new(GlmOcrTask::Ocr, device, dtype).expect("Failed to construct GLM-OCR engine");
+    let engine = GlmOcrEngine::new(GlmOcrTask::Ocr, device, dtype).expect("Failed to construct GLM-OCR engine");
 
     eprintln!("Engine constructed. Running process_image_with_task on test image...");
 

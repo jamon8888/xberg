@@ -39,8 +39,8 @@ echo "======================================================================"
 
 # Verify fixtures directory
 if [ ! -d "$FIXTURES" ]; then
-    echo "ERROR: Fixtures directory not found: $FIXTURES"
-    exit 1
+  echo "ERROR: Fixtures directory not found: $FIXTURES"
+  exit 1
 fi
 
 # Track overall status
@@ -48,55 +48,55 @@ all_success=true
 
 # Run each model
 for model in $MODELS; do
-    case "$model" in
-        deepseek)
-            echo ""
-            echo ">>> Running DeepSeek-OCR baseline..."
-            output_dir="$OUTPUT_BASE/deepseek_ocr"
-            if python deepseek_ocr_baseline.py \
-                --fixtures "$FIXTURES" \
-                --output "$output_dir" \
-                --device "$DEVICE"; then
-                echo "✓ DeepSeek-OCR complete"
-            else
-                echo "✗ DeepSeek-OCR failed"
-                all_success=false
-            fi
-            ;;
+  case "$model" in
+  deepseek)
+    echo ""
+    echo ">>> Running DeepSeek-OCR baseline..."
+    output_dir="$OUTPUT_BASE/deepseek_ocr"
+    if python deepseek_ocr_baseline.py \
+      --fixtures "$FIXTURES" \
+      --output "$output_dir" \
+      --device "$DEVICE"; then
+      echo "✓ DeepSeek-OCR complete"
+    else
+      echo "✗ DeepSeek-OCR failed"
+      all_success=false
+    fi
+    ;;
 
-        hunyuan)
-            echo ""
-            echo ">>> Running Hunyuan-OCR baseline..."
-            output_dir="$OUTPUT_BASE/hunyuan_ocr"
-            if python hunyuan_ocr_baseline.py \
-                --fixtures "$FIXTURES" \
-                --output "$output_dir"; then
-                echo "✓ Hunyuan-OCR complete"
-            else
-                echo "✗ Hunyuan-OCR failed"
-                all_success=false
-            fi
-            ;;
+  hunyuan)
+    echo ""
+    echo ">>> Running Hunyuan-OCR baseline..."
+    output_dir="$OUTPUT_BASE/hunyuan_ocr"
+    if python hunyuan_ocr_baseline.py \
+      --fixtures "$FIXTURES" \
+      --output "$output_dir"; then
+      echo "✓ Hunyuan-OCR complete"
+    else
+      echo "✗ Hunyuan-OCR failed"
+      all_success=false
+    fi
+    ;;
 
-        paddleocr)
-            echo ""
-            echo ">>> Running PaddleOCR-VL baseline..."
-            output_dir="$OUTPUT_BASE/paddleocr_vl"
-            if python paddleocr_vl_baseline.py \
-                --fixtures "$FIXTURES" \
-                --output "$output_dir" \
-                --device "$DEVICE"; then
-                echo "✓ PaddleOCR-VL complete"
-            else
-                echo "✗ PaddleOCR-VL failed"
-                all_success=false
-            fi
-            ;;
+  paddleocr)
+    echo ""
+    echo ">>> Running PaddleOCR-VL baseline..."
+    output_dir="$OUTPUT_BASE/paddleocr_vl"
+    if python paddleocr_vl_baseline.py \
+      --fixtures "$FIXTURES" \
+      --output "$output_dir" \
+      --device "$DEVICE"; then
+      echo "✓ PaddleOCR-VL complete"
+    else
+      echo "✗ PaddleOCR-VL failed"
+      all_success=false
+    fi
+    ;;
 
-        *)
-            echo "WARNING: Unknown model: $model (skipping)"
-            ;;
-    esac
+  *)
+    echo "WARNING: Unknown model: $model (skipping)"
+    ;;
+  esac
 done
 
 # Summary
@@ -105,13 +105,13 @@ echo "======================================================================"
 echo "Baseline Generation Summary"
 echo "======================================================================"
 if [ "$all_success" = true ]; then
-    echo "✓ All baseline generation runs completed successfully"
-    echo "  Check $OUTPUT_BASE/ for generated baseline files"
-    echo "======================================================================"
-    exit 0
+  echo "✓ All baseline generation runs completed successfully"
+  echo "  Check $OUTPUT_BASE/ for generated baseline files"
+  echo "======================================================================"
+  exit 0
 else
-    echo "✗ One or more baseline generation runs failed"
-    echo "  Check logs above for details"
-    echo "======================================================================"
-    exit 1
+  echo "✗ One or more baseline generation runs failed"
+  echo "  Check logs above for details"
+  echo "======================================================================"
+  exit 1
 fi

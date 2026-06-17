@@ -68,12 +68,14 @@ python paddleocr_vl_baseline.py \
 ## Output Format
 
 Each script writes:
+
 - **`<fixture-stem>.<model-name>.expected.txt`** — Plain text extracted content (used for F1 scoring)
 - **`<fixture-stem>.<model-name>.expected.md`** — Markdown output (if model supports it)
 - **`<fixture-stem>.<model-name>.ms`** — Timing file (milliseconds)
 
 Example:
-```
+
+```text
 baselines/deepseek_ocr/
   document_001.deepseek-ocr.expected.txt
   document_001.deepseek-ocr.expected.md
@@ -100,18 +102,22 @@ assert!(f1 >= 0.90, "Baseline F1 failed: {:.1}% (need ≥90%)", f1 * 100.0);
 ## Troubleshooting
 
 ### Model Download Failures
+
 - Requires HuggingFace token for gated models (set `HF_TOKEN` env var).
 - Ensure sufficient disk space (30–50 GB recommended for all three).
 
 ### CUDA/Device Issues
+
 - **DeepSeek/Hunyuan** require CUDA 12+; fall back to CPU (very slow) by removing `device_map="cuda"`.
 - **PaddleOCR-VL** works on CPU; CUDA optional.
 
 ### Per-Fixture Errors
+
 - Scripts catch exceptions per fixture and continue (summary at end).
 - Check stderr for failed fixtures; common causes: corrupted image, unsupported format, timeout.
 
 ### Memory Issues
+
 - Reduce batch size or run one fixture at a time if VRAM exhausted.
 - Monitor with `nvidia-smi` (GPU) or `top` (CPU memory).
 
@@ -124,6 +130,7 @@ Once baselines are generated and committed:
    - Runs nightly or on manual trigger (models are large; 2–4 hours per full run).
 
 2. Phase 6 tests gate on baseline presence:
+
    ```rust
    let baseline_path = "tools/benchmark-harness/baselines/deepseek_ocr/document.expected.txt";
    assert!(baseline_path.exists(), "Baseline not found; run python_baselines scripts first");

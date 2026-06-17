@@ -24,6 +24,7 @@
 | `Qwen2Decoder::clear_kv_cache()` | `pub fn clear_kv_cache(&mut self)` | Mutable |
 
 ### Private Internals (Not Exported)
+
 - `Qwen2Attention` (has `kv_cache: Option<(Tensor, Tensor)>`)
 - `Qwen2DecoderLayer` (has `forward()` and `forward_no_cache()`)
 
@@ -43,6 +44,7 @@
 | 1158 | `self.model.forward_no_cache(&x_combined, Some(&attn_mask), 0)?` | Call `forward_no_cache(xs: &Tensor, attention_mask: Option<&Tensor>, seqlen_offset: usize)` |
 
 **Minimum API Surface Required**:
+
 1. `Qwen2Config` struct with all 14 fields constructible
 2. `Qwen2Decoder::new(VarBuilder, &Qwen2Config) -> Result`
 3. `Qwen2Decoder::forward_no_cache(&self, &Tensor, Option<&Tensor>, usize) -> Result<Tensor>`
@@ -95,6 +97,7 @@
 4. **Mutability difference**: candle-transformers requires `&mut self`, aha only requires `&self` for `forward_no_cache()`
 
 An adapter would need to:
+
 - Wrap candle-transformers' `Model` to expose `forward_no_cache()` that clones and strips KV cache
 - Convert `rope_theta: f32` to `f64` at construction
 - Pre-embed input tokens before passing to candle-transformers (move responsibility to caller)

@@ -18,18 +18,13 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
-import os
 import platform
 import resource
 import sys
 import time
 from pathlib import Path
 from typing import Any
-
-import PIL.Image
-
 
 # Logging setup
 logging.basicConfig(
@@ -62,6 +57,7 @@ def _load_paddleocr_vl() -> Any:
     try:
         # Try paddlex first (higher-level, recommended)
         from paddlex import create_model
+
         log.info("Using PaddleX SDK")
         model = create_model("ocr_vl")
         return ("paddlex", model)
@@ -71,15 +67,13 @@ def _load_paddleocr_vl() -> Any:
     try:
         # Fallback: paddleocr with VL support
         from paddleocr import OCR
+
         log.info("Using PaddleOCR (open-source)")
         # VL variant: high performance, structured output
         model = OCR(use_angle_cls=True, lang="en", version="v4")
         return ("paddleocr", model)
     except ImportError:
-        raise ImportError(
-            "Neither paddlex nor paddleocr available. "
-            "Install: pip install paddlex paddlepaddle"
-        )
+        raise ImportError("Neither paddlex nor paddleocr available. Install: pip install paddlex paddlepaddle")
 
 
 def extract_sync_paddlex(
@@ -163,9 +157,9 @@ def _format_paddlex_result(result: Any) -> str:
     lines = []
     if hasattr(result, "text"):
         return result.text
-    elif isinstance(result, dict) and "text" in result:
+    if isinstance(result, dict) and "text" in result:
         return result["text"]
-    elif isinstance(result, list):
+    if isinstance(result, list):
         # List of paragraphs/lines
         for item in result:
             if isinstance(item, str):
@@ -209,9 +203,7 @@ def _format_paddleocr_result(result: Any) -> str:
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Generate PaddleOCR-VL reference baselines for image fixtures."
-    )
+    parser = argparse.ArgumentParser(description="Generate PaddleOCR-VL reference baselines for image fixtures.")
     parser.add_argument(
         "--fixtures",
         type=Path,
@@ -236,15 +228,15 @@ def main():
     # Create output directory
     args.output.mkdir(parents=True, exist_ok=True)
 
-    log.info("="*70)
+    log.info("=" * 70)
     log.info("PaddleOCR-VL Baseline Generation")
-    log.info("="*70)
-    log.info(f"Model: paddleocr-v4 (vision-language)")
-    log.info(f"Size: ~700 MB – 2 GB (disk)")
+    log.info("=" * 70)
+    log.info("Model: paddleocr-v4 (vision-language)")
+    log.info("Size: ~700 MB – 2 GB (disk)")
     log.info(f"Device: {args.device}")
     log.info(f"Fixtures directory: {args.fixtures}")
     log.info(f"Output directory: {args.output}")
-    log.info("="*70)
+    log.info("=" * 70)
 
     # Check fixture directory
     if not args.fixtures.exists():
@@ -262,9 +254,7 @@ def main():
         sys.exit(1)
 
     # Find image files
-    image_files = sorted(
-        f for f in args.fixtures.rglob("*") if _is_image_file(f)
-    )
+    image_files = sorted(f for f in args.fixtures.rglob("*") if _is_image_file(f))
     log.info(f"Found {len(image_files)} image files")
 
     if not image_files:
@@ -274,9 +264,7 @@ def main():
     # Process fixtures
     successful = 0
     failed = 0
-    extract_fn = (
-        extract_sync_paddlex if backend == "paddlex" else extract_sync_paddleocr
-    )
+    extract_fn = extract_sync_paddlex if backend == "paddlex" else extract_sync_paddleocr
 
     for i, img_path in enumerate(image_files, 1):
         log.info(f"[{i}/{len(image_files)}] Processing {img_path.name}...")
@@ -294,19 +282,17 @@ def main():
             successful += 1
             output_file.write_text(result["content"], encoding="utf-8")
             timing_file = args.output / f"{fixture_stem}.paddleocr-vl.ms"
-            timing_file.write_text(
-                str(int(result["_extraction_time_ms"])), encoding="utf-8"
-            )
+            timing_file.write_text(str(int(result["_extraction_time_ms"])), encoding="utf-8")
             log.info(f"  Saved: {output_file.name} ({result['_extraction_time_ms']:.0f} ms)")
 
     # Summary
-    log.info("="*70)
-    log.info(f"PaddleOCR-VL baseline generation complete")
+    log.info("=" * 70)
+    log.info("PaddleOCR-VL baseline generation complete")
     log.info(f"  Processed: {len(image_files)}")
     log.info(f"  Successful: {successful}")
     log.info(f"  Failed: {failed}")
     log.info(f"  Output: {args.output}")
-    log.info("="*70)
+    log.info("=" * 70)
 
     sys.exit(0 if failed == 0 else 2)
 

@@ -364,8 +364,7 @@ mod tests {
         ];
 
         for (variant, expected_json) in cases {
-            let serialized =
-                serde_json::to_string(variant).unwrap_or_else(|e| panic!("serialize {:?}: {e}", variant));
+            let serialized = serde_json::to_string(variant).unwrap_or_else(|e| panic!("serialize {:?}: {e}", variant));
             assert_eq!(
                 serialized, *expected_json,
                 "PaddleOcrVlTask::{:?} should serialize to {expected_json}",

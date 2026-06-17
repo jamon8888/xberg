@@ -103,10 +103,7 @@ fn deepseek_ocr_extracts_text_from_sample_image() {
     eprintln!("Output ({} chars):\n{output}", output.len());
 
     // ── Assertion 1: non-empty output ─────────────────────────────────────────
-    assert!(
-        !output.is_empty(),
-        "DeepSeek-OCR output must not be empty"
-    );
+    assert!(!output.is_empty(), "DeepSeek-OCR output must not be empty");
     assert!(
         output.len() > 3,
         "DeepSeek-OCR output must contain more than 3 characters, got {:?}",

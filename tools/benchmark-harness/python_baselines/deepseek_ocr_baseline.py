@@ -19,7 +19,6 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import platform
@@ -30,9 +29,7 @@ from pathlib import Path
 from typing import Any
 
 import PIL.Image
-from huggingface_hub import hf_hub_download
 from transformers import AutoModel, AutoTokenizer
-
 
 # Logging setup
 logging.basicConfig(
@@ -123,9 +120,7 @@ def extract_sync(
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Generate DeepSeek-OCR reference baselines for image fixtures."
-    )
+    parser = argparse.ArgumentParser(description="Generate DeepSeek-OCR reference baselines for image fixtures.")
     parser.add_argument(
         "--fixtures",
         type=Path,
@@ -155,15 +150,15 @@ def main():
     # Create output directory
     args.output.mkdir(parents=True, exist_ok=True)
 
-    log.info("="*70)
+    log.info("=" * 70)
     log.info("DeepSeek-OCR Baseline Generation")
-    log.info("="*70)
-    log.info(f"Model: deepseek-ai/DeepSeek-OCR")
-    log.info(f"Size: ~2.7 GB (disk)")
+    log.info("=" * 70)
+    log.info("Model: deepseek-ai/DeepSeek-OCR")
+    log.info("Size: ~2.7 GB (disk)")
     log.info(f"Device: {args.device}")
     log.info(f"Fixtures directory: {args.fixtures}")
     log.info(f"Output directory: {args.output}")
-    log.info("="*70)
+    log.info("=" * 70)
 
     # Check fixture directory
     if not args.fixtures.exists():
@@ -191,9 +186,7 @@ def main():
         sys.exit(1)
 
     # Find image files
-    image_files = sorted(
-        f for f in args.fixtures.rglob("*") if _is_image_file(f)
-    )
+    image_files = sorted(f for f in args.fixtures.rglob("*") if _is_image_file(f))
     log.info(f"Found {len(image_files)} image files")
 
     if not image_files:
@@ -220,19 +213,17 @@ def main():
             successful += 1
             output_file.write_text(result["content"], encoding="utf-8")
             timing_file = args.output / f"{fixture_stem}.deepseek-ocr.ms"
-            timing_file.write_text(
-                str(int(result["_extraction_time_ms"])), encoding="utf-8"
-            )
+            timing_file.write_text(str(int(result["_extraction_time_ms"])), encoding="utf-8")
             log.info(f"  Saved: {output_file.name} ({result['_extraction_time_ms']:.0f} ms)")
 
     # Summary
-    log.info("="*70)
-    log.info(f"DeepSeek-OCR baseline generation complete")
+    log.info("=" * 70)
+    log.info("DeepSeek-OCR baseline generation complete")
     log.info(f"  Processed: {len(image_files)}")
     log.info(f"  Successful: {successful}")
     log.info(f"  Failed: {failed}")
     log.info(f"  Output: {args.output}")
-    log.info("="*70)
+    log.info("=" * 70)
 
     sys.exit(0 if failed == 0 else 2)
 
