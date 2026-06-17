@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.25.27"
+alef_version = "0.25.30"
 languages = [
   "python",
   "node",
@@ -601,6 +601,11 @@ exclude_functions = [
   "calculate_quality_score",
   "embed_texts",
 ]
+# `heic` must not appear in `default = [...]` for the dart binding crate:
+# libheif-sys (via kreuzberg-libheif) has no cross-compile story for iOS or
+# Android NDK targets. The `heic` feature itself is preserved as a forwarding
+# entry so desktop callers can opt in via `--features heic`.
+excluded_default_features = ["heic"]
 
 # Android (any arch) and iOS: libheif-sys + ORT do not cross-compile to mobile
 # NDK/SDK targets. Use the `android-target` aggregate (pure-Rust base + excel +
@@ -760,6 +765,11 @@ exclude_functions = [
   "embed_texts_async",
   "rerank_async",
 ]
+# `heic` must not appear in `default = [...]` for the swift binding crate:
+# libheif-sys (via kreuzberg-libheif) has no cross-compile story for iOS or
+# Android NDK targets. The `heic` feature itself is preserved as a forwarding
+# entry so desktop callers can opt in via `--features heic`.
+excluded_default_features = ["heic"]
 
 # iOS: libheif-sys + ORT do not cross-compile to the iOS SDK, so the
 # swift-bridge cdylib drops `heic` along with the ORT-dependent features.
