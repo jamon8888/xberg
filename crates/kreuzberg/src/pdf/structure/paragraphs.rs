@@ -290,8 +290,8 @@ mod tests {
         // Heuristic-path paragraphs have non-empty text. After merging, text must
         // be cleared so assembly re-derives the full content from segments via
         // join_line_texts_plain rather than returning only the first fragment.
-        let mut p1 = make_body_paragraph("een indicatie", 12.0);
-        p1.text = "een indicatie".to_string();
+        let mut p1 = make_body_paragraph("een indicative", 12.0);
+        p1.text = "een indicative".to_string();
         let mut p2 = make_body_paragraph("van toenemende merkbekendheid", 12.0);
         p2.text = "van toenemende merkbekendheid".to_string();
         let mut paragraphs = vec![p1, p2];

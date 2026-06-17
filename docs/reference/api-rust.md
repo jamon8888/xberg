@@ -2,7 +2,7 @@
 title: "Rust API Reference"
 ---
 
-## Rust API Reference <span class="version-badge">v5.0.0-rc.18</span>
+## Rust API Reference <span class="version-badge">v5.0.0-rc.19</span>
 
 ### Functions
 
@@ -2020,7 +2020,7 @@ Extracted from compressed archive files containing file lists and size informati
 |-------|------|---------|-------------|
 | `format` | `String` | — | Archive format ("ZIP", "TAR", "7Z", etc.) |
 | `file_count` | `u32` | — | Total number of files in the archive |
-| `file_list` | `Vec<String>` | `vec![]` | List of file paths within the archive |
+| `file_list` | `Vec<String>` | `vec!\[\]` | List of file paths within the archive |
 | `total_size` | `u64` | — | Total uncompressed size in bytes |
 | `compressed_size` | `Option<u64>` | `Default::default()` | Compressed size in bytes (if available) |
 
@@ -2093,8 +2093,8 @@ BibTeX bibliography metadata.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `entry_count` | `usize` | — | Number of entries in the bibliography. |
-| `citation_keys` | `Vec<String>` | `vec![]` | BibTeX citation keys (e.g. `"knuth1984"`) for all entries. |
-| `authors` | `Vec<String>` | `vec![]` | Author names collected across all bibliography entries. |
+| `citation_keys` | `Vec<String>` | `vec!\[\]` | BibTeX citation keys (e.g. `"knuth1984"`) for all entries. |
+| `authors` | `Vec<String>` | `vec!\[\]` | Author names collected across all bibliography entries. |
 | `year_range` | `Option<YearRange>` | `Default::default()` | Earliest and latest publication years found in the bibliography. |
 | `entry_types` | `Option<HashMap<String, usize>>` | `HashMap::new()` | Count of entries grouped by BibTeX entry type (e.g. `"article"` → 5). |
 
@@ -2205,7 +2205,7 @@ Metadata about a chunk's position in the original document.
 | `first_page` | `Option<u32>` | `None` | First page number this chunk spans (1-indexed). Only populated when page tracking is enabled in extraction configuration. |
 | `last_page` | `Option<u32>` | `None` | Last page number this chunk spans (1-indexed, equal to first_page for single-page chunks). Only populated when page tracking is enabled in extraction configuration. |
 | `heading_context` | `Option<HeadingContext>` | `/* serde(default) */` | Heading context when using Markdown chunker. Contains the heading hierarchy this chunk falls under. Only populated when `ChunkerType::Markdown` is used. |
-| `image_indices` | `Vec<u32>` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images on pages covered by this chunk. Contains zero-based indices into the top-level `images` collection for every image whose `page_number` falls within `[first_page, last_page]`. Empty when image extraction is disabled or the chunk spans no pages with images. |
+| `image_indices` | `Vec<u32>` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images on pages covered by this chunk. Contains zero-based indices into the top-level `images` collection for every image whose `page_number` falls within `\[first_page, last_page\]`. Empty when image extraction is disabled or the chunk spans no pages with images. |
 
 ---
 
@@ -2258,10 +2258,10 @@ Citation file metadata (RIS, PubMed, EndNote).
 |-------|------|---------|-------------|
 | `citation_count` | `usize` | — | Total number of citation records in the file. |
 | `format` | `Option<String>` | `Default::default()` | Detected citation file format (e.g. `"ris"`, `"pubmed"`, `"endnote"`). |
-| `authors` | `Vec<String>` | `vec![]` | Author names collected across all citation records. |
+| `authors` | `Vec<String>` | `vec!\[\]` | Author names collected across all citation records. |
 | `year_range` | `Option<YearRange>` | `Default::default()` | Earliest and latest publication years found in the file. |
-| `dois` | `Vec<String>` | `vec![]` | DOI identifiers found in the citation records. |
-| `keywords` | `Vec<String>` | `vec![]` | Keywords collected from all citation records. |
+| `dois` | `Vec<String>` | `vec!\[\]` | DOI identifiers found in the citation records. |
+| `keywords` | `Vec<String>` | `vec!\[\]` | Keywords collected from all citation records. |
 
 ---
 
@@ -2282,7 +2282,7 @@ A single label + confidence pair.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `label` | `String` | — | Label name as configured in `PageClassificationConfig::labels`. |
-| `confidence` | `Option<f32>` | `None` | Backend-reported confidence in `[0.0, 1.0]`. `None` when the backend (e.g. an LLM prompt without explicit confidence schema) did not report one. |
+| `confidence` | `Option<f32>` | `None` | Backend-reported confidence in `\[0.0, 1.0\]`. `None` when the backend (e.g. an LLM prompt without explicit confidence schema) did not report one. |
 
 ---
 
@@ -2373,7 +2373,7 @@ CSV/TSV file metadata.
 | `column_count` | `u32` | — | Number of columns detected. |
 | `delimiter` | `Option<String>` | `Default::default()` | Field delimiter character (e.g. `","` or `"\t"`). |
 | `has_header` | `bool` | — | Whether the first row was treated as a header. |
-| `column_types` | `Option<Vec<String>>` | `vec![]` | Inferred data type for each column (e.g. `"string"`, `"integer"`, `"float"`). |
+| `column_types` | `Option<Vec<String>>` | `vec!\[\]` | Inferred data type for each column (e.g. `"string"`, `"integer"`, `"float"`). |
 
 ---
 
@@ -2396,7 +2396,7 @@ dBASE (DBF) file metadata.
 |-------|------|---------|-------------|
 | `record_count` | `usize` | — | Total number of data records in the DBF file. |
 | `field_count` | `usize` | — | Number of field (column) definitions. |
-| `fields` | `Vec<DbfFieldInfo>` | `vec![]` | Descriptor for each field in the table schema. |
+| `fields` | `Vec<DbfFieldInfo>` | `vec!\[\]` | Descriptor for each field in the table schema. |
 
 ---
 
@@ -2739,7 +2739,7 @@ for tree structure, and metadata like page number, bounding box, and content lay
 | `content` | `NodeContent` | — | Node content — tagged enum, type-specific data only. |
 | `parent` | `Option<u32>` | `None` | Parent node index (`None` = root-level node). |
 | `children` | `Vec<u32>` | `/* serde(default) */` | Child node indices in reading order. |
-| `content_layer` | `ContentLayer` | `/* serde(default) */` | Content layer classification. Always serialised — Kotlin-Android (and any other typed binding) treats the field as non-nullable, so omitting it from the JSON wire would break consumer deserialisation.  `#[serde(default)]` covers the missing-field case on inbound JSON. |
+| `content_layer` | `ContentLayer` | `/* serde(default) */` | Content layer classification. Always serialised — Kotlin-Android (and any other typed binding) treats the field as non-nullable, so omitting it from the JSON wire would break consumer deserialisation.  `#\[serde(default)\]` covers the missing-field case on inbound JSON. |
 | `page` | `Option<u32>` | `None` | Page number where this node starts (1-indexed). |
 | `page_end` | `Option<u32>` | `None` | Page number where this node ends (for multi-page tables/sections). |
 | `bbox` | `Option<BoundingBox>` | `None` | Bounding box in document coordinates. |
@@ -2795,10 +2795,10 @@ and parent-child relationships are bidirectionally consistent.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `nodes` | `Vec<DocumentNode>` | `vec![]` | All nodes in document/reading order. |
+| `nodes` | `Vec<DocumentNode>` | `vec!\[\]` | All nodes in document/reading order. |
 | `source_format` | `Option<String>` | `Default::default()` | Origin format identifier (e.g. "docx", "pptx", "html", "pdf"). Allows renderers to apply format-aware heuristics when converting the document tree to output formats. |
-| `relationships` | `Vec<DocumentRelationship>` | `vec![]` | Resolved relationships between nodes (footnote refs, citations, anchor links, etc.). Populated during derivation from the internal document representation. Empty when no relationships are detected. |
-| `node_types` | `Vec<String>` | `vec![]` | Sorted, deduplicated list of node type names present in this document. Each value is the snake_case `node_type` tag of the corresponding `NodeContent` variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …). Computed from `nodes` via `DocumentStructure::finalize_node_types`. Empty until that method is called (internal construction paths call it at the end of derivation). |
+| `relationships` | `Vec<DocumentRelationship>` | `vec!\[\]` | Resolved relationships between nodes (footnote refs, citations, anchor links, etc.). Populated during derivation from the internal document representation. Empty when no relationships are detected. |
+| `node_types` | `Vec<String>` | `vec!\[\]` | Sorted, deduplicated list of node type names present in this document. Each value is the snake_case `node_type` tag of the corresponding `NodeContent` variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …). Computed from `nodes` via `DocumentStructure::finalize_node_types`. Empty until that method is called (internal construction paths call it at the end of derivation). |
 
 ##### Methods
 
@@ -3024,11 +3024,11 @@ Includes sender/recipient information, message ID, and attachment list.
 |-------|------|---------|-------------|
 | `from_email` | `Option<String>` | `Default::default()` | Sender's email address |
 | `from_name` | `Option<String>` | `Default::default()` | Sender's display name |
-| `to_emails` | `Vec<String>` | `vec![]` | Primary recipients |
-| `cc_emails` | `Vec<String>` | `vec![]` | CC recipients |
-| `bcc_emails` | `Vec<String>` | `vec![]` | BCC recipients |
+| `to_emails` | `Vec<String>` | `vec!\[\]` | Primary recipients |
+| `cc_emails` | `Vec<String>` | `vec!\[\]` | CC recipients |
+| `bcc_emails` | `Vec<String>` | `vec!\[\]` | BCC recipients |
 | `message_id` | `Option<String>` | `Default::default()` | Message-ID header value |
-| `attachments` | `Vec<String>` | `vec![]` | List of attachment filenames |
+| `attachments` | `Vec<String>` | `vec!\[\]` | List of attachment filenames |
 
 ---
 
@@ -3243,7 +3243,7 @@ A single named entity detected in the extracted text.
 | `text` | `String` | — | Raw mention text exactly as it appeared in the source. |
 | `start` | `u32` | — | Byte-offset span in `ExtractionResult::content` where the mention starts. |
 | `end` | `u32` | — | Byte-offset span in `ExtractionResult::content` where the mention ends (exclusive). |
-| `confidence` | `Option<f32>` | `None` | Backend-reported confidence in `[0.0, 1.0]`. `None` when the backend does not expose confidence scores. |
+| `confidence` | `Option<f32>` | `None` | Backend-reported confidence in `\[0.0, 1.0\]`. `None` when the backend does not expose confidence scores. |
 
 ---
 
@@ -3283,7 +3283,7 @@ discriminant. Sheet count and sheet names are stored inside this struct.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `sheet_count` | `Option<u32>` | `Default::default()` | Number of sheets in the workbook. |
-| `sheet_names` | `Option<Vec<String>>` | `vec![]` | Names of all sheets in the workbook. |
+| `sheet_names` | `Option<Vec<String>>` | `vec!\[\]` | Names of all sheets in the workbook. |
 
 ---
 
@@ -3347,7 +3347,7 @@ PIL.Image (Python), Sharp (Node.js), or other formats as needed.
 | `kind_confidence` | `Option<f32>` | `Default::default()` | Confidence score for `image_kind`, in the range 0.0 to 1.0. |
 | `cluster_id` | `Option<u32>` | `Default::default()` | Identifier shared across images that form a single logical figure (e.g. all raster tiles of one technical drawing). `None` for singletons. |
 | `caption` | `Option<String>` | `Default::default()` | VLM-generated caption describing the image, when captioning is configured. Populated by the captioning post-processor (`crates/kreuzberg/src/plugins/processor/builtin/captioning.rs`), which routes each image through `crate::llm::region_extractor::extract_region_with_vlm` in caption mode. `None` when captioning is disabled or the VLM declined to caption. |
-| `qr_codes` | `Option<Vec<QrCode>>` | `vec![]` | QR codes decoded from this image, when QR detection is enabled. Populated by the QR post-processor (`crates/kreuzberg/src/extractors/qr.rs`) via the pure-Rust `rqrr` decoder. `None` when QR detection is disabled; an empty `Some(vec![])` when detection ran but found nothing. |
+| `qr_codes` | `Option<Vec<QrCode>>` | `vec!\[\]` | QR codes decoded from this image, when QR detection is enabled. Populated by the QR post-processor (`crates/kreuzberg/src/extractors/qr.rs`) via the pure-Rust `rqrr` decoder. `None` when QR detection is disabled; an empty `Some(vec!\[\])` when detection ran but found nothing. |
 
 ---
 
@@ -3525,32 +3525,33 @@ This is the main result type returned by all extraction functions.
 | `mime_type` | `String` | — | MIME type of the source document (e.g. `"application/pdf"`). |
 | `metadata` | `Metadata` | — | Document-level metadata (author, title, dates, format-specific fields). |
 | `extraction_method` | `Option<ExtractionMethod>` | `Default::default()` | Extraction strategy used to produce the returned text. Populated when the extractor can reliably distinguish native text extraction, OCR-only extraction, or mixed native/OCR output. |
-| `tables` | `Vec<Table>` | `vec![]` | Tables extracted from the document, each with structured cell data. |
-| `detected_languages` | `Option<Vec<String>>` | `vec![]` | ISO 639-1 language codes detected in the document content. |
-| `chunks` | `Option<Vec<Chunk>>` | `vec![]` | Text chunks when chunking is enabled. When chunking configuration is provided, the content is split into overlapping chunks for efficient processing. Each chunk contains the text, optional embeddings (if enabled), and metadata about its position. |
-| `images` | `Option<Vec<ExtractedImage>>` | `vec![]` | Extracted images from the document. When image extraction is enabled via `ImageExtractionConfig`, this field contains all images found in the document with their raw data and metadata. Each image may optionally contain a nested `ocr_result` if OCR was performed. |
-| `pages` | `Option<Vec<PageContent>>` | `vec![]` | Per-page content when page extraction is enabled. When page extraction is configured, the document is split into per-page content with tables and images mapped to their respective pages. |
-| `elements` | `Option<Vec<Element>>` | `vec![]` | Semantic elements when element-based result format is enabled. When result_format is set to ElementBased, this field contains semantic elements with type classification, unique identifiers, and metadata for Unstructured-compatible element-based processing. |
+| `tables` | `Vec<Table>` | `vec!\[\]` | Tables extracted from the document, each with structured cell data. |
+| `detected_languages` | `Option<Vec<String>>` | `vec!\[\]` | ISO 639-1 language codes detected in the document content. |
+| `chunks` | `Option<Vec<Chunk>>` | `vec!\[\]` | Text chunks when chunking is enabled. When chunking configuration is provided, the content is split into overlapping chunks for efficient processing. Each chunk contains the text, optional embeddings (if enabled), and metadata about its position. |
+| `images` | `Option<Vec<ExtractedImage>>` | `vec!\[\]` | Extracted images from the document. When image extraction is enabled via `ImageExtractionConfig`, this field contains all images found in the document with their raw data and metadata. Each image may optionally contain a nested `ocr_result` if OCR was performed. |
+| `pages` | `Option<Vec<PageContent>>` | `vec!\[\]` | Per-page content when page extraction is enabled. When page extraction is configured, the document is split into per-page content with tables and images mapped to their respective pages. |
+| `elements` | `Option<Vec<Element>>` | `vec!\[\]` | Semantic elements when element-based result format is enabled. When result_format is set to ElementBased, this field contains semantic elements with type classification, unique identifiers, and metadata for Unstructured-compatible element-based processing. |
 | `djot_content` | `Option<DjotContent>` | `Default::default()` | Rich Djot content structure (when extracting Djot documents). When extracting Djot documents with structured extraction enabled, this field contains the full semantic structure including: - Block-level elements with nesting - Inline formatting with attributes - Links, images, footnotes - Math expressions - Complete attribute information The `content` field still contains plain text for backward compatibility. Always `None` for non-Djot documents. |
-| `ocr_elements` | `Option<Vec<OcrElement>>` | `vec![]` | OCR elements with full spatial and confidence metadata. When OCR is performed with element extraction enabled, this field contains the structured representation of detected text including: - Bounding geometry (rectangles or quadrilaterals) - Confidence scores (detection and recognition) - Rotation information - Hierarchical relationships (Tesseract only) This field preserves all metadata that would otherwise be lost when converting to plain text or markdown output formats. Only populated when `OcrElementConfig.include_elements` is true. |
+| `ocr_elements` | `Option<Vec<OcrElement>>` | `vec!\[\]` | OCR elements with full spatial and confidence metadata. When OCR is performed with element extraction enabled, this field contains the structured representation of detected text including: - Bounding geometry (rectangles or quadrilaterals) - Confidence scores (detection and recognition) - Rotation information - Hierarchical relationships (Tesseract only) This field preserves all metadata that would otherwise be lost when converting to plain text or markdown output formats. Only populated when `OcrElementConfig.include_elements` is true. |
 | `document` | `Option<DocumentStructure>` | `Default::default()` | Structured document tree (when document structure extraction is enabled). When `include_document_structure` is true in `ExtractionConfig`, this field contains the full hierarchical representation of the document including: - Heading-driven section nesting - Table grids with cell-level metadata - Content layer classification (body, header, footer, footnote) - Inline text annotations (formatting, links) - Bounding boxes and page numbers Independent of `result_format` — can be combined with Unified or ElementBased. |
-| `extracted_keywords` | `Option<Vec<Keyword>>` | `vec![]` | Extracted keywords when keyword extraction is enabled. When keyword extraction (RAKE or YAKE) is configured, this field contains the extracted keywords with scores, algorithm info, and position data. Previously stored in `metadata.additional["keywords"]`. |
-| `quality_score` | `Option<f64>` | `Default::default()` | Document quality score from quality analysis. A value between 0.0 and 1.0 indicating the overall text quality. Previously stored in `metadata.additional["quality_score"]`. |
-| `processing_warnings` | `Vec<ProcessingWarning>` | `vec![]` | Non-fatal warnings collected during processing pipeline stages. Captures errors from optional pipeline features (embedding, chunking, language detection, output formatting) that don't prevent extraction but may indicate degraded results. Previously stored as individual keys in `metadata.additional`. |
-| `annotations` | `Option<Vec<PdfAnnotation>>` | `vec![]` | PDF annotations extracted from the document. When annotation extraction is enabled via `PdfConfig::extract_annotations`, this field contains text notes, highlights, links, stamps, and other annotations found in PDF documents. |
-| `children` | `Option<Vec<ArchiveEntry>>` | `vec![]` | Nested extraction results from archive contents. When extracting archives, each processable file inside produces its own full extraction result. Set to `None` for non-archive formats. Use `max_archive_depth` in config to control recursion depth. |
-| `uris` | `Option<Vec<ExtractedUri>>` | `vec![]` | URIs/links discovered during document extraction. Contains hyperlinks, image references, citations, email addresses, and other URI-like references found in the document. Always extracted when present in the source document. |
-| `revisions` | `Option<Vec<DocumentRevision>>` | `vec![]` | Tracked changes embedded in the source document. Populated by per-format extractors that understand change-tracking metadata (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`, …). Every extractor defaults to `None` until its format-specific implementation is added. Extractors that do populate this field follow the "accepted-changes" convention: inserted text is present in `content`, deleted text is absent — the revision list is the separate audit trail. |
+| `extracted_keywords` | `Option<Vec<Keyword>>` | `vec!\[\]` | Extracted keywords when keyword extraction is enabled. When keyword extraction (RAKE or YAKE) is configured, this field contains the extracted keywords with scores, algorithm info, and position data. Previously stored in `metadata.additional\["keywords"\]`. |
+| `quality_score` | `Option<f64>` | `Default::default()` | Document quality score from quality analysis. A value between 0.0 and 1.0 indicating the overall text quality. Previously stored in `metadata.additional\["quality_score"\]`. |
+| `processing_warnings` | `Vec<ProcessingWarning>` | `vec!\[\]` | Non-fatal warnings collected during processing pipeline stages. Captures errors from optional pipeline features (embedding, chunking, language detection, output formatting) that don't prevent extraction but may indicate degraded results. Previously stored as individual keys in `metadata.additional`. |
+| `annotations` | `Option<Vec<PdfAnnotation>>` | `vec!\[\]` | PDF annotations extracted from the document. When annotation extraction is enabled via `PdfConfig::extract_annotations`, this field contains text notes, highlights, links, stamps, and other annotations found in PDF documents. |
+| `children` | `Option<Vec<ArchiveEntry>>` | `vec!\[\]` | Nested extraction results from archive contents. When extracting archives, each processable file inside produces its own full extraction result. Set to `None` for non-archive formats. Use `max_archive_depth` in config to control recursion depth. |
+| `uris` | `Option<Vec<ExtractedUri>>` | `vec!\[\]` | URIs/links discovered during document extraction. Contains hyperlinks, image references, citations, email addresses, and other URI-like references found in the document. Always extracted when present in the source document. |
+| `revisions` | `Option<Vec<DocumentRevision>>` | `vec!\[\]` | Tracked changes embedded in the source document. Populated by per-format extractors that understand change-tracking metadata (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`, …). Every extractor defaults to `None` until its format-specific implementation is added. Extractors that do populate this field follow the "accepted-changes" convention: inserted text is present in `content`, deleted text is absent — the revision list is the separate audit trail. |
 | `structured_output` | `Option<serde_json::Value>` | `Default::default()` | Structured extraction output from LLM-based JSON schema extraction. When `structured_extraction` is configured in `ExtractionConfig`, the extracted document content is sent to a VLM with the provided JSON schema. The response is parsed and stored here as a JSON value matching the schema. |
 | `code_intelligence` | `Option<serde_json::Value>` | `Default::default()` | Code intelligence results from tree-sitter analysis. Populated when extracting source code files with the `tree-sitter` feature. Contains metrics, structural analysis, imports/exports, comments, docstrings, symbols, diagnostics, and optionally chunked code segments. Stored as an opaque JSON value so that all language bindings (Go, Java, C#, …) can deserialize it as a raw JSON object rather than a typed struct. The underlying type is `tree_sitter_language_pack::ProcessResult`. |
-| `llm_usage` | `Option<Vec<LlmUsage>>` | `vec![]` | LLM token usage and cost data for all LLM calls made during this extraction. Contains one entry per LLM call. Multiple entries are produced when VLM OCR, structured extraction, or LLM embeddings run during the same extraction. `None` when no LLM was used. |
-| `entities` | `Option<Vec<Entity>>` | `vec![]` | Named entities detected in `content` by the NER post-processor. `None` when no NER backend is configured. Populated by the gline-rs ONNX backend or the LLM-driven backend (see `crates/kreuzberg/src/text/ner/`). |
+| `llm_usage` | `Option<Vec<LlmUsage>>` | `vec!\[\]` | LLM token usage and cost data for all LLM calls made during this extraction. Contains one entry per LLM call. Multiple entries are produced when VLM OCR, structured extraction, or LLM embeddings run during the same extraction. `None` when no LLM was used. |
+| `entities` | `Option<Vec<Entity>>` | `vec!\[\]` | Named entities detected in `content` by the NER post-processor. `None` when no NER backend is configured. Populated by the gline-rs ONNX backend or the LLM-driven backend (see `crates/kreuzberg/src/text/ner/`). |
 | `summary` | `Option<DocumentSummary>` | `Default::default()` | Summary of `content` produced by the summarisation post-processor. `None` when summarisation is not configured. Populated by the TextRank extractive backend (deterministic, no external service) or by the liter-llm-driven abstractive backend. |
 | `translation` | `Option<Translation>` | `Default::default()` | Translation of `content` produced by the translation post-processor. `None` when translation is not configured. |
-| `page_classifications` | `Option<Vec<PageClassification>>` | `vec![]` | Per-page classifications produced by the page-classification post-processor. `None` when classification is not configured. |
+| `page_classifications` | `Option<Vec<PageClassification>>` | `vec!\[\]` | Per-page classifications produced by the page-classification post-processor. `None` when classification is not configured. |
 | `redaction_report` | `Option<RedactionReport>` | `Default::default()` | Audit report of redactions applied by the redaction post-processor. The redaction processor rewrites `content`, `formatted_content`, every chunk's text, and the textual fields of `entities` / `summary` / `translation` / `page_classifications` in place. This report describes what was found and how it was replaced. `None` when redaction is not configured. |
 | `formatted_content` | `Option<String>` | `Default::default()` | Pre-rendered content in the requested output format. Populated during `derive_extraction_result` before tree derivation consumes element data. `apply_output_format` swaps this into `content` at the end of the pipeline, after post-processors have operated on plain text. |
 | `ocr_internal_document` | `Option<String>` | `Default::default()` | Structured hOCR document for the OCR+layout pipeline. When tesseract produces hOCR output, the parsed `InternalDocument` carries paragraph structure with bounding boxes and confidence scores. The layout classification step enriches these elements before final rendering. |
+| `internal_document` | `Option<String>` | `Default::default()` | The original `InternalDocument` from the extractor, preserved before derivation. Stored by the pipeline before `derive_extraction_result` consumes the document, so that downstream transformation steps (element-based result format) can walk the extractor's native reading order instead of reassembling from per-page content. This is especially important for DOCX, which has no native page boundaries: the per-page reconstruction scrambles element order, but the flat element list in the `InternalDocument` is always in reading order. `None` for extraction paths that do not go through the async/sync pipeline (e.g., direct `ExtractionResult::from_ocr` construction). |
 
 ##### Methods
 
@@ -3586,8 +3587,8 @@ FictionBook (FB2) metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `genres` | `Vec<String>` | `vec![]` | Genre tags as declared in the FB2 `<genre>` elements. |
-| `sequences` | `Vec<String>` | `vec![]` | Book series (sequence) names, if any. |
+| `genres` | `Vec<String>` | `vec!\[\]` | Genre tags as declared in the FB2 `<genre>` elements. |
+| `sequences` | `Vec<String>` | `vec!\[\]` | Book series (sequence) names, if any. |
 | `annotation` | `Option<String>` | `Default::default()` | Short annotation / summary from the FB2 `<annotation>` element. |
 
 ---
@@ -3616,7 +3617,7 @@ cannot be overridden per file:
 | `enable_quality_processing` | `Option<bool>` | `Default::default()` | Override quality post-processing for this file. |
 | `ocr` | `Option<OcrConfig>` | `Default::default()` | Override OCR configuration for this file (None in the Option = use batch default). |
 | `force_ocr` | `Option<bool>` | `Default::default()` | Override force OCR for this file. |
-| `force_ocr_pages` | `Option<Vec<u32>>` | `vec![]` | Override force OCR pages for this file (1-indexed page numbers). |
+| `force_ocr_pages` | `Option<Vec<u32>>` | `vec!\[\]` | Override force OCR pages for this file (1-indexed page numbers). |
 | `disable_ocr` | `Option<bool>` | `Default::default()` | Override disable OCR for this file. |
 | `chunking` | `Option<ChunkingConfig>` | `Default::default()` | Override chunking configuration for this file. |
 | `content_filter` | `Option<ContentFilterConfig>` | `Default::default()` | Override content filtering configuration for this file. |
@@ -3783,7 +3784,7 @@ and extracted structural elements (headers, links, images, structured data).
 |-------|------|---------|-------------|
 | `title` | `Option<String>` | `Default::default()` | Document title from `<title>` tag |
 | `description` | `Option<String>` | `Default::default()` | Document description from `<meta name="description">` tag |
-| `keywords` | `Vec<String>` | `vec![]` | Document keywords from `<meta name="keywords">` tag, split on commas |
+| `keywords` | `Vec<String>` | `vec!\[\]` | Document keywords from `<meta name="keywords">` tag, split on commas |
 | `author` | `Option<String>` | `Default::default()` | Document author from `<meta name="author">` tag |
 | `canonical_url` | `Option<String>` | `Default::default()` | Canonical URL from `<link rel="canonical">` tag |
 | `base_href` | `Option<String>` | `Default::default()` | Base URL from `<base href="">` tag for resolving relative URLs |
@@ -3792,10 +3793,10 @@ and extracted structural elements (headers, links, images, structured data).
 | `open_graph` | `HashMap<String, String>` | `HashMap::new()` | Open Graph metadata (og:* properties) for social media Keys like "title", "description", "image", "url", etc. |
 | `twitter_card` | `HashMap<String, String>` | `HashMap::new()` | Twitter Card metadata (twitter:* properties) Keys like "card", "site", "creator", "title", "description", "image", etc. |
 | `meta_tags` | `HashMap<String, String>` | `HashMap::new()` | Additional meta tags not covered by specific fields Keys are meta name/property attributes, values are content |
-| `headers` | `Vec<HeaderMetadata>` | `vec![]` | Extracted header elements with hierarchy |
-| `links` | `Vec<LinkMetadata>` | `vec![]` | Extracted hyperlinks with type classification |
-| `images` | `Vec<ImageMetadataType>` | `vec![]` | Extracted images with source and dimensions |
-| `structured_data` | `Vec<StructuredData>` | `vec![]` | Extracted structured data blocks |
+| `headers` | `Vec<HeaderMetadata>` | `vec!\[\]` | Extracted header elements with hierarchy |
+| `links` | `Vec<LinkMetadata>` | `vec!\[\]` | Extracted hyperlinks with type classification |
+| `images` | `Vec<ImageMetadataType>` | `vec!\[\]` | Extracted images with source and dimensions |
+| `structured_data` | `Vec<StructuredData>` | `vec!\[\]` | Extracted structured data blocks |
 
 ---
 
@@ -3845,15 +3846,15 @@ Image extraction configuration.
 | `extract_images` | `bool` | `true` | Extract images from documents |
 | `target_dpi` | `i32` | `300` | Target DPI for image normalization |
 | `max_image_dimension` | `i32` | `4096` | Maximum dimension for images (width or height) |
-| `inject_placeholders` | `bool` | `true` | Whether to inject image reference placeholders into markdown output. When `true` (default), image references like `![Image 1](embedded:p1_i0)` are appended to the markdown. Set to `false` to extract images as data without polluting the markdown output. |
+| `inject_placeholders` | `bool` | `true` | Whether to inject image reference placeholders into markdown output. When `true` (default), image references like `!\[Image 1\](embedded:p1_i0)` are appended to the markdown. Set to `false` to extract images as data without polluting the markdown output. |
 | `auto_adjust_dpi` | `bool` | `true` | Automatically adjust DPI based on image content |
 | `min_dpi` | `i32` | `72` | Minimum DPI threshold |
 | `max_dpi` | `i32` | `600` | Maximum DPI threshold |
 | `max_images_per_page` | `Option<u32>` | `None` | Maximum number of image objects to extract per PDF page. Some PDFs (e.g. technical diagrams stored as thousands of raster fragments) can trigger extremely long or indefinite extraction times when every image object on a dense page is decoded individually via the PDF extractor. Setting this limit causes kreuzberg to stop collecting individual images once the count per page reaches the cap and emit a warning instead. `None` (default) means no limit — all images are extracted. |
-| `classify` | `bool` | `true` | When `true` (default), extracted images are classified by kind and grouped into clusters where they appear to belong to one figure. |
+| `classify` | `bool` | `false` | When `true`, extracted images are classified by kind and grouped into clusters where they appear to belong to one figure. Defaults to `false` — opt in explicitly to avoid unexpected ML overhead. |
 | `include_page_rasters` | `bool` | `false` | When `true`, full-page renders produced during OCR preprocessing are captured and returned as `ImageKind::PageRaster` entries in `ExtractionResult.images`. **PDF + OCR only.** No rasters are captured for non-PDF inputs or when the document-level OCR bypass is active (whole-document backend). When OCR is enabled and this flag is set but the active backend skips per-page rendering, a `ProcessingWarning` is emitted in `ExtractionResult.processing_warnings`. Defaults to `false`. Enable when downstream consumers need page thumbnails (e.g. citation previews, visual grounding). |
 | `run_ocr_on_images` | `bool` | `true` | Run OCR on extracted images and include the recognized text in the document content. When `true` (default) and `ExtractionConfig.ocr` is configured, extracted images are processed with the configured OCR backend. Set to `false` to extract images without OCR processing, even when OCR is enabled. |
-| `ocr_text_only` | `bool` | `false` | When `true`, image OCR results are rendered as plain text without the `![...](...)` markdown placeholder. Only takes effect when `run_ocr_on_images` is also `true`. |
+| `ocr_text_only` | `bool` | `false` | When `true`, image OCR results are rendered as plain text without the `!\[...\](...)` markdown placeholder. Only takes effect when `run_ocr_on_images` is also `true`. |
 | `append_ocr_text` | `bool` | `false` | When `true` and `ocr_text_only` is `false`, append the OCR text after the image placeholder in the rendered output. |
 | `output_format` | `ImageOutputFormat` | `ImageOutputFormat::Native` | Target format for re-encoding extracted images. When set to anything other than `Native`, each extracted image is re-encoded to the requested format before being returned. This lets callers receive uniform output without duplicating encode logic downstream. Defaults to `Native` — no re-encode pass is performed and `ExtractedImage.format` reflects the source extractor's output. |
 | `svg` | `SvgOptions` | — | SVG-specific knobs for the image-encode pipeline. Controls sanitization and rasterization DPI when the source or output format is SVG.  Only available when the `svg` feature is active. |
@@ -3919,7 +3920,7 @@ for different document types.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `target_dpi` | `i32` | `300` | Target DPI for the image (300 is standard, 600 for small text). |
-| `auto_rotate` | `bool` | `true` | Auto-detect and correct image rotation. |
+| `auto_rotate` | `bool` | `false` | Auto-detect and correct image rotation. |
 | `deskew` | `bool` | `true` | Correct skew (tilted images). |
 | `denoise` | `bool` | `false` | Remove noise from the image. |
 | `contrast_enhance` | `bool` | `false` | Enhance contrast for better text visibility. |
@@ -3994,7 +3995,7 @@ JATS (Journal Article Tag Suite) metadata.
 | `copyright` | `Option<String>` | `Default::default()` | Copyright statement from the article's `<permissions>` element. |
 | `license` | `Option<String>` | `Default::default()` | Open-access license URI from the article's `<license>` element. |
 | `history_dates` | `HashMap<String, String>` | `HashMap::new()` | Publication history dates keyed by event type (e.g. `"received"`, `"accepted"`). |
-| `contributor_roles` | `Vec<ContributorRole>` | `vec![]` | Authors and contributors with their stated roles. |
+| `contributor_roles` | `Vec<ContributorRole>` | `vec!\[\]` | Authors and contributors with their stated roles. |
 
 ---
 
@@ -4020,7 +4021,7 @@ Keyword extraction configuration.
 | `algorithm` | `KeywordAlgorithm` | `KeywordAlgorithm::Yake` | Algorithm to use for extraction. |
 | `max_keywords` | `usize` | `10` | Maximum number of keywords to extract (default: 10). |
 | `min_score` | `f32` | `0` | Minimum score threshold (0.0-1.0, default: 0.0). Keywords with scores below this threshold are filtered out. Note: Score ranges differ between algorithms. |
-| `ngram_range` | `Vec<usize>` | `vec![]` | N-gram range for keyword extraction (min, max). (1, 1) = unigrams only (1, 2) = unigrams and bigrams (1, 3) = unigrams, bigrams, and trigrams (default) |
+| `ngram_range` | `Vec<usize>` | `vec!\[\]` | N-gram range for keyword extraction (min, max). (1, 1) = unigrams only (1, 2) = unigrams and bigrams (1, 3) = unigrams, bigrams, and trigrams (default) |
 | `language` | `Option<String>` | `Default::default()` | Language code for stopword filtering (e.g., "en", "de", "fr"). If None, no stopword filtering is applied. |
 | `yake_params` | `Option<YakeParams>` | `None` | YAKE-specific tuning parameters. |
 | `rake_params` | `Option<RakeParams>` | `None` | RAKE-specific tuning parameters. |
@@ -4082,7 +4083,7 @@ A single layout detection result.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `class_name` | `LayoutClass` | — | Detected layout class (e.g. `Table`, `Text`, `Title`). |
-| `confidence` | `f32` | — | Detection confidence score in `[0.0, 1.0]`. |
+| `confidence` | `f32` | — | Detection confidence score in `\[0.0, 1.0\]`. |
 | `bbox` | `BBox` | — | Bounding box in image pixel coordinates. |
 
 ---
@@ -4287,8 +4288,8 @@ via a discriminated union, and additional custom fields from postprocessors.
 |-------|------|---------|-------------|
 | `title` | `Option<String>` | `Default::default()` | Document title |
 | `subject` | `Option<String>` | `Default::default()` | Document subject or description |
-| `authors` | `Option<Vec<String>>` | `vec![]` | Primary author(s) - always Vec for consistency |
-| `keywords` | `Option<Vec<String>>` | `vec![]` | Keywords/tags - always Vec for consistency |
+| `authors` | `Option<Vec<String>>` | `vec!\[\]` | Primary author(s) - always Vec for consistency |
+| `keywords` | `Option<Vec<String>>` | `vec!\[\]` | Keywords/tags - always Vec for consistency |
 | `language` | `Option<String>` | `Default::default()` | Primary language (ISO 639 code) |
 | `created_at` | `Option<String>` | `Default::default()` | Creation timestamp (ISO 8601 format) |
 | `modified_at` | `Option<String>` | `Default::default()` | Last modification timestamp (ISO 8601 format) |
@@ -4301,10 +4302,10 @@ via a discriminated union, and additional custom fields from postprocessors.
 | `error` | `Option<ErrorMetadata>` | `Default::default()` | Error metadata (for batch operations) |
 | `extraction_duration_ms` | `Option<u64>` | `Default::default()` | Extraction duration in milliseconds (for benchmarking). This field is populated by batch extraction to provide per-file timing information. It's `None` for single-file extraction (which uses external timing). |
 | `category` | `Option<String>` | `Default::default()` | Document category (from frontmatter or classification). |
-| `tags` | `Option<Vec<String>>` | `vec![]` | Document tags (from frontmatter). |
+| `tags` | `Option<Vec<String>>` | `vec!\[\]` | Document tags (from frontmatter). |
 | `document_version` | `Option<String>` | `Default::default()` | Document version string (from frontmatter). |
 | `abstract_text` | `Option<String>` | `Default::default()` | Abstract or summary text (from frontmatter). |
-| `output_format` | `Option<String>` | `Default::default()` | Output format identifier (e.g., "markdown", "html", "text"). Set by the output format pipeline stage when format conversion is applied. Previously stored in `metadata.additional["output_format"]`. |
+| `output_format` | `Option<String>` | `Default::default()` | Output format identifier (e.g., "markdown", "html", "text"). Set by the output format pipeline stage when format conversion is applied. Previously stored in `metadata.additional\["output_format"\]`. |
 | `ocr_used` | `bool` | — | Whether OCR was used during extraction. Set to `true` whenever the extraction pipeline ran an OCR backend (Tesseract, PaddleOCR, VLM, etc.) and used that output as the primary or fallback text. `false` means native text extraction was used exclusively. |
 | `additional` | `HashMap<String, serde_json::Value>` | `HashMap::new()` | Additional custom fields from postprocessors. Serialized as a nested `"additional"` object (not flattened at root level). Uses `Cow<'static, str>` keys so static string keys avoid allocation. |
 
@@ -4353,10 +4354,10 @@ Configuration for the NER post-processor.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `backend` | `NerBackendKind` | `NerBackendKind::Onnx` | Backend that runs the entity detection. |
-| `categories` | `Vec<EntityCategory>` | `vec![]` | Entity categories to detect. Defaults to a sensible PERSON/ORG/LOCATION/EMAIL set when empty. |
+| `categories` | `Vec<EntityCategory>` | `vec!\[\]` | Entity categories to detect. Defaults to a sensible PERSON/ORG/LOCATION/EMAIL set when empty. |
 | `model` | `Option<String>` | `Default::default()` | Override the default model — only used by `NerBackendKind::Onnx`. `None` lets the backend pick its pinned default (`urchade/gliner_multi-v2.1` for gline-rs). |
 | `llm` | `Option<LlmConfig>` | `Default::default()` | Optional LLM configuration — only used by `NerBackendKind::Llm`. Token usage for LLM backends is recorded in `ExtractionResult::llm_usage`. |
-| `custom_labels` | `Vec<String>` | `vec![]` | Arbitrary user-supplied entity labels for zero-shot detection. gline-rs natively supports zero-shot inference over caller-supplied labels — this is the primary value of GLiNER. The LLM backend also honours these labels by including them in the structured-output schema. Custom labels surface as `EntityCategory::Custom` in the resulting `Entity` stream. Use this when you need domain-specific entity types (e.g. `"Treatment"`, `"Product"`, `"Vessel"`) without forking GLiNER's taxonomy. |
+| `custom_labels` | `Vec<String>` | `vec!\[\]` | Arbitrary user-supplied entity labels for zero-shot detection. gline-rs natively supports zero-shot inference over caller-supplied labels — this is the primary value of GLiNER. The LLM backend also honours these labels by including them in the structured-output schema. Custom labels surface as `EntityCategory::Custom` in the resulting `Entity` stream. Use this when you need domain-specific entity types (e.g. `"Treatment"`, `"Product"`, `"Vessel"`) without forking GLiNER's taxonomy. |
 
 ---
 
@@ -4629,7 +4630,7 @@ OCR configuration.
 | `quality_thresholds` | `Option<OcrQualityThresholds>` | `None` | Quality thresholds for the native-text-to-OCR fallback decision. When None, uses compiled defaults (matching previous hardcoded behavior). |
 | `pipeline` | `Option<OcrPipelineConfig>` | `None` | Multi-backend OCR pipeline configuration. When set, enables weighted fallback across multiple OCR backends based on output quality. When None, uses the single `backend` field (same as today). |
 | `auto_rotate` | `bool` | `false` | Enable automatic page rotation based on orientation detection. When enabled, uses Tesseract's `DetectOrientationScript()` to detect page orientation (0/90/180/270 degrees) before OCR. If the page is rotated with high confidence, the image is corrected before recognition. This is critical for handling rotated scanned documents. |
-| `vlm_fallback` | `VlmFallbackPolicy` | `VlmFallbackPolicy::Disabled` | Ergonomic VLM fallback policy. When set to anything other than `VlmFallbackPolicy::Disabled` and `OcrConfig::pipeline` is `None`, a multi-stage pipeline is synthesised automatically: - `VlmFallbackPolicy::OnLowQuality` → `[classical_stage, vlm_stage]` with the `quality_threshold` mapped onto `OcrQualityThresholds::pipeline_min_quality`. - `VlmFallbackPolicy::Always` → `[vlm_stage]` only. Requires `OcrConfig::vlm_config` to be `Some` when not `Disabled`. When `OcrConfig::pipeline` is explicitly set, this field is ignored. |
+| `vlm_fallback` | `VlmFallbackPolicy` | `VlmFallbackPolicy::Disabled` | Ergonomic VLM fallback policy. When set to anything other than `VlmFallbackPolicy::Disabled` and `OcrConfig::pipeline` is `None`, a multi-stage pipeline is synthesised automatically: - `VlmFallbackPolicy::OnLowQuality` → `\[classical_stage, vlm_stage\]` with the `quality_threshold` mapped onto `OcrQualityThresholds::pipeline_min_quality`. - `VlmFallbackPolicy::Always` → `\[vlm_stage\]` only. Requires `OcrConfig::vlm_config` to be `Some` when not `Disabled`. When `OcrConfig::pipeline` is explicitly set, this field is ignored. |
 | `vlm_config` | `Option<LlmConfig>` | `None` | VLM (Vision Language Model) OCR configuration. Required when `backend` is `"vlm"` or when `vlm_fallback` is not `VlmFallbackPolicy::Disabled`. Uses liter-llm to send page images to a vision model for text extraction. |
 | `vlm_prompt` | `Option<String>` | `None` | Custom Jinja2 prompt template for VLM OCR. When `None`, uses the default template. Available variables: - `{{ language }}` — The document language code (e.g., "eng", "deu"). |
 | `acceleration` | `Option<AccelerationConfig>` | `None` | Hardware acceleration for ONNX Runtime models (e.g. PaddleOCR, layout detection). Not user-configurable via config files — injected at runtime from `ExtractionConfig::acceleration` before each `process_image` call. |
@@ -5871,7 +5872,7 @@ Contains PowerPoint-specific document metadata.
 | `hidden_slides` | `Option<i32>` | `Default::default()` | Number of hidden slides |
 | `multimedia_clips` | `Option<i32>` | `Default::default()` | Number of multimedia clips |
 | `presentation_format` | `Option<String>` | `Default::default()` | Presentation format (e.g., "Widescreen", "Standard") |
-| `slide_titles` | `Vec<String>` | `vec![]` | Slide titles |
+| `slide_titles` | `Vec<String>` | `vec!\[\]` | Slide titles |
 
 ---
 
@@ -5907,7 +5908,7 @@ Extracted from PPTX files containing slide counts and presentation details.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `slide_count` | `u32` | — | Total number of slides in the presentation |
-| `slide_names` | `Vec<String>` | `vec![]` | Names of slides (if available) |
+| `slide_names` | `Vec<String>` | `vec!\[\]` | Names of slides (if available) |
 | `image_count` | `Option<u32>` | `Default::default()` | Number of embedded images |
 | `table_count` | `Option<u32>` | `Default::default()` | Number of tables |
 
@@ -5957,7 +5958,7 @@ One QR code decoded from an extracted image.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `payload` | `String` | — | Decoded payload (text, URL, vCard string, …). |
-| `confidence` | `Option<f32>` | `None` | Detector-reported confidence in `[0.0, 1.0]`. `None` when the decoder does not expose confidence (the default `rqrr` backend always reports `Some` because successful decode implies high confidence). |
+| `confidence` | `Option<f32>` | `None` | Detector-reported confidence in `\[0.0, 1.0\]`. `None` when the decoder does not expose confidence (the default `rqrr` backend always reports `Some` because successful decode implies high confidence). |
 | `bbox` | `Option<QrBoundingBox>` | `None` | Bounding box of the QR code inside the source image, in pixel coordinates (`x`, `y` of the top-left corner; `width`, `height` of the rectangle). `None` if the decoder did not report a bounding box. |
 
 ---
@@ -6016,12 +6017,12 @@ Configuration for the redaction post-processor.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `categories` | `Vec<PiiCategory>` | `vec![]` | Categories to redact. Empty means "every category supported by the engine." |
+| `categories` | `Vec<PiiCategory>` | `vec!\[\]` | Categories to redact. Empty means "every category supported by the engine." |
 | `strategy` | `RedactionStrategy` | `RedactionStrategy::Mask` | Strategy applied to every match. |
 | `ner` | `Option<NerConfig>` | `None` | Optional NER backend — required to redact PERSON / ORGANIZATION / LOCATION categories (the pure-Rust pattern engine only covers regex-detectable PII). |
 | `preserve_offsets` | `bool` | `true` | When `true`, chunk byte ranges are kept consistent with the rewritten content by adjusting `byte_start` / `byte_end` after replacement. When `false`, chunk byte ranges still refer to the *original* content offsets — useful when downstream consumers want to map findings back to the original document. |
-| `custom_terms` | `Vec<RedactionTerm>` | `vec![]` | Arbitrary user-supplied literal terms to redact. Each term is treated as a regex hit against the document, surfacing as `PiiCategory::Custom(label)` in `RedactionFinding` where `label` is the per-term label (defaulting to the literal value itself). Case-insensitive by default; set `RedactionTerm::case_sensitive` for exact match. Use this when you need to redact tenant-specific tokens (employee IDs, project codes, internal product names) without writing a custom plugin. |
-| `custom_patterns` | `Vec<RedactionPattern>` | `vec![]` | Arbitrary user-supplied regex patterns to redact. Same surfacing semantics as `custom_terms`: each hit becomes a `PiiCategory::Custom(label)` finding. Patterns are validated at config-construction time via `RedactionConfig::validate`. |
+| `custom_terms` | `Vec<RedactionTerm>` | `vec!\[\]` | Arbitrary user-supplied literal terms to redact. Each term is treated as a regex hit against the document, surfacing as `PiiCategory::Custom(label)` in `RedactionFinding` where `label` is the per-term label (defaulting to the literal value itself). Case-insensitive by default; set `RedactionTerm::case_sensitive` for exact match. Use this when you need to redact tenant-specific tokens (employee IDs, project codes, internal product names) without writing a custom plugin. |
+| `custom_patterns` | `Vec<RedactionPattern>` | `vec!\[\]` | Arbitrary user-supplied regex patterns to redact. Same surfacing semantics as `custom_terms`: each hit becomes a `PiiCategory::Custom(label)` finding. Patterns are validated at config-construction time via `RedactionConfig::validate`. |
 
 ##### Methods
 
@@ -6277,7 +6278,7 @@ Since v5.0.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `index` | `usize` | — | Position of this document in the original input `documents` slice. |
-| `score` | `f32` | — | Relevance score in `[0, 1]`. Higher means more relevant to the query. |
+| `score` | `f32` | — | Relevance score in `\[0, 1\]`. Higher means more relevant to the query. |
 | `document` | `String` | — | The document text. |
 
 ---
@@ -6440,8 +6441,8 @@ later enrichment pass.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `Vec<DiffLine>` | `vec![]` | Line-level content changes for this revision. |
-| `table_changes` | `Vec<CellChange>` | `vec![]` | Cell-level table changes for this revision. |
+| `content` | `Vec<DiffLine>` | `vec!\[\]` | Line-level content changes for this revision. |
+| `table_changes` | `Vec<CellChange>` | `vec!\[\]` | Cell-level table changes for this revision. |
 
 ---
 
@@ -6503,7 +6504,7 @@ including host/port settings, CORS configuration, and upload limits.
 |-------|------|---------|-------------|
 | `host` | `String` | — | Server host address (e.g., "127.0.0.1", "0.0.0.0") |
 | `port` | `u16` | — | Server port number |
-| `cors_origins` | `Vec<String>` | `vec![]` | CORS allowed origins. Empty vector means allow all origins. If this is an empty vector, the server will accept requests from any origin. If populated with specific origins (e.g., `"<https://example.com"`>), only those origins will be allowed. |
+| `cors_origins` | `Vec<String>` | `vec!\[\]` | CORS allowed origins. Empty vector means allow all origins. If this is an empty vector, the server will accept requests from any origin. If populated with specific origins (e.g., `"<https://example.com"`>), only those origins will be allowed. |
 | `max_request_body_bytes` | `usize` | — | Maximum size of request body in bytes (default: 100 MB) |
 | `max_multipart_field_bytes` | `usize` | — | Maximum size of multipart fields in bytes (default: 100 MB) |
 
@@ -6766,7 +6767,7 @@ Tables are converted to both structured cell data and Markdown format.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `cells` | `Vec<Vec<String>>` | `vec![]` | Table cells as a 2D vector (rows × columns) |
+| `cells` | `Vec<Vec<String>>` | `vec!\[\]` | Table cells as a 2D vector (rows × columns) |
 | `markdown` | `String` | — | Markdown representation of the table |
 | `page_number` | `u32` | — | Page number where the table was found (1-indexed) |
 | `bounding_box` | `Option<BoundingBox>` | `Default::default()` | Bounding box of the table on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top). Only populated for PDF-extracted tables when position data is available. |
@@ -6810,7 +6811,7 @@ Stores row/column dimensions and a flat list of cells with position info.
 |-------|------|---------|-------------|
 | `rows` | `u32` | — | Number of rows in the table. |
 | `cols` | `u32` | — | Number of columns in the table. |
-| `cells` | `Vec<GridCell>` | `vec![]` | All cells in row-major order. |
+| `cells` | `Vec<GridCell>` | `vec!\[\]` | All cells in row-major order. |
 
 ---
 
@@ -6912,9 +6913,9 @@ for Markdown, structural elements like headers and links.
 | `line_count` | `u32` | — | Number of lines in the document |
 | `word_count` | `u32` | — | Number of words |
 | `character_count` | `u32` | — | Number of characters |
-| `headers` | `Option<Vec<String>>` | `vec![]` | Markdown headers (headings text only, for Markdown files) |
-| `links` | `Option<Vec<Vec<String>>>` | `vec![]` | Markdown links as (text, url) tuples (for Markdown files) |
-| `code_blocks` | `Option<Vec<Vec<String>>>` | `vec![]` | Code blocks as (language, code) tuples (for Markdown files) |
+| `headers` | `Option<Vec<String>>` | `vec!\[\]` | Markdown headers (headings text only, for Markdown files) |
+| `links` | `Option<Vec<Vec<String>>>` | `vec!\[\]` | Markdown links as (text, url) tuples (for Markdown files) |
+| `code_blocks` | `Option<Vec<Vec<String>>>` | `vec!\[\]` | Code blocks as (language, code) tuples (for Markdown files) |
 
 ---
 
@@ -6958,7 +6959,7 @@ Configuration for the token-reduction pipeline.
 | `enable_parallel` | `bool` | `true` | Use Rayon parallel iterators for multi-core processing. |
 | `use_simd` | `bool` | `true` | Use SIMD-optimized text scanning where available. |
 | `custom_stopwords` | `Option<HashMap<String, Vec<String>>>` | `None` | Per-language custom stopword lists (`language_code → stopword_list`). |
-| `preserve_patterns` | `Vec<String>` | `vec![]` | Regex patterns whose matched text is always preserved unchanged. |
+| `preserve_patterns` | `Vec<String>` | `vec!\[\]` | Regex patterns whose matched text is always preserved unchanged. |
 | `target_reduction` | `Option<f32>` | `None` | Target fraction of text to retain (0.0–1.0); `None` = no fixed target. |
 | `enable_semantic_clustering` | `bool` | `false` | Group semantically similar sentences and emit only one per cluster. |
 
@@ -7120,8 +7121,8 @@ docstrings = true
 |-------|------|---------|-------------|
 | `enabled` | `bool` | `true` | Enable code intelligence processing (default: true). When `false`, tree-sitter analysis is completely skipped even if the config section is present. |
 | `cache_dir` | `Option<PathBuf>` | `None` | Custom cache directory for downloaded grammars. When `None`, uses the default: `~/.cache/tree-sitter-language-pack/v{version}/libs/`. |
-| `languages` | `Option<Vec<String>>` | `None` | Languages to pre-download on init (e.g., `["python", "rust"]`). |
-| `groups` | `Option<Vec<String>>` | `None` | Language groups to pre-download (e.g., `["web", "systems", "scripting"]`). |
+| `languages` | `Option<Vec<String>>` | `None` | Languages to pre-download on init (e.g., `\["python", "rust"\]`). |
+| `groups` | `Option<Vec<String>>` | `None` | Language groups to pre-download (e.g., `\["web", "systems", "scripting"\]`). |
 | `process` | `TreeSitterProcessConfig` | — | Processing options for code analysis. |
 
 ##### Methods
@@ -7340,7 +7341,7 @@ Contains Excel-specific document metadata.
 | `shared_doc` | `Option<bool>` | `Default::default()` | Shared document flag |
 | `hyperlinks_changed` | `Option<bool>` | `Default::default()` | Hyperlinks changed flag |
 | `company` | `Option<String>` | `Default::default()` | Company name |
-| `worksheet_names` | `Vec<String>` | `vec![]` | Worksheet names |
+| `worksheet_names` | `Vec<String>` | `vec!\[\]` | Worksheet names |
 
 ---
 
@@ -7368,7 +7369,7 @@ Provides statistics about XML document structure.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `element_count` | `u32` | — | Total number of XML elements processed |
-| `unique_elements` | `Vec<String>` | `vec![]` | List of unique element tag names (sorted) |
+| `unique_elements` | `Vec<String>` | `vec!\[\]` | List of unique element tag names (sorted) |
 
 ---
 
@@ -7554,7 +7555,7 @@ detected by `OcrConfig::validate` and will surface as a
 | Value | Description |
 |-------|-------------|
 | `Disabled` | No VLM fallback (default). Behaves identically to the pre-policy single-backend mode. |
-| `OnLowQuality` | Try the classical OCR backend first. If the quality score is below `quality_threshold`, send the page to the VLM. `quality_threshold` is in the `[0.0, 1.0]` range produced by `calculate_quality_score`. A value of `0.5` is a reasonable starting point; calibrate with the Stage 0 benchmark harness. — Fields: `quality_threshold`: `f64` |
+| `OnLowQuality` | Try the classical OCR backend first. If the quality score is below `quality_threshold`, send the page to the VLM. `quality_threshold` is in the `\[0.0, 1.0\]` range produced by `calculate_quality_score`. A value of `0.5` is a reasonable starting point; calibrate with the Stage 0 benchmark harness. — Fields: `quality_threshold`: `f64` |
 | `Always` | Skip the classical OCR backend entirely. Every page is sent to the VLM. |
 
 ---
@@ -8084,7 +8085,7 @@ Supports both axis-aligned rectangles (from Tesseract) and 4-point quadrilateral
 | Value | Description |
 |-------|-------------|
 | `Rectangle` | Axis-aligned bounding box (typical for Tesseract output). — Fields: `left`: `u32`, `top`: `u32`, `width`: `u32`, `height`: `u32` |
-| `Quadrilateral` | 4-point quadrilateral for rotated/skewed text (PaddleOCR). Points are in clockwise order starting from top-left: `[top_left, top_right, bottom_right, bottom_left]` — Fields: `points`: `String` |
+| `Quadrilateral` | 4-point quadrilateral for rotated/skewed text (PaddleOCR). Points are in clockwise order starting from top-left: `\[top_left, top_right, bottom_right, bottom_left\]` — Fields: `points`: `String` |
 
 ---
 
@@ -8124,9 +8125,9 @@ Strategy applied when a PII match is rewritten.
 
 | Value | Description |
 |-------|-------------|
-| `Mask` | Replace the matched span with a fixed mask token (default `"[REDACTED]"`). |
+| `Mask` | Replace the matched span with a fixed mask token (default `"\[REDACTED\]"`). |
 | `Hash` | Replace with a SHA-256 hash of the original value (truncated to 16 hex chars). Lets downstream consumers do equality joins without recovering the source. |
-| `TokenReplace` | Replace with a per-category running token (`"[PERSON_1]"`, `"[PERSON_2]"`, …) so the same person referenced twice gets the same token within the document. |
+| `TokenReplace` | Replace with a per-category running token (`"\[PERSON_1\]"`, `"\[PERSON_2\]"`, …) so the same person referenced twice gets the same token within the document. |
 | `Drop` | Delete the matched span entirely. |
 
 ---

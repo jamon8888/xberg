@@ -2487,14 +2487,14 @@ mod tests {
     #[test]
     fn test_heuristic_path_merges_font_split_continuation() {
         // Font difference 1.8pt > 1.5pt threshold → blocks_to_paragraphs splits.
-        // "een indicatie" (no terminator) + "van toenemende" (lowercase) → should merge.
+        // "een indicative" (no terminator) + "van toenemende" (lowercase) → should merge.
         // Font difference 1.8pt < 2.0pt merge threshold → merge is allowed.
         let output = process_single_page(
             PageInput {
                 page_index: 0,
                 struct_paragraphs: None,
                 heuristic_segments: vec![
-                    seg_heuristic("een indicatie", 12.0, 700.0),
+                    seg_heuristic("een indicative", 12.0, 700.0),
                     seg_heuristic("van toenemende merkbekendheid", 13.8, 680.0),
                 ],
                 page_hints: None,
@@ -2527,7 +2527,7 @@ mod tests {
             .collect::<Vec<_>>()
             .join(" ");
         assert!(
-            all_text.contains("een indicatie"),
+            all_text.contains("een indicative"),
             "first fragment must survive in merged segments; got: {all_text:?}"
         );
         assert!(

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0-rc.19] - 2026-06-17
+
+### Changed
+
+- Regenerated polyglot bindings with alef 0.25.24 (transcription surface follow-up, kotlin-android `alef(skip)` honored, wasm e2e env block emitted, Swift opaque-handle triples).
+
 ### Fixed
 
 - **DOCX: `result.elements` now preserves document reading order (#1112).** When the element-based result format was enabled, the pipeline reassembled elements from per-page reconstruction, which scrambled DOCX element order because DOCX has no native page boundaries. The pipeline now stores the InternalDocument from the extractor before derivation, and the element-format transformation walks it directly in document order whenever available.

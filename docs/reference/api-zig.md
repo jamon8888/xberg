@@ -2,7 +2,7 @@
 title: "Zig API Reference"
 ---
 
-## Zig API Reference <span class="version-badge">v5.0.0-rc.18</span>
+## Zig API Reference <span class="version-badge">v5.0.0-rc.19</span>
 
 ### Functions
 
@@ -43,8 +43,8 @@ const result = try extractBytes("data", "value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `content` | `[]const u8` | Yes | The byte array to extract |
-| `mimeType` | `[:0]const u8` | Yes | MIME type of the content |
+| `content` | `\[\]const u8` | Yes | The byte array to extract |
+| `mimeType` | `\[:0\]const u8` | Yes | MIME type of the content |
 | `config` | `ExtractionConfig` | Yes | Extraction configuration |
 
 **Returns:** `ExtractionResult`
@@ -91,8 +91,8 @@ const result = try extractFile("value", "value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to the file to extract |
-| `mimeType` | `[:0]const u8?` | No | Optional MIME type override. If None, will be auto-detected |
+| `path` | `\[:0\]const u8` | Yes | Path to the file to extract |
+| `mimeType` | `\[:0\]const u8?` | No | Optional MIME type override. If None, will be auto-detected |
 | `config` | `ExtractionConfig` | Yes | Extraction configuration |
 
 **Returns:** `ExtractionResult`
@@ -130,8 +130,8 @@ const result = try extractFileSync("value", "value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to the file |
-| `mimeType` | `[:0]const u8?` | No | The mime type |
+| `path` | `\[:0\]const u8` | Yes | Path to the file |
+| `mimeType` | `\[:0\]const u8?` | No | The mime type |
 | `config` | `ExtractionConfig` | Yes | The configuration options |
 
 **Returns:** `ExtractionResult`
@@ -166,8 +166,8 @@ const result = try extractBytesSync("data", "value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `content` | `[]const u8` | Yes | The content to process |
-| `mimeType` | `[:0]const u8` | Yes | The mime type |
+| `content` | `\[\]const u8` | Yes | The content to process |
+| `mimeType` | `\[:0\]const u8` | Yes | The mime type |
 | `config` | `ExtractionConfig` | Yes | The configuration options |
 
 **Returns:** `ExtractionResult`
@@ -199,7 +199,7 @@ const result = try batchExtractFilesSync(&[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `items` | `[]const BatchFileItem` | Yes | The items |
+| `items` | `\[\]const BatchFileItem` | Yes | The items |
 | `config` | `ExtractionConfig` | Yes | The configuration options |
 
 **Returns:** `[]const ExtractionResult`
@@ -233,7 +233,7 @@ const result = try batchExtractBytesSync(&[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `items` | `[]const BatchBytesItem` | Yes | The items |
+| `items` | `\[\]const BatchBytesItem` | Yes | The items |
 | `config` | `ExtractionConfig` | Yes | The configuration options |
 
 **Returns:** `[]const ExtractionResult`
@@ -289,7 +289,7 @@ const result = try batchExtractFiles(&[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `items` | `[]const BatchFileItem` | Yes | Vector of `BatchFileItem` structs, each containing a path and optional |
+| `items` | `\[\]const BatchFileItem` | Yes | Vector of `BatchFileItem` structs, each containing a path and optional |
 | `config` | `ExtractionConfig` | Yes | Batch-level extraction configuration (provides defaults and batch settings) |
 
 **Returns:** `[]const ExtractionResult`
@@ -339,7 +339,7 @@ const result = try batchExtractBytes(&[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `items` | `[]const BatchBytesItem` | Yes | Vector of `BatchBytesItem` structs, each containing content bytes, |
+| `items` | `\[\]const BatchBytesItem` | Yes | Vector of `BatchBytesItem` structs, each containing content bytes, |
 | `config` | `ExtractionConfig` | Yes | Batch-level extraction configuration |
 
 **Returns:** `[]const ExtractionResult`
@@ -382,7 +382,7 @@ const result = try detectMimeTypeFromBytes("data");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `content` | `[]const u8` | Yes | Raw file bytes |
+| `content` | `\[\]const u8` | Yes | Raw file bytes |
 
 **Returns:** `[:0]const u8`
 
@@ -416,7 +416,7 @@ const result = try getExtensionsForMime("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `mimeType` | `[:0]const u8` | Yes | The MIME type to look up |
+| `mimeType` | `\[:0\]const u8` | Yes | The MIME type to look up |
 
 **Returns:** `[]const [:0]const u8`
 
@@ -492,8 +492,8 @@ const result = detectQrCodes("data", "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `imageBytes` | `[]const u8` | Yes | The image bytes |
-| `formatHint` | `[:0]const u8?` | No | The  format hint |
+| `imageBytes` | `\[\]const u8` | Yes | The image bytes |
+| `formatHint` | `\[:0\]const u8?` | No | The  format hint |
 
 **Returns:** `[]const QrCode`
 
@@ -966,7 +966,7 @@ const result = try classifyText("value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
+| `text` | `\[:0\]const u8` | Yes | The text |
 | `config` | `PageClassificationConfig` | Yes | The configuration options |
 
 **Returns:** `[]const ClassificationLabel`
@@ -1010,7 +1010,7 @@ const result = try classifyDocument(&[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `pages` | `[]const [:0]const u8` | Yes | Slice of page texts to classify. Each page is classified independently |
+| `pages` | `\[\]const \[:0\]const u8` | Yes | Slice of page texts to classify. Each page is classified independently |
 | `config` | `PageClassificationConfig` | Yes | Classification configuration including labels and LLM settings. |
 
 **Returns:** `[]const ClassificationLabel`
@@ -1042,8 +1042,8 @@ const result = try downloadModel("value", "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `name` | `[:0]const u8` | Yes | The name |
-| `cacheDir` | `[:0]const u8?` | No | The cache dir |
+| `name` | `\[:0\]const u8` | Yes | The name |
+| `cacheDir` | `\[:0\]const u8?` | No | The cache dir |
 
 **Returns:** `[:0]const u8`
 
@@ -1141,7 +1141,7 @@ const result = findAll("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
+| `text` | `\[:0\]const u8` | Yes | The text |
 
 **Returns:** `[]const PatternMatch`
 
@@ -1172,8 +1172,8 @@ const result = scanText("value", &[_]u8{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
-| `categories` | `[]const PiiCategory` | Yes | The categories |
+| `text` | `\[:0\]const u8` | Yes | The text |
+| `categories` | `\[\]const PiiCategory` | Yes | The categories |
 
 **Returns:** `[]const PatternMatch`
 
@@ -1204,8 +1204,8 @@ const result = summarize("value", "value", 42);
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
-| `language` | `[:0]const u8?` | No | The language |
+| `text` | `\[:0\]const u8` | Yes | The text |
+| `language` | `\[:0\]const u8?` | No | The language |
 | `maxTokens` | `u32?` | No | The max tokens |
 
 **Returns:** `?[:0]const u8`
@@ -1233,7 +1233,7 @@ const result = tokenCount("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
+| `text` | `\[:0\]const u8` | Yes | The text |
 
 **Returns:** `u32`
 
@@ -1338,11 +1338,11 @@ const result = try extractRegionWithVlm("data", "value", .{}, .{}, "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `imageBytes` | `[]const u8` | Yes | The image bytes |
-| `imageMime` | `[:0]const u8` | Yes | The image mime |
+| `imageBytes` | `\[\]const u8` | Yes | The image bytes |
+| `imageMime` | `\[:0\]const u8` | Yes | The image mime |
 | `regionKind` | `RegionKind` | Yes | The region kind |
 | `llmConfig` | `LlmConfig` | Yes | The llm config |
-| `customPrompt` | `[:0]const u8?` | No | The custom prompt |
+| `customPrompt` | `\[:0\]const u8?` | No | The custom prompt |
 
 **Returns:** `[:0]const u8`
 
@@ -1384,7 +1384,7 @@ const result = try extractKeywords("value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text to extract keywords from |
+| `text` | `\[:0\]const u8` | Yes | The text to extract keywords from |
 | `config` | `KeywordConfig` | Yes | Keyword extraction configuration |
 
 **Returns:** `[]const Keyword`
@@ -1425,10 +1425,10 @@ const result = try renderPdfPageToPng("data", 42, 42, "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `pdfBytes` | `[]const u8` | Yes | Raw PDF file bytes |
+| `pdfBytes` | `\[\]const u8` | Yes | Raw PDF file bytes |
 | `pageIndex` | `u64` | Yes | Zero-based page index |
 | `dpi` | `i32?` | No | Resolution in dots per inch (default: 150) |
-| `password` | `[:0]const u8?` | No | Optional password for encrypted PDFs |
+| `password` | `\[:0\]const u8?` | No | Optional password for encrypted PDFs |
 
 **Returns:** `[]const u8`
 
@@ -1466,9 +1466,9 @@ const result = try captionImage("data", .{}, "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `imageBytes` | `[]const u8` | Yes | The image data. |
+| `imageBytes` | `\[\]const u8` | Yes | The image data. |
 | `llmConfig` | `LlmConfig` | Yes | LLM configuration for the VLM call. |
-| `customPrompt` | `[:0]const u8?` | No | Optional custom caption prompt. Uses the default |
+| `customPrompt` | `\[:0\]const u8?` | No | Optional custom caption prompt. Uses the default |
 
 **Returns:** `[:0]const u8`
 
@@ -1507,9 +1507,9 @@ const result = try captionImageFile("value", .{}, "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to the image file. |
+| `path` | `\[:0\]const u8` | Yes | Path to the image file. |
 | `llmConfig` | `LlmConfig` | Yes | LLM configuration for the VLM call. |
-| `customPrompt` | `[:0]const u8?` | No | Optional custom caption prompt. Uses the default |
+| `customPrompt` | `\[:0\]const u8?` | No | Optional custom caption prompt. Uses the default |
 
 **Returns:** `[:0]const u8`
 
@@ -1540,7 +1540,7 @@ const result = try detectMimeType("value", true);
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to the file |
+| `path` | `\[:0\]const u8` | Yes | Path to the file |
 | `checkExists` | `bool` | Yes | The check exists |
 
 **Returns:** `[:0]const u8`
@@ -1567,7 +1567,7 @@ const result = try embedTextsAsync(&[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `texts` | `[]const [:0]const u8` | Yes | The  texts |
+| `texts` | `\[\]const \[:0\]const u8` | Yes | The  texts |
 | `config` | `EmbeddingConfig` | Yes | The embedding config |
 
 **Returns:** `[]const []const f32`
@@ -1599,7 +1599,7 @@ const result = getEmbeddingPreset("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `name` | `[:0]const u8` | Yes | The name |
+| `name` | `\[:0\]const u8` | Yes | The name |
 
 **Returns:** `?EmbeddingPreset`
 
@@ -1658,8 +1658,8 @@ const result = try rerank("value", &[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `query` | `[:0]const u8` | Yes | The query |
-| `documents` | `[]const [:0]const u8` | Yes | The documents |
+| `query` | `\[:0\]const u8` | Yes | The query |
+| `documents` | `\[\]const \[:0\]const u8` | Yes | The documents |
 | `config` | `RerankerConfig` | Yes | The configuration options |
 
 **Returns:** `[]const RerankedDocument`
@@ -1690,8 +1690,8 @@ const result = try rerankAsync("value", &[_]u8{}, .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `query` | `[:0]const u8` | Yes | The  query |
-| `documents` | `[]const [:0]const u8` | Yes | The  documents |
+| `query` | `\[:0\]const u8` | Yes | The  query |
+| `documents` | `\[\]const \[:0\]const u8` | Yes | The  documents |
 | `config` | `RerankerConfig` | Yes | The reranker config |
 
 **Returns:** `[]const RerankedDocument`
@@ -1725,7 +1725,7 @@ const result = getRerankerPreset("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `name` | `[:0]const u8` | Yes | The name |
+| `name` | `\[:0\]const u8` | Yes | The name |
 
 **Returns:** `?RerankerPreset`
 
@@ -1780,8 +1780,8 @@ enabled, each processable file produces its own full `ExtractionResult`.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `path` | `[:0]const u8` | — | Archive-relative file path (e.g. "folder/document.pdf"). |
-| `mimeType` | `[:0]const u8` | — | Detected MIME type of the file. |
+| `path` | `\[:0\]const u8` | — | Archive-relative file path (e.g. "folder/document.pdf"). |
+| `mimeType` | `\[:0\]const u8` | — | Detected MIME type of the file. |
 | `result` | `ExtractionResult` | — | Full extraction result for this file. |
 
 ---
@@ -1794,9 +1794,9 @@ Extracted from compressed archive files containing file lists and size informati
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `format` | `[:0]const u8` | — | Archive format ("ZIP", "TAR", "7Z", etc.) |
+| `format` | `\[:0\]const u8` | — | Archive format ("ZIP", "TAR", "7Z", etc.) |
 | `fileCount` | `u32` | — | Total number of files in the archive |
-| `fileList` | `[]const [:0]const u8` | `[]` | List of file paths within the archive |
+| `fileList` | `\[\]const \[:0\]const u8` | `\[\]` | List of file paths within the archive |
 | `totalSize` | `u64` | — | Total uncompressed size in bytes |
 | `compressedSize` | `u64?` | `null` | Compressed size in bytes (if available) |
 
@@ -1812,8 +1812,8 @@ PCM decode properties. Available when the `transcription-types` feature is enabl
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `durationMs` | `u64?` | `null` | Duration in milliseconds derived from the decoded audio stream. |
-| `codec` | `[:0]const u8?` | `null` | Audio codec (e.g. "mp3", "aac", "opus", "flac"). |
-| `container` | `[:0]const u8?` | `null` | Container format (e.g. "mpeg", "mp4", "ogg", "wav"). |
+| `codec` | `\[:0\]const u8?` | `null` | Audio codec (e.g. "mp3", "aac", "opus", "flac"). |
+| `container` | `\[:0\]const u8?` | `null` | Container format (e.g. "mpeg", "mp4", "ogg", "wav"). |
 | `sampleRateHz` | `u32?` | `null` | Sample rate in Hz after decode (always 16000 when resampled for Whisper). |
 | `channels` | `u16?` | `null` | Number of audio channels (1 = mono, 2 = stereo). |
 | `bitrate` | `u32?` | `null` | Audio bitrate in kbps from the source file tags/properties. |
@@ -1842,8 +1842,8 @@ to represent a single item in a batch extraction job.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[]const u8` | — | The content bytes to extract from |
-| `mimeType` | `[:0]const u8` | — | MIME type of the content (e.g., "application/pdf", "text/html") |
+| `content` | `\[\]const u8` | — | The content bytes to extract from |
+| `mimeType` | `\[:0\]const u8` | — | MIME type of the content (e.g., "application/pdf", "text/html") |
 | `config` | `FileExtractionConfig?` | `null` | Per-item configuration overrides (None uses batch-level defaults) |
 
 ---
@@ -1857,7 +1857,7 @@ to represent a single file in a batch extraction job.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `path` | `[:0]const u8` | — | Path to the file to extract from |
+| `path` | `\[:0\]const u8` | — | Path to the file to extract from |
 | `config` | `FileExtractionConfig?` | `null` | Per-file configuration overrides (None uses batch-level defaults) |
 
 ---
@@ -1869,8 +1869,8 @@ BibTeX bibliography metadata.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `entryCount` | `u64` | — | Number of entries in the bibliography. |
-| `citationKeys` | `[]const [:0]const u8` | `[]` | BibTeX citation keys (e.g. `"knuth1984"`) for all entries. |
-| `authors` | `[]const [:0]const u8` | `[]` | Author names collected across all bibliography entries. |
+| `citationKeys` | `\[\]const \[:0\]const u8` | `\[\]` | BibTeX citation keys (e.g. `"knuth1984"`) for all entries. |
+| `authors` | `\[\]const \[:0\]const u8` | `\[\]` | Author names collected across all bibliography entries. |
 | `yearRange` | `YearRange?` | `null` | Earliest and latest publication years found in the bibliography. |
 | `entryTypes` | `std.StringHashMap(u64)?` | `{}` | Count of entries grouped by BibTeX entry type (e.g. `"article"` → 5). |
 
@@ -1912,7 +1912,7 @@ Configuration for the VLM captioning post-processor.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `llm` | `LlmConfig` | — | LLM configuration used for the VLM call. |
-| `prompt` | `[:0]const u8?` | `null` | Optional custom caption prompt. `null` uses the default `RegionKind.Caption` prompt that ships with `crate.llm.region_extractor`. |
+| `prompt` | `\[:0\]const u8?` | `null` | Optional custom caption prompt. `null` uses the default `RegionKind.Caption` prompt that ships with `crate.llm.region_extractor`. |
 | `minImageArea` | `u32` | `/* serde(default) */` | Skip images whose `width * height` is below this threshold (in pixels). Default `1_000` filters out icons and decorations. |
 
 ---
@@ -1929,7 +1929,7 @@ skipped rather than forwarded to the VLM.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `config` | `LlmConfig` | — | LLM / VLM configuration forwarded verbatim to each `caption_image` call. |
-| `customPrompt` | `[:0]const u8?` | `null` | Optional custom prompt override forwarded to every `caption_image` call. `null` uses the default `RegionKind.Caption` prompt. |
+| `customPrompt` | `\[:0\]const u8?` | `null` | Optional custom prompt override forwarded to every `caption_image` call. `null` uses the default `RegionKind.Caption` prompt. |
 
 ---
 
@@ -1945,8 +1945,8 @@ reference it unconditionally, without requiring the `diff` Cargo feature.
 |-------|------|---------|-------------|
 | `row` | `u64` | — | Zero-based row index. |
 | `col` | `u64` | — | Zero-based column index. |
-| `from` | `[:0]const u8` | — | Value before the change. |
-| `to` | `[:0]const u8` | — | Value after the change. |
+| `from` | `\[:0\]const u8` | — | Value before the change. |
+| `to` | `\[:0\]const u8` | — | Value after the change. |
 
 ---
 
@@ -1960,9 +1960,9 @@ is configured), and metadata about its position in the document.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | The text content of this chunk. |
+| `content` | `\[:0\]const u8` | — | The text content of this chunk. |
 | `chunkType` | `ChunkType` | `/* serde(default) */` | Semantic structural classification of this chunk. Assigned by the heuristic classifier based on content patterns and heading context. Defaults to `ChunkType.Unknown` when no rule matches. |
-| `embedding` | `[]const f32?` | `null` | Optional embedding vector for this chunk. Only populated when `EmbeddingConfig` is provided in chunking configuration. The dimensionality depends on the chosen embedding model. |
+| `embedding` | `\[\]const f32?` | `null` | Optional embedding vector for this chunk. Only populated when `EmbeddingConfig` is provided in chunking configuration. The dimensionality depends on the chosen embedding model. |
 | `metadata` | `ChunkMetadata` | — | Metadata about this chunk's position and properties. |
 
 ---
@@ -1981,7 +1981,7 @@ Metadata about a chunk's position in the original document.
 | `firstPage` | `u32?` | `null` | First page number this chunk spans (1-indexed). Only populated when page tracking is enabled in extraction configuration. |
 | `lastPage` | `u32?` | `null` | Last page number this chunk spans (1-indexed, equal to first_page for single-page chunks). Only populated when page tracking is enabled in extraction configuration. |
 | `headingContext` | `HeadingContext?` | `/* serde(default) */` | Heading context when using Markdown chunker. Contains the heading hierarchy this chunk falls under. Only populated when `ChunkerType.Markdown` is used. |
-| `imageIndices` | `[]const u32` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images on pages covered by this chunk. Contains zero-based indices into the top-level `images` collection for every image whose `page_number` falls within `[first_page, last_page]`. Empty when image extraction is disabled or the chunk spans no pages with images. |
+| `imageIndices` | `\[\]const u32` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images on pages covered by this chunk. Contains zero-based indices into the top-level `images` collection for every image whose `page_number` falls within `\[first_page, last_page\]`. Empty when image extraction is disabled or the chunk spans no pages with images. |
 
 ---
 
@@ -2001,7 +2001,7 @@ Use `..the default constructor` when constructing to allow for future field addi
 | `trim` | `bool` | `true` | Whether to trim whitespace from chunk boundaries. Default: true |
 | `chunkerType` | `ChunkerType` | `ChunkerType.Text` | Type of chunker to use (Text or Markdown). Default: Text |
 | `embedding` | `EmbeddingConfig?` | `null` | Optional embedding configuration for chunk embeddings. |
-| `preset` | `[:0]const u8?` | `null` | Use a preset configuration (overrides individual settings if provided). |
+| `preset` | `\[:0\]const u8?` | `null` | Use a preset configuration (overrides individual settings if provided). |
 | `sizing` | `ChunkSizing` | `ChunkSizing.Characters` | How to measure chunk size. Default: `Characters` (Unicode character count). Enable `chunking-tiktoken` or `chunking-tokenizers` features for token-based sizing. |
 | `prependHeadingContext` | `bool` | `false` | When `true` and `chunker_type` is `Markdown`, prepend the heading hierarchy path (e.g. `"# Title > ## Section\n\n"`) to each chunk's content string. This is useful for RAG pipelines where each chunk needs self-contained context about its position in the document structure. Default: `false` |
 | `topicThreshold` | `f32?` | `null` | Optional cosine similarity threshold for semantic topic boundary detection. Only used when `chunker_type` is `Semantic` and an `EmbeddingConfig` is provided. You almost never need to set this. When omitted, defaults to `0.75` which works well for most documents. Lower values detect more topic boundaries (more, smaller chunks); higher values detect fewer. Range: `0.0..=1.0`. |
@@ -2033,11 +2033,11 @@ Citation file metadata (RIS, PubMed, EndNote).
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `citationCount` | `u64` | — | Total number of citation records in the file. |
-| `format` | `[:0]const u8?` | `null` | Detected citation file format (e.g. `"ris"`, `"pubmed"`, `"endnote"`). |
-| `authors` | `[]const [:0]const u8` | `[]` | Author names collected across all citation records. |
+| `format` | `\[:0\]const u8?` | `null` | Detected citation file format (e.g. `"ris"`, `"pubmed"`, `"endnote"`). |
+| `authors` | `\[\]const \[:0\]const u8` | `\[\]` | Author names collected across all citation records. |
 | `yearRange` | `YearRange?` | `null` | Earliest and latest publication years found in the file. |
-| `dois` | `[]const [:0]const u8` | `[]` | DOI identifiers found in the citation records. |
-| `keywords` | `[]const [:0]const u8` | `[]` | Keywords collected from all citation records. |
+| `dois` | `\[\]const \[:0\]const u8` | `\[\]` | DOI identifiers found in the citation records. |
+| `keywords` | `\[\]const \[:0\]const u8` | `\[\]` | Keywords collected from all citation records. |
 
 ---
 
@@ -2057,8 +2057,8 @@ A single label + confidence pair.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `label` | `[:0]const u8` | — | Label name as configured in `PageClassificationConfig.labels`. |
-| `confidence` | `f32?` | `null` | Backend-reported confidence in `[0.0, 1.0]`. `null` when the backend (e.g. an LLM prompt without explicit confidence schema) did not report one. |
+| `label` | `\[:0\]const u8` | — | Label name as configured in `PageClassificationConfig.labels`. |
+| `confidence` | `f32?` | `null` | Backend-reported confidence in `\[0.0, 1.0\]`. `null` when the backend (e.g. an LLM prompt without explicit confidence schema) did not report one. |
 
 ---
 
@@ -2107,8 +2107,8 @@ JATS contributor with role.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8` | — | Contributor display name. |
-| `role` | `[:0]const u8?` | `null` | Contributor role (e.g. `"author"`, `"editor"`). |
+| `name` | `\[:0\]const u8` | — | Contributor display name. |
+| `role` | `\[:0\]const u8?` | `null` | Contributor role (e.g. `"author"`, `"editor"`). |
 
 ---
 
@@ -2121,21 +2121,21 @@ and Office-specific extensions.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `title` | `[:0]const u8?` | `null` | Document title |
-| `subject` | `[:0]const u8?` | `null` | Document subject/topic |
-| `creator` | `[:0]const u8?` | `null` | Document creator/author |
-| `keywords` | `[:0]const u8?` | `null` | Keywords or tags |
-| `description` | `[:0]const u8?` | `null` | Document description/abstract |
-| `lastModifiedBy` | `[:0]const u8?` | `null` | User who last modified the document |
-| `revision` | `[:0]const u8?` | `null` | Revision number |
-| `created` | `[:0]const u8?` | `null` | Creation timestamp (ISO 8601) |
-| `modified` | `[:0]const u8?` | `null` | Last modification timestamp (ISO 8601) |
-| `category` | `[:0]const u8?` | `null` | Document category |
-| `contentStatus` | `[:0]const u8?` | `null` | Content status (Draft, Final, etc.) |
-| `language` | `[:0]const u8?` | `null` | Document language |
-| `identifier` | `[:0]const u8?` | `null` | Unique identifier |
-| `version` | `[:0]const u8?` | `null` | Document version |
-| `lastPrinted` | `[:0]const u8?` | `null` | Last print timestamp (ISO 8601) |
+| `title` | `\[:0\]const u8?` | `null` | Document title |
+| `subject` | `\[:0\]const u8?` | `null` | Document subject/topic |
+| `creator` | `\[:0\]const u8?` | `null` | Document creator/author |
+| `keywords` | `\[:0\]const u8?` | `null` | Keywords or tags |
+| `description` | `\[:0\]const u8?` | `null` | Document description/abstract |
+| `lastModifiedBy` | `\[:0\]const u8?` | `null` | User who last modified the document |
+| `revision` | `\[:0\]const u8?` | `null` | Revision number |
+| `created` | `\[:0\]const u8?` | `null` | Creation timestamp (ISO 8601) |
+| `modified` | `\[:0\]const u8?` | `null` | Last modification timestamp (ISO 8601) |
+| `category` | `\[:0\]const u8?` | `null` | Document category |
+| `contentStatus` | `\[:0\]const u8?` | `null` | Content status (Draft, Final, etc.) |
+| `language` | `\[:0\]const u8?` | `null` | Document language |
+| `identifier` | `\[:0\]const u8?` | `null` | Unique identifier |
+| `version` | `\[:0\]const u8?` | `null` | Document version |
+| `lastPrinted` | `\[:0\]const u8?` | `null` | Last print timestamp (ISO 8601) |
 
 ---
 
@@ -2147,9 +2147,9 @@ CSV/TSV file metadata.
 |-------|------|---------|-------------|
 | `rowCount` | `u32` | — | Total number of data rows (excluding the header row if present). |
 | `columnCount` | `u32` | — | Number of columns detected. |
-| `delimiter` | `[:0]const u8?` | `null` | Field delimiter character (e.g. `","` or `"\t"`). |
+| `delimiter` | `\[:0\]const u8?` | `null` | Field delimiter character (e.g. `","` or `"\t"`). |
 | `hasHeader` | `bool` | — | Whether the first row was treated as a header. |
-| `columnTypes` | `[]const [:0]const u8?` | `[]` | Inferred data type for each column (e.g. `"string"`, `"integer"`, `"float"`). |
+| `columnTypes` | `\[\]const \[:0\]const u8?` | `\[\]` | Inferred data type for each column (e.g. `"string"`, `"integer"`, `"float"`). |
 
 ---
 
@@ -2159,8 +2159,8 @@ dBASE field information.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8` | — | Field (column) name. |
-| `fieldType` | `[:0]const u8` | — | dBASE field type character (e.g. `"C"` for character, `"N"` for numeric). |
+| `name` | `\[:0\]const u8` | — | Field (column) name. |
+| `fieldType` | `\[:0\]const u8` | — | dBASE field type character (e.g. `"C"` for character, `"N"` for numeric). |
 
 ---
 
@@ -2172,7 +2172,7 @@ dBASE (DBF) file metadata.
 |-------|------|---------|-------------|
 | `recordCount` | `u64` | — | Total number of data records in the DBF file. |
 | `fieldCount` | `u64` | — | Number of field (column) definitions. |
-| `fields` | `[]const DbfFieldInfo` | `[]` | Descriptor for each field in the table schema. |
+| `fields` | `\[\]const DbfFieldInfo` | `\[\]` | Descriptor for each field in the table schema. |
 
 ---
 
@@ -2182,8 +2182,8 @@ MIME type detection response.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `mimeType` | `[:0]const u8` | — | Detected MIME type |
-| `filename` | `[:0]const u8?` | `null` | Original filename (if provided) |
+| `mimeType` | `\[:0\]const u8` | — | Detected MIME type |
+| `filename` | `\[:0\]const u8?` | `null` | Original filename (if provided) |
 
 ---
 
@@ -2195,7 +2195,7 @@ Page-level detection result containing all detections and page metadata.
 |-------|------|---------|-------------|
 | `pageWidth` | `u32` | — | Page width in pixels (as seen by the model). |
 | `pageHeight` | `u32` | — | Page height in pixels (as seen by the model). |
-| `detections` | `[]const LayoutDetection` | — | All layout detections on this page after postprocessing. |
+| `detections` | `\[\]const LayoutDetection` | — | All layout detections on this page after postprocessing. |
 
 ---
 
@@ -2209,7 +2209,7 @@ A single contiguous hunk in a unified diff.
 | `fromCount` | `u64` | — | Number of lines from the old content in this hunk. |
 | `toLine` | `u64` | — | Starting line number in the new content (0-indexed). |
 | `toCount` | `u64` | — | Number of lines from the new content in this hunk. |
-| `lines` | `[]const DiffLine` | — | Lines that make up this hunk. |
+| `lines` | `\[\]const DiffLine` | — | Lines that make up this hunk. |
 
 ---
 
@@ -2260,13 +2260,13 @@ Available when the `djot` feature is enabled.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `plainText` | `[:0]const u8` | — | Plain text representation for backwards compatibility |
-| `blocks` | `[]const FormattedBlock` | — | Structured block-level content |
+| `plainText` | `\[:0\]const u8` | — | Plain text representation for backwards compatibility |
+| `blocks` | `\[\]const FormattedBlock` | — | Structured block-level content |
 | `metadata` | `Metadata` | — | Metadata from YAML frontmatter |
-| `tables` | `[]const Table` | — | Extracted tables as structured data |
-| `images` | `[]const DjotImage` | — | Extracted images with metadata |
-| `links` | `[]const DjotLink` | — | Extracted links with URLs |
-| `footnotes` | `[]const Footnote` | — | Footnote definitions |
+| `tables` | `\[\]const Table` | — | Extracted tables as structured data |
+| `images` | `\[\]const DjotImage` | — | Extracted images with metadata |
+| `links` | `\[\]const DjotLink` | — | Extracted links with URLs |
+| `footnotes` | `\[\]const Footnote` | — | Footnote definitions |
 
 ---
 
@@ -2276,9 +2276,9 @@ Image element in Djot.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `src` | `[:0]const u8` | — | Image source URL or path |
-| `alt` | `[:0]const u8` | — | Alternative text |
-| `title` | `[:0]const u8?` | `null` | Optional title |
+| `src` | `\[:0\]const u8` | — | Image source URL or path |
+| `alt` | `\[:0\]const u8` | — | Alternative text |
+| `title` | `\[:0\]const u8?` | `null` | Optional title |
 
 ---
 
@@ -2288,9 +2288,9 @@ Link element in Djot.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `url` | `[:0]const u8` | — | Link URL |
-| `text` | `[:0]const u8` | — | Link text content |
-| `title` | `[:0]const u8?` | `null` | Optional title |
+| `url` | `\[:0\]const u8` | — | Link URL |
+| `text` | `\[:0\]const u8` | — | Link text content |
+| `title` | `\[:0\]const u8?` | `null` | Optional title |
 
 ---
 
@@ -2358,8 +2358,8 @@ const result = try instance.extractBytes("data", "value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `content` | `[]const u8` | Yes | Raw document bytes |
-| `mimeType` | `[:0]const u8` | Yes | MIME type of the document (already validated) |
+| `content` | `\[\]const u8` | Yes | Raw document bytes |
+| `mimeType` | `\[:0\]const u8` | Yes | MIME type of the document (already validated) |
 | `config` | `ExtractionConfig` | Yes | Extraction configuration |
 
 **Returns:** `InternalDocument`
@@ -2397,8 +2397,8 @@ const result = try instance.extractFile("value", "value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to the document file |
-| `mimeType` | `[:0]const u8` | Yes | MIME type of the document (already validated) |
+| `path` | `\[:0\]const u8` | Yes | Path to the document file |
+| `mimeType` | `\[:0\]const u8` | Yes | MIME type of the document (already validated) |
 | `config` | `ExtractionConfig` | Yes | Extraction configuration |
 
 **Returns:** `InternalDocument`
@@ -2492,8 +2492,8 @@ const result = instance.canHandle("value", "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | The  path |
-| `mimeType` | `[:0]const u8` | Yes | The  mime type |
+| `path` | `\[:0\]const u8` | Yes | The  path |
+| `mimeType` | `\[:0\]const u8` | Yes | The  mime type |
 
 **Returns:** `bool`
 
@@ -2510,13 +2510,13 @@ for tree structure, and metadata like page number, bounding box, and content lay
 |-------|------|---------|-------------|
 | `content` | `NodeContent` | — | Node content — tagged enum, type-specific data only. |
 | `parent` | `u32?` | `null` | Parent node index (`null` = root-level node). |
-| `children` | `[]const u32` | `/* serde(default) */` | Child node indices in reading order. |
-| `contentLayer` | `ContentLayer` | `/* serde(default) */` | Content layer classification. Always serialised — Kotlin-Android (and any other typed binding) treats the field as non-nullable, so omitting it from the JSON wire would break consumer deserialisation.  `#[serde(default)]` covers the missing-field case on inbound JSON. |
+| `children` | `\[\]const u32` | `/* serde(default) */` | Child node indices in reading order. |
+| `contentLayer` | `ContentLayer` | `/* serde(default) */` | Content layer classification. Always serialised — Kotlin-Android (and any other typed binding) treats the field as non-nullable, so omitting it from the JSON wire would break consumer deserialisation.  `#\[serde(default)\]` covers the missing-field case on inbound JSON. |
 | `page` | `u32?` | `null` | Page number where this node starts (1-indexed). |
 | `pageEnd` | `u32?` | `null` | Page number where this node ends (for multi-page tables/sections). |
 | `bbox` | `BoundingBox?` | `null` | Bounding box in document coordinates. |
-| `annotations` | `[]const TextAnnotation` | `/* serde(default) */` | Inline annotations (formatting, links) on this node's text content. Only meaningful for text-carrying nodes; empty for containers. |
-| `attributes` | `std.StringHashMap([:0]const u8)?` | `null` | Format-specific key-value attributes. Extensible bag for miscellaneous data without a dedicated typed field: CSS classes, LaTeX environment names, Excel cell formulas, slide layout names, etc. |
+| `annotations` | `\[\]const TextAnnotation` | `/* serde(default) */` | Inline annotations (formatting, links) on this node's text content. Only meaningful for text-carrying nodes; empty for containers. |
+| `attributes` | `std.StringHashMap(\[:0\]const u8)?` | `null` | Format-specific key-value attributes. Extensible bag for miscellaneous data without a dedicated typed field: CSS classes, LaTeX environment names, Excel cell formulas, slide layout names, etc. |
 
 ---
 
@@ -2543,9 +2543,9 @@ format-specific implementation is added.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `revisionId` | `[:0]const u8` | — | Format-specific revision identifier. For DOCX this is the `w:id` attribute value on the change element (e.g. `"42"`). When the attribute is absent a synthetic fallback is generated (`"docx-ins-0"`, `"docx-del-3"`, …). |
-| `author` | `[:0]const u8?` | `null` | Display name of the author who made this change, when available. |
-| `timestamp` | `[:0]const u8?` | `null` | ISO-8601 timestamp of the change, when available. Stored as a plain string so this type remains FFI-friendly and unconditionally available without the `chrono` optional dep. DOCX populates this from the `w:date` attribute (e.g. `"2024-03-15T10:30:00Z"`). |
+| `revisionId` | `\[:0\]const u8` | — | Format-specific revision identifier. For DOCX this is the `w:id` attribute value on the change element (e.g. `"42"`). When the attribute is absent a synthetic fallback is generated (`"docx-ins-0"`, `"docx-del-3"`, …). |
+| `author` | `\[:0\]const u8?` | `null` | Display name of the author who made this change, when available. |
+| `timestamp` | `\[:0\]const u8?` | `null` | ISO-8601 timestamp of the change, when available. Stored as a plain string so this type remains FFI-friendly and unconditionally available without the `chrono` optional dep. DOCX populates this from the `w:date` attribute (e.g. `"2024-03-15T10:30:00Z"`). |
 | `kind` | `RevisionKind` | — | Semantic kind of this revision. |
 | `anchor` | `RevisionAnchor?` | `null` | Best-effort document location for this revision. Resolution is format-dependent and may be `null` when the location cannot be determined (e.g. changes inside table cells before table-cell anchor support is added). |
 | `delta` | `RevisionDelta` | — | The content changes that make up this revision. |
@@ -2567,10 +2567,10 @@ and parent-child relationships are bidirectionally consistent.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `nodes` | `[]const DocumentNode` | `[]` | All nodes in document/reading order. |
-| `sourceFormat` | `[:0]const u8?` | `null` | Origin format identifier (e.g. "docx", "pptx", "html", "pdf"). Allows renderers to apply format-aware heuristics when converting the document tree to output formats. |
-| `relationships` | `[]const DocumentRelationship` | `[]` | Resolved relationships between nodes (footnote refs, citations, anchor links, etc.). Populated during derivation from the internal document representation. Empty when no relationships are detected. |
-| `nodeTypes` | `[]const [:0]const u8` | `[]` | Sorted, deduplicated list of node type names present in this document. Each value is the snake_case `node_type` tag of the corresponding `NodeContent` variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …). Computed from `nodes` via `DocumentStructure.finalize_node_types`. Empty until that method is called (internal construction paths call it at the end of derivation). |
+| `nodes` | `\[\]const DocumentNode` | `\[\]` | All nodes in document/reading order. |
+| `sourceFormat` | `\[:0\]const u8?` | `null` | Origin format identifier (e.g. "docx", "pptx", "html", "pdf"). Allows renderers to apply format-aware heuristics when converting the document tree to output formats. |
+| `relationships` | `\[\]const DocumentRelationship` | `\[\]` | Resolved relationships between nodes (footnote refs, citations, anchor links, etc.). Populated during derivation from the internal document representation. Empty when no relationships are detected. |
+| `nodeTypes` | `\[\]const \[:0\]const u8` | `\[\]` | Sorted, deduplicated list of node type names present in this document. Each value is the snake_case `node_type` tag of the corresponding `NodeContent` variant (e.g. `"paragraph"`, `"heading"`, `"table"`, …). Computed from `nodes` via `DocumentStructure.finalize_node_types`. Empty until that method is called (internal construction paths call it at the end of derivation). |
 
 ##### Methods
 
@@ -2637,7 +2637,7 @@ Summary of an extracted document.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `text` | `[:0]const u8` | — | Summary text (plain prose). |
+| `text` | `\[:0\]const u8` | — | Summary text (plain prose). |
 | `strategy` | `SummaryStrategy` | — | Strategy that produced this summary. |
 | `tokenCount` | `u32?` | `null` | Approximate token count of the summary, when known. |
 
@@ -2651,9 +2651,9 @@ Contains Word-specific document statistics and metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `application` | `[:0]const u8?` | `null` | Application name (e.g., "Microsoft Office Word") |
-| `appVersion` | `[:0]const u8?` | `null` | Application version |
-| `template` | `[:0]const u8?` | `null` | Template filename |
+| `application` | `\[:0\]const u8?` | `null` | Application name (e.g., "Microsoft Office Word") |
+| `appVersion` | `\[:0\]const u8?` | `null` | Application version |
+| `template` | `\[:0\]const u8?` | `null` | Template filename |
 | `totalTime` | `i32?` | `null` | Total editing time in minutes |
 | `pages` | `i32?` | `null` | Number of pages |
 | `words` | `i32?` | `null` | Number of words |
@@ -2661,7 +2661,7 @@ Contains Word-specific document statistics and metadata.
 | `charactersWithSpaces` | `i32?` | `null` | Number of characters (including spaces) |
 | `lines` | `i32?` | `null` | Number of lines |
 | `paragraphs` | `i32?` | `null` | Number of paragraphs |
-| `company` | `[:0]const u8?` | `null` | Company name |
+| `company` | `\[:0\]const u8?` | `null` | Company name |
 | `docSecurity` | `i32?` | `null` | Document security level |
 | `scaleCrop` | `bool?` | `null` | Scale crop flag |
 | `linksUpToDate` | `bool?` | `null` | Links up to date flag |
@@ -2681,7 +2681,7 @@ Integrates with `office_metadata` module for core/app/custom properties.
 |-------|------|---------|-------------|
 | `coreProperties` | `CoreProperties?` | `null` | Core properties from docProps/core.xml (Dublin Core metadata) Contains title, creator, subject, keywords, dates, etc. Shared format across DOCX/PPTX/XLSX documents. |
 | `appProperties` | `DocxAppProperties?` | `null` | Application properties from docProps/app.xml (Word-specific statistics) Contains word count, page count, paragraph count, editing time, etc. DOCX-specific variant of Office application properties. |
-| `customProperties` | `std.StringHashMap([:0]const u8)?` | `{}` | Custom properties from docProps/custom.xml (user-defined properties) Contains key-value pairs defined by users or applications. Values can be strings, numbers, booleans, or dates. |
+| `customProperties` | `std.StringHashMap(\[:0\]const u8)?` | `{}` | Custom properties from docProps/custom.xml (user-defined properties) Contains key-value pairs defined by users or applications. Values can be strings, numbers, booleans, or dates. |
 
 ---
 
@@ -2695,7 +2695,7 @@ unique identifier, and metadata for tracking origin and position.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `elementType` | `ElementType` | — | Semantic type of this element |
-| `text` | `[:0]const u8` | — | Text content of the element |
+| `text` | `\[:0\]const u8` | — | Text content of the element |
 | `metadata` | `ElementMetadata` | — | Metadata about the element |
 
 ---
@@ -2707,10 +2707,10 @@ Metadata for a semantic element.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `pageNumber` | `u32?` | `null` | Page number (1-indexed) |
-| `filename` | `[:0]const u8?` | `null` | Source filename or document name |
+| `filename` | `\[:0\]const u8?` | `null` | Source filename or document name |
 | `coordinates` | `BoundingBox?` | `null` | Bounding box coordinates if available |
 | `elementIndex` | `u64?` | `null` | Position index in the element sequence |
-| `additional` | `std.StringHashMap([:0]const u8)` | — | Additional custom metadata |
+| `additional` | `std.StringHashMap(\[:0\]const u8)` | — | Additional custom metadata |
 
 ---
 
@@ -2722,12 +2722,12 @@ Contains metadata and optionally the content of an email attachment.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8?` | `null` | Attachment name (from Content-Disposition header) |
-| `filename` | `[:0]const u8?` | `null` | Filename of the attachment |
-| `mimeType` | `[:0]const u8?` | `null` | MIME type of the attachment |
+| `name` | `\[:0\]const u8?` | `null` | Attachment name (from Content-Disposition header) |
+| `filename` | `\[:0\]const u8?` | `null` | Filename of the attachment |
+| `mimeType` | `\[:0\]const u8?` | `null` | MIME type of the attachment |
 | `size` | `u64?` | `null` | Size in bytes |
 | `isImage` | `bool` | — | Whether this attachment is an image |
-| `data` | `[]const u8?` | `null` | Attachment data (if extracted). Uses `bytes.Bytes` for cheap cloning of large buffers. |
+| `data` | `\[\]const u8?` | `null` | Attachment data (if extracted). Uses `bytes.Bytes` for cheap cloning of large buffers. |
 
 ---
 
@@ -2750,18 +2750,18 @@ including headers, body content, and attachments.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `subject` | `[:0]const u8?` | `null` | Email subject line |
-| `fromEmail` | `[:0]const u8?` | `null` | Sender email address |
-| `toEmails` | `[]const [:0]const u8` | — | Primary recipient email addresses |
-| `ccEmails` | `[]const [:0]const u8` | — | CC recipient email addresses |
-| `bccEmails` | `[]const [:0]const u8` | — | BCC recipient email addresses |
-| `date` | `[:0]const u8?` | `null` | Email date/timestamp |
-| `messageId` | `[:0]const u8?` | `null` | Message-ID header value |
-| `plainText` | `[:0]const u8?` | `null` | Plain text version of the email body |
-| `htmlContent` | `[:0]const u8?` | `null` | HTML version of the email body |
-| `content` | `[:0]const u8` | — | Cleaned/processed text content. Aliased as `cleaned_text` for back-compat. |
-| `attachments` | `[]const EmailAttachment` | — | List of email attachments |
-| `metadata` | `std.StringHashMap([:0]const u8)` | — | Additional email headers and metadata |
+| `subject` | `\[:0\]const u8?` | `null` | Email subject line |
+| `fromEmail` | `\[:0\]const u8?` | `null` | Sender email address |
+| `toEmails` | `\[\]const \[:0\]const u8` | — | Primary recipient email addresses |
+| `ccEmails` | `\[\]const \[:0\]const u8` | — | CC recipient email addresses |
+| `bccEmails` | `\[\]const \[:0\]const u8` | — | BCC recipient email addresses |
+| `date` | `\[:0\]const u8?` | `null` | Email date/timestamp |
+| `messageId` | `\[:0\]const u8?` | `null` | Message-ID header value |
+| `plainText` | `\[:0\]const u8?` | `null` | Plain text version of the email body |
+| `htmlContent` | `\[:0\]const u8?` | `null` | HTML version of the email body |
+| `content` | `\[:0\]const u8` | — | Cleaned/processed text content. Aliased as `cleaned_text` for back-compat. |
+| `attachments` | `\[\]const EmailAttachment` | — | List of email attachments |
+| `metadata` | `std.StringHashMap(\[:0\]const u8)` | — | Additional email headers and metadata |
 
 ---
 
@@ -2773,13 +2773,13 @@ Includes sender/recipient information, message ID, and attachment list.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `fromEmail` | `[:0]const u8?` | `null` | Sender's email address |
-| `fromName` | `[:0]const u8?` | `null` | Sender's display name |
-| `toEmails` | `[]const [:0]const u8` | `[]` | Primary recipients |
-| `ccEmails` | `[]const [:0]const u8` | `[]` | CC recipients |
-| `bccEmails` | `[]const [:0]const u8` | `[]` | BCC recipients |
-| `messageId` | `[:0]const u8?` | `null` | Message-ID header value |
-| `attachments` | `[]const [:0]const u8` | `[]` | List of attachment filenames |
+| `fromEmail` | `\[:0\]const u8?` | `null` | Sender's email address |
+| `fromName` | `\[:0\]const u8?` | `null` | Sender's display name |
+| `toEmails` | `\[\]const \[:0\]const u8` | `\[\]` | Primary recipients |
+| `ccEmails` | `\[\]const \[:0\]const u8` | `\[\]` | CC recipients |
+| `bccEmails` | `\[\]const \[:0\]const u8` | `\[\]` | BCC recipients |
+| `messageId` | `\[:0\]const u8?` | `null` | Message-ID header value |
+| `attachments` | `\[\]const \[:0\]const u8` | `\[\]` | List of attachment filenames |
 
 ---
 
@@ -2789,9 +2789,9 @@ Changes to embedded archive children between two results.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `added` | `[]const ArchiveEntry` | — | Children present in `b` but not in `a` (matched by `path`). |
-| `removed` | `[]const ArchiveEntry` | — | Children present in `a` but not in `b` (matched by `path`). |
-| `changed` | `[]const EmbeddedDiff` | — | Children present in both but with differing content (matched by `path`). Each entry holds the diff of the nested `ExtractionResult`. |
+| `added` | `\[\]const ArchiveEntry` | — | Children present in `b` but not in `a` (matched by `path`). |
+| `removed` | `\[\]const ArchiveEntry` | — | Children present in `a` but not in `b` (matched by `path`). |
+| `changed` | `\[\]const EmbeddedDiff` | — | Children present in both but with differing content (matched by `path`). Each entry holds the diff of the nested `ExtractionResult`. |
 
 ---
 
@@ -2801,7 +2801,7 @@ Diff for a single embedded archive entry that appears in both results.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `path` | `[:0]const u8` | — | Archive-relative path identifying this entry. |
+| `path` | `\[:0\]const u8` | — | Archive-relative path identifying this entry. |
 | `diff` | `ExtractionDiff` | — | The recursive diff of the entry's extraction result. |
 
 ---
@@ -2812,10 +2812,10 @@ Embedded file descriptor extracted from the PDF name tree.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8` | — | The filename as stored in the PDF name tree. |
-| `data` | `[]const u8` | — | Raw file bytes from the embedded stream (already decompressed by lopdf). |
+| `name` | `\[:0\]const u8` | — | The filename as stored in the PDF name tree. |
+| `data` | `\[\]const u8` | — | Raw file bytes from the embedded stream (already decompressed by lopdf). |
 | `compressedSize` | `u64` | — | Compressed byte count of the original stream (before decompression). Used by callers to compute the decompression ratio and detect zip-bomb-style attacks that embed a tiny compressed stream expanding to gigabytes of data. |
-| `mimeType` | `[:0]const u8?` | `null` | MIME type if specified in the filespec, otherwise `null`. |
+| `mimeType` | `\[:0\]const u8?` | `null` | MIME type if specified in the filespec, otherwise `null`. |
 
 ---
 
@@ -2916,7 +2916,7 @@ const result = try instance.embed(&[_]u8{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `texts` | `[]const [:0]const u8` | Yes | The texts |
+| `texts` | `\[\]const \[:0\]const u8` | Yes | The texts |
 
 **Returns:** `[]const []const f32`
 
@@ -2937,7 +2937,7 @@ Requires the `embeddings` feature to be enabled.
 | `normalize` | `bool` | `true` | Whether to normalize embedding vectors (recommended for cosine similarity) |
 | `batchSize` | `u64` | `32` | Batch size for embedding generation |
 | `showDownloadProgress` | `bool` | `false` | Show model download progress |
-| `cacheDir` | `[:0]const u8?` | `null` | Custom cache directory for model files Defaults to `~/.cache/kreuzberg/embeddings/` if not specified. Allows full customization of model download location. |
+| `cacheDir` | `\[:0\]const u8?` | `null` | Custom cache directory for model files Defaults to `~/.cache/kreuzberg/embeddings/` if not specified. Allows full customization of model download location. |
 | `acceleration` | `AccelerationConfig?` | `null` | Hardware acceleration for the embedding ONNX model. When set, controls which execution provider (CPU, CUDA, CoreML, TensorRT) is used for inference. Defaults to `null` (auto-select per platform). |
 | `maxEmbedDurationSecs` | `u64?` | `null` | Maximum wall-clock duration (in seconds) for a single `embed()` call when using `EmbeddingModelType.Plugin`. Applies only to the in-process plugin path — protects against hung host-language backends (e.g. a Python callback deadlocked on the GIL, a model stuck on CUDA OOM retries, etc.). On timeout, the dispatcher returns `Plugin` instead of blocking forever. `null` disables the timeout. The default (60 seconds) is conservative for common in-process inference; increase for large batches on slow hardware. |
 
@@ -2973,14 +2973,14 @@ are safe to clone and pass across language boundaries.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8` | — | Short identifier for this preset (e.g. `"balanced"`, `"fast"`, `"quality"`). |
+| `name` | `\[:0\]const u8` | — | Short identifier for this preset (e.g. `"balanced"`, `"fast"`, `"quality"`). |
 | `chunkSize` | `u64` | — | Target chunk size in characters. |
 | `overlap` | `u64` | — | Overlap between consecutive chunks in characters. |
-| `modelRepo` | `[:0]const u8` | — | HuggingFace repository name for the model. |
-| `pooling` | `[:0]const u8` | — | Pooling strategy: "cls" or "mean". |
-| `modelFile` | `[:0]const u8` | — | Path to the ONNX model file within the repo. |
+| `modelRepo` | `\[:0\]const u8` | — | HuggingFace repository name for the model. |
+| `pooling` | `\[:0\]const u8` | — | Pooling strategy: "cls" or "mean". |
+| `modelFile` | `\[:0\]const u8` | — | Path to the ONNX model file within the repo. |
 | `dimensions` | `u64` | — | Embedding vector dimension produced by this model. |
-| `description` | `[:0]const u8` | — | Human-readable description of the preset's intended use case. |
+| `description` | `\[:0\]const u8` | — | Human-readable description of the preset's intended use case. |
 
 ---
 
@@ -2991,10 +2991,10 @@ A single named entity detected in the extracted text.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `category` | `EntityCategory` | — | Canonical category the entity belongs to (PERSON, ORG, LOCATION, etc.). |
-| `text` | `[:0]const u8` | — | Raw mention text exactly as it appeared in the source. |
+| `text` | `\[:0\]const u8` | — | Raw mention text exactly as it appeared in the source. |
 | `start` | `u32` | — | Byte-offset span in `ExtractionResult.content` where the mention starts. |
 | `end` | `u32` | — | Byte-offset span in `ExtractionResult.content` where the mention ends (exclusive). |
-| `confidence` | `f32?` | `null` | Backend-reported confidence in `[0.0, 1.0]`. `null` when the backend does not expose confidence scores. |
+| `confidence` | `f32?` | `null` | Backend-reported confidence in `\[0.0, 1.0\]`. `null` when the backend does not expose confidence scores. |
 
 ---
 
@@ -3004,12 +3004,12 @@ EPUB metadata (Dublin Core extensions).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `coverage` | `[:0]const u8?` | `null` | Dublin Core `coverage` field (geographic or temporal scope). |
-| `dcFormat` | `[:0]const u8?` | `null` | Dublin Core `format` field (media type of the resource). |
-| `relation` | `[:0]const u8?` | `null` | Dublin Core `relation` field (related resource identifier). |
-| `source` | `[:0]const u8?` | `null` | Dublin Core `source` field (origin resource identifier). |
-| `dcType` | `[:0]const u8?` | `null` | Dublin Core `type` field (nature or genre of the resource). |
-| `coverImage` | `[:0]const u8?` | `null` | Path or identifier of the cover image within the EPUB container. |
+| `coverage` | `\[:0\]const u8?` | `null` | Dublin Core `coverage` field (geographic or temporal scope). |
+| `dcFormat` | `\[:0\]const u8?` | `null` | Dublin Core `format` field (media type of the resource). |
+| `relation` | `\[:0\]const u8?` | `null` | Dublin Core `relation` field (related resource identifier). |
+| `source` | `\[:0\]const u8?` | `null` | Dublin Core `source` field (origin resource identifier). |
+| `dcType` | `\[:0\]const u8?` | `null` | Dublin Core `type` field (nature or genre of the resource). |
+| `coverImage` | `\[:0\]const u8?` | `null` | Path or identifier of the cover image within the EPUB container. |
 
 ---
 
@@ -3019,8 +3019,8 @@ Error metadata (for batch operations).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `errorType` | `[:0]const u8` | — | Machine-readable error type identifier (e.g. "UnsupportedFormat"). |
-| `message` | `[:0]const u8` | — | Human-readable error description. |
+| `errorType` | `\[:0\]const u8` | — | Machine-readable error type identifier (e.g. "UnsupportedFormat"). |
+| `message` | `\[:0\]const u8` | — | Human-readable error description. |
 
 ---
 
@@ -3034,7 +3034,7 @@ discriminant. Sheet count and sheet names are stored inside this struct.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `sheetCount` | `u32?` | `null` | Number of sheets in the workbook. |
-| `sheetNames` | `[]const [:0]const u8?` | `[]` | Names of all sheets in the workbook. |
+| `sheetNames` | `\[\]const \[:0\]const u8?` | `\[\]` | Names of all sheets in the workbook. |
 
 ---
 
@@ -3047,12 +3047,12 @@ converted to Markdown format and dimensional statistics.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8` | — | Sheet name as it appears in Excel |
-| `markdown` | `[:0]const u8` | — | Sheet content converted to Markdown tables |
+| `name` | `\[:0\]const u8` | — | Sheet name as it appears in Excel |
+| `markdown` | `\[:0\]const u8` | — | Sheet content converted to Markdown tables |
 | `rowCount` | `u64` | — | Number of rows |
 | `colCount` | `u64` | — | Number of columns |
 | `cellCount` | `u64` | — | Total number of non-empty cells |
-| `tableCells` | `[]const []const [:0]const u8?` | `null` | Pre-extracted table cells (2D vector of cell values) Populated during markdown generation to avoid re-parsing markdown. None for empty sheets. |
+| `tableCells` | `\[\]const \[\]const \[:0\]const u8?` | `null` | Pre-extracted table cells (2D vector of cell values) Populated during markdown generation to avoid re-parsing markdown. None for empty sheets. |
 
 ---
 
@@ -3065,9 +3065,9 @@ extracted content and metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `sheets` | `[]const ExcelSheet` | — | All sheets in the workbook |
-| `metadata` | `std.StringHashMap([:0]const u8)` | — | Workbook-level metadata (author, creation date, etc.) |
-| `revisions` | `[]const DocumentRevision?` | `/* serde(default) */` | Collaborative-edit revision headers from `xl/revisions/revisionHeaders.xml`. Populated for legacy shared-workbook `.xlsx` files that contain the `xl/revisions/` directory. Each `<header>` element maps to one `DocumentRevision { kind: FormatChange }` carrying the header's `guid` (→ `revision_id`), `userName` (→ `author`), and `dateTime` (→ `timestamp`). `anchor` and `delta` are `null`/empty for v1 (per-cell log parsing is a follow-up). `null` when `xl/revisions/revisionHeaders.xml` is absent. |
+| `sheets` | `\[\]const ExcelSheet` | — | All sheets in the workbook |
+| `metadata` | `std.StringHashMap(\[:0\]const u8)` | — | Workbook-level metadata (author, creation date, etc.) |
+| `revisions` | `\[\]const DocumentRevision?` | `/* serde(default) */` | Collaborative-edit revision headers from `xl/revisions/revisionHeaders.xml`. Populated for legacy shared-workbook `.xlsx` files that contain the `xl/revisions/` directory. Each `<header>` element maps to one `DocumentRevision { kind: FormatChange }` carrying the header's `guid` (→ `revision_id`), `userName` (→ `author`), and `dateTime` (→ `timestamp`). `anchor` and `delta` are `null`/empty for v1 (per-cell log parsing is a follow-up). `null` when `xl/revisions/revisionHeaders.xml` is absent. |
 
 ---
 
@@ -3081,24 +3081,24 @@ PIL.Image (Python), Sharp (Node.js), or other formats as needed.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `data` | `[]const u8` | — | Raw image data (PNG, JPEG, WebP, etc. bytes). Uses `bytes.Bytes` for cheap cloning of large buffers. |
-| `format` | `[:0]const u8` | — | Image format (e.g., "jpeg", "png", "webp") Uses Cow<'static, str> to avoid allocation for static literals. |
+| `data` | `\[\]const u8` | — | Raw image data (PNG, JPEG, WebP, etc. bytes). Uses `bytes.Bytes` for cheap cloning of large buffers. |
+| `format` | `\[:0\]const u8` | — | Image format (e.g., "jpeg", "png", "webp") Uses Cow<'static, str> to avoid allocation for static literals. |
 | `imageIndex` | `u32` | — | Zero-indexed position of this image in the document/page |
 | `pageNumber` | `u32?` | `null` | Page/slide number where image was found (1-indexed) |
 | `width` | `u32?` | `null` | Image width in pixels |
 | `height` | `u32?` | `null` | Image height in pixels |
-| `colorspace` | `[:0]const u8?` | `null` | Colorspace information (e.g., "RGB", "CMYK", "Gray") |
+| `colorspace` | `\[:0\]const u8?` | `null` | Colorspace information (e.g., "RGB", "CMYK", "Gray") |
 | `bitsPerComponent` | `u32?` | `null` | Bits per color component (e.g., 8, 16) |
 | `isMask` | `bool` | — | Whether this image is a mask image |
-| `description` | `[:0]const u8?` | `null` | Optional description of the image |
+| `description` | `\[:0\]const u8?` | `null` | Optional description of the image |
 | `ocrResult` | `ExtractionResult?` | `null` | Nested OCR extraction result (if image was OCRed) When OCR is performed on this image, the result is embedded here rather than in a separate collection, making the relationship explicit. |
 | `boundingBox` | `BoundingBox?` | `null` | Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top). Only populated for PDF-extracted images when position data is available from the PDF extractor. |
-| `sourcePath` | `[:0]const u8?` | `null` | Original source path of the image within the document archive (e.g., "media/image1.png" in DOCX). Used for rendering image references when the binary data is not extracted. |
+| `sourcePath` | `\[:0\]const u8?` | `null` | Original source path of the image within the document archive (e.g., "media/image1.png" in DOCX). Used for rendering image references when the binary data is not extracted. |
 | `imageKind` | `ImageKind?` | `null` | Heuristic classification of what this image likely depicts. `null` if classification was disabled or inconclusive. |
 | `kindConfidence` | `f32?` | `null` | Confidence score for `image_kind`, in the range 0.0 to 1.0. |
 | `clusterId` | `u32?` | `null` | Identifier shared across images that form a single logical figure (e.g. all raster tiles of one technical drawing). `null` for singletons. |
-| `caption` | `[:0]const u8?` | `null` | VLM-generated caption describing the image, when captioning is configured. Populated by the captioning post-processor (`crates/kreuzberg/src/plugins/processor/builtin/captioning.rs`), which routes each image through `crate.llm.region_extractor.extract_region_with_vlm` in caption mode. `null` when captioning is disabled or the VLM declined to caption. |
-| `qrCodes` | `[]const QrCode?` | `[]` | QR codes decoded from this image, when QR detection is enabled. Populated by the QR post-processor (`crates/kreuzberg/src/extractors/qr.rs`) via the pure-Rust `rqrr` decoder. `null` when QR detection is disabled; an empty `Some([])` when detection ran but found nothing. |
+| `caption` | `\[:0\]const u8?` | `null` | VLM-generated caption describing the image, when captioning is configured. Populated by the captioning post-processor (`crates/kreuzberg/src/plugins/processor/builtin/captioning.rs`), which routes each image through `crate.llm.region_extractor.extract_region_with_vlm` in caption mode. `null` when captioning is disabled or the VLM declined to caption. |
+| `qrCodes` | `\[\]const QrCode?` | `\[\]` | QR codes decoded from this image, when QR detection is enabled. Populated by the QR post-processor (`crates/kreuzberg/src/extractors/qr.rs`) via the pure-Rust `rqrr` decoder. `null` when QR detection is disabled; an empty `Some(\[\])` when detection ran but found nothing. |
 
 ---
 
@@ -3112,8 +3112,8 @@ optional human-readable display text.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `url` | `[:0]const u8` | — | The URL or path string. |
-| `label` | `[:0]const u8?` | `null` | Optional display text / label for the link. |
+| `url` | `\[:0\]const u8` | — | The URL or path string. |
+| `label` | `\[:0\]const u8?` | `null` | Optional display text / label for the link. |
 | `page` | `u32?` | `null` | Optional page number where the URI was found (1-indexed). |
 | `kind` | `UriKind` | — | Semantic classification of the URI. |
 
@@ -3132,7 +3132,7 @@ It can be loaded from TOML, YAML, or JSON files, or created programmatically.
 | `enableQualityProcessing` | `bool` | `true` | Enable quality post-processing |
 | `ocr` | `OcrConfig?` | `null` | OCR configuration (None = OCR disabled) |
 | `forceOcr` | `bool` | `false` | Force OCR even for searchable PDFs |
-| `forceOcrPages` | `[]const u32?` | `null` | Force OCR on specific pages only (1-indexed page numbers, must be >= 1). When set, only the listed pages are OCR'd regardless of text layer quality. Unlisted pages use native text extraction. Ignored when `force_ocr` is `true`. Only applies to PDF documents. Duplicates are automatically deduplicated. An `ocr` config is recommended for backend/language selection; defaults are used if absent. |
+| `forceOcrPages` | `\[\]const u32?` | `null` | Force OCR on specific pages only (1-indexed page numbers, must be >= 1). When set, only the listed pages are OCR'd regardless of text layer quality. Unlisted pages use native text extraction. Ignored when `force_ocr` is `true`. Only applies to PDF documents. Duplicates are automatically deduplicated. An `ocr` config is recommended for backend/language selection; defaults are used if absent. |
 | `disableOcr` | `bool` | `false` | Disable OCR entirely, even for images. When `true`, OCR is skipped for all document types. Images return metadata only (dimensions, format, EXIF) without text extraction. PDFs use only native text extraction without OCR fallback. Cannot be `true` simultaneously with `force_ocr`. *Added in v4.7.0.* |
 | `chunking` | `ChunkingConfig?` | `null` | Text chunking configuration (None = chunking disabled) |
 | `contentFilter` | `ContentFilterConfig?` | `null` | Content filtering configuration (None = use extractor defaults). Controls whether document "furniture" (headers, footers, watermarks, repeating text) is included in or stripped from extraction results. See `ContentFilterConfig` for per-field documentation. |
@@ -3155,7 +3155,7 @@ It can be loaded from TOML, YAML, or JSON files, or created programmatically.
 | `useLayoutForMarkdown` | `bool` | `false` | Run layout detection on the non-OCR PDF markdown path. When `true` and `layout` is `Some(_)`, layout regions inform heading, table, list, and figure detection in the structure pipeline that would otherwise rely on font-clustering heuristics alone. Significantly improves SF1 (structural F1) at the cost of inference latency (~150-300ms/page CPU, ~20-50ms/page GPU). Default: `false`. Requires the `layout-detection` feature. |
 | `includeDocumentStructure` | `bool` | `false` | Enable structured document tree output. When true, populates the `document` field on `ExtractionResult` with a hierarchical `DocumentStructure` containing heading-driven section nesting, table grids, content layer classification, and inline annotations. Independent of `result_format` — can be combined with Unified or ElementBased. |
 | `acceleration` | `AccelerationConfig?` | `null` | Hardware acceleration configuration for ONNX Runtime models. Controls execution provider selection for layout detection and embedding models. When `null`, uses platform defaults (CoreML on macOS, CUDA on Linux, CPU on Windows). |
-| `cacheNamespace` | `[:0]const u8?` | `null` | Cache namespace for tenant isolation. When set, cache entries are stored under `{cache_dir}/{namespace}/`. Must be alphanumeric, hyphens, or underscores only (max 64 chars). Different namespaces have isolated cache spaces on the same filesystem. |
+| `cacheNamespace` | `\[:0\]const u8?` | `null` | Cache namespace for tenant isolation. When set, cache entries are stored under `{cache_dir}/{namespace}/`. Must be alphanumeric, hyphens, or underscores only (max 64 chars). Different namespaces have isolated cache spaces on the same filesystem. |
 | `cacheTtlSecs` | `u64?` | `null` | Per-request cache TTL in seconds. Overrides the global `max_age_days` for this specific extraction. When `0`, caching is completely skipped (no read or write). When `null`, the global TTL applies. |
 | `email` | `EmailConfig?` | `null` | Email extraction configuration (None = use defaults). Currently supports configuring the fallback codepage for MSG files that do not specify one. See `EmailConfig` for details. |
 | `maxArchiveDepth` | `u64` | — | Maximum recursion depth for archive extraction (default: 3). Set to 0 to disable recursive extraction (legacy behavior). |
@@ -3252,11 +3252,11 @@ The complete diff between two `ExtractionResult` values.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `contentDiff` | `[]const DiffHunk` | — | Unified-diff hunks for the `content` field. Empty when the content is identical. |
-| `tablesAdded` | `[]const Table` | — | Tables present in `b` but not in `a` (by index position, excess right-side tables). |
-| `tablesRemoved` | `[]const Table` | — | Tables present in `a` but not in `b` (by index position, excess left-side tables). |
-| `tablesChanged` | `[]const TableDiff` | — | Cell-level changes for table pairs that share the same index and dimensions. |
-| `metadataChanged` | `[:0]const u8` | — | Metadata difference, encoded as a JSON object with three top-level keys: `added` (keys present in `b` but not `a`), `removed` (keys present in `a` but not `b`), and `changed` (keys whose values differ — each entry is `{ "from": <value-in-a>, "to": <value-in-b> }`). This is NOT RFC 6902 JSON Patch — we deliberately chose a flatter shape to avoid pulling in a json-patch crate. If you need RFC 6902 semantics (with JSON Pointer paths) feed `a.metadata` and `b.metadata` to your preferred json-patch impl directly. |
+| `contentDiff` | `\[\]const DiffHunk` | — | Unified-diff hunks for the `content` field. Empty when the content is identical. |
+| `tablesAdded` | `\[\]const Table` | — | Tables present in `b` but not in `a` (by index position, excess right-side tables). |
+| `tablesRemoved` | `\[\]const Table` | — | Tables present in `a` but not in `b` (by index position, excess left-side tables). |
+| `tablesChanged` | `\[\]const TableDiff` | — | Cell-level changes for table pairs that share the same index and dimensions. |
+| `metadataChanged` | `\[:0\]const u8` | — | Metadata difference, encoded as a JSON object with three top-level keys: `added` (keys present in `b` but not `a`), `removed` (keys present in `a` but not `b`), and `changed` (keys whose values differ — each entry is `{ "from": <value-in-a>, "to": <value-in-b> }`). This is NOT RFC 6902 JSON Patch — we deliberately chose a flatter shape to avoid pulling in a json-patch crate. If you need RFC 6902 semantics (with JSON Pointer paths) feed `a.metadata` and `b.metadata` to your preferred json-patch impl directly. |
 | `embeddedChanges` | `EmbeddedChanges` | — | Changes to embedded archive children. |
 
 ---
@@ -3269,35 +3269,35 @@ This is the main result type returned by all extraction functions.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Plain-text representation of the extracted document content. |
-| `mimeType` | `[:0]const u8` | — | MIME type of the source document (e.g. `"application/pdf"`). |
+| `content` | `\[:0\]const u8` | — | Plain-text representation of the extracted document content. |
+| `mimeType` | `\[:0\]const u8` | — | MIME type of the source document (e.g. `"application/pdf"`). |
 | `metadata` | `Metadata` | — | Document-level metadata (author, title, dates, format-specific fields). |
 | `extractionMethod` | `ExtractionMethod?` | `null` | Extraction strategy used to produce the returned text. Populated when the extractor can reliably distinguish native text extraction, OCR-only extraction, or mixed native/OCR output. |
-| `tables` | `[]const Table` | `[]` | Tables extracted from the document, each with structured cell data. |
-| `detectedLanguages` | `[]const [:0]const u8?` | `[]` | ISO 639-1 language codes detected in the document content. |
-| `chunks` | `[]const Chunk?` | `[]` | Text chunks when chunking is enabled. When chunking configuration is provided, the content is split into overlapping chunks for efficient processing. Each chunk contains the text, optional embeddings (if enabled), and metadata about its position. |
-| `images` | `[]const ExtractedImage?` | `[]` | Extracted images from the document. When image extraction is enabled via `ImageExtractionConfig`, this field contains all images found in the document with their raw data and metadata. Each image may optionally contain a nested `ocr_result` if OCR was performed. |
-| `pages` | `[]const PageContent?` | `[]` | Per-page content when page extraction is enabled. When page extraction is configured, the document is split into per-page content with tables and images mapped to their respective pages. |
-| `elements` | `[]const Element?` | `[]` | Semantic elements when element-based result format is enabled. When result_format is set to ElementBased, this field contains semantic elements with type classification, unique identifiers, and metadata for Unstructured-compatible element-based processing. |
+| `tables` | `\[\]const Table` | `\[\]` | Tables extracted from the document, each with structured cell data. |
+| `detectedLanguages` | `\[\]const \[:0\]const u8?` | `\[\]` | ISO 639-1 language codes detected in the document content. |
+| `chunks` | `\[\]const Chunk?` | `\[\]` | Text chunks when chunking is enabled. When chunking configuration is provided, the content is split into overlapping chunks for efficient processing. Each chunk contains the text, optional embeddings (if enabled), and metadata about its position. |
+| `images` | `\[\]const ExtractedImage?` | `\[\]` | Extracted images from the document. When image extraction is enabled via `ImageExtractionConfig`, this field contains all images found in the document with their raw data and metadata. Each image may optionally contain a nested `ocr_result` if OCR was performed. |
+| `pages` | `\[\]const PageContent?` | `\[\]` | Per-page content when page extraction is enabled. When page extraction is configured, the document is split into per-page content with tables and images mapped to their respective pages. |
+| `elements` | `\[\]const Element?` | `\[\]` | Semantic elements when element-based result format is enabled. When result_format is set to ElementBased, this field contains semantic elements with type classification, unique identifiers, and metadata for Unstructured-compatible element-based processing. |
 | `djotContent` | `DjotContent?` | `null` | Rich Djot content structure (when extracting Djot documents). When extracting Djot documents with structured extraction enabled, this field contains the full semantic structure including: - Block-level elements with nesting - Inline formatting with attributes - Links, images, footnotes - Math expressions - Complete attribute information The `content` field still contains plain text for backward compatibility. Always `null` for non-Djot documents. |
-| `ocrElements` | `[]const OcrElement?` | `[]` | OCR elements with full spatial and confidence metadata. When OCR is performed with element extraction enabled, this field contains the structured representation of detected text including: - Bounding geometry (rectangles or quadrilaterals) - Confidence scores (detection and recognition) - Rotation information - Hierarchical relationships (Tesseract only) This field preserves all metadata that would otherwise be lost when converting to plain text or markdown output formats. Only populated when `OcrElementConfig.include_elements` is true. |
+| `ocrElements` | `\[\]const OcrElement?` | `\[\]` | OCR elements with full spatial and confidence metadata. When OCR is performed with element extraction enabled, this field contains the structured representation of detected text including: - Bounding geometry (rectangles or quadrilaterals) - Confidence scores (detection and recognition) - Rotation information - Hierarchical relationships (Tesseract only) This field preserves all metadata that would otherwise be lost when converting to plain text or markdown output formats. Only populated when `OcrElementConfig.include_elements` is true. |
 | `document` | `DocumentStructure?` | `null` | Structured document tree (when document structure extraction is enabled). When `include_document_structure` is true in `ExtractionConfig`, this field contains the full hierarchical representation of the document including: - Heading-driven section nesting - Table grids with cell-level metadata - Content layer classification (body, header, footer, footnote) - Inline text annotations (formatting, links) - Bounding boxes and page numbers Independent of `result_format` — can be combined with Unified or ElementBased. |
-| `extractedKeywords` | `[]const Keyword?` | `[]` | Extracted keywords when keyword extraction is enabled. When keyword extraction (RAKE or YAKE) is configured, this field contains the extracted keywords with scores, algorithm info, and position data. Previously stored in `metadata.additional["keywords"]`. |
-| `qualityScore` | `f64?` | `null` | Document quality score from quality analysis. A value between 0.0 and 1.0 indicating the overall text quality. Previously stored in `metadata.additional["quality_score"]`. |
-| `processingWarnings` | `[]const ProcessingWarning` | `[]` | Non-fatal warnings collected during processing pipeline stages. Captures errors from optional pipeline features (embedding, chunking, language detection, output formatting) that don't prevent extraction but may indicate degraded results. Previously stored as individual keys in `metadata.additional`. |
-| `annotations` | `[]const PdfAnnotation?` | `[]` | PDF annotations extracted from the document. When annotation extraction is enabled via `PdfConfig.extract_annotations`, this field contains text notes, highlights, links, stamps, and other annotations found in PDF documents. |
-| `children` | `[]const ArchiveEntry?` | `[]` | Nested extraction results from archive contents. When extracting archives, each processable file inside produces its own full extraction result. Set to `null` for non-archive formats. Use `max_archive_depth` in config to control recursion depth. |
-| `uris` | `[]const ExtractedUri?` | `[]` | URIs/links discovered during document extraction. Contains hyperlinks, image references, citations, email addresses, and other URI-like references found in the document. Always extracted when present in the source document. |
-| `revisions` | `[]const DocumentRevision?` | `[]` | Tracked changes embedded in the source document. Populated by per-format extractors that understand change-tracking metadata (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`, …). Every extractor defaults to `null` until its format-specific implementation is added. Extractors that do populate this field follow the "accepted-changes" convention: inserted text is present in `content`, deleted text is absent — the revision list is the separate audit trail. |
-| `structuredOutput` | `[:0]const u8?` | `null` | Structured extraction output from LLM-based JSON schema extraction. When `structured_extraction` is configured in `ExtractionConfig`, the extracted document content is sent to a VLM with the provided JSON schema. The response is parsed and stored here as a JSON value matching the schema. |
-| `codeIntelligence` | `[:0]const u8?` | `null` | Code intelligence results from tree-sitter analysis. Populated when extracting source code files with the `tree-sitter` feature. Contains metrics, structural analysis, imports/exports, comments, docstrings, symbols, diagnostics, and optionally chunked code segments. Stored as an opaque JSON value so that all language bindings (Go, Java, C#, …) can deserialize it as a raw JSON object rather than a typed struct. The underlying type is `tree_sitter_language_pack.ProcessResult`. |
-| `llmUsage` | `[]const LlmUsage?` | `[]` | LLM token usage and cost data for all LLM calls made during this extraction. Contains one entry per LLM call. Multiple entries are produced when VLM OCR, structured extraction, or LLM embeddings run during the same extraction. `null` when no LLM was used. |
-| `entities` | `[]const Entity?` | `[]` | Named entities detected in `content` by the NER post-processor. `null` when no NER backend is configured. Populated by the gline-rs ONNX backend or the LLM-driven backend (see `crates/kreuzberg/src/text/ner/`). |
+| `extractedKeywords` | `\[\]const Keyword?` | `\[\]` | Extracted keywords when keyword extraction is enabled. When keyword extraction (RAKE or YAKE) is configured, this field contains the extracted keywords with scores, algorithm info, and position data. Previously stored in `metadata.additional\["keywords"\]`. |
+| `qualityScore` | `f64?` | `null` | Document quality score from quality analysis. A value between 0.0 and 1.0 indicating the overall text quality. Previously stored in `metadata.additional\["quality_score"\]`. |
+| `processingWarnings` | `\[\]const ProcessingWarning` | `\[\]` | Non-fatal warnings collected during processing pipeline stages. Captures errors from optional pipeline features (embedding, chunking, language detection, output formatting) that don't prevent extraction but may indicate degraded results. Previously stored as individual keys in `metadata.additional`. |
+| `annotations` | `\[\]const PdfAnnotation?` | `\[\]` | PDF annotations extracted from the document. When annotation extraction is enabled via `PdfConfig.extract_annotations`, this field contains text notes, highlights, links, stamps, and other annotations found in PDF documents. |
+| `children` | `\[\]const ArchiveEntry?` | `\[\]` | Nested extraction results from archive contents. When extracting archives, each processable file inside produces its own full extraction result. Set to `null` for non-archive formats. Use `max_archive_depth` in config to control recursion depth. |
+| `uris` | `\[\]const ExtractedUri?` | `\[\]` | URIs/links discovered during document extraction. Contains hyperlinks, image references, citations, email addresses, and other URI-like references found in the document. Always extracted when present in the source document. |
+| `revisions` | `\[\]const DocumentRevision?` | `\[\]` | Tracked changes embedded in the source document. Populated by per-format extractors that understand change-tracking metadata (DOCX `w:ins`/`w:del`/`w:rPrChange`, ODT `text:change-*`, …). Every extractor defaults to `null` until its format-specific implementation is added. Extractors that do populate this field follow the "accepted-changes" convention: inserted text is present in `content`, deleted text is absent — the revision list is the separate audit trail. |
+| `structuredOutput` | `\[:0\]const u8?` | `null` | Structured extraction output from LLM-based JSON schema extraction. When `structured_extraction` is configured in `ExtractionConfig`, the extracted document content is sent to a VLM with the provided JSON schema. The response is parsed and stored here as a JSON value matching the schema. |
+| `codeIntelligence` | `\[:0\]const u8?` | `null` | Code intelligence results from tree-sitter analysis. Populated when extracting source code files with the `tree-sitter` feature. Contains metrics, structural analysis, imports/exports, comments, docstrings, symbols, diagnostics, and optionally chunked code segments. Stored as an opaque JSON value so that all language bindings (Go, Java, C#, …) can deserialize it as a raw JSON object rather than a typed struct. The underlying type is `tree_sitter_language_pack.ProcessResult`. |
+| `llmUsage` | `\[\]const LlmUsage?` | `\[\]` | LLM token usage and cost data for all LLM calls made during this extraction. Contains one entry per LLM call. Multiple entries are produced when VLM OCR, structured extraction, or LLM embeddings run during the same extraction. `null` when no LLM was used. |
+| `entities` | `\[\]const Entity?` | `\[\]` | Named entities detected in `content` by the NER post-processor. `null` when no NER backend is configured. Populated by the gline-rs ONNX backend or the LLM-driven backend (see `crates/kreuzberg/src/text/ner/`). |
 | `summary` | `DocumentSummary?` | `null` | Summary of `content` produced by the summarisation post-processor. `null` when summarisation is not configured. Populated by the TextRank extractive backend (deterministic, no external service) or by the liter-llm-driven abstractive backend. |
 | `translation` | `Translation?` | `null` | Translation of `content` produced by the translation post-processor. `null` when translation is not configured. |
-| `pageClassifications` | `[]const PageClassification?` | `[]` | Per-page classifications produced by the page-classification post-processor. `null` when classification is not configured. |
+| `pageClassifications` | `\[\]const PageClassification?` | `\[\]` | Per-page classifications produced by the page-classification post-processor. `null` when classification is not configured. |
 | `redactionReport` | `RedactionReport?` | `null` | Audit report of redactions applied by the redaction post-processor. The redaction processor rewrites `content`, `formatted_content`, every chunk's text, and the textual fields of `entities` / `summary` / `translation` / `page_classifications` in place. This report describes what was found and how it was replaced. `null` when redaction is not configured. |
-| `formattedContent` | `[:0]const u8?` | `null` | Pre-rendered content in the requested output format. Populated during `derive_extraction_result` before tree derivation consumes element data. `apply_output_format` swaps this into `content` at the end of the pipeline, after post-processors have operated on plain text. |
+| `formattedContent` | `\[:0\]const u8?` | `null` | Pre-rendered content in the requested output format. Populated during `derive_extraction_result` before tree derivation consumes element data. `apply_output_format` swaps this into `content` at the end of the pipeline, after post-processors have operated on plain text. |
 
 ##### Methods
 
@@ -3333,9 +3333,9 @@ FictionBook (FB2) metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `genres` | `[]const [:0]const u8` | `[]` | Genre tags as declared in the FB2 `<genre>` elements. |
-| `sequences` | `[]const [:0]const u8` | `[]` | Book series (sequence) names, if any. |
-| `annotation` | `[:0]const u8?` | `null` | Short annotation / summary from the FB2 `<annotation>` element. |
+| `genres` | `\[\]const \[:0\]const u8` | `\[\]` | Genre tags as declared in the FB2 `<genre>` elements. |
+| `sequences` | `\[\]const \[:0\]const u8` | `\[\]` | Book series (sequence) names, if any. |
+| `annotation` | `\[:0\]const u8?` | `null` | Short annotation / summary from the FB2 `<annotation>` element. |
 
 ---
 
@@ -3363,7 +3363,7 @@ cannot be overridden per file:
 | `enableQualityProcessing` | `bool?` | `null` | Override quality post-processing for this file. |
 | `ocr` | `OcrConfig?` | `null` | Override OCR configuration for this file (None in the Option = use batch default). |
 | `forceOcr` | `bool?` | `null` | Override force OCR for this file. |
-| `forceOcrPages` | `[]const u32?` | `[]` | Override force OCR pages for this file (1-indexed page numbers). |
+| `forceOcrPages` | `\[\]const u32?` | `\[\]` | Override force OCR pages for this file (1-indexed page numbers). |
 | `disableOcr` | `bool?` | `null` | Override disable OCR for this file. |
 | `chunking` | `ChunkingConfig?` | `null` | Override chunking configuration for this file. |
 | `contentFilter` | `ContentFilterConfig?` | `null` | Override content filtering configuration for this file. |
@@ -3391,8 +3391,8 @@ Footnote in Djot.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `label` | `[:0]const u8` | — | Footnote label |
-| `content` | `[]const FormattedBlock` | — | Footnote content blocks |
+| `label` | `\[:0\]const u8` | — | Footnote label |
+| `content` | `\[\]const FormattedBlock` | — | Footnote content blocks |
 
 ---
 
@@ -3406,10 +3406,10 @@ Represents structural elements like headings, paragraphs, lists, code blocks, et
 |-------|------|---------|-------------|
 | `blockType` | `BlockType` | — | Type of block element |
 | `level` | `u64?` | `null` | Heading level (1-6) for headings, or nesting level for lists |
-| `inlineContent` | `[]const InlineElement` | — | Inline content within the block |
-| `language` | `[:0]const u8?` | `null` | Language identifier for code blocks |
-| `code` | `[:0]const u8?` | `null` | Raw code content for code blocks |
-| `children` | `[]const FormattedBlock` | `/* serde(default) */` | Nested blocks for containers (blockquotes, list items, divs) |
+| `inlineContent` | `\[\]const InlineElement` | — | Inline content within the block |
+| `language` | `\[:0\]const u8?` | `null` | Language identifier for code blocks |
+| `code` | `\[:0\]const u8?` | `null` | Raw code content for code blocks |
+| `children` | `\[\]const FormattedBlock` | `/* serde(default) */` | Nested blocks for containers (blockquotes, list items, divs) |
 
 ---
 
@@ -3419,7 +3419,7 @@ Individual grid cell with position and span metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Cell text content. |
+| `content` | `\[:0\]const u8` | — | Cell text content. |
 | `row` | `u32` | — | Zero-indexed row position. |
 | `col` | `u32` | — | Zero-indexed column position. |
 | `rowSpan` | `u32` | `/* serde(default) */` | Number of rows this cell spans. |
@@ -3436,8 +3436,8 @@ Header/heading element metadata.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `level` | `u8` | — | Header level: 1 (h1) through 6 (h6) |
-| `text` | `[:0]const u8` | — | Normalized text content of the header |
-| `id` | `[:0]const u8?` | `null` | HTML id attribute if present |
+| `text` | `\[:0\]const u8` | — | Normalized text content of the header |
+| `id` | `\[:0\]const u8?` | `null` | HTML id attribute if present |
 | `depth` | `u32` | — | Document tree depth at the header element |
 | `htmlOffset` | `u32` | — | Byte offset in original HTML document |
 
@@ -3451,7 +3451,7 @@ Contains the heading hierarchy from document root to this chunk's section.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `headings` | `[]const HeadingLevel` | — | The heading hierarchy from document root to this chunk's section. Index 0 is the outermost (h1), last element is the most specific. |
+| `headings` | `\[\]const HeadingLevel` | — | The heading hierarchy from document root to this chunk's section. Index 0 is the outermost (h1), last element is the most specific. |
 
 ---
 
@@ -3462,7 +3462,7 @@ A single heading in the hierarchy.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `level` | `u8` | — | Heading depth (1 = h1, 2 = h2, etc.) |
-| `text` | `[:0]const u8` | — | The text content of the heading. |
+| `text` | `\[:0\]const u8` | — | The text content of the heading. |
 
 ---
 
@@ -3475,9 +3475,9 @@ font size clustering and hierarchical analysis.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `text` | `[:0]const u8` | — | The text content of this block |
+| `text` | `\[:0\]const u8` | — | The text content of this block |
 | `fontSize` | `f32` | — | The font size of the text in this block |
-| `level` | `[:0]const u8` | — | The hierarchy level of this block (H1-H6 or Body) Levels correspond to HTML heading tags: - "h1": Top-level heading - "h2": Secondary heading - "h3": Tertiary heading - "h4": Quaternary heading - "h5": Quinary heading - "h6": Senary heading - "body": Body text (no heading level) |
+| `level` | `\[:0\]const u8` | — | The hierarchy level of this block (H1-H6 or Body) Levels correspond to HTML heading tags: - "h1": Top-level heading - "h2": Secondary heading - "h3": Tertiary heading - "h4": Quaternary heading - "h5": Quinary heading - "h6": Senary heading - "body": Body text (no heading level) |
 
 ---
 
@@ -3525,21 +3525,21 @@ and extracted structural elements (headers, links, images, structured data).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `title` | `[:0]const u8?` | `null` | Document title from `<title>` tag |
-| `description` | `[:0]const u8?` | `null` | Document description from `<meta name="description">` tag |
-| `keywords` | `[]const [:0]const u8` | `[]` | Document keywords from `<meta name="keywords">` tag, split on commas |
-| `author` | `[:0]const u8?` | `null` | Document author from `<meta name="author">` tag |
-| `canonicalUrl` | `[:0]const u8?` | `null` | Canonical URL from `<link rel="canonical">` tag |
-| `baseHref` | `[:0]const u8?` | `null` | Base URL from `<base href="">` tag for resolving relative URLs |
-| `language` | `[:0]const u8?` | `null` | Document language from `lang` attribute |
+| `title` | `\[:0\]const u8?` | `null` | Document title from `<title>` tag |
+| `description` | `\[:0\]const u8?` | `null` | Document description from `<meta name="description">` tag |
+| `keywords` | `\[\]const \[:0\]const u8` | `\[\]` | Document keywords from `<meta name="keywords">` tag, split on commas |
+| `author` | `\[:0\]const u8?` | `null` | Document author from `<meta name="author">` tag |
+| `canonicalUrl` | `\[:0\]const u8?` | `null` | Canonical URL from `<link rel="canonical">` tag |
+| `baseHref` | `\[:0\]const u8?` | `null` | Base URL from `<base href="">` tag for resolving relative URLs |
+| `language` | `\[:0\]const u8?` | `null` | Document language from `lang` attribute |
 | `textDirection` | `TextDirection?` | `null` | Document text direction from `dir` attribute |
-| `openGraph` | `std.StringHashMap([:0]const u8)` | `{}` | Open Graph metadata (og:* properties) for social media Keys like "title", "description", "image", "url", etc. |
-| `twitterCard` | `std.StringHashMap([:0]const u8)` | `{}` | Twitter Card metadata (twitter:* properties) Keys like "card", "site", "creator", "title", "description", "image", etc. |
-| `metaTags` | `std.StringHashMap([:0]const u8)` | `{}` | Additional meta tags not covered by specific fields Keys are meta name/property attributes, values are content |
-| `headers` | `[]const HeaderMetadata` | `[]` | Extracted header elements with hierarchy |
-| `links` | `[]const LinkMetadata` | `[]` | Extracted hyperlinks with type classification |
-| `images` | `[]const ImageMetadataType` | `[]` | Extracted images with source and dimensions |
-| `structuredData` | `[]const StructuredData` | `[]` | Extracted structured data blocks |
+| `openGraph` | `std.StringHashMap(\[:0\]const u8)` | `{}` | Open Graph metadata (og:* properties) for social media Keys like "title", "description", "image", "url", etc. |
+| `twitterCard` | `std.StringHashMap(\[:0\]const u8)` | `{}` | Twitter Card metadata (twitter:* properties) Keys like "card", "site", "creator", "title", "description", "image", etc. |
+| `metaTags` | `std.StringHashMap(\[:0\]const u8)` | `{}` | Additional meta tags not covered by specific fields Keys are meta name/property attributes, values are content |
+| `headers` | `\[\]const HeaderMetadata` | `\[\]` | Extracted header elements with hierarchy |
+| `links` | `\[\]const LinkMetadata` | `\[\]` | Extracted hyperlinks with type classification |
+| `images` | `\[\]const ImageMetadataType` | `\[\]` | Extracted images with source and dimensions |
+| `structuredData` | `\[\]const StructuredData` | `\[\]` | Extracted structured data blocks |
 
 ---
 
@@ -3554,10 +3554,10 @@ the plain comrak-based renderer.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `css` | `[:0]const u8?` | `null` | Inline CSS string injected into the output after the theme stylesheet. Concatenated after `css_file` content when both are set. |
-| `cssFile` | `[:0]const u8?` | `null` | Path to a CSS file loaded once at renderer construction time. Concatenated before `css` when both are set. |
+| `css` | `\[:0\]const u8?` | `null` | Inline CSS string injected into the output after the theme stylesheet. Concatenated after `css_file` content when both are set. |
+| `cssFile` | `\[:0\]const u8?` | `null` | Path to a CSS file loaded once at renderer construction time. Concatenated before `css` when both are set. |
 | `theme` | `HtmlTheme` | `HtmlTheme.Unstyled` | Built-in colour/typography theme. Default: `HtmlTheme.Unstyled`. |
-| `classPrefix` | `[:0]const u8` | — | CSS class prefix applied to every emitted class name. Default: `"kb-"`. Change this if your host application already uses classes that start with `kb-`. |
+| `classPrefix` | `\[:0\]const u8` | — | CSS class prefix applied to every emitted class name. Default: `"kb-"`. Change this if your host application already uses classes that start with `kb-`. |
 | `embedCss` | `bool` | `true` | When `true` (default), write the resolved CSS into a `<style>` block immediately after the opening `<div class="{prefix}doc">`. Set to `false` to emit only the structural markup and wire up your own stylesheet targeting the `kb-*` class names. |
 
 ##### Methods
@@ -3589,15 +3589,15 @@ Image extraction configuration.
 | `extractImages` | `bool` | `true` | Extract images from documents |
 | `targetDpi` | `i32` | `300` | Target DPI for image normalization |
 | `maxImageDimension` | `i32` | `4096` | Maximum dimension for images (width or height) |
-| `injectPlaceholders` | `bool` | `true` | Whether to inject image reference placeholders into markdown output. When `true` (default), image references like `![Image 1](embedded:p1_i0)` are appended to the markdown. Set to `false` to extract images as data without polluting the markdown output. |
+| `injectPlaceholders` | `bool` | `true` | Whether to inject image reference placeholders into markdown output. When `true` (default), image references like `!\[Image 1\](embedded:p1_i0)` are appended to the markdown. Set to `false` to extract images as data without polluting the markdown output. |
 | `autoAdjustDpi` | `bool` | `true` | Automatically adjust DPI based on image content |
 | `minDpi` | `i32` | `72` | Minimum DPI threshold |
 | `maxDpi` | `i32` | `600` | Maximum DPI threshold |
 | `maxImagesPerPage` | `u32?` | `null` | Maximum number of image objects to extract per PDF page. Some PDFs (e.g. technical diagrams stored as thousands of raster fragments) can trigger extremely long or indefinite extraction times when every image object on a dense page is decoded individually via the PDF extractor. Setting this limit causes kreuzberg to stop collecting individual images once the count per page reaches the cap and emit a warning instead. `null` (default) means no limit — all images are extracted. |
-| `classify` | `bool` | `true` | When `true` (default), extracted images are classified by kind and grouped into clusters where they appear to belong to one figure. |
+| `classify` | `bool` | `false` | When `true`, extracted images are classified by kind and grouped into clusters where they appear to belong to one figure. Defaults to `false` — opt in explicitly to avoid unexpected ML overhead. |
 | `includePageRasters` | `bool` | `false` | When `true`, full-page renders produced during OCR preprocessing are captured and returned as `ImageKind.PageRaster` entries in `ExtractionResult.images`. **PDF + OCR only.** No rasters are captured for non-PDF inputs or when the document-level OCR bypass is active (whole-document backend). When OCR is enabled and this flag is set but the active backend skips per-page rendering, a `ProcessingWarning` is emitted in `ExtractionResult.processing_warnings`. Defaults to `false`. Enable when downstream consumers need page thumbnails (e.g. citation previews, visual grounding). |
 | `runOcrOnImages` | `bool` | `true` | Run OCR on extracted images and include the recognized text in the document content. When `true` (default) and `ExtractionConfig.ocr` is configured, extracted images are processed with the configured OCR backend. Set to `false` to extract images without OCR processing, even when OCR is enabled. |
-| `ocrTextOnly` | `bool` | `false` | When `true`, image OCR results are rendered as plain text without the `![...](...)` markdown placeholder. Only takes effect when `run_ocr_on_images` is also `true`. |
+| `ocrTextOnly` | `bool` | `false` | When `true`, image OCR results are rendered as plain text without the `!\[...\](...)` markdown placeholder. Only takes effect when `run_ocr_on_images` is also `true`. |
 | `appendOcrText` | `bool` | `false` | When `true` and `ocr_text_only` is `false`, append the OCR text after the image placeholder in the rendered output. |
 | `outputFormat` | `ImageOutputFormat` | `ImageOutputFormat.Native` | Target format for re-encoding extracted images. When set to anything other than `Native`, each extracted image is re-encoded to the requested format before being returned. This lets callers receive uniform output without duplicating encode logic downstream. Defaults to `Native` — no re-encode pass is performed and `ExtractedImage.format` reflects the source extractor's output. |
 | `svg` | `SvgOptions` | — | SVG-specific knobs for the image-encode pipeline. Controls sanitization and rasterization DPI when the source or output format is SVG.  Only available when the `svg` feature is active. |
@@ -3632,8 +3632,8 @@ Includes dimensions, format, and EXIF data.
 |-------|------|---------|-------------|
 | `width` | `u32` | — | Image width in pixels |
 | `height` | `u32` | — | Image height in pixels |
-| `format` | `[:0]const u8` | — | Image format (e.g., "PNG", "JPEG", "TIFF") |
-| `exif` | `std.StringHashMap([:0]const u8)` | `{}` | EXIF metadata tags |
+| `format` | `\[:0\]const u8` | — | Image format (e.g., "PNG", "JPEG", "TIFF") |
+| `exif` | `std.StringHashMap(\[:0\]const u8)` | `{}` | EXIF metadata tags |
 
 ---
 
@@ -3643,9 +3643,9 @@ Image element metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `src` | `[:0]const u8` | — | Image source (URL, data URI, or SVG content) |
-| `alt` | `[:0]const u8?` | `null` | Alternative text from alt attribute |
-| `title` | `[:0]const u8?` | `null` | Title attribute |
+| `src` | `\[:0\]const u8` | — | Image source (URL, data URI, or SVG content) |
+| `alt` | `\[:0\]const u8?` | `null` | Alternative text from alt attribute |
+| `title` | `\[:0\]const u8?` | `null` | Title attribute |
 | `imageType` | `ImageType` | — | Image type classification |
 
 ---
@@ -3661,11 +3661,11 @@ for different document types.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `targetDpi` | `i32` | `300` | Target DPI for the image (300 is standard, 600 for small text). |
-| `autoRotate` | `bool` | `true` | Auto-detect and correct image rotation. |
+| `autoRotate` | `bool` | `false` | Auto-detect and correct image rotation. |
 | `deskew` | `bool` | `true` | Correct skew (tilted images). |
 | `denoise` | `bool` | `false` | Remove noise from the image. |
 | `contrastEnhance` | `bool` | `false` | Enhance contrast for better text visibility. |
-| `binarizationMethod` | `[:0]const u8` | `"otsu"` | Binarization method: "otsu", "sauvola", "adaptive". |
+| `binarizationMethod` | `\[:0\]const u8` | `"otsu"` | Binarization method: "otsu", "sauvola", "adaptive". |
 | `invertColors` | `bool` | `false` | Invert colors (white text on black → black on white). |
 
 ##### Methods
@@ -3701,11 +3701,11 @@ including DPI normalization, resizing, and resampling.
 | `scaleFactor` | `f64` | — | Scaling factor applied to the image |
 | `autoAdjusted` | `bool` | — | Whether DPI was auto-adjusted based on content |
 | `finalDpi` | `i32` | — | Final DPI after processing |
-| `resampleMethod` | `[:0]const u8` | — | Resampling algorithm used ("LANCZOS3", "CATMULLROM", etc.) |
+| `resampleMethod` | `\[:0\]const u8` | — | Resampling algorithm used ("LANCZOS3", "CATMULLROM", etc.) |
 | `dimensionClamped` | `bool` | — | Whether dimensions were clamped to max_image_dimension |
 | `calculatedDpi` | `i32?` | `null` | Calculated optimal DPI (if auto_adjust_dpi enabled) |
 | `skippedResize` | `bool` | — | Whether resize was skipped (dimensions already optimal) |
-| `resizeError` | `[:0]const u8?` | `null` | Error message if resize failed |
+| `resizeError` | `\[:0\]const u8?` | `null` | Error message if resize failed |
 
 ---
 
@@ -3718,8 +3718,8 @@ Represents text with formatting, links, images, etc.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `elementType` | `InlineType` | — | Type of inline element |
-| `content` | `[:0]const u8` | — | Text content |
-| `metadata` | `std.StringHashMap([:0]const u8)?` | `null` | Additional metadata (e.g., href for links, src/alt for images) |
+| `content` | `\[:0\]const u8` | — | Text content |
+| `metadata` | `std.StringHashMap(\[:0\]const u8)?` | `null` | Additional metadata (e.g., href for links, src/alt for images) |
 
 ---
 
@@ -3729,10 +3729,10 @@ JATS (Journal Article Tag Suite) metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `copyright` | `[:0]const u8?` | `null` | Copyright statement from the article's `<permissions>` element. |
-| `license` | `[:0]const u8?` | `null` | Open-access license URI from the article's `<license>` element. |
-| `historyDates` | `std.StringHashMap([:0]const u8)` | `{}` | Publication history dates keyed by event type (e.g. `"received"`, `"accepted"`). |
-| `contributorRoles` | `[]const ContributorRole` | `[]` | Authors and contributors with their stated roles. |
+| `copyright` | `\[:0\]const u8?` | `null` | Copyright statement from the article's `<permissions>` element. |
+| `license` | `\[:0\]const u8?` | `null` | Open-access license URI from the article's `<license>` element. |
+| `historyDates` | `std.StringHashMap(\[:0\]const u8)` | `{}` | Publication history dates keyed by event type (e.g. `"received"`, `"accepted"`). |
+| `contributorRoles` | `\[\]const ContributorRole` | `\[\]` | Authors and contributors with their stated roles. |
 
 ---
 
@@ -3742,10 +3742,10 @@ Extracted keyword with metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `text` | `[:0]const u8` | — | The keyword text. |
+| `text` | `\[:0\]const u8` | — | The keyword text. |
 | `score` | `f32` | — | Relevance score (higher is better, algorithm-specific range). |
 | `algorithm` | `KeywordAlgorithm` | — | Algorithm that extracted this keyword. |
-| `positions` | `[]const u64?` | `null` | Optional positions where keyword appears in text (character offsets). |
+| `positions` | `\[\]const u64?` | `null` | Optional positions where keyword appears in text (character offsets). |
 
 ---
 
@@ -3758,7 +3758,7 @@ Keyword extraction configuration.
 | `algorithm` | `KeywordAlgorithm` | `KeywordAlgorithm.Yake` | Algorithm to use for extraction. |
 | `maxKeywords` | `u64` | `10` | Maximum number of keywords to extract (default: 10). |
 | `minScore` | `f32` | `0` | Minimum score threshold (0.0-1.0, default: 0.0). Keywords with scores below this threshold are filtered out. Note: Score ranges differ between algorithms. |
-| `language` | `[:0]const u8?` | `null` | Language code for stopword filtering (e.g., "en", "de", "fr"). If None, no stopword filtering is applied. |
+| `language` | `\[:0\]const u8?` | `null` | Language code for stopword filtering (e.g., "en", "de", "fr"). If None, no stopword filtering is applied. |
 | `yakeParams` | `YakeParams?` | `null` | YAKE-specific tuning parameters. |
 | `rakeParams` | `RakeParams?` | `null` | RAKE-specific tuning parameters. |
 
@@ -3819,7 +3819,7 @@ A single layout detection result.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `className` | `LayoutClass` | — | Detected layout class (e.g. `Table`, `Text`, `Title`). |
-| `confidence` | `f32` | — | Detection confidence score in `[0.0, 1.0]`. |
+| `confidence` | `f32` | — | Detection confidence score in `\[0.0, 1.0\]`. |
 | `bbox` | `BBox` | — | Bounding box in image pixel coordinates. |
 
 ---
@@ -3869,7 +3869,7 @@ with confidence scores and spatial positions.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `className` | `[:0]const u8` | — | Layout class name (e.g. "picture", "table", "text", "section_header"). |
+| `className` | `\[:0\]const u8` | — | Layout class name (e.g. "picture", "table", "text", "section_header"). |
 | `confidence` | `f64` | — | Confidence score from the layout detection model (0.0 to 1.0). |
 | `boundingBox` | `BoundingBox` | — | Bounding box in document coordinate space. |
 | `areaFraction` | `f64` | — | Fraction of the page area covered by this region (0.0 to 1.0). |
@@ -3882,11 +3882,11 @@ Link element metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `href` | `[:0]const u8` | — | The href URL value |
-| `text` | `[:0]const u8` | — | Link text content (normalized) |
-| `title` | `[:0]const u8?` | `null` | Optional title attribute |
+| `href` | `\[:0\]const u8` | — | The href URL value |
+| `text` | `\[:0\]const u8` | — | Link text content (normalized) |
+| `title` | `\[:0\]const u8?` | `null` | Optional title attribute |
 | `linkType` | `LinkType` | — | Link type classification |
-| `rel` | `[]const [:0]const u8` | — | Rel attribute values |
+| `rel` | `\[\]const \[:0\]const u8` | — | Rel attribute values |
 
 ---
 
@@ -3938,8 +3938,8 @@ const result = try instance.detect("value", &[_]u8{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
-| `categories` | `[]const EntityCategory` | Yes | The categories |
+| `text` | `\[:0\]const u8` | Yes | The text |
+| `categories` | `\[\]const EntityCategory` | Yes | The categories |
 
 **Returns:** `[]const Entity`
 
@@ -3963,9 +3963,9 @@ const result = try instance.detectWithCustom("value", &[_]u8{}, &[_]u8{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `text` | `[:0]const u8` | Yes | The text |
-| `categories` | `[]const EntityCategory` | Yes | The categories |
-| `customLabels` | `[]const [:0]const u8` | Yes | The custom labels |
+| `text` | `\[:0\]const u8` | Yes | The text |
+| `categories` | `\[\]const EntityCategory` | Yes | The categories |
+| `customLabels` | `\[\]const \[:0\]const u8` | Yes | The custom labels |
 
 **Returns:** `[]const Entity`
 
@@ -3982,9 +3982,9 @@ its own `LlmConfig`, allowing different providers per feature.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `model` | `[:0]const u8` | — | Provider/model string using liter-llm routing format. Examples: `"openai/gpt-4o"`, `"anthropic/claude-sonnet-4-20250514"`, `"groq/llama-3.1-70b-versatile"`. |
-| `apiKey` | `[:0]const u8?` | `null` | API key for the provider. When `null`, liter-llm falls back to the provider's standard environment variable (e.g., `OPENAI_API_KEY`). |
-| `baseUrl` | `[:0]const u8?` | `null` | Custom base URL override for the provider endpoint. |
+| `model` | `\[:0\]const u8` | — | Provider/model string using liter-llm routing format. Examples: `"openai/gpt-4o"`, `"anthropic/claude-sonnet-4-20250514"`, `"groq/llama-3.1-70b-versatile"`. |
+| `apiKey` | `\[:0\]const u8?` | `null` | API key for the provider. When `null`, liter-llm falls back to the provider's standard environment variable (e.g., `OPENAI_API_KEY`). |
+| `baseUrl` | `\[:0\]const u8?` | `null` | Custom base URL override for the provider endpoint. |
 | `timeoutSecs` | `u64?` | `null` | Request timeout in seconds (default: 60). |
 | `maxRetries` | `u32?` | `null` | Maximum retry attempts (default: 3). |
 | `temperature` | `f64?` | `null` | Sampling temperature for generation tasks. |
@@ -4002,13 +4002,13 @@ within one extraction (e.g. VLM OCR + structured extraction).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `model` | `[:0]const u8` | — | The LLM model identifier (e.g. "openai/gpt-4o", "anthropic/claude-sonnet-4-20250514"). |
-| `source` | `[:0]const u8` | — | The pipeline stage that triggered this LLM call (e.g. "vlm_ocr", "structured_extraction", "embeddings"). |
+| `model` | `\[:0\]const u8` | — | The LLM model identifier (e.g. "openai/gpt-4o", "anthropic/claude-sonnet-4-20250514"). |
+| `source` | `\[:0\]const u8` | — | The pipeline stage that triggered this LLM call (e.g. "vlm_ocr", "structured_extraction", "embeddings"). |
 | `inputTokens` | `u64?` | `null` | Number of input/prompt tokens consumed. |
 | `outputTokens` | `u64?` | `null` | Number of output/completion tokens generated. |
 | `totalTokens` | `u64?` | `null` | Total tokens (input + output). |
 | `estimatedCost` | `f64?` | `null` | Estimated cost in USD based on the provider's published pricing. |
-| `finishReason` | `[:0]const u8?` | `null` | Why the model stopped generating (e.g. "stop", "length", "content_filter"). |
+| `finishReason` | `\[:0\]const u8?` | `null` | Why the model stopped generating (e.g. "stop", "length", "content_filter"). |
 
 ---
 
@@ -4021,28 +4021,28 @@ via a discriminated union, and additional custom fields from postprocessors.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `title` | `[:0]const u8?` | `null` | Document title |
-| `subject` | `[:0]const u8?` | `null` | Document subject or description |
-| `authors` | `[]const [:0]const u8?` | `[]` | Primary author(s) - always Vec for consistency |
-| `keywords` | `[]const [:0]const u8?` | `[]` | Keywords/tags - always Vec for consistency |
-| `language` | `[:0]const u8?` | `null` | Primary language (ISO 639 code) |
-| `createdAt` | `[:0]const u8?` | `null` | Creation timestamp (ISO 8601 format) |
-| `modifiedAt` | `[:0]const u8?` | `null` | Last modification timestamp (ISO 8601 format) |
-| `createdBy` | `[:0]const u8?` | `null` | User who created the document |
-| `modifiedBy` | `[:0]const u8?` | `null` | User who last modified the document |
+| `title` | `\[:0\]const u8?` | `null` | Document title |
+| `subject` | `\[:0\]const u8?` | `null` | Document subject or description |
+| `authors` | `\[\]const \[:0\]const u8?` | `\[\]` | Primary author(s) - always Vec for consistency |
+| `keywords` | `\[\]const \[:0\]const u8?` | `\[\]` | Keywords/tags - always Vec for consistency |
+| `language` | `\[:0\]const u8?` | `null` | Primary language (ISO 639 code) |
+| `createdAt` | `\[:0\]const u8?` | `null` | Creation timestamp (ISO 8601 format) |
+| `modifiedAt` | `\[:0\]const u8?` | `null` | Last modification timestamp (ISO 8601 format) |
+| `createdBy` | `\[:0\]const u8?` | `null` | User who created the document |
+| `modifiedBy` | `\[:0\]const u8?` | `null` | User who last modified the document |
 | `pages` | `PageStructure?` | `null` | Page/slide/sheet structure with boundaries |
 | `format` | `FormatMetadata?` | `null` | Format-specific metadata (discriminated union) Contains detailed metadata specific to the document format. Serialized as a nested `"format"` object with a `format_type` discriminator field. |
 | `imagePreprocessing` | `ImagePreprocessingMetadata?` | `null` | Image preprocessing metadata (when OCR preprocessing was applied) |
-| `jsonSchema` | `[:0]const u8?` | `null` | JSON schema (for structured data extraction) |
+| `jsonSchema` | `\[:0\]const u8?` | `null` | JSON schema (for structured data extraction) |
 | `error` | `ErrorMetadata?` | `null` | Error metadata (for batch operations) |
 | `extractionDurationMs` | `u64?` | `null` | Extraction duration in milliseconds (for benchmarking). This field is populated by batch extraction to provide per-file timing information. It's `null` for single-file extraction (which uses external timing). |
-| `category` | `[:0]const u8?` | `null` | Document category (from frontmatter or classification). |
-| `tags` | `[]const [:0]const u8?` | `[]` | Document tags (from frontmatter). |
-| `documentVersion` | `[:0]const u8?` | `null` | Document version string (from frontmatter). |
-| `abstractText` | `[:0]const u8?` | `null` | Abstract or summary text (from frontmatter). |
-| `outputFormat` | `[:0]const u8?` | `null` | Output format identifier (e.g., "markdown", "html", "text"). Set by the output format pipeline stage when format conversion is applied. Previously stored in `metadata.additional["output_format"]`. |
+| `category` | `\[:0\]const u8?` | `null` | Document category (from frontmatter or classification). |
+| `tags` | `\[\]const \[:0\]const u8?` | `\[\]` | Document tags (from frontmatter). |
+| `documentVersion` | `\[:0\]const u8?` | `null` | Document version string (from frontmatter). |
+| `abstractText` | `\[:0\]const u8?` | `null` | Abstract or summary text (from frontmatter). |
+| `outputFormat` | `\[:0\]const u8?` | `null` | Output format identifier (e.g., "markdown", "html", "text"). Set by the output format pipeline stage when format conversion is applied. Previously stored in `metadata.additional\["output_format"\]`. |
 | `ocrUsed` | `bool` | — | Whether OCR was used during extraction. Set to `true` whenever the extraction pipeline ran an OCR backend (Tesseract, PaddleOCR, VLM, etc.) and used that output as the primary or fallback text. `false` means native text extraction was used exclusively. |
-| `additional` | `std.StringHashMap([:0]const u8)` | `{}` | Additional custom fields from postprocessors. Serialized as a nested `"additional"` object (not flattened at root level). Uses `Cow<'static, str>` keys so static string keys avoid allocation. |
+| `additional` | `std.StringHashMap(\[:0\]const u8)` | `{}` | Additional custom fields from postprocessors. Serialized as a nested `"additional"` object (not flattened at root level). Uses `Cow<'static, str>` keys so static string keys avoid allocation. |
 
 ##### Methods
 
@@ -4073,10 +4073,10 @@ Combined paths to all models needed for OCR (backward compatibility).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `detModel` | `[:0]const u8` | — | Path to the detection model directory. |
-| `clsModel` | `[:0]const u8` | — | Path to the classification model directory. |
-| `recModel` | `[:0]const u8` | — | Path to the recognition model directory. |
-| `dictFile` | `[:0]const u8` | — | Path to the character dictionary file. |
+| `detModel` | `\[:0\]const u8` | — | Path to the detection model directory. |
+| `clsModel` | `\[:0\]const u8` | — | Path to the classification model directory. |
+| `recModel` | `\[:0\]const u8` | — | Path to the recognition model directory. |
+| `dictFile` | `\[:0\]const u8` | — | Path to the character dictionary file. |
 
 ---
 
@@ -4089,10 +4089,10 @@ Configuration for the NER post-processor.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `backend` | `NerBackendKind` | `NerBackendKind.Onnx` | Backend that runs the entity detection. |
-| `categories` | `[]const EntityCategory` | `[]` | Entity categories to detect. Defaults to a sensible PERSON/ORG/LOCATION/EMAIL set when empty. |
-| `model` | `[:0]const u8?` | `null` | Override the default model — only used by `NerBackendKind.Onnx`. `null` lets the backend pick its pinned default (`urchade/gliner_multi-v2.1` for gline-rs). |
+| `categories` | `\[\]const EntityCategory` | `\[\]` | Entity categories to detect. Defaults to a sensible PERSON/ORG/LOCATION/EMAIL set when empty. |
+| `model` | `\[:0\]const u8?` | `null` | Override the default model — only used by `NerBackendKind.Onnx`. `null` lets the backend pick its pinned default (`urchade/gliner_multi-v2.1` for gline-rs). |
 | `llm` | `LlmConfig?` | `null` | Optional LLM configuration — only used by `NerBackendKind.Llm`. Token usage for LLM backends is recorded in `ExtractionResult.llm_usage`. |
-| `customLabels` | `[]const [:0]const u8` | `[]` | Arbitrary user-supplied entity labels for zero-shot detection. gline-rs natively supports zero-shot inference over caller-supplied labels — this is the primary value of GLiNER. The LLM backend also honours these labels by including them in the structured-output schema. Custom labels surface as `EntityCategory.Custom` in the resulting `Entity` stream. Use this when you need domain-specific entity types (e.g. `"Treatment"`, `"Product"`, `"Vessel"`) without forking GLiNER's taxonomy. |
+| `customLabels` | `\[\]const \[:0\]const u8` | `\[\]` | Arbitrary user-supplied entity labels for zero-shot detection. gline-rs natively supports zero-shot inference over caller-supplied labels — this is the primary value of GLiNER. The LLM backend also honours these labels by including them in the structured-output schema. Custom labels surface as `EntityCategory.Custom` in the resulting `Entity` stream. Use this when you need domain-specific entity types (e.g. `"Treatment"`, `"Product"`, `"Vessel"`) without forking GLiNER's taxonomy. |
 
 ---
 
@@ -4148,7 +4148,7 @@ const result = try instance.processImage("data", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `imageBytes` | `[]const u8` | Yes | Raw image data (JPEG, PNG, TIFF, etc.) |
+| `imageBytes` | `\[\]const u8` | Yes | Raw image data (JPEG, PNG, TIFF, etc.) |
 | `config` | `OcrConfig` | Yes | OCR configuration (language, PSM mode, etc.) |
 
 **Returns:** `ExtractionResult`
@@ -4182,7 +4182,7 @@ const result = try instance.processImageFile("value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to the image file |
+| `path` | `\[:0\]const u8` | Yes | Path to the image file |
 | `config` | `OcrConfig` | Yes | OCR configuration |
 
 **Returns:** `ExtractionResult`
@@ -4213,7 +4213,7 @@ const result = instance.supportsLanguage("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `lang` | `[:0]const u8` | Yes | ISO 639-2/3 language code (e.g., "eng", "deu", "fra") |
+| `lang` | `\[:0\]const u8` | Yes | ISO 639-2/3 language code (e.g., "eng", "deu", "fra") |
 
 **Returns:** `bool`
 
@@ -4321,7 +4321,7 @@ const result = try instance.processDocument("value", .{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | The  path |
+| `path` | `\[:0\]const u8` | Yes | The  path |
 | `config` | `OcrConfig` | Yes | The ocr config |
 
 **Returns:** `ExtractionResult`
@@ -4351,21 +4351,21 @@ OCR configuration.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | `bool` | `true` | Whether OCR is enabled. Setting `enabled: false` is a shorthand for `disable_ocr: true` on the parent `ExtractionConfig`. Images return metadata only; PDFs use native text extraction without OCR fallback. Defaults to `true`. When `false`, all other OCR settings are ignored. |
-| `backend` | `[:0]const u8` | — | OCR backend: tesseract, easyocr, paddleocr |
-| `language` | `[:0]const u8` | — | Language code (e.g., "eng", "deu") |
+| `backend` | `\[:0\]const u8` | — | OCR backend: tesseract, easyocr, paddleocr |
+| `language` | `\[:0\]const u8` | — | Language code (e.g., "eng", "deu") |
 | `tesseractConfig` | `TesseractConfig?` | `null` | Tesseract-specific configuration (optional) |
 | `outputFormat` | `OutputFormat?` | `null` | Output format for OCR results (optional, for format conversion) |
-| `paddleOcrConfig` | `[:0]const u8?` | `null` | PaddleOCR-specific configuration (optional, JSON passthrough) |
-| `backendOptions` | `[:0]const u8?` | `null` | Arbitrary per-call options passed through to the backend unchanged. Custom OCR backends and built-in backends that support runtime tuning can read this value and deserialize the keys they care about. Keys unknown to the backend are silently ignored. This is the recommended extension point for per-call parameters that are not covered by the typed fields above (e.g. mode switching, preprocessing flags, inference batch size). **Scope:** when `pipeline` is `null`, this value is propagated to the primary stage of the auto-constructed pipeline. When `pipeline` is explicitly set, this field has **no effect** — the caller must set `OcrPipelineStage.backend_options` directly on the relevant stage(s) instead. Example: ```json { "mode": "fast", "enable_layout": true, "timeout_ms": 5000 } ``` |
+| `paddleOcrConfig` | `\[:0\]const u8?` | `null` | PaddleOCR-specific configuration (optional, JSON passthrough) |
+| `backendOptions` | `\[:0\]const u8?` | `null` | Arbitrary per-call options passed through to the backend unchanged. Custom OCR backends and built-in backends that support runtime tuning can read this value and deserialize the keys they care about. Keys unknown to the backend are silently ignored. This is the recommended extension point for per-call parameters that are not covered by the typed fields above (e.g. mode switching, preprocessing flags, inference batch size). **Scope:** when `pipeline` is `null`, this value is propagated to the primary stage of the auto-constructed pipeline. When `pipeline` is explicitly set, this field has **no effect** — the caller must set `OcrPipelineStage.backend_options` directly on the relevant stage(s) instead. Example: ```json { "mode": "fast", "enable_layout": true, "timeout_ms": 5000 } ``` |
 | `elementConfig` | `OcrElementConfig?` | `null` | OCR element extraction configuration |
 | `qualityThresholds` | `OcrQualityThresholds?` | `null` | Quality thresholds for the native-text-to-OCR fallback decision. When None, uses compiled defaults (matching previous hardcoded behavior). |
 | `pipeline` | `OcrPipelineConfig?` | `null` | Multi-backend OCR pipeline configuration. When set, enables weighted fallback across multiple OCR backends based on output quality. When None, uses the single `backend` field (same as today). |
 | `autoRotate` | `bool` | `false` | Enable automatic page rotation based on orientation detection. When enabled, uses Tesseract's `DetectOrientationScript()` to detect page orientation (0/90/180/270 degrees) before OCR. If the page is rotated with high confidence, the image is corrected before recognition. This is critical for handling rotated scanned documents. |
-| `vlmFallback` | `VlmFallbackPolicy` | `VlmFallbackPolicy.Disabled` | Ergonomic VLM fallback policy. When set to anything other than `VlmFallbackPolicy.Disabled` and `OcrConfig.pipeline` is `null`, a multi-stage pipeline is synthesised automatically: - `VlmFallbackPolicy.OnLowQuality` → `[classical_stage, vlm_stage]` with the `quality_threshold` mapped onto `OcrQualityThresholds.pipeline_min_quality`. - `VlmFallbackPolicy.Always` → `[vlm_stage]` only. Requires `OcrConfig.vlm_config` to be `Some` when not `Disabled`. When `OcrConfig.pipeline` is explicitly set, this field is ignored. |
+| `vlmFallback` | `VlmFallbackPolicy` | `VlmFallbackPolicy.Disabled` | Ergonomic VLM fallback policy. When set to anything other than `VlmFallbackPolicy.Disabled` and `OcrConfig.pipeline` is `null`, a multi-stage pipeline is synthesised automatically: - `VlmFallbackPolicy.OnLowQuality` → `\[classical_stage, vlm_stage\]` with the `quality_threshold` mapped onto `OcrQualityThresholds.pipeline_min_quality`. - `VlmFallbackPolicy.Always` → `\[vlm_stage\]` only. Requires `OcrConfig.vlm_config` to be `Some` when not `Disabled`. When `OcrConfig.pipeline` is explicitly set, this field is ignored. |
 | `vlmConfig` | `LlmConfig?` | `null` | VLM (Vision Language Model) OCR configuration. Required when `backend` is `"vlm"` or when `vlm_fallback` is not `VlmFallbackPolicy.Disabled`. Uses liter-llm to send page images to a vision model for text extraction. |
-| `vlmPrompt` | `[:0]const u8?` | `null` | Custom Jinja2 prompt template for VLM OCR. When `null`, uses the default template. Available variables: - `{{ language }}` — The document language code (e.g., "eng", "deu"). |
+| `vlmPrompt` | `\[:0\]const u8?` | `null` | Custom Jinja2 prompt template for VLM OCR. When `null`, uses the default template. Available variables: - `{{ language }}` — The document language code (e.g., "eng", "deu"). |
 | `acceleration` | `AccelerationConfig?` | `null` | Hardware acceleration for ONNX Runtime models (e.g. PaddleOCR, layout detection). Not user-configurable via config files — injected at runtime from `ExtractionConfig.acceleration` before each `process_image` call. |
-| `tessdataBytes` | `std.StringHashMap([]const u8)?` | `null` | Caller-supplied Tesseract `traineddata` bytes per language code. Primary use case is the WASM build, which has no filesystem and cannot download tessdata at runtime. Native builds typically rely on `TessdataManager` and ignore this field. When present, the WASM Tesseract backend prefers these bytes over its compile-time-bundled English data. Skipped by serde to keep config files small — supply via the typed API at runtime. |
+| `tessdataBytes` | `std.StringHashMap(\[\]const u8)?` | `null` | Caller-supplied Tesseract `traineddata` bytes per language code. Primary use case is the WASM build, which has no filesystem and cannot download tessdata at runtime. Native builds typically rely on `TessdataManager` and ignore this field. When present, the WASM Tesseract backend prefers these bytes over its compile-time-bundled English data. Skipped by serde to keep config files small — supply via the typed API at runtime. |
 
 ##### Methods
 
@@ -4396,14 +4396,14 @@ from both Tesseract and PaddleOCR backends.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `text` | `[:0]const u8` | — | The recognized text content. |
+| `text` | `\[:0\]const u8` | — | The recognized text content. |
 | `geometry` | `OcrBoundingGeometry` | `OcrBoundingGeometry.Rectangle` | Bounding geometry (rectangle or quadrilateral). |
 | `confidence` | `OcrConfidence` | — | Confidence scores for detection and recognition. |
 | `level` | `OcrElementLevel` | `OcrElementLevel.Line` | Hierarchical level (word, line, block, page). |
 | `rotation` | `OcrRotation?` | `null` | Rotation information (if detected). |
 | `pageNumber` | `u32` | — | Page number (1-indexed). |
-| `parentId` | `[:0]const u8?` | `null` | Parent element ID for hierarchical relationships. Only used for Tesseract output which has word -> line -> block hierarchy. |
-| `backendMetadata` | `std.StringHashMap([:0]const u8)` | `{}` | Backend-specific metadata that doesn't fit the unified schema. |
+| `parentId` | `\[:0\]const u8?` | `null` | Parent element ID for hierarchical relationships. Only used for Tesseract output which has word -> line -> block hierarchy. |
+| `backendMetadata` | `std.StringHashMap(\[:0\]const u8)` | `{}` | Backend-specific metadata that doesn't fit the unified schema. |
 
 ---
 
@@ -4431,11 +4431,11 @@ including recognized text and detected tables.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Recognized text content |
-| `mimeType` | `[:0]const u8` | — | Original MIME type of the processed image |
-| `metadata` | `std.StringHashMap([:0]const u8)` | — | OCR processing metadata (confidence scores, language, etc.) |
-| `tables` | `[]const OcrTable` | — | Tables detected and extracted via OCR |
-| `ocrElements` | `[]const OcrElement?` | `/* serde(default) */` | Structured OCR elements with bounding boxes and confidence scores. Available when TSV output is requested or table detection is enabled. |
+| `content` | `\[:0\]const u8` | — | Recognized text content |
+| `mimeType` | `\[:0\]const u8` | — | Original MIME type of the processed image |
+| `metadata` | `std.StringHashMap(\[:0\]const u8)` | — | OCR processing metadata (confidence scores, language, etc.) |
+| `tables` | `\[\]const OcrTable` | — | Tables detected and extracted via OCR |
+| `ocrElements` | `\[\]const OcrElement?` | `/* serde(default) */` | Structured OCR elements with bounding boxes and confidence scores. Available when TSV output is requested or table detection is enabled. |
 
 ---
 
@@ -4447,9 +4447,9 @@ Captures information about OCR processing configuration and results.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `language` | `[:0]const u8` | — | OCR language code(s) used |
+| `language` | `\[:0\]const u8` | — | OCR language code(s) used |
 | `psm` | `i32` | — | Tesseract Page Segmentation Mode (PSM) |
-| `outputFormat` | `[:0]const u8` | — | Output format (e.g., "text", "hocr") |
+| `outputFormat` | `\[:0\]const u8` | — | Output format (e.g., "text", "hocr") |
 | `tableCount` | `u32` | — | Number of tables detected |
 | `tableRows` | `u32?` | `null` | Number of rows in the detected table (if a single table was found). |
 | `tableCols` | `u32?` | `null` | Number of columns in the detected table (if a single table was found). |
@@ -4466,7 +4466,7 @@ the result is accepted. Otherwise the next backend is tried.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `stages` | `[]const OcrPipelineStage` | — | Ordered list of backends to try. Sorted by priority (descending) at runtime. |
+| `stages` | `\[\]const OcrPipelineStage` | — | Ordered list of backends to try. Sorted by priority (descending) at runtime. |
 | `qualityThresholds` | `OcrQualityThresholds` | `/* serde(default) */` | Quality thresholds for deciding whether to accept a result or try the next backend. |
 
 ---
@@ -4477,13 +4477,13 @@ A single backend stage in the OCR pipeline.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `backend` | `[:0]const u8` | — | Backend name: "tesseract", "paddleocr", "easyocr", or a custom registered name. |
+| `backend` | `\[:0\]const u8` | — | Backend name: "tesseract", "paddleocr", "easyocr", or a custom registered name. |
 | `priority` | `u32` | `/* serde(default) */` | Priority weight (higher = tried first). Stages are sorted by priority descending. |
-| `language` | `[:0]const u8?` | `/* serde(default) */` | Language override for this stage (None = use parent OcrConfig.language). |
+| `language` | `\[:0\]const u8?` | `/* serde(default) */` | Language override for this stage (None = use parent OcrConfig.language). |
 | `tesseractConfig` | `TesseractConfig?` | `/* serde(default) */` | Tesseract-specific config override for this stage. |
-| `paddleOcrConfig` | `[:0]const u8?` | `/* serde(default) */` | PaddleOCR-specific config for this stage. |
+| `paddleOcrConfig` | `\[:0\]const u8?` | `/* serde(default) */` | PaddleOCR-specific config for this stage. |
 | `vlmConfig` | `LlmConfig?` | `/* serde(default) */` | VLM config override for this pipeline stage. |
-| `backendOptions` | `[:0]const u8?` | `/* serde(default) */` | Arbitrary per-call options passed through to the backend unchanged. Backends that support runtime tuning (mode switching, preprocessing flags, inference parameters, etc.) read this value and deserialize the keys they care about. Keys unknown to the backend are silently ignored, so options from different backends can coexist in the same config without conflict. Example (custom backend): ```json { "mode": "fast", "enable_layout": true } ``` |
+| `backendOptions` | `\[:0\]const u8?` | `/* serde(default) */` | Arbitrary per-call options passed through to the backend unchanged. Backends that support runtime tuning (mode switching, preprocessing flags, inference parameters, etc.) read this value and deserialize the keys they care about. Keys unknown to the backend are silently ignored, so options from different backends can coexist in the same config without conflict. Example (custom backend): ```json { "mode": "fast", "enable_layout": true } ``` |
 
 ---
 
@@ -4552,8 +4552,8 @@ Represents a table structure recognized during OCR processing.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `cells` | `[]const []const [:0]const u8` | — | Table cells as a 2D vector (rows × columns) |
-| `markdown` | `[:0]const u8` | — | Markdown representation of the table |
+| `cells` | `\[\]const \[\]const \[:0\]const u8` | — | Table cells as a 2D vector (rows × columns) |
+| `markdown` | `\[:0\]const u8` | — | Markdown representation of the table |
 | `pageNumber` | `u32` | — | Page number where the table was found (1-indexed) |
 | `boundingBox` | `OcrTableBoundingBox?` | `/* serde(default) */` | Bounding box of the table in pixel coordinates (from OCR word positions). |
 
@@ -4592,8 +4592,8 @@ Uses a builder pattern for convenient configuration.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `language` | `[:0]const u8` | — | Language code (e.g., "en", "ch", "jpn", "kor", "deu", "fra") |
-| `cacheDir` | `[:0]const u8?` | `null` | Optional custom cache directory for model files |
+| `language` | `\[:0\]const u8` | — | Language code (e.g., "en", "ch", "jpn", "kor", "deu", "fra") |
+| `cacheDir` | `\[:0\]const u8?` | `null` | Optional custom cache directory for model files |
 | `useAngleCls` | `bool` | — | Enable angle classification for rotated text (default: false). Can misfire on short text regions, rotating crops incorrectly before recognition. |
 | `enableTableDetection` | `bool` | — | Enable table structure detection (default: false) |
 | `detDbThresh` | `f32` | — | Database threshold for text detection (default: 0.3) Range: 0.0-1.0, higher values require more confident detections |
@@ -4603,7 +4603,7 @@ Uses a builder pattern for convenient configuration.
 | `recBatchNum` | `u32` | — | Batch size for recognition inference (default: 6) Number of text regions to process simultaneously |
 | `padding` | `u32` | — | Padding in pixels added around the image before detection (default: 10). Large values can include surrounding content like table gridlines. |
 | `dropScore` | `f32` | — | Minimum recognition confidence score for text lines (default: 0.5). Text regions with recognition confidence below this threshold are discarded. Matches PaddleOCR Python's `drop_score` parameter. Range: 0.0-1.0 |
-| `modelTier` | `[:0]const u8` | — | Model tier controlling detection/recognition model size and accuracy trade-off. - `"mobile"` (default): Lightweight models (~4.5MB detection, ~16.5MB recognition), fast download and inference - `"server"`: Large, high-accuracy models (~88MB detection, ~84MB recognition), best for GPU or complex documents |
+| `modelTier` | `\[:0\]const u8` | — | Model tier controlling detection/recognition model size and accuracy trade-off. - `"mobile"` (default): Lightweight models (~4.5MB detection, ~16.5MB recognition), fast download and inference - `"server"`: Large, high-accuracy models (~88MB detection, ~84MB recognition), best for GPU or complex documents |
 
 ##### Methods
 
@@ -4627,7 +4627,7 @@ const result = instance.withCacheDir("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `path` | `[:0]const u8` | Yes | Path to cache directory |
+| `path` | `\[:0\]const u8` | Yes | Path to cache directory |
 
 **Returns:** `PaddleOcrConfig`
 
@@ -4867,7 +4867,7 @@ const result = instance.withModelTier("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `tier` | `[:0]const u8` | Yes | `"mobile"` (default, lightweight, faster) or `"server"` (high accuracy, GPU/complex documents) |
+| `tier` | `\[:0\]const u8` | Yes | `"mobile"` (default, lightweight, faster) or `"server"` (high accuracy, GPU/complex documents) |
 
 **Returns:** `PaddleOcrConfig`
 
@@ -4914,7 +4914,7 @@ Classification result for a single page.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `pageNumber` | `u32` | — | 1-indexed page number this classification belongs to. |
-| `labels` | `[]const ClassificationLabel` | — | Labels assigned to the page. Single-label classification yields exactly one entry; multi-label classification yields any subset of the configured label set. |
+| `labels` | `\[\]const ClassificationLabel` | — | Labels assigned to the page. Single-label classification yields exactly one entry; multi-label classification yields any subset of the configured label set. |
 
 ---
 
@@ -4926,8 +4926,8 @@ Configuration for the page-classification post-processor.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `promptTemplate` | `[:0]const u8?` | `null` | Minijinja prompt template. Receives `{{ labels }}` (joined list), `{{ page_text }}` and `{{ multi_label }}` variables. `null` lets the backend pick a sensible default. |
-| `labels` | `[]const [:0]const u8` | — | The set of labels the classifier may emit. Must contain at least one entry. |
+| `promptTemplate` | `\[:0\]const u8?` | `null` | Minijinja prompt template. Receives `{{ labels }}` (joined list), `{{ page_text }}` and `{{ multi_label }}` variables. `null` lets the backend pick a sensible default. |
+| `labels` | `\[\]const \[:0\]const u8` | — | The set of labels the classifier may emit. Must contain at least one entry. |
 | `multiLabel` | `bool` | `/* serde(default) */` | Allow multiple labels per page. Single-label mode returns at most one label. |
 | `llm` | `LlmConfig` | — | LLM configuration used for classification. |
 
@@ -4947,7 +4947,7 @@ when page boundaries are available and chunking is configured.
 |-------|------|---------|-------------|
 | `extractPages` | `bool` | `false` | Extract pages as separate array (ExtractionResult.pages) |
 | `insertPageMarkers` | `bool` | `false` | Insert page markers in main content string |
-| `markerFormat` | `[:0]const u8` | `"<!-- PAGE {page_num} -->"` | Page marker format (use {page_num} placeholder) Default: "\n\n<!-- PAGE {page_num} -->\n\n" |
+| `markerFormat` | `\[:0\]const u8` | `"<!-- PAGE {page_num} -->"` | Page marker format (use {page_num} placeholder) Default: "\n\n<!-- PAGE {page_num} -->\n\n" |
 
 ##### Methods
 
@@ -4990,15 +4990,15 @@ by avoiding redundant copies during serialization.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `pageNumber` | `u32` | — | Page number (1-indexed) |
-| `content` | `[:0]const u8` | — | Text content for this page |
-| `tables` | `[]const Table` | `/* serde(default) */` | Tables found on this page (uses Arc for memory efficiency) Serializes as []const Table for JSON compatibility while maintaining shared in-memory ownership for zero-copy sharing. |
-| `imageIndices` | `[]const u32` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images found on this page. Each value is a zero-based index into the top-level `images` collection. Only populated when `extract_images = true` in the extraction config. |
+| `content` | `\[:0\]const u8` | — | Text content for this page |
+| `tables` | `\[\]const Table` | `/* serde(default) */` | Tables found on this page (uses Arc for memory efficiency) Serializes as \[\]const Table for JSON compatibility while maintaining shared in-memory ownership for zero-copy sharing. |
+| `imageIndices` | `\[\]const u32` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images found on this page. Each value is a zero-based index into the top-level `images` collection. Only populated when `extract_images = true` in the extraction config. |
 | `hierarchy` | `PageHierarchy?` | `null` | Hierarchy information for the page (when hierarchy extraction is enabled) Contains text hierarchy levels (H1-H6) extracted from the page content. |
 | `isBlank` | `bool?` | `null` | Whether this page is blank (no meaningful text content) Determined during extraction based on text content analysis. A page is blank if it has fewer than 3 non-whitespace characters and contains no tables or images. |
-| `layoutRegions` | `[]const LayoutRegion?` | `null` | Layout detection regions for this page (when layout detection is enabled). Contains detected layout regions with class, confidence, bounding box, and area fraction. Only populated when layout detection is configured. |
-| `speakerNotes` | `[:0]const u8?` | `null` | Speaker notes for this slide (PPTX only). Contains the text from the slide's notes pane (`ppt/notesSlides/notesSlide{N}.xml`). Only populated when the source is a PPTX file and notes are present. |
-| `sectionName` | `[:0]const u8?` | `null` | Section name this slide belongs to (PPTX only). PowerPoint sections group slides into logical chapters (`<p:sectionLst>` in `ppt/presentation.xml`). Only populated when the source is a PPTX file and the slide belongs to a named section. |
-| `sheetName` | `[:0]const u8?` | `null` | Sheet name for this page (XLSX/ODS only). Each spreadsheet sheet maps to one `PageContent` entry. This field carries the sheet's display name as it appears in the workbook. `null` for all non-spreadsheet formats and for sheets with an empty name. |
+| `layoutRegions` | `\[\]const LayoutRegion?` | `null` | Layout detection regions for this page (when layout detection is enabled). Contains detected layout regions with class, confidence, bounding box, and area fraction. Only populated when layout detection is configured. |
+| `speakerNotes` | `\[:0\]const u8?` | `null` | Speaker notes for this slide (PPTX only). Contains the text from the slide's notes pane (`ppt/notesSlides/notesSlide{N}.xml`). Only populated when the source is a PPTX file and notes are present. |
+| `sectionName` | `\[:0\]const u8?` | `null` | Section name this slide belongs to (PPTX only). PowerPoint sections group slides into logical chapters (`<p:sectionLst>` in `ppt/presentation.xml`). Only populated when the source is a PPTX file and the slide belongs to a named section. |
+| `sheetName` | `\[:0\]const u8?` | `null` | Sheet name for this page (XLSX/ODS only). Each spreadsheet sheet maps to one `PageContent` entry. This field carries the sheet's display name as it appears in the workbook. `null` for all non-spreadsheet formats and for sheets with an empty name. |
 
 ---
 
@@ -5012,7 +5012,7 @@ blocks with heading levels (H1-H6) for semantic document structure.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `blockCount` | `u32` | — | Number of hierarchy blocks on this page |
-| `blocks` | `[]const HierarchicalBlock` | `/* serde(default) */` | Hierarchical blocks with heading levels |
+| `blocks` | `\[\]const HierarchicalBlock` | `/* serde(default) */` | Hierarchical blocks with heading levels |
 
 ---
 
@@ -5026,7 +5026,7 @@ and visibility state (for presentations).
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `number` | `u32` | — | Page number (1-indexed) |
-| `title` | `[:0]const u8?` | `null` | Page title (usually for presentations) |
+| `title` | `\[:0\]const u8?` | `null` | Page title (usually for presentations) |
 | `imageCount` | `u32?` | `null` | Number of images on this page |
 | `tableCount` | `u32?` | `null` | Number of tables on this page |
 | `hidden` | `bool?` | `null` | Whether this page is hidden (e.g., in presentations) |
@@ -5046,8 +5046,8 @@ with character offset boundaries for chunk-to-page mapping.
 |-------|------|---------|-------------|
 | `totalCount` | `u32` | — | Total number of pages/slides/sheets |
 | `unitType` | `PageUnitType` | — | Type of paginated unit |
-| `boundaries` | `[]const PageBoundary?` | `null` | Character offset boundaries for each page Maps character ranges in the extracted content to page numbers. Used for chunk page range calculation. |
-| `pages` | `[]const PageInfo?` | `null` | Detailed per-page metadata (optional, only when needed) |
+| `boundaries` | `\[\]const PageBoundary?` | `null` | Character offset boundaries for each page Maps character ranges in the extracted content to page numbers. Used for chunk page range calculation. |
+| `pages` | `\[\]const PageInfo?` | `null` | Detailed per-page metadata (optional, only when needed) |
 
 ---
 
@@ -5060,7 +5060,7 @@ One detected PII span in the input text.
 | `start` | `u64` | — | Inclusive byte-offset start of the match in the source text. |
 | `end` | `u64` | — | Exclusive byte-offset end of the match. |
 | `category` | `PiiCategory` | — | Category the match belongs to. |
-| `text` | `[:0]const u8` | — | Matched substring (owned copy — pattern engine returns owned data so the caller can free the original text if needed before replacement). |
+| `text` | `\[:0\]const u8` | — | Matched substring (owned copy — pattern engine returns owned data so the caller can free the original text if needed before replacement). |
 
 ---
 
@@ -5071,7 +5071,7 @@ A PDF annotation extracted from a document page.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `annotationType` | `PdfAnnotationType` | — | The type of annotation. |
-| `content` | `[:0]const u8?` | `null` | Text content of the annotation (e.g., comment text, link URL). |
+| `content` | `\[:0\]const u8?` | `null` | Text content of the annotation (e.g., comment text, link URL). |
 | `pageNumber` | `u32` | — | Page number where the annotation appears (1-indexed). |
 | `boundingBox` | `BoundingBox?` | `null` | Bounding box of the annotation on the page. |
 
@@ -5085,7 +5085,7 @@ PDF-specific configuration.
 |-------|------|---------|-------------|
 | `extractImages` | `bool` | `false` | Extract images from PDF |
 | `extractTables` | `bool` | `true` | Extract tables from PDF. When `true` (default), runs pdf_oxide's native grid detector and, if it finds nothing, falls back to the heuristic text-layer reconstruction in `pdf.oxide.table.extract_tables_heuristic`. Set to `false` to skip both passes — `tables` will then be empty in the result. |
-| `passwords` | `[]const [:0]const u8?` | `null` | List of passwords to try when opening encrypted PDFs |
+| `passwords` | `\[\]const \[:0\]const u8?` | `null` | List of passwords to try when opening encrypted PDFs |
 | `extractMetadata` | `bool` | `true` | Extract PDF metadata |
 | `hierarchy` | `HierarchyConfig?` | `null` | Hierarchy extraction configuration (None = hierarchy extraction disabled) |
 | `extractAnnotations` | `bool` | `false` | Extract PDF annotations (text notes, highlights, links, stamps). Default: false |
@@ -5124,8 +5124,8 @@ are at the `Metadata` level.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `pdfVersion` | `[:0]const u8?` | `null` | PDF version (e.g., "1.7", "2.0") |
-| `producer` | `[:0]const u8?` | `null` | PDF producer (application that created the PDF) |
+| `pdfVersion` | `\[:0\]const u8?` | `null` | PDF version (e.g., "1.7", "2.0") |
+| `producer` | `\[:0\]const u8?` | `null` | PDF producer (application that created the PDF) |
 | `isEncrypted` | `bool?` | `null` | Whether the PDF is encrypted/password-protected |
 | `width` | `i64?` | `null` | First page width in points (1/72 inch) |
 | `height` | `i64?` | `null` | First page height in points (1/72 inch) |
@@ -5515,10 +5515,10 @@ Post-processor configuration.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | `bool` | `true` | Enable post-processors |
-| `enabledProcessors` | `[]const [:0]const u8?` | `null` | Whitelist of processor names to run (None = all enabled) |
-| `disabledProcessors` | `[]const [:0]const u8?` | `null` | Blacklist of processor names to skip (None = none disabled) |
-| `enabledSet` | `[]const [:0]const u8?` | `null` | Pre-computed AHashSet for O(1) enabled processor lookup |
-| `disabledSet` | `[]const [:0]const u8?` | `null` | Pre-computed AHashSet for O(1) disabled processor lookup |
+| `enabledProcessors` | `\[\]const \[:0\]const u8?` | `null` | Whitelist of processor names to run (None = all enabled) |
+| `disabledProcessors` | `\[\]const \[:0\]const u8?` | `null` | Blacklist of processor names to skip (None = none disabled) |
+| `enabledSet` | `\[\]const \[:0\]const u8?` | `null` | Pre-computed AHashSet for O(1) enabled processor lookup |
+| `disabledSet` | `\[\]const \[:0\]const u8?` | `null` | Pre-computed AHashSet for O(1) disabled processor lookup |
 
 ##### Methods
 
@@ -5548,10 +5548,10 @@ Contains PowerPoint-specific document metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `application` | `[:0]const u8?` | `null` | Application name (e.g., "Microsoft Office PowerPoint") |
-| `appVersion` | `[:0]const u8?` | `null` | Application version |
+| `application` | `\[:0\]const u8?` | `null` | Application name (e.g., "Microsoft Office PowerPoint") |
+| `appVersion` | `\[:0\]const u8?` | `null` | Application version |
 | `totalTime` | `i32?` | `null` | Total editing time in minutes |
-| `company` | `[:0]const u8?` | `null` | Company name |
+| `company` | `\[:0\]const u8?` | `null` | Company name |
 | `docSecurity` | `i32?` | `null` | Document security level |
 | `scaleCrop` | `bool?` | `null` | Scale crop flag |
 | `linksUpToDate` | `bool?` | `null` | Links up to date flag |
@@ -5561,8 +5561,8 @@ Contains PowerPoint-specific document metadata.
 | `notes` | `i32?` | `null` | Number of notes |
 | `hiddenSlides` | `i32?` | `null` | Number of hidden slides |
 | `multimediaClips` | `i32?` | `null` | Number of multimedia clips |
-| `presentationFormat` | `[:0]const u8?` | `null` | Presentation format (e.g., "Widescreen", "Standard") |
-| `slideTitles` | `[]const [:0]const u8` | `[]` | Slide titles |
+| `presentationFormat` | `\[:0\]const u8?` | `null` | Presentation format (e.g., "Widescreen", "Standard") |
+| `slideTitles` | `\[\]const \[:0\]const u8` | `\[\]` | Slide titles |
 
 ---
 
@@ -5574,17 +5574,17 @@ Contains extracted slide content, metadata, and embedded images/tables.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Extracted text content from all slides |
+| `content` | `\[:0\]const u8` | — | Extracted text content from all slides |
 | `metadata` | `PptxMetadata` | — | Presentation metadata |
 | `slideCount` | `u64` | — | Total number of slides |
 | `imageCount` | `u64` | — | Total number of embedded images |
 | `tableCount` | `u64` | — | Total number of tables |
-| `images` | `[]const ExtractedImage` | — | Extracted images from the presentation |
+| `images` | `\[\]const ExtractedImage` | — | Extracted images from the presentation |
 | `pageStructure` | `PageStructure?` | `null` | Slide structure with boundaries (when page tracking is enabled) |
-| `pageContents` | `[]const PageContent?` | `null` | Per-slide content (when page tracking is enabled) |
+| `pageContents` | `\[\]const PageContent?` | `null` | Per-slide content (when page tracking is enabled) |
 | `document` | `DocumentStructure?` | `null` | Structured document representation |
-| `officeMetadata` | `std.StringHashMap([:0]const u8)` | `/* serde(default) */` | Office metadata extracted from docProps/core.xml and docProps/app.xml. Contains keys like "title", "author", "created_by", "subject", "keywords", "modified_by", "created_at", "modified_at", etc. |
-| `revisions` | `[]const DocumentRevision?` | `/* serde(default) */` | Slide comments as revisions. Each `<p:cm>` element in `ppt/comments/comment{N}.xml` becomes a `DocumentRevision { kind: Comment }` with author (resolved from `ppt/commentAuthors.xml`), ISO-8601 timestamp, and `RevisionAnchor.Slide { index }`. `null` when no comment XML parts exist. |
+| `officeMetadata` | `std.StringHashMap(\[:0\]const u8)` | `/* serde(default) */` | Office metadata extracted from docProps/core.xml and docProps/app.xml. Contains keys like "title", "author", "created_by", "subject", "keywords", "modified_by", "created_at", "modified_at", etc. |
+| `revisions` | `\[\]const DocumentRevision?` | `/* serde(default) */` | Slide comments as revisions. Each `<p:cm>` element in `ppt/comments/comment{N}.xml` becomes a `DocumentRevision { kind: Comment }` with author (resolved from `ppt/commentAuthors.xml`), ISO-8601 timestamp, and `RevisionAnchor.Slide { index }`. `null` when no comment XML parts exist. |
 
 ---
 
@@ -5597,7 +5597,7 @@ Extracted from PPTX files containing slide counts and presentation details.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `slideCount` | `u32` | — | Total number of slides in the presentation |
-| `slideNames` | `[]const [:0]const u8` | `[]` | Names of slides (if available) |
+| `slideNames` | `\[\]const \[:0\]const u8` | `\[\]` | Names of slides (if available) |
 | `imageCount` | `u32?` | `null` | Number of embedded images |
 | `tableCount` | `u32?` | `null` | Number of tables |
 
@@ -5612,8 +5612,8 @@ but may indicate degraded results.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `source` | `[:0]const u8` | — | The pipeline stage or feature that produced this warning (e.g., "embedding", "chunking", "language_detection", "output_format"). |
-| `message` | `[:0]const u8` | — | Human-readable description of what went wrong. |
+| `source` | `\[:0\]const u8` | — | The pipeline stage or feature that produced this warning (e.g., "embedding", "chunking", "language_detection", "output_format"). |
+| `message` | `\[:0\]const u8` | — | Human-readable description of what went wrong. |
 
 ---
 
@@ -5646,8 +5646,8 @@ One QR code decoded from an extracted image.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `payload` | `[:0]const u8` | — | Decoded payload (text, URL, vCard string, …). |
-| `confidence` | `f32?` | `null` | Detector-reported confidence in `[0.0, 1.0]`. `null` when the decoder does not expose confidence (the default `rqrr` backend always reports `Some` because successful decode implies high confidence). |
+| `payload` | `\[:0\]const u8` | — | Decoded payload (text, URL, vCard string, …). |
+| `confidence` | `f32?` | `null` | Detector-reported confidence in `\[0.0, 1.0\]`. `null` when the decoder does not expose confidence (the default `rqrr` backend always reports `Some` because successful decode implies high confidence). |
 | `bbox` | `QrBoundingBox?` | `null` | Bounding box of the QR code inside the source image, in pixel coordinates (`x`, `y` of the top-left corner; `width`, `height` of the rectangle). `null` if the decoder did not report a bounding box. |
 
 ---
@@ -5693,8 +5693,8 @@ the type in their own code.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `detectionBbox` | `BBox` | — | Detection bbox that this table corresponds to (for matching). |
-| `cells` | `[]const []const [:0]const u8` | — | Table cells as a 2D vector (rows × columns). |
-| `markdown` | `[:0]const u8` | — | Rendered markdown table. |
+| `cells` | `\[\]const \[\]const \[:0\]const u8` | — | Table cells as a 2D vector (rows × columns). |
+| `markdown` | `\[:0\]const u8` | — | Rendered markdown table. |
 
 ---
 
@@ -5706,12 +5706,12 @@ Configuration for the redaction post-processor.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `categories` | `[]const PiiCategory` | `[]` | Categories to redact. Empty means "every category supported by the engine." |
+| `categories` | `\[\]const PiiCategory` | `\[\]` | Categories to redact. Empty means "every category supported by the engine." |
 | `strategy` | `RedactionStrategy` | `RedactionStrategy.Mask` | Strategy applied to every match. |
 | `ner` | `NerConfig?` | `null` | Optional NER backend — required to redact PERSON / ORGANIZATION / LOCATION categories (the pure-Rust pattern engine only covers regex-detectable PII). |
 | `preserveOffsets` | `bool` | `true` | When `true`, chunk byte ranges are kept consistent with the rewritten content by adjusting `byte_start` / `byte_end` after replacement. When `false`, chunk byte ranges still refer to the *original* content offsets — useful when downstream consumers want to map findings back to the original document. |
-| `customTerms` | `[]const RedactionTerm` | `[]` | Arbitrary user-supplied literal terms to redact. Each term is treated as a regex hit against the document, surfacing as `PiiCategory.Custom(label)` in `RedactionFinding` where `label` is the per-term label (defaulting to the literal value itself). Case-insensitive by default; set `RedactionTerm.case_sensitive` for exact match. Use this when you need to redact tenant-specific tokens (employee IDs, project codes, internal product names) without writing a custom plugin. |
-| `customPatterns` | `[]const RedactionPattern` | `[]` | Arbitrary user-supplied regex patterns to redact. Same surfacing semantics as `custom_terms`: each hit becomes a `PiiCategory.Custom(label)` finding. Patterns are validated at config-construction time via `RedactionConfig.validate`. |
+| `customTerms` | `\[\]const RedactionTerm` | `\[\]` | Arbitrary user-supplied literal terms to redact. Each term is treated as a regex hit against the document, surfacing as `PiiCategory.Custom(label)` in `RedactionFinding` where `label` is the per-term label (defaulting to the literal value itself). Case-insensitive by default; set `RedactionTerm.case_sensitive` for exact match. Use this when you need to redact tenant-specific tokens (employee IDs, project codes, internal product names) without writing a custom plugin. |
+| `customPatterns` | `\[\]const RedactionPattern` | `\[\]` | Arbitrary user-supplied regex patterns to redact. Same surfacing semantics as `custom_terms`: each hit becomes a `PiiCategory.Custom(label)` finding. Patterns are validated at config-construction time via `RedactionConfig.validate`. |
 
 ##### Methods
 
@@ -5769,7 +5769,7 @@ One redaction event: which span was rewritten, why, and with what.
 | `end` | `u32` | — | Byte-offset end (exclusive) in the original `ExtractionResult.content`. |
 | `category` | `PiiCategory` | — | PII category that fired this redaction. |
 | `strategy` | `RedactionStrategy` | — | Strategy applied to this finding (mask, hash, token-replace, drop). |
-| `replacementToken` | `[:0]const u8` | — | String that replaced the original mention. Always present; for `Drop` the replacement is the empty string. |
+| `replacementToken` | `\[:0\]const u8` | — | String that replaced the original mention. Always present; for `Drop` the replacement is the empty string. |
 
 ---
 
@@ -5783,8 +5783,8 @@ sensitivity is encoded in the pattern via the `(?i)` inline flag when
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `label` | `[:0]const u8` | — | Custom category label surfaced in `RedactionFinding.category`. |
-| `pattern` | `[:0]const u8` | — | Regex pattern (Rust `regex` crate dialect — no look-around). |
+| `label` | `\[:0\]const u8` | — | Custom category label surfaced in `RedactionFinding.category`. |
+| `pattern` | `\[:0\]const u8` | — | Regex pattern (Rust `regex` crate dialect — no look-around). |
 | `caseSensitive` | `bool` | `/* serde(default) */` | When `true`, match case-sensitively; otherwise prepend `(?i)` to the regex. |
 
 ##### Methods
@@ -5809,8 +5809,8 @@ const result = RedactionPattern.labeled("value", "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `label` | `[:0]const u8` | Yes | The label |
-| `pattern` | `[:0]const u8` | Yes | The pattern |
+| `label` | `\[:0\]const u8` | Yes | The label |
+| `pattern` | `\[:0\]const u8` | Yes | The pattern |
 
 **Returns:** `RedactionPattern`
 
@@ -5827,7 +5827,7 @@ bytes are dropped at the end of the pipeline.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `findings` | `[]const RedactionFinding` | — | Individual redaction findings in original-source byte order. |
+| `findings` | `\[\]const RedactionFinding` | — | Individual redaction findings in original-source byte order. |
 | `totalRedacted` | `u32` | — | Total number of redactions applied across the document. |
 
 ---
@@ -5842,8 +5842,8 @@ metacharacters themselves). Case-insensitive by default — set
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `label` | `[:0]const u8` | — | Custom category label surfaced in `RedactionFinding.category`. |
-| `value` | `[:0]const u8` | — | Literal value to match. Regex metacharacters are escaped automatically. |
+| `label` | `\[:0\]const u8` | — | Custom category label surfaced in `RedactionFinding.category`. |
+| `value` | `\[:0\]const u8` | — | Literal value to match. Regex metacharacters are escaped automatically. |
 | `caseSensitive` | `bool` | `/* serde(default) */` | When `true`, match the value as-is; otherwise match ASCII-case-insensitively. |
 
 ##### Methods
@@ -5868,7 +5868,7 @@ const result = RedactionTerm.literal("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `value` | `[:0]const u8` | Yes | The value |
+| `value` | `\[:0\]const u8` | Yes | The value |
 
 **Returns:** `RedactionTerm`
 
@@ -5892,8 +5892,8 @@ const result = RedactionTerm.labeled("value", "value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `label` | `[:0]const u8` | Yes | The label |
-| `value` | `[:0]const u8` | Yes | The value |
+| `label` | `\[:0\]const u8` | Yes | The label |
+| `value` | `\[:0\]const u8` | Yes | The value |
 
 **Returns:** `RedactionTerm`
 
@@ -5967,8 +5967,8 @@ Since v5.0.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `index` | `u64` | — | Position of this document in the original input `documents` slice. |
-| `score` | `f32` | — | Relevance score in `[0, 1]`. Higher means more relevant to the query. |
-| `document` | `[:0]const u8` | — | The document text. |
+| `score` | `f32` | — | Relevance score in `\[0, 1\]`. Higher means more relevant to the query. |
+| `document` | `\[:0\]const u8` | — | The document text. |
 
 ---
 
@@ -6051,8 +6051,8 @@ const result = try instance.rerank("value", &[_]u8{});
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `query` | `[:0]const u8` | Yes | The query |
-| `documents` | `[]const [:0]const u8` | Yes | The documents |
+| `query` | `\[:0\]const u8` | Yes | The query |
+| `documents` | `\[\]const \[:0\]const u8` | Yes | The documents |
 
 **Returns:** `[]const f32`
 
@@ -6075,7 +6075,7 @@ Since v5.0.
 | `topK` | `u64?` | `null` | Return at most this many documents. `null` returns all. Applied after sorting by score, so the highest-scoring documents are kept. |
 | `batchSize` | `u64` | `32` | Batch size for local ONNX cross-encoder inference. |
 | `showDownloadProgress` | `bool` | `false` | Show model download progress (local ONNX path only). |
-| `cacheDir` | `[:0]const u8?` | `null` | Custom cache directory for model files. Defaults to `~/.cache/kreuzberg/rerankers/` if not specified. |
+| `cacheDir` | `\[:0\]const u8?` | `null` | Custom cache directory for model files. Defaults to `~/.cache/kreuzberg/rerankers/` if not specified. |
 | `acceleration` | `AccelerationConfig?` | `null` | Hardware acceleration for the reranker ONNX model. Controls which execution provider (CPU, CUDA, CoreML, TensorRT) is used for local inference. Defaults to `null` (auto-select per platform). |
 | `maxRerankDurationSecs` | `u64?` | `null` | Maximum wall-clock duration (in seconds) for a single `rerank()` call when using `RerankerModelType.Plugin`. Applies only to the in-process plugin path — protects against hung host-language backends. On timeout, the dispatcher returns `Plugin` instead of blocking forever. `null` disables the timeout. The default (60 seconds) is conservative for common in-process inference; increase for large document sets on slow hardware. |
 
@@ -6110,12 +6110,12 @@ Since v5.0.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | `[:0]const u8` | — | Short identifier (catalog name, e.g. `"bge-reranker-base"`). |
-| `modelRepo` | `[:0]const u8` | — | HuggingFace repository name for the model. |
-| `modelFile` | `[:0]const u8` | — | Path to the ONNX model file within the repo. |
-| `additionalFiles` | `[]const [:0]const u8` | `/* serde(default) */` | Sibling files that must be downloaded alongside `model_file`. Empty for most presets. Used by repos that split the weight blob — e.g. `rozgo/bge-reranker-v2-m3` ships the model in `model.onnx` plus a co-located `model.onnx.data` payload. |
+| `name` | `\[:0\]const u8` | — | Short identifier (catalog name, e.g. `"bge-reranker-base"`). |
+| `modelRepo` | `\[:0\]const u8` | — | HuggingFace repository name for the model. |
+| `modelFile` | `\[:0\]const u8` | — | Path to the ONNX model file within the repo. |
+| `additionalFiles` | `\[\]const \[:0\]const u8` | `/* serde(default) */` | Sibling files that must be downloaded alongside `model_file`. Empty for most presets. Used by repos that split the weight blob — e.g. `rozgo/bge-reranker-v2-m3` ships the model in `model.onnx` plus a co-located `model.onnx.data` payload. |
 | `maxLength` | `u64` | — | Maximum token sequence length the model supports. |
-| `description` | `[:0]const u8` | — | Human-readable description of the preset's intended use case. |
+| `description` | `\[:0\]const u8` | — | Human-readable description of the preset's intended use case. |
 
 ---
 
@@ -6130,8 +6130,8 @@ later enrichment pass.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[]const DiffLine` | `[]` | Line-level content changes for this revision. |
-| `tableChanges` | `[]const CellChange` | `[]` | Cell-level table changes for this revision. |
+| `content` | `\[\]const DiffLine` | `\[\]` | Line-level content changes for this revision. |
+| `tableChanges` | `\[\]const CellChange` | `\[\]` | Cell-level table changes for this revision. |
 
 ---
 
@@ -6191,9 +6191,9 @@ including host/port settings, CORS configuration, and upload limits.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `host` | `[:0]const u8` | — | Server host address (e.g., "127.0.0.1", "0.0.0.0") |
+| `host` | `\[:0\]const u8` | — | Server host address (e.g., "127.0.0.1", "0.0.0.0") |
 | `port` | `u16` | — | Server port number |
-| `corsOrigins` | `[]const [:0]const u8` | `[]` | CORS allowed origins. Empty vector means allow all origins. If this is an empty listtor, the server will accept requests from any origin. If populated with specific origins (e.g., `"<https://example.com"`>), only those origins will be allowed. |
+| `corsOrigins` | `\[\]const \[:0\]const u8` | `\[\]` | CORS allowed origins. Empty vector means allow all origins. If this is an empty listtor, the server will accept requests from any origin. If populated with specific origins (e.g., `"<https://example.com"`>), only those origins will be allowed. |
 | `maxRequestBodyBytes` | `u64` | — | Maximum size of request body in bytes (default: 100 MB) |
 | `maxMultipartFieldBytes` | `u64` | — | Maximum size of multipart fields in bytes (default: 100 MB) |
 
@@ -6279,7 +6279,7 @@ const result = instance.isOriginAllowed("value");
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `origin` | `[:0]const u8` | Yes | The origin to check (e.g., "<https://example.com">) |
+| `origin` | `\[:0\]const u8` | Yes | The origin to check (e.g., "<https://example.com">) |
 
 **Returns:** `bool`
 
@@ -6328,8 +6328,8 @@ Structured data (Schema.org, microdata, RDFa) block.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `dataType` | `StructuredDataType` | — | Type of structured data |
-| `rawJson` | `[:0]const u8` | — | Raw JSON string representation |
-| `schemaType` | `[:0]const u8?` | `null` | Schema type if detectable (e.g., "Article", "Event", "Product") |
+| `rawJson` | `\[:0\]const u8` | — | Raw JSON string representation |
+| `schemaType` | `\[:0\]const u8?` | `null` | Schema type if detectable (e.g., "Article", "Event", "Product") |
 
 ---
 
@@ -6339,10 +6339,10 @@ Result of parsing a structured data file (JSON, JSONL, YAML, or TOML).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | The extracted text content, formatted for readability. |
-| `format` | `[:0]const u8` | — | The source format identifier (e.g. `"json"`, `"yaml"`, `"toml"`). |
-| `metadata` | `std.StringHashMap([:0]const u8)` | — | Key-value metadata extracted from recognized text fields. |
-| `textFields` | `[]const [:0]const u8` | — | JSON paths of fields that were classified as text-bearing. |
+| `content` | `\[:0\]const u8` | — | The extracted text content, formatted for readability. |
+| `format` | `\[:0\]const u8` | — | The source format identifier (e.g. `"json"`, `"yaml"`, `"toml"`). |
+| `metadata` | `std.StringHashMap(\[:0\]const u8)` | — | Key-value metadata extracted from recognized text fields. |
+| `textFields` | `\[\]const \[:0\]const u8` | — | JSON paths of fields that were classified as text-bearing. |
 
 ---
 
@@ -6355,11 +6355,11 @@ returning structured data that conforms to the schema.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `schema` | `[:0]const u8` | — | JSON Schema defining the desired output structure. |
-| `schemaName` | `[:0]const u8` | `/* serde(default) */` | Schema name passed to the LLM's structured output mode. |
-| `schemaDescription` | `[:0]const u8?` | `/* serde(default) */` | Optional schema description for the LLM. |
+| `schema` | `\[:0\]const u8` | — | JSON Schema defining the desired output structure. |
+| `schemaName` | `\[:0\]const u8` | `/* serde(default) */` | Schema name passed to the LLM's structured output mode. |
+| `schemaDescription` | `\[:0\]const u8?` | `/* serde(default) */` | Optional schema description for the LLM. |
 | `strict` | `bool` | `/* serde(default) */` | Enable strict mode — output must exactly match the schema. |
-| `prompt` | `[:0]const u8?` | `/* serde(default) */` | Custom Jinja2 extraction prompt template. When `null`, a default template is used. Available template variables: - `{{ content }}` — The extracted document text. - `{{ schema }}` — The JSON schema as a formatted string. - `{{ schema_name }}` — The schema name. - `{{ schema_description }}` — The schema description (may be empty). |
+| `prompt` | `\[:0\]const u8?` | `/* serde(default) */` | Custom Jinja2 extraction prompt template. When `null`, a default template is used. Available template variables: - `{{ content }}` — The extracted document text. - `{{ schema }}` — The JSON schema as a formatted string. - `{{ schema_name }}` — The schema name. - `{{ schema_description }}` — The schema description (may be empty). |
 | `llm` | `LlmConfig` | — | LLM configuration for the extraction. |
 
 ---
@@ -6386,8 +6386,8 @@ Represents a file extension and its corresponding MIME type that Kreuzberg can p
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `extension` | `[:0]const u8` | — | File extension (without leading dot), e.g., "pdf", "docx" |
-| `mimeType` | `[:0]const u8` | — | MIME type string, e.g., "application/pdf" |
+| `extension` | `\[:0\]const u8` | — | File extension (without leading dot), e.g., "pdf", "docx" |
+| `mimeType` | `\[:0\]const u8` | — | MIME type string, e.g., "application/pdf" |
 
 ---
 
@@ -6434,8 +6434,8 @@ Tables are converted to both structured cell data and Markdown format.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `cells` | `[]const []const [:0]const u8` | `[]` | Table cells as a 2D vector (rows × columns) |
-| `markdown` | `[:0]const u8` | — | Markdown representation of the table |
+| `cells` | `\[\]const \[\]const \[:0\]const u8` | `\[\]` | Table cells as a 2D vector (rows × columns) |
+| `markdown` | `\[:0\]const u8` | — | Markdown representation of the table |
 | `pageNumber` | `u32` | — | Page number where the table was found (1-indexed) |
 | `boundingBox` | `BoundingBox?` | `null` | Bounding box of the table on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top). Only populated for PDF-extracted tables when position data is available. |
 
@@ -6449,7 +6449,7 @@ Future extension point for rich table support with cell-level metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Cell content as text |
+| `content` | `\[:0\]const u8` | — | Cell content as text |
 | `rowSpan` | `u32` | — | Row span (number of rows this cell spans) |
 | `colSpan` | `u32` | — | Column span (number of columns this cell spans) |
 | `isHeader` | `bool` | — | Whether this is a header cell |
@@ -6464,7 +6464,7 @@ Cell-level changes for a pair of tables that share the same index.
 |-------|------|---------|-------------|
 | `fromIndex` | `u64` | — | Zero-based index of the table in both `a.tables` and `b.tables`. |
 | `toIndex` | `u64` | — | Zero-based index in `b.tables` (equal to `from_index` for same-dimension tables). |
-| `cellChanges` | `[]const CellChange` | — | Cell-level changes within the table. |
+| `cellChanges` | `\[\]const CellChange` | — | Cell-level changes within the table. |
 
 ---
 
@@ -6478,7 +6478,7 @@ Stores row/column dimensions and a flat list of cells with position info.
 |-------|------|---------|-------------|
 | `rows` | `u32` | — | Number of rows in the table. |
 | `cols` | `u32` | — | Number of columns in the table. |
-| `cells` | `[]const GridCell` | `[]` | All cells in row-major order. |
+| `cells` | `\[\]const GridCell` | `\[\]` | All cells in row-major order. |
 
 ---
 
@@ -6492,9 +6492,9 @@ for specific document types (invoices, handwriting, etc.).
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `language` | `[:0]const u8` | `"eng"` | Language code (e.g., "eng", "deu", "fra") |
+| `language` | `\[:0\]const u8` | `"eng"` | Language code (e.g., "eng", "deu", "fra") |
 | `psm` | `i32` | `3` | Page Segmentation Mode (0-13). Common values: - 3: Fully automatic page segmentation (native default) - 6: Assume a single uniform block of text (WASM default — avoids layout-analysis hang) - 11: Sparse text with no particular order |
-| `outputFormat` | `[:0]const u8` | `"markdown"` | Output format ("text" or "markdown") |
+| `outputFormat` | `\[:0\]const u8` | `"markdown"` | Output format ("text" or "markdown") |
 | `oem` | `i32` | `3` | OCR Engine Mode (0-3). - 0: Legacy engine only - 1: Neural nets (LSTM) only (usually best) - 2: Legacy + LSTM - 3: Default (based on what's available) |
 | `minConfidence` | `f64` | `0` | Minimum confidence threshold (0.0-100.0). Words with confidence below this threshold may be rejected or flagged. |
 | `preprocessing` | `ImagePreprocessingConfig?` | `null` | Image preprocessing configuration. Controls how images are preprocessed before OCR. Can significantly improve quality for scanned documents or low-quality images. |
@@ -6508,8 +6508,8 @@ for specific document types (invoices, handwriting, etc.).
 | `tesseditDontBlkrejGoodWds` | `bool` | `true` | Don't reject good words during block-level processing |
 | `tesseditDontRowrejGoodWds` | `bool` | `true` | Don't reject good words during row-level processing |
 | `tesseditEnableDictCorrection` | `bool` | `true` | Enable dictionary correction |
-| `tesseditCharWhitelist` | `[:0]const u8` | `""` | Whitelist of allowed characters (empty = all allowed) |
-| `tesseditCharBlacklist` | `[:0]const u8` | `""` | Blacklist of forbidden characters (empty = none forbidden) |
+| `tesseditCharWhitelist` | `\[:0\]const u8` | `""` | Whitelist of allowed characters (empty = all allowed) |
+| `tesseditCharBlacklist` | `\[:0\]const u8` | `""` | Blacklist of forbidden characters (empty = none forbidden) |
 | `tesseditUsePrimaryParamsModel` | `bool` | `true` | Use primary language params model |
 | `textordSpaceSizeIsVariable` | `bool` | `true` | Variable-width space detection |
 | `thresholdingMethod` | `bool` | `false` | Use adaptive thresholding method |
@@ -6558,11 +6558,11 @@ for Markdown files, structural elements like headers and links.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Extracted text content |
+| `content` | `\[:0\]const u8` | — | Extracted text content |
 | `lineCount` | `u64` | — | Number of lines |
 | `wordCount` | `u64` | — | Number of words |
 | `characterCount` | `u64` | — | Number of characters |
-| `headers` | `[]const [:0]const u8?` | `null` | Markdown headers (text only, Markdown files only) |
+| `headers` | `\[\]const \[:0\]const u8?` | `null` | Markdown headers (text only, Markdown files only) |
 
 ---
 
@@ -6578,7 +6578,7 @@ for Markdown, structural elements like headers and links.
 | `lineCount` | `u32` | — | Number of lines in the document |
 | `wordCount` | `u32` | — | Number of words |
 | `characterCount` | `u32` | — | Number of characters |
-| `headers` | `[]const [:0]const u8?` | `[]` | Markdown headers (headings text only, for Markdown files) |
+| `headers` | `\[\]const \[:0\]const u8?` | `\[\]` | Markdown headers (headings text only, for Markdown files) |
 
 ---
 
@@ -6615,14 +6615,14 @@ Configuration for the token-reduction pipeline.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `level` | `ReductionLevel` | `ReductionLevel.Moderate` | Reduction intensity level. |
-| `languageHint` | `[:0]const u8?` | `null` | ISO 639-1 language code hint for stopword selection (e.g. `"en"`, `"de"`). |
+| `languageHint` | `\[:0\]const u8?` | `null` | ISO 639-1 language code hint for stopword selection (e.g. `"en"`, `"de"`). |
 | `preserveMarkdown` | `bool` | `false` | Preserve Markdown formatting tokens during reduction. |
 | `preserveCode` | `bool` | `true` | Preserve code block contents unchanged. |
 | `semanticThreshold` | `f32` | `0.3` | Cosine similarity threshold below which sentences are considered dissimilar. |
 | `enableParallel` | `bool` | `true` | Use Rayon parallel iterators for multi-core processing. |
 | `useSimd` | `bool` | `true` | Use SIMD-optimized text scanning where available. |
-| `customStopwords` | `std.StringHashMap([]const [:0]const u8)?` | `null` | Per-language custom stopword lists (`language_code → stopword_list`). |
-| `preservePatterns` | `[]const [:0]const u8` | `[]` | Regex patterns whose matched text is always preserved unchanged. |
+| `customStopwords` | `std.StringHashMap(\[\]const \[:0\]const u8)?` | `null` | Per-language custom stopword lists (`language_code → stopword_list`). |
+| `preservePatterns` | `\[\]const \[:0\]const u8` | `\[\]` | Regex patterns whose matched text is always preserved unchanged. |
 | `targetReduction` | `f32?` | `null` | Target fraction of text to retain (0.0–1.0); `null` = no fixed target. |
 | `enableSemanticClustering` | `bool` | `false` | Group semantically similar sentences and emit only one per cluster. |
 
@@ -6652,7 +6652,7 @@ Token reduction configuration.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `mode` | `[:0]const u8` | — | Reduction mode: "off", "light", "moderate", "aggressive", "maximum" |
+| `mode` | `\[:0\]const u8` | — | Reduction mode: "off", "light", "moderate", "aggressive", "maximum" |
 | `preserveImportantWords` | `bool` | `true` | Preserve important words (capitalized, technical terms) |
 
 ##### Methods
@@ -6699,12 +6699,12 @@ model = "tiny"
 |-------|------|---------|-------------|
 | `enabled` | `bool` | `true` | Master switch. When false the block is ignored and audio files fall back to the normal "unsupported format" path. |
 | `model` | `WhisperModel` | `WhisperModel.Tiny` | Whisper model size to use. Smaller = faster + lower memory. `tiny` is the pragmatic default for first-time users and CI. |
-| `language` | `[:0]const u8?` | `null` | Optional language hint (ISO-639-1 code, e.g. "en", "de"). When `null` (default), the current engine falls back to English. For deterministic production output, always set this explicitly. |
+| `language` | `\[:0\]const u8?` | `null` | Optional language hint (ISO-639-1 code, e.g. "en", "de"). When `null` (default), the current engine falls back to English. For deterministic production output, always set this explicitly. |
 | `timestamps` | `bool` | `false` | Whether to request segment-level timestamps. Accepted for forward compatibility. The current engine always uses `<\|notimestamps\|>` and does not emit segment metadata yet. |
 | `maxDurationMs` | `u64?` | `null` | Hard safety limit on input duration (milliseconds). Files longer than this are rejected after decode, before model work. Default: 30 minutes. Set to `null` to disable (not recommended for untrusted input). |
 | `maxBytes` | `u64?` | `null` | Hard safety limit on input size (bytes). Default: 512 MiB. Protects against pathological or malicious uploads. |
 | `timeoutMs` | `u64?` | `null` | Wall-clock timeout for the entire transcription operation (ms). Default: 10 minutes. Reserved for timeout enforcement; the current extractor does not enforce this field yet. |
-| `modelCacheDir` | `[:0]const u8?` | `null` | Override the directory used for Whisper model cache. When `null`, uses the centralized resolver: `KREUZBERG_CACHE_DIR/whisper` or the platform default (`~/.cache/kreuzberg/whisper` on Linux, etc.). |
+| `modelCacheDir` | `\[:0\]const u8?` | `null` | Override the directory used for Whisper model cache. When `null`, uses the centralized resolver: `KREUZBERG_CACHE_DIR/whisper` or the platform default (`~/.cache/kreuzberg/whisper` on Linux, etc.). |
 | `allowNetwork` | `bool` | `true` | Allow network access to download models from Hugging Face Hub. When `false`, only previously cached models may be used. Useful for air-gapped or fully offline deployments. |
 | `verifyHash` | `bool` | `true` | Request SHA256 verification of downloaded model files. Reserved for the checksum table follow-up. The current resolver logs a warning and treats this as a no-op. |
 
@@ -6739,10 +6739,10 @@ than duplicated here.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `targetLang` | `[:0]const u8` | — | BCP-47 language tag the translation was produced into (e.g. `"de"`, `"fr-CA"`). |
-| `sourceLang` | `[:0]const u8?` | `null` | BCP-47 source language. `null` when the translation backend was asked to detect. |
-| `content` | `[:0]const u8` | — | Translated plain-text body. Matches the shape of `ExtractionResult.content`. |
-| `formattedContent` | `[:0]const u8?` | `null` | Translated markup body (Markdown / HTML / etc.) when `preserve_markup` was enabled on the config. `null` otherwise. |
+| `targetLang` | `\[:0\]const u8` | — | BCP-47 language tag the translation was produced into (e.g. `"de"`, `"fr-CA"`). |
+| `sourceLang` | `\[:0\]const u8?` | `null` | BCP-47 source language. `null` when the translation backend was asked to detect. |
+| `content` | `\[:0\]const u8` | — | Translated plain-text body. Matches the shape of `ExtractionResult.content`. |
+| `formattedContent` | `\[:0\]const u8?` | `null` | Translated markup body (Markdown / HTML / etc.) when `preserve_markup` was enabled on the config. `null` otherwise. |
 
 ---
 
@@ -6754,8 +6754,8 @@ Configuration for the translation post-processor.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `targetLang` | `[:0]const u8` | — | BCP-47 language tag for the target language (e.g. `"de"`, `"fr-CA"`). |
-| `sourceLang` | `[:0]const u8?` | `null` | Optional explicit source language. `null` asks the backend to auto-detect. |
+| `targetLang` | `\[:0\]const u8` | — | BCP-47 language tag for the target language (e.g. `"de"`, `"fr-CA"`). |
+| `sourceLang` | `\[:0\]const u8?` | `null` | Optional explicit source language. `null` asks the backend to auto-detect. |
 | `preserveMarkup` | `bool` | `/* serde(default) */` | Translate the formatted (Markdown/HTML) rendition alongside plain text when `formatted_content` is present. |
 | `llm` | `LlmConfig` | — | LLM configuration used for translation. |
 
@@ -6783,9 +6783,9 @@ docstrings = true
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | `bool` | `true` | Enable code intelligence processing (default: true). When `false`, tree-sitter analysis is completely skipped even if the config section is present. |
-| `cacheDir` | `[:0]const u8?` | `null` | Custom cache directory for downloaded grammars. When `null`, uses the default: `~/.cache/tree-sitter-language-pack/v{version}/libs/`. |
-| `languages` | `[]const [:0]const u8?` | `null` | Languages to pre-download on init (e.g., `["python", "rust"]`). |
-| `groups` | `[]const [:0]const u8?` | `null` | Language groups to pre-download (e.g., `["web", "systems", "scripting"]`). |
+| `cacheDir` | `\[:0\]const u8?` | `null` | Custom cache directory for downloaded grammars. When `null`, uses the default: `~/.cache/tree-sitter-language-pack/v{version}/libs/`. |
+| `languages` | `\[\]const \[:0\]const u8?` | `null` | Languages to pre-download on init (e.g., `\["python", "rust"\]`). |
+| `groups` | `\[\]const \[:0\]const u8?` | `null` | Language groups to pre-download (e.g., `\["web", "systems", "scripting"\]`). |
 | `process` | `TreeSitterProcessConfig` | — | Processing options for code analysis. |
 
 ##### Methods
@@ -6990,15 +6990,15 @@ Contains Excel-specific document metadata.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `application` | `[:0]const u8?` | `null` | Application name (e.g., "Microsoft Excel") |
-| `appVersion` | `[:0]const u8?` | `null` | Application version |
+| `application` | `\[:0\]const u8?` | `null` | Application name (e.g., "Microsoft Excel") |
+| `appVersion` | `\[:0\]const u8?` | `null` | Application version |
 | `docSecurity` | `i32?` | `null` | Document security level |
 | `scaleCrop` | `bool?` | `null` | Scale crop flag |
 | `linksUpToDate` | `bool?` | `null` | Links up to date flag |
 | `sharedDoc` | `bool?` | `null` | Shared document flag |
 | `hyperlinksChanged` | `bool?` | `null` | Hyperlinks changed flag |
-| `company` | `[:0]const u8?` | `null` | Company name |
-| `worksheetNames` | `[]const [:0]const u8` | `[]` | Worksheet names |
+| `company` | `\[:0\]const u8?` | `null` | Company name |
+| `worksheetNames` | `\[\]const \[:0\]const u8` | `\[\]` | Worksheet names |
 
 ---
 
@@ -7011,9 +7011,9 @@ structural statistics about the XML document.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `content` | `[:0]const u8` | — | Extracted text content (XML structure filtered out) |
+| `content` | `\[:0\]const u8` | — | Extracted text content (XML structure filtered out) |
 | `elementCount` | `u64` | — | Total number of XML elements processed |
-| `uniqueElements` | `[]const [:0]const u8` | — | List of unique element names found (sorted) |
+| `uniqueElements` | `\[\]const \[:0\]const u8` | — | List of unique element names found (sorted) |
 
 ---
 
@@ -7026,7 +7026,7 @@ Provides statistics about XML document structure.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `elementCount` | `u32` | — | Total number of XML elements processed |
-| `uniqueElements` | `[]const [:0]const u8` | `[]` | List of unique element tag names (sorted) |
+| `uniqueElements` | `\[\]const \[:0\]const u8` | `\[\]` | List of unique element tag names (sorted) |
 
 ---
 
@@ -7066,7 +7066,7 @@ Year range for bibliographic metadata.
 |-------|------|---------|-------------|
 | `min` | `u32?` | `null` | Earliest (minimum) year in the range. |
 | `max` | `u32?` | `null` | Latest (maximum) year in the range. |
-| `years` | `[]const u32` | `/* serde(default) */` | All individual years present in the collection. |
+| `years` | `\[\]const u32` | `/* serde(default) */` | All individual years present in the collection. |
 
 ---
 
@@ -7136,7 +7136,7 @@ boxes and confidence scores.
 | `Html` | HTML format |
 | `Json` | JSON tree format with heading-driven sections. |
 | `Structured` | Structured JSON format with full OCR element metadata. |
-| `Custom` | Custom renderer registered via the RendererRegistry. The string is the renderer name (e.g., "docx", "latex"). — Fields: `0`: `[:0]const u8` |
+| `Custom` | Custom renderer registered via the RendererRegistry. The string is the renderer name (e.g., "docx", "latex"). — Fields: `0`: `\[:0\]const u8` |
 
 ---
 
@@ -7212,7 +7212,7 @@ detected by `OcrConfig.validate` and will surface as a
 | Value | Description |
 |-------|-------------|
 | `Disabled` | No VLM fallback (default). Behaves identically to the pre-policy single-backend mode. |
-| `OnLowQuality` | Try the classical OCR backend first. If the quality score is below `quality_threshold`, send the page to the VLM. `quality_threshold` is in the `[0.0, 1.0]` range produced by `calculate_quality_score`. A value of `0.5` is a reasonable starting point; calibrate with the Stage 0 benchmark harness. — Fields: `qualityThreshold`: `f64` |
+| `OnLowQuality` | Try the classical OCR backend first. If the quality score is below `quality_threshold`, send the page to the VLM. `quality_threshold` is in the `\[0.0, 1.0\]` range produced by `calculate_quality_score`. A value of `0.5` is a reasonable starting point; calibrate with the Stage 0 benchmark harness. — Fields: `qualityThreshold`: `f64` |
 | `Always` | Skip the classical OCR backend entirely. Every page is sent to the VLM. |
 
 ---
@@ -7257,7 +7257,7 @@ available on HuggingFace Hub can be used, including OpenAI-compatible tokenizers
 | Value | Description |
 |-------|-------------|
 | `Characters` | Size measured in Unicode characters (default). |
-| `Tokenizer` | Size measured in tokens from a HuggingFace tokenizer. — Fields: `model`: `[:0]const u8`, `cacheDir`: `[:0]const u8` |
+| `Tokenizer` | Size measured in tokens from a HuggingFace tokenizer. — Fields: `model`: `\[:0\]const u8`, `cacheDir`: `\[:0\]const u8` |
 
 ---
 
@@ -7267,10 +7267,10 @@ Embedding model types supported by Kreuzberg.
 
 | Value | Description |
 |-------|-------------|
-| `Preset` | Use a preset model configuration (recommended) — Fields: `name`: `[:0]const u8` |
-| `Custom` | Use a custom ONNX model from HuggingFace — Fields: `modelId`: `[:0]const u8`, `dimensions`: `u64` |
+| `Preset` | Use a preset model configuration (recommended) — Fields: `name`: `\[:0\]const u8` |
+| `Custom` | Use a custom ONNX model from HuggingFace — Fields: `modelId`: `\[:0\]const u8`, `dimensions`: `u64` |
 | `Llm` | Provider-hosted embedding model via liter-llm. Uses the model specified in the nested `LlmConfig` (e.g., `"openai/text-embedding-3-small"`). — Fields: `llm`: `LlmConfig` |
-| `Plugin` | In-process embedding backend registered via the plugin system. The caller registers an `EmbeddingBackend` once (e.g. a wrapper around an already-loaded `llama-cpp-python`, `sentence-transformers`, or tuned ONNX model), then references it by name in config. Kreuzberg calls back into the registered backend during chunking and standalone embed requests — no HuggingFace download, no ONNX Runtime requirement, no HTTP sidecar. When this variant is selected, only the following `EmbeddingConfig` fields apply: `normalize` (post-call L2 normalization) and `max_embed_duration_secs` (dispatcher timeout). Model-loading fields (`batch_size`, `cache_dir`, `show_download_progress`, `acceleration`) are ignored — the host owns the model lifecycle. Semantic chunking falls back to `ChunkingConfig.max_characters` when this variant is used, since there is no preset to look a chunk-size ceiling up against — size your context window via `max_characters` directly. See `register_embedding_backend`. — Fields: `name`: `[:0]const u8` |
+| `Plugin` | In-process embedding backend registered via the plugin system. The caller registers an `EmbeddingBackend` once (e.g. a wrapper around an already-loaded `llama-cpp-python`, `sentence-transformers`, or tuned ONNX model), then references it by name in config. Kreuzberg calls back into the registered backend during chunking and standalone embed requests — no HuggingFace download, no ONNX Runtime requirement, no HTTP sidecar. When this variant is selected, only the following `EmbeddingConfig` fields apply: `normalize` (post-call L2 normalization) and `max_embed_duration_secs` (dispatcher timeout). Model-loading fields (`batch_size`, `cache_dir`, `show_download_progress`, `acceleration`) are ignored — the host owns the model lifecycle. Semantic chunking falls back to `ChunkingConfig.max_characters` when this variant is used, since there is no preset to look a chunk-size ceiling up against — size your context window via `max_characters` directly. See `register_embedding_backend`. — Fields: `name`: `\[:0\]const u8` |
 
 ---
 
@@ -7282,10 +7282,10 @@ Since v5.0.
 
 | Value | Description |
 |-------|-------------|
-| `Preset` | Use a preset cross-encoder model (recommended). — Fields: `name`: `[:0]const u8` |
-| `Custom` | Use a custom ONNX cross-encoder from HuggingFace. — Fields: `modelId`: `[:0]const u8`, `modelFile`: `[:0]const u8`, `additionalFiles`: `[]const [:0]const u8`, `maxLength`: `i64` |
+| `Preset` | Use a preset cross-encoder model (recommended). — Fields: `name`: `\[:0\]const u8` |
+| `Custom` | Use a custom ONNX cross-encoder from HuggingFace. — Fields: `modelId`: `\[:0\]const u8`, `modelFile`: `\[:0\]const u8`, `additionalFiles`: `\[\]const \[:0\]const u8`, `maxLength`: `i64` |
 | `Llm` | Provider-hosted reranker via liter-llm (e.g. Cohere, Jina, Voyage). The model in the nested `LlmConfig` must be a rerank-capable model ID (e.g. `"cohere/rerank-english-v3.0"`). — Fields: `llm`: `LlmConfig` |
-| `Plugin` | In-process reranker registered via the plugin system. The caller registers a `RerankerBackend` once (e.g. a wrapper around a `sentence-transformers` cross-encoder or a provider client), then references it by name in config. Kreuzberg calls back into the registered backend — no HuggingFace download, no ONNX Runtime requirement. When this variant is selected, only `max_rerank_duration_secs` applies. Model-loading fields (`batch_size`, `cache_dir`, `show_download_progress`, `acceleration`) are ignored — the host owns the model lifecycle. See `register_reranker_backend`. — Fields: `name`: `[:0]const u8` |
+| `Plugin` | In-process reranker registered via the plugin system. The caller registers a `RerankerBackend` once (e.g. a wrapper around a `sentence-transformers` cross-encoder or a provider client), then references it by name in config. Kreuzberg calls back into the registered backend — no HuggingFace download, no ONNX Runtime requirement. When this variant is selected, only `max_rerank_duration_secs` applies. Model-loading fields (`batch_size`, `cache_dir`, `show_download_progress`, `acceleration`) are ignored — the host owns the model lifecycle. See `register_reranker_backend`. — Fields: `name`: `\[:0\]const u8` |
 
 ---
 
@@ -7483,25 +7483,25 @@ Go/Java/TypeScript bindings.
 
 | Value | Description |
 |-------|-------------|
-| `Title` | Document title. — Fields: `text`: `[:0]const u8` |
-| `Heading` | Section heading with level (1-6). — Fields: `level`: `u8`, `text`: `[:0]const u8` |
-| `Paragraph` | Body text paragraph. — Fields: `text`: `[:0]const u8` |
+| `Title` | Document title. — Fields: `text`: `\[:0\]const u8` |
+| `Heading` | Section heading with level (1-6). — Fields: `level`: `u8`, `text`: `\[:0\]const u8` |
+| `Paragraph` | Body text paragraph. — Fields: `text`: `\[:0\]const u8` |
 | `List` | List container — children are `ListItem` nodes. — Fields: `ordered`: `bool` |
-| `ListItem` | Individual list item. — Fields: `text`: `[:0]const u8` |
+| `ListItem` | Individual list item. — Fields: `text`: `\[:0\]const u8` |
 | `Table` | Table with structured cell grid. — Fields: `grid`: `TableGrid` |
-| `Image` | Image reference. — Fields: `description`: `[:0]const u8`, `imageIndex`: `u32`, `src`: `[:0]const u8` |
-| `Code` | Code block. — Fields: `text`: `[:0]const u8`, `language`: `[:0]const u8` |
+| `Image` | Image reference. — Fields: `description`: `\[:0\]const u8`, `imageIndex`: `u32`, `src`: `\[:0\]const u8` |
+| `Code` | Code block. — Fields: `text`: `\[:0\]const u8`, `language`: `\[:0\]const u8` |
 | `Quote` | Block quote — container, children carry the quoted content. |
-| `Formula` | Mathematical formula / equation. — Fields: `text`: `[:0]const u8` |
-| `Footnote` | Footnote reference content. — Fields: `text`: `[:0]const u8` |
-| `Group` | Logical grouping container (section, key-value area). `heading_level` + `heading_text` capture the section heading directly rather than relying on a first-child positional convention. — Fields: `label`: `[:0]const u8`, `headingLevel`: `u8`, `headingText`: `[:0]const u8` |
+| `Formula` | Mathematical formula / equation. — Fields: `text`: `\[:0\]const u8` |
+| `Footnote` | Footnote reference content. — Fields: `text`: `\[:0\]const u8` |
+| `Group` | Logical grouping container (section, key-value area). `heading_level` + `heading_text` capture the section heading directly rather than relying on a first-child positional convention. — Fields: `label`: `\[:0\]const u8`, `headingLevel`: `u8`, `headingText`: `\[:0\]const u8` |
 | `PageBreak` | Page break marker. |
-| `Slide` | Presentation slide container — children are the slide's content nodes. — Fields: `number`: `u32`, `title`: `[:0]const u8` |
+| `Slide` | Presentation slide container — children are the slide's content nodes. — Fields: `number`: `u32`, `title`: `\[:0\]const u8` |
 | `DefinitionList` | Definition list container — children are `DefinitionItem` nodes. |
-| `DefinitionItem` | Individual definition list entry with term and definition. — Fields: `term`: `[:0]const u8`, `definition`: `[:0]const u8` |
-| `Citation` | Citation or bibliographic reference. — Fields: `key`: `[:0]const u8`, `text`: `[:0]const u8` |
-| `Admonition` | Admonition / callout container (note, warning, tip, etc.). Children carry the admonition body content. — Fields: `kind`: `[:0]const u8`, `title`: `[:0]const u8` |
-| `RawBlock` | Raw block preserved verbatim from the source format. Used for content that cannot be mapped to a semantic node type (e.g. JSX in MDX, raw LaTeX in markdown, embedded HTML). — Fields: `format`: `[:0]const u8`, `content`: `[:0]const u8` |
+| `DefinitionItem` | Individual definition list entry with term and definition. — Fields: `term`: `\[:0\]const u8`, `definition`: `\[:0\]const u8` |
+| `Citation` | Citation or bibliographic reference. — Fields: `key`: `\[:0\]const u8`, `text`: `\[:0\]const u8` |
+| `Admonition` | Admonition / callout container (note, warning, tip, etc.). Children carry the admonition body content. — Fields: `kind`: `\[:0\]const u8`, `title`: `\[:0\]const u8` |
+| `RawBlock` | Raw block preserved verbatim from the source format. Used for content that cannot be mapped to a semantic node type (e.g. JSX in MDX, raw LaTeX in markdown, embedded HTML). — Fields: `format`: `\[:0\]const u8`, `content`: `\[:0\]const u8` |
 | `MetadataBlock` | Structured metadata block (email headers, YAML frontmatter, etc.). |
 
 ---
@@ -7519,11 +7519,11 @@ Types of inline text annotations.
 | `Code` | Inline code span. |
 | `Subscript` | Subscript text. |
 | `Superscript` | Superscript text. |
-| `Link` | Hyperlink annotation. — Fields: `url`: `[:0]const u8`, `title`: `[:0]const u8` |
+| `Link` | Hyperlink annotation. — Fields: `url`: `\[:0\]const u8`, `title`: `\[:0\]const u8` |
 | `Highlight` | Highlighted text (PDF highlights, HTML `<mark>`). |
-| `Color` | Text color (CSS-compatible value, e.g. "#ff0000", "red"). — Fields: `value`: `[:0]const u8` |
-| `FontSize` | Font size with units (e.g. "12pt", "1.2em", "16px"). — Fields: `value`: `[:0]const u8` |
-| `Custom` | Extensible annotation for format-specific styling. — Fields: `name`: `[:0]const u8`, `value`: `[:0]const u8` |
+| `Color` | Text color (CSS-compatible value, e.g. "#ff0000", "red"). — Fields: `value`: `\[:0\]const u8` |
+| `FontSize` | Font size with units (e.g. "12pt", "1.2em", "16px"). — Fields: `value`: `\[:0\]const u8` |
+| `Custom` | Extensible annotation for format-specific styling. — Fields: `name`: `\[:0\]const u8`, `value`: `\[:0\]const u8` |
 
 ---
 
@@ -7546,7 +7546,7 @@ schemas) flow through without losing fidelity to the consumer.
 | `Email` | An email address. |
 | `Phone` | A phone number. |
 | `Url` | A URL or URI. |
-| `Custom` | A caller-supplied custom category label. — Fields: `0`: `[:0]const u8` |
+| `Custom` | A caller-supplied custom category label. — Fields: `0`: `\[:0\]const u8` |
 
 ---
 
@@ -7742,7 +7742,7 @@ Supports both axis-aligned rectangles (from Tesseract) and 4-point quadrilateral
 | Value | Description |
 |-------|-------------|
 | `Rectangle` | Axis-aligned bounding box (typical for Tesseract output). — Fields: `left`: `u32`, `top`: `u32`, `width`: `u32`, `height`: `u32` |
-| `Quadrilateral` | 4-point quadrilateral for rotated/skewed text (PaddleOCR). Points are in clockwise order starting from top-left: `[top_left, top_right, bottom_right, bottom_left]` |
+| `Quadrilateral` | 4-point quadrilateral for rotated/skewed text (PaddleOCR). Points are in clockwise order starting from top-left: `\[top_left, top_right, bottom_right, bottom_left\]` |
 
 ---
 
@@ -7782,9 +7782,9 @@ Strategy applied when a PII match is rewritten.
 
 | Value | Description |
 |-------|-------------|
-| `Mask` | Replace the matched span with a fixed mask token (default `"[REDACTED]"`). |
+| `Mask` | Replace the matched span with a fixed mask token (default `"\[REDACTED\]"`). |
 | `Hash` | Replace with a SHA-256 hash of the original value (truncated to 16 hex chars). Lets downstream consumers do equality joins without recovering the source. |
-| `TokenReplace` | Replace with a per-category running token (`"[PERSON_1]"`, `"[PERSON_2]"`, …) so the same person referenced twice gets the same token within the document. |
+| `TokenReplace` | Replace with a per-category running token (`"\[PERSON_1\]"`, `"\[PERSON_2\]"`, …) so the same person referenced twice gets the same token within the document. |
 | `Drop` | Delete the matched span entirely. |
 
 ---
@@ -7807,7 +7807,7 @@ PII categories the pattern engine recognises.
 | `Person` | Person name, surfaced by the optional NER backend. |
 | `Organization` | Organization name, surfaced by the optional NER backend. |
 | `Location` | Location, surfaced by the optional NER backend. |
-| `Custom` | Caller-supplied custom category (e.g. internal employee IDs). Surfaced by the redaction engine when a hit comes from `RedactionConfig.custom_terms` or `RedactionConfig.custom_patterns`. The string is the label passed alongside the term/pattern. Use those fields rather than constructing `Custom` directly via the `categories` filter — the pattern engine cannot detect arbitrary text from a category name alone. — Fields: `0`: `[:0]const u8` |
+| `Custom` | Caller-supplied custom category (e.g. internal employee IDs). Surfaced by the redaction engine when a hit comes from `RedactionConfig.custom_terms` or `RedactionConfig.custom_patterns`. The string is the label passed alongside the term/pattern. Use those fields rather than constructing `Custom` directly via the `categories` filter — the pattern engine cannot detect arbitrary text from a category name alone. — Fields: `0`: `\[:0\]const u8` |
 
 ---
 
@@ -7821,9 +7821,9 @@ reference it unconditionally, without requiring the `diff` Cargo feature.
 
 | Value | Description |
 |-------|-------------|
-| `Context` | Unchanged context line. — Fields: `0`: `[:0]const u8` |
-| `Added` | Line added in the "after" version. — Fields: `0`: `[:0]const u8` |
-| `Removed` | Line removed from the "before" version. — Fields: `0`: `[:0]const u8` |
+| `Context` | Unchanged context line. — Fields: `0`: `\[:0\]const u8` |
+| `Added` | Line added in the "after" version. — Fields: `0`: `\[:0\]const u8` |
+| `Removed` | Line removed from the "before" version. — Fields: `0`: `\[:0\]const u8` |
 
 ---
 
@@ -7850,7 +7850,7 @@ Best-effort document location for a revision.
 | `TableCell` | Cell inside a table. — Fields: `row`: `u64`, `col`: `u64`, `tableIndex`: `u64` |
 | `Page` | Page, identified by its zero-based index. — Fields: `index`: `u64` |
 | `Slide` | Presentation slide, identified by its zero-based index. — Fields: `index`: `u64` |
-| `Sheet` | Spreadsheet cell or range, identified by sheet index and optional name. — Fields: `index`: `u64`, `name`: `[:0]const u8` |
+| `Sheet` | Spreadsheet cell or range, identified by sheet index and optional name. — Fields: `index`: `u64`, `name`: `\[:0\]const u8` |
 
 ---
 

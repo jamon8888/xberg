@@ -2,7 +2,7 @@
 title: "C API Reference"
 ---
 
-## C API Reference <span class="version-badge">v5.0.0-rc.18</span>
+## C API Reference <span class="version-badge">v5.0.0-rc.19</span>
 
 ### Functions
 
@@ -1923,7 +1923,7 @@ Metadata about a chunk's position in the original document.
 | `first_page` | `uint32_t*` | `NULL` | First page number this chunk spans (1-indexed). Only populated when page tracking is enabled in extraction configuration. |
 | `last_page` | `uint32_t*` | `NULL` | Last page number this chunk spans (1-indexed, equal to first_page for single-page chunks). Only populated when page tracking is enabled in extraction configuration. |
 | `heading_context` | `KreuzbergHeadingContext*` | `/* serde(default) */` | Heading context when using Markdown chunker. Contains the heading hierarchy this chunk falls under. Only populated when `ChunkerType.Markdown` is used. |
-| `image_indices` | `uint32_t*` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images on pages covered by this chunk. Contains zero-based indices into the top-level `images` collection for every image whose `page_number` falls within `[first_page, last_page]`. Empty when image extraction is disabled or the chunk spans no pages with images. |
+| `image_indices` | `uint32_t*` | `/* serde(default) */` | Indices into `ExtractionResult.images` for images on pages covered by this chunk. Contains zero-based indices into the top-level `images` collection for every image whose `page_number` falls within `\[first_page, last_page\]`. Empty when image extraction is disabled or the chunk spans no pages with images. |
 
 ---
 
@@ -2000,7 +2000,7 @@ A single label + confidence pair.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `label` | `const char*` | — | Label name as configured in `PageClassificationConfig.labels`. |
-| `confidence` | `float*` | `NULL` | Backend-reported confidence in `[0.0, 1.0]`. `NULL` when the backend (e.g. an LLM prompt without explicit confidence schema) did not report one. |
+| `confidence` | `float*` | `NULL` | Backend-reported confidence in `\[0.0, 1.0\]`. `NULL` when the backend (e.g. an LLM prompt without explicit confidence schema) did not report one. |
 
 ---
 
@@ -2453,7 +2453,7 @@ for tree structure, and metadata like page number, bounding box, and content lay
 | `content` | `KreuzbergNodeContent` | — | Node content — tagged enum, type-specific data only. |
 | `parent` | `uint32_t*` | `NULL` | Parent node index (`NULL` = root-level node). |
 | `children` | `uint32_t*` | `/* serde(default) */` | Child node indices in reading order. |
-| `content_layer` | `KreuzbergContentLayer` | `/* serde(default) */` | Content layer classification. Always serialised — Kotlin-Android (and any other typed binding) treats the field as non-nullable, so omitting it from the JSON wire would break consumer deserialisation.  `#[serde(default)]` covers the missing-field case on inbound JSON. |
+| `content_layer` | `KreuzbergContentLayer` | `/* serde(default) */` | Content layer classification. Always serialised — Kotlin-Android (and any other typed binding) treats the field as non-nullable, so omitting it from the JSON wire would break consumer deserialisation.  `#\[serde(default)\]` covers the missing-field case on inbound JSON. |
 | `page` | `uint32_t*` | `NULL` | Page number where this node starts (1-indexed). |
 | `page_end` | `uint32_t*` | `NULL` | Page number where this node ends (for multi-page tables/sections). |
 | `bbox` | `KreuzbergBoundingBox*` | `NULL` | Bounding box in document coordinates. |
@@ -2936,7 +2936,7 @@ A single named entity detected in the extracted text.
 | `text` | `const char*` | — | Raw mention text exactly as it appeared in the source. |
 | `start` | `uint32_t` | — | Byte-offset span in `ExtractionResult.content` where the mention starts. |
 | `end` | `uint32_t` | — | Byte-offset span in `ExtractionResult.content` where the mention ends (exclusive). |
-| `confidence` | `float*` | `NULL` | Backend-reported confidence in `[0.0, 1.0]`. `NULL` when the backend does not expose confidence scores. |
+| `confidence` | `float*` | `NULL` | Backend-reported confidence in `\[0.0, 1.0\]`. `NULL` when the backend does not expose confidence scores. |
 
 ---
 
@@ -3040,7 +3040,7 @@ PIL.Image (Python), Sharp (Node.js), or other formats as needed.
 | `kind_confidence` | `float*` | `NULL` | Confidence score for `image_kind`, in the range 0.0 to 1.0. |
 | `cluster_id` | `uint32_t*` | `NULL` | Identifier shared across images that form a single logical figure (e.g. all raster tiles of one technical drawing). `NULL` for singletons. |
 | `caption` | `const char**` | `NULL` | VLM-generated caption describing the image, when captioning is configured. Populated by the captioning post-processor (`crates/kreuzberg/src/plugins/processor/builtin/captioning.rs`), which routes each image through `crate.llm.region_extractor.extract_region_with_vlm` in caption mode. `NULL` when captioning is disabled or the VLM declined to caption. |
-| `qr_codes` | `KreuzbergQrCode**` | `NULL` | QR codes decoded from this image, when QR detection is enabled. Populated by the QR post-processor (`crates/kreuzberg/src/extractors/qr.rs`) via the pure-Rust `rqrr` decoder. `NULL` when QR detection is disabled; an empty `Some([])` when detection ran but found nothing. |
+| `qr_codes` | `KreuzbergQrCode**` | `NULL` | QR codes decoded from this image, when QR detection is enabled. Populated by the QR post-processor (`crates/kreuzberg/src/extractors/qr.rs`) via the pure-Rust `rqrr` decoder. `NULL` when QR detection is disabled; an empty `Some(\[\])` when detection ran but found nothing. |
 
 ---
 
@@ -3224,8 +3224,8 @@ This is the main result type returned by all extraction functions.
 | `djot_content` | `KreuzbergDjotContent*` | `NULL` | Rich Djot content structure (when extracting Djot documents). When extracting Djot documents with structured extraction enabled, this field contains the full semantic structure including: - Block-level elements with nesting - Inline formatting with attributes - Links, images, footnotes - Math expressions - Complete attribute information The `content` field still contains plain text for backward compatibility. Always `NULL` for non-Djot documents. |
 | `ocr_elements` | `KreuzbergOcrElement**` | `NULL` | OCR elements with full spatial and confidence metadata. When OCR is performed with element extraction enabled, this field contains the structured representation of detected text including: - Bounding geometry (rectangles or quadrilaterals) - Confidence scores (detection and recognition) - Rotation information - Hierarchical relationships (Tesseract only) This field preserves all metadata that would otherwise be lost when converting to plain text or markdown output formats. Only populated when `OcrElementConfig.include_elements` is true. |
 | `document` | `KreuzbergDocumentStructure*` | `NULL` | Structured document tree (when document structure extraction is enabled). When `include_document_structure` is true in `ExtractionConfig`, this field contains the full hierarchical representation of the document including: - Heading-driven section nesting - Table grids with cell-level metadata - Content layer classification (body, header, footer, footnote) - Inline text annotations (formatting, links) - Bounding boxes and page numbers Independent of `result_format` — can be combined with Unified or ElementBased. |
-| `extracted_keywords` | `KreuzbergKeyword**` | `NULL` | Extracted keywords when keyword extraction is enabled. When keyword extraction (RAKE or YAKE) is configured, this field contains the extracted keywords with scores, algorithm info, and position data. Previously stored in `metadata.additional["keywords"]`. |
-| `quality_score` | `double*` | `NULL` | Document quality score from quality analysis. A value between 0.0 and 1.0 indicating the overall text quality. Previously stored in `metadata.additional["quality_score"]`. |
+| `extracted_keywords` | `KreuzbergKeyword**` | `NULL` | Extracted keywords when keyword extraction is enabled. When keyword extraction (RAKE or YAKE) is configured, this field contains the extracted keywords with scores, algorithm info, and position data. Previously stored in `metadata.additional\["keywords"\]`. |
+| `quality_score` | `double*` | `NULL` | Document quality score from quality analysis. A value between 0.0 and 1.0 indicating the overall text quality. Previously stored in `metadata.additional\["quality_score"\]`. |
 | `processing_warnings` | `KreuzbergProcessingWarning*` | `NULL` | Non-fatal warnings collected during processing pipeline stages. Captures errors from optional pipeline features (embedding, chunking, language detection, output formatting) that don't prevent extraction but may indicate degraded results. Previously stored as individual keys in `metadata.additional`. |
 | `annotations` | `KreuzbergPdfAnnotation**` | `NULL` | PDF annotations extracted from the document. When annotation extraction is enabled via `PdfConfig.extract_annotations`, this field contains text notes, highlights, links, stamps, and other annotations found in PDF documents. |
 | `children` | `KreuzbergArchiveEntry**` | `NULL` | Nested extraction results from archive contents. When extracting archives, each processable file inside produces its own full extraction result. Set to `NULL` for non-archive formats. Use `max_archive_depth` in config to control recursion depth. |
@@ -3531,15 +3531,15 @@ Image extraction configuration.
 | `extract_images` | `bool` | `true` | Extract images from documents |
 | `target_dpi` | `int32_t` | `300` | Target DPI for image normalization |
 | `max_image_dimension` | `int32_t` | `4096` | Maximum dimension for images (width or height) |
-| `inject_placeholders` | `bool` | `true` | Whether to inject image reference placeholders into markdown output. When `true` (default), image references like `![Image 1](embedded:p1_i0)` are appended to the markdown. Set to `false` to extract images as data without polluting the markdown output. |
+| `inject_placeholders` | `bool` | `true` | Whether to inject image reference placeholders into markdown output. When `true` (default), image references like `!\[Image 1\](embedded:p1_i0)` are appended to the markdown. Set to `false` to extract images as data without polluting the markdown output. |
 | `auto_adjust_dpi` | `bool` | `true` | Automatically adjust DPI based on image content |
 | `min_dpi` | `int32_t` | `72` | Minimum DPI threshold |
 | `max_dpi` | `int32_t` | `600` | Maximum DPI threshold |
 | `max_images_per_page` | `uint32_t*` | `NULL` | Maximum number of image objects to extract per PDF page. Some PDFs (e.g. technical diagrams stored as thousands of raster fragments) can trigger extremely long or indefinite extraction times when every image object on a dense page is decoded individually via the PDF extractor. Setting this limit causes kreuzberg to stop collecting individual images once the count per page reaches the cap and emit a warning instead. `NULL` (default) means no limit — all images are extracted. |
-| `classify` | `bool` | `true` | When `true` (default), extracted images are classified by kind and grouped into clusters where they appear to belong to one figure. |
+| `classify` | `bool` | `false` | When `true`, extracted images are classified by kind and grouped into clusters where they appear to belong to one figure. Defaults to `false` — opt in explicitly to avoid unexpected ML overhead. |
 | `include_page_rasters` | `bool` | `false` | When `true`, full-page renders produced during OCR preprocessing are captured and returned as `ImageKind.PageRaster` entries in `ExtractionResult.images`. **PDF + OCR only.** No rasters are captured for non-PDF inputs or when the document-level OCR bypass is active (whole-document backend). When OCR is enabled and this flag is set but the active backend skips per-page rendering, a `ProcessingWarning` is emitted in `ExtractionResult.processing_warnings`. Defaults to `false`. Enable when downstream consumers need page thumbnails (e.g. citation previews, visual grounding). |
 | `run_ocr_on_images` | `bool` | `true` | Run OCR on extracted images and include the recognized text in the document content. When `true` (default) and `ExtractionConfig.ocr` is configured, extracted images are processed with the configured OCR backend. Set to `false` to extract images without OCR processing, even when OCR is enabled. |
-| `ocr_text_only` | `bool` | `false` | When `true`, image OCR results are rendered as plain text without the `![...](...)` markdown placeholder. Only takes effect when `run_ocr_on_images` is also `true`. |
+| `ocr_text_only` | `bool` | `false` | When `true`, image OCR results are rendered as plain text without the `!\[...\](...)` markdown placeholder. Only takes effect when `run_ocr_on_images` is also `true`. |
 | `append_ocr_text` | `bool` | `false` | When `true` and `ocr_text_only` is `false`, append the OCR text after the image placeholder in the rendered output. |
 | `output_format` | `KreuzbergImageOutputFormat` | `KREUZBERG_KREUZBERG_NATIVE` | Target format for re-encoding extracted images. When set to anything other than `Native`, each extracted image is re-encoded to the requested format before being returned. This lets callers receive uniform output without duplicating encode logic downstream. Defaults to `Native` — no re-encode pass is performed and `ExtractedImage.format` reflects the source extractor's output. |
 | `svg` | `KreuzbergSvgOptions` | — | SVG-specific knobs for the image-encode pipeline. Controls sanitization and rasterization DPI when the source or output format is SVG.  Only available when the `svg` feature is active. |
@@ -3603,7 +3603,7 @@ for different document types.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `target_dpi` | `int32_t` | `300` | Target DPI for the image (300 is standard, 600 for small text). |
-| `auto_rotate` | `bool` | `true` | Auto-detect and correct image rotation. |
+| `auto_rotate` | `bool` | `false` | Auto-detect and correct image rotation. |
 | `deskew` | `bool` | `true` | Correct skew (tilted images). |
 | `denoise` | `bool` | `false` | Remove noise from the image. |
 | `contrast_enhance` | `bool` | `false` | Enhance contrast for better text visibility. |
@@ -3761,7 +3761,7 @@ A single layout detection result.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `class_name` | `KreuzbergLayoutClass` | — | Detected layout class (e.g. `Table`, `Text`, `Title`). |
-| `confidence` | `float` | — | Detection confidence score in `[0.0, 1.0]`. |
+| `confidence` | `float` | — | Detection confidence score in `\[0.0, 1.0\]`. |
 | `bbox` | `KreuzbergBBox` | — | Bounding box in image pixel coordinates. |
 
 ---
@@ -3982,7 +3982,7 @@ via a discriminated union, and additional custom fields from postprocessors.
 | `tags` | `const char***` | `NULL` | Document tags (from frontmatter). |
 | `document_version` | `const char**` | `NULL` | Document version string (from frontmatter). |
 | `abstract_text` | `const char**` | `NULL` | Abstract or summary text (from frontmatter). |
-| `output_format` | `const char**` | `NULL` | Output format identifier (e.g., "markdown", "html", "text"). Set by the output format pipeline stage when format conversion is applied. Previously stored in `metadata.additional["output_format"]`. |
+| `output_format` | `const char**` | `NULL` | Output format identifier (e.g., "markdown", "html", "text"). Set by the output format pipeline stage when format conversion is applied. Previously stored in `metadata.additional\["output_format"\]`. |
 | `ocr_used` | `bool` | — | Whether OCR was used during extraction. Set to `true` whenever the extraction pipeline ran an OCR backend (Tesseract, PaddleOCR, VLM, etc.) and used that output as the primary or fallback text. `false` means native text extraction was used exclusively. |
 | `additional` | `void*` | `NULL` | Additional custom fields from postprocessors. Serialized as a nested `"additional"` object (not flattened at root level). Uses `Cow<'static, str>` keys so static string keys avoid allocation. |
 
@@ -4303,7 +4303,7 @@ OCR configuration.
 | `quality_thresholds` | `KreuzbergOcrQualityThresholds*` | `NULL` | Quality thresholds for the native-text-to-OCR fallback decision. When None, uses compiled defaults (matching previous hardcoded behavior). |
 | `pipeline` | `KreuzbergOcrPipelineConfig*` | `NULL` | Multi-backend OCR pipeline configuration. When set, enables weighted fallback across multiple OCR backends based on output quality. When None, uses the single `backend` field (same as today). |
 | `auto_rotate` | `bool` | `false` | Enable automatic page rotation based on orientation detection. When enabled, uses Tesseract's `DetectOrientationScript()` to detect page orientation (0/90/180/270 degrees) before OCR. If the page is rotated with high confidence, the image is corrected before recognition. This is critical for handling rotated scanned documents. |
-| `vlm_fallback` | `KreuzbergVlmFallbackPolicy` | `KREUZBERG_KREUZBERG_DISABLED` | Ergonomic VLM fallback policy. When set to anything other than `VlmFallbackPolicy.Disabled` and `OcrConfig.pipeline` is `NULL`, a multi-stage pipeline is synthesised automatically: - `VlmFallbackPolicy.OnLowQuality` → `[classical_stage, vlm_stage]` with the `quality_threshold` mapped onto `OcrQualityThresholds.pipeline_min_quality`. - `VlmFallbackPolicy.Always` → `[vlm_stage]` only. Requires `OcrConfig.vlm_config` to be `Some` when not `Disabled`. When `OcrConfig.pipeline` is explicitly set, this field is ignored. |
+| `vlm_fallback` | `KreuzbergVlmFallbackPolicy` | `KREUZBERG_KREUZBERG_DISABLED` | Ergonomic VLM fallback policy. When set to anything other than `VlmFallbackPolicy.Disabled` and `OcrConfig.pipeline` is `NULL`, a multi-stage pipeline is synthesised automatically: - `VlmFallbackPolicy.OnLowQuality` → `\[classical_stage, vlm_stage\]` with the `quality_threshold` mapped onto `OcrQualityThresholds.pipeline_min_quality`. - `VlmFallbackPolicy.Always` → `\[vlm_stage\]` only. Requires `OcrConfig.vlm_config` to be `Some` when not `Disabled`. When `OcrConfig.pipeline` is explicitly set, this field is ignored. |
 | `vlm_config` | `KreuzbergLlmConfig*` | `NULL` | VLM (Vision Language Model) OCR configuration. Required when `backend` is `"vlm"` or when `vlm_fallback` is not `VlmFallbackPolicy.Disabled`. Uses liter-llm to send page images to a vision model for text extraction. |
 | `vlm_prompt` | `const char**` | `NULL` | Custom Jinja2 prompt template for VLM OCR. When `NULL`, uses the default template. Available variables: - `{{ language }}` — The document language code (e.g., "eng", "deu"). |
 | `acceleration` | `KreuzbergAccelerationConfig*` | `NULL` | Hardware acceleration for ONNX Runtime models (e.g. PaddleOCR, layout detection). Not user-configurable via config files — injected at runtime from `ExtractionConfig.acceleration` before each `process_image` call. |
@@ -5589,7 +5589,7 @@ One QR code decoded from an extracted image.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `payload` | `const char*` | — | Decoded payload (text, URL, vCard string, …). |
-| `confidence` | `float*` | `NULL` | Detector-reported confidence in `[0.0, 1.0]`. `NULL` when the decoder does not expose confidence (the default `rqrr` backend always reports `Some` because successful decode implies high confidence). |
+| `confidence` | `float*` | `NULL` | Detector-reported confidence in `\[0.0, 1.0\]`. `NULL` when the decoder does not expose confidence (the default `rqrr` backend always reports `Some` because successful decode implies high confidence). |
 | `bbox` | `KreuzbergQrBoundingBox*` | `NULL` | Bounding box of the QR code inside the source image, in pixel coordinates (`x`, `y` of the top-left corner; `width`, `height` of the rectangle). `NULL` if the decoder did not report a bounding box. |
 
 ---
@@ -5909,7 +5909,7 @@ Since v5.0.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `index` | `uintptr_t` | — | Position of this document in the original input `documents` slice. |
-| `score` | `float` | — | Relevance score in `[0, 1]`. Higher means more relevant to the query. |
+| `score` | `float` | — | Relevance score in `\[0, 1\]`. Higher means more relevant to the query. |
 | `document` | `const char*` | — | The document text. |
 
 ---
@@ -6726,8 +6726,8 @@ docstrings = true
 |-------|------|---------|-------------|
 | `enabled` | `bool` | `true` | Enable code intelligence processing (default: true). When `false`, tree-sitter analysis is completely skipped even if the config section is present. |
 | `cache_dir` | `const char**` | `NULL` | Custom cache directory for downloaded grammars. When `NULL`, uses the default: `~/.cache/tree-sitter-language-pack/v{version}/libs/`. |
-| `languages` | `const char***` | `NULL` | Languages to pre-download on init (e.g., `["python", "rust"]`). |
-| `groups` | `const char***` | `NULL` | Language groups to pre-download (e.g., `["web", "systems", "scripting"]`). |
+| `languages` | `const char***` | `NULL` | Languages to pre-download on init (e.g., `\["python", "rust"\]`). |
+| `groups` | `const char***` | `NULL` | Language groups to pre-download (e.g., `\["web", "systems", "scripting"\]`). |
 | `process` | `KreuzbergTreeSitterProcessConfig` | — | Processing options for code analysis. |
 
 ##### Methods
@@ -7154,7 +7154,7 @@ detected by `OcrConfig.validate` and will surface as a
 | Value | Description |
 |-------|-------------|
 | `KREUZBERG_DISABLED` | No VLM fallback (default). Behaves identically to the pre-policy single-backend mode. |
-| `KREUZBERG_ON_LOW_QUALITY` | Try the classical OCR backend first. If the quality score is below `quality_threshold`, send the page to the VLM. `quality_threshold` is in the `[0.0, 1.0]` range produced by `calculate_quality_score`. A value of `0.5` is a reasonable starting point; calibrate with the Stage 0 benchmark harness. — Fields: `quality_threshold`: `double` |
+| `KREUZBERG_ON_LOW_QUALITY` | Try the classical OCR backend first. If the quality score is below `quality_threshold`, send the page to the VLM. `quality_threshold` is in the `\[0.0, 1.0\]` range produced by `calculate_quality_score`. A value of `0.5` is a reasonable starting point; calibrate with the Stage 0 benchmark harness. — Fields: `quality_threshold`: `double` |
 | `KREUZBERG_ALWAYS` | Skip the classical OCR backend entirely. Every page is sent to the VLM. |
 
 ---
@@ -7684,7 +7684,7 @@ Supports both axis-aligned rectangles (from Tesseract) and 4-point quadrilateral
 | Value | Description |
 |-------|-------------|
 | `KREUZBERG_RECTANGLE` | Axis-aligned bounding box (typical for Tesseract output). — Fields: `left`: `uint32_t`, `top`: `uint32_t`, `width`: `uint32_t`, `height`: `uint32_t` |
-| `KREUZBERG_QUADRILATERAL` | 4-point quadrilateral for rotated/skewed text (PaddleOCR). Points are in clockwise order starting from top-left: `[top_left, top_right, bottom_right, bottom_left]` |
+| `KREUZBERG_QUADRILATERAL` | 4-point quadrilateral for rotated/skewed text (PaddleOCR). Points are in clockwise order starting from top-left: `\[top_left, top_right, bottom_right, bottom_left\]` |
 
 ---
 
@@ -7724,9 +7724,9 @@ Strategy applied when a PII match is rewritten.
 
 | Value | Description |
 |-------|-------------|
-| `KREUZBERG_MASK` | Replace the matched span with a fixed mask token (default `"[REDACTED]"`). |
+| `KREUZBERG_MASK` | Replace the matched span with a fixed mask token (default `"\[REDACTED\]"`). |
 | `KREUZBERG_HASH` | Replace with a SHA-256 hash of the original value (truncated to 16 hex chars). Lets downstream consumers do equality joins without recovering the source. |
-| `KREUZBERG_TOKEN_REPLACE` | Replace with a per-category running token (`"[PERSON_1]"`, `"[PERSON_2]"`, …) so the same person referenced twice gets the same token within the document. |
+| `KREUZBERG_TOKEN_REPLACE` | Replace with a per-category running token (`"\[PERSON_1\]"`, `"\[PERSON_2\]"`, …) so the same person referenced twice gets the same token within the document. |
 | `KREUZBERG_DROP` | Delete the matched span entirely. |
 
 ---
