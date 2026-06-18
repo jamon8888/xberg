@@ -570,6 +570,11 @@ style = "frb"
 # `[features] default`. Desktop builds still get heic because the
 # `cfg(not(android/ios/windows))` target dep uses `features = ["full"]` which
 # includes heic directly on the kreuzberg dependency side.
+# Drop `heic` from the generated `[features] default` too: a plain
+# `cargo check -p kreuzberg-dart --target aarch64-apple-ios` enables default
+# features, and `heic = ["kreuzberg/heic"]` would pull libheif-sys (no iOS
+# cross-compile). `heic` stays defined as an opt-in feature for desktop callers.
+excluded_default_features = ["heic"]
 features = [
   "pdf",
   "excel",
@@ -696,6 +701,11 @@ package_name = "Kreuzberg"
 # or Android NDK targets. Desktop builds still get heic because the
 # `cfg(not(ios/android/windows))` target dep uses `features = ["full"]` which
 # includes heic directly on the kreuzberg dependency side.
+# Drop `heic` from the generated `[features] default` too: a plain
+# `cargo check -p kreuzberg-swift --target aarch64-apple-ios` enables default
+# features, and `heic = ["kreuzberg/heic"]` would pull libheif-sys (no iOS
+# cross-compile). `heic` stays defined as an opt-in feature for desktop callers.
+excluded_default_features = ["heic"]
 features = [
   "pdf",
   "excel",
@@ -4004,7 +4014,7 @@ path = "../../packages/zig"
 # Placeholder until v5.0.0-rc.4 ships and the tarball SHA is known.
 # Update post-release with the real Zig multihash for
 # https://github.com/kreuzberg-dev/kreuzberg/releases/download/v{version}/kreuzberg-zig-v{version}.tar.gz
-hash = "kreuzberg-5.0.0-rc.22-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+hash = "kreuzberg-5.0.0-rc.23-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
 # Point WASM e2e at the wasm-pack `nodejs` target. The default `pkg/` is the
 # bundler target whose JS glue uses `import * as foo from "env"` statements

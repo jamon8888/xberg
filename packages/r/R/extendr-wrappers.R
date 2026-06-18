@@ -362,7 +362,7 @@ translate_result <- function(result = ExtractionResult$default(), config) .Call(
 #' Delegates to [`chunk_text`] using the caller's config (defaulting to
 #' `ChunkerType::Markdown` when the config uses the default `Text` type, so that
 #' heading hierarchy is resolved).  After chunking, derives
-#' [`ChunkMetadata::heading_path`] from each chunk's `heading_context`.
+#' [`ChunkMetadata::heading_path`](crate::types::ChunkMetadata::heading_path) from each chunk's `heading_context`.
 #' @param text — Text to chunk. Markdown formatting enables heading-aware splitting.
 #' @param config — Chunking configuration.  The `chunker_type` field controls the underlying splitter; use `ChunkerType::Markdown` for documents with ATX headings.
 #' @return A [`ChunkingResult`] where every chunk's `heading_path` is populated from its
@@ -485,7 +485,7 @@ score_confidence <- function(signals, weights = ConfidenceWeights$default()) .Ca
 #' @return Optional character string. Defaults to NULL.
 #' @export
 check_format_limits <- function(mime_type, sheet_count = NULL, workbook_cells = NULL, embedded_count = NULL, config = HeuristicsConfig$default()) .Call("wrap__check_format_limits", mime_type, sheet_count, workbook_cells, embedded_count, config, PACKAGE = "kreuzberg")
-#' Derive document boundaries from an already-produced [`ExtractionResult`]
+#' Derive document boundaries from an already-produced [`ExtractionResult`](crate::types::ExtractionResult)
 #'
 #' Builds a [`MultidocInput`] from `result.pages` (one [`PageSignals`] per
 #' `PageContent` entry), then delegates to [`detect_boundaries`].

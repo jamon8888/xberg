@@ -13601,6 +13601,22 @@ char *kreuzberg_enrich_result_entities(const KREUZBERGEnrichResult *ptr);
 char *kreuzberg_enrich_result_labels(const KREUZBERGEnrichResult *ptr);
 
 /**
+ * Create a `DocumentMetadata` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_document_metadata_free`.
+ */
+KREUZBERGDocumentMetadata *kreuzberg_document_metadata_from_json(const char *json);
+
+/**
+ * Serialize a `DocumentMetadata` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_document_metadata_to_json(const KREUZBERGDocumentMetadata *ptr);
+
+/**
  * Free a `DocumentMetadata` handle.
  * # Safety
  * Pointer must have been returned by this library, or be null.
@@ -13650,6 +13666,22 @@ KREUZBERGUserChunkConfig *kreuzberg_document_metadata_user_chunk_config(const KR
 int32_t kreuzberg_document_metadata_chunking_enabled(const KREUZBERGDocumentMetadata *ptr);
 
 /**
+ * Create a `UserChunkConfig` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_user_chunk_config_free`.
+ */
+KREUZBERGUserChunkConfig *kreuzberg_user_chunk_config_from_json(const char *json);
+
+/**
+ * Serialize a `UserChunkConfig` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_user_chunk_config_to_json(const KREUZBERGUserChunkConfig *ptr);
+
+/**
  * Free a `UserChunkConfig` handle.
  * # Safety
  * Pointer must have been returned by this library, or be null.
@@ -13683,6 +13715,22 @@ int32_t kreuzberg_user_chunk_config_force_chunking(const KREUZBERGUserChunkConfi
  * Pointer must be a valid handle returned by this library.
  */
 int32_t kreuzberg_user_chunk_config_disable_chunking(const KREUZBERGUserChunkConfig *ptr);
+
+/**
+ * Create a `ConfidenceSignals` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_confidence_signals_free`.
+ */
+KREUZBERGConfidenceSignals *kreuzberg_confidence_signals_from_json(const char *json);
+
+/**
+ * Serialize a `ConfidenceSignals` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_confidence_signals_to_json(const KREUZBERGConfidenceSignals *ptr);
 
 /**
  * Free a `ConfidenceSignals` handle.
@@ -13729,6 +13777,22 @@ KREUZBERGSchemaCompliance *kreuzberg_confidence_signals_schema_compliance(const 
 KREUZBERGConfidenceSignals *kreuzberg_confidence_signals_from_extraction_result(const KREUZBERGExtractionResult *result,
                                                                                 int32_t schema_compliance,
                                                                                 float text_coverage);
+
+/**
+ * Create a `ConfidenceWeights` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_confidence_weights_free`.
+ */
+KREUZBERGConfidenceWeights *kreuzberg_confidence_weights_from_json(const char *json);
+
+/**
+ * Serialize a `ConfidenceWeights` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_confidence_weights_to_json(const KREUZBERGConfidenceWeights *ptr);
 
 /**
  * Free a `ConfidenceWeights` handle.
@@ -13821,6 +13885,22 @@ KREUZBERGSchemaCompliance *kreuzberg_extraction_confidence_schema_compliance(con
  * Pointer must be a valid handle returned by this library.
  */
 float kreuzberg_extraction_confidence_combined(const KREUZBERGExtractionConfidence *ptr);
+
+/**
+ * Create a `HeuristicsConfig` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_heuristics_config_free`.
+ */
+KREUZBERGHeuristicsConfig *kreuzberg_heuristics_config_from_json(const char *json);
+
+/**
+ * Serialize a `HeuristicsConfig` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_heuristics_config_to_json(const KREUZBERGHeuristicsConfig *ptr);
 
 /**
  * Free a `HeuristicsConfig` handle.
@@ -13929,6 +14009,22 @@ int32_t kreuzberg_heuristics_config_validate(const KREUZBERGHeuristicsConfig *th
  * freed with the appropriate free function.
  */
 KREUZBERGHeuristicsConfig *kreuzberg_heuristics_config_test_config(void);
+
+/**
+ * Create a `ChunkPlan` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_chunk_plan_free`.
+ */
+KREUZBERGChunkPlan *kreuzberg_chunk_plan_from_json(const char *json);
+
+/**
+ * Serialize a `ChunkPlan` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_chunk_plan_to_json(const KREUZBERGChunkPlan *ptr);
 
 /**
  * Free a `ChunkPlan` handle.
@@ -14283,6 +14379,22 @@ float kreuzberg_multidoc_thresholds_bigram_overlap_min(const KREUZBERGMultidocTh
 KREUZBERGMultidocThresholds *kreuzberg_multidoc_thresholds_default(void);
 
 /**
+ * Create a `StructuredInput` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_structured_input_free`.
+ */
+KREUZBERGStructuredInput *kreuzberg_structured_input_from_json(const char *json);
+
+/**
+ * Serialize a `StructuredInput` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_structured_input_to_json(const KREUZBERGStructuredInput *ptr);
+
+/**
  * Free a `StructuredInput` handle.
  * # Safety
  * Pointer must have been returned by this library, or be null.
@@ -14330,6 +14442,22 @@ uint32_t kreuzberg_structured_input_embedded_image_count(const KREUZBERGStructur
  * Pointer must be a valid handle returned by this library.
  */
 int32_t kreuzberg_structured_input_user_force_vision(const KREUZBERGStructuredInput *ptr);
+
+/**
+ * Create a `StructuredThresholds` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_structured_thresholds_free`.
+ */
+KREUZBERGStructuredThresholds *kreuzberg_structured_thresholds_from_json(const char *json);
+
+/**
+ * Serialize a `StructuredThresholds` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_structured_thresholds_to_json(const KREUZBERGStructuredThresholds *ptr);
 
 /**
  * Free a `StructuredThresholds` handle.
@@ -14458,6 +14586,22 @@ uint8_t *kreuzberg_registry_sample_bytes(const KREUZBERGRegistry *this_,
  */
 uintptr_t kreuzberg_registry_extend_from_dir(KREUZBERGRegistry *this_,
                                              const char *dir);
+
+/**
+ * Create a `ResolvedPreset` from a JSON string. Returns null on failure.
+ * # Safety
+ * JSON string must be valid UTF-8 and null-terminated.
+ * Returned handle must be freed with `kreuzberg_resolved_preset_free`.
+ */
+KREUZBERGResolvedPreset *kreuzberg_resolved_preset_from_json(const char *json);
+
+/**
+ * Serialize a `ResolvedPreset` to a JSON string. Returns null on failure.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_resolved_preset_to_json(const KREUZBERGResolvedPreset *ptr);
 
 /**
  * Free a `ResolvedPreset` handle.
@@ -17511,6 +17655,24 @@ char *kreuzberg_schema_compliance_to_string(const KREUZBERGSchemaCompliance *ptr
 void kreuzberg_chunking_decision_free(KREUZBERGChunkingDecision *ptr);
 
 /**
+ * Serialize a heap-allocated `ChunkingDecision` to a JSON string.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_chunking_decision_to_json(const KREUZBERGChunkingDecision *ptr);
+
+/**
+ * Render a heap-allocated `ChunkingDecision` as its string representation
+ * (the unit-variant name as serialized by serde — e.g. `"completed"`,
+ * without surrounding JSON quotes).
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_chunking_decision_to_string(const KREUZBERGChunkingDecision *ptr);
+
+/**
  * Free a heap-allocated `ChunkingReason` returned by a pointer-returning FFI function.
  * # Safety
  * Pointer must have been returned by this library, or be null.
@@ -18429,7 +18591,8 @@ int32_t kreuzberg_translate_result(KREUZBERGExtractionResult *result,
  * Delegates to `chunk_text` using the caller's config (defaulting to
  * `ChunkerType::Markdown` when the config uses the default `Text` type, so that
  * heading hierarchy is resolved).  After chunking, derives
- * `ChunkMetadata.heading_path` from each chunk's `heading_context`.
+ * `ChunkMetadata::heading_path` (crate::types::ChunkMetadata::heading_path) from each chunk's
+ * `heading_context`.
  * \param text â Text to chunk. Markdown formatting enables heading-aware splitting.
  * \param config â Chunking configuration. The `chunker_type` field controls the underlying
  * splitter; use `ChunkerType::Markdown` for documents with ATX headings.
@@ -18669,7 +18832,8 @@ uintptr_t kreuzberg_check_format_limits_len(const char *_mime_type,
                                             const KREUZBERGHeuristicsConfig *_config);
 
 /**
- * Derive document boundaries from an already-produced `ExtractionResult`.
+ * Derive document boundaries from an already-produced `ExtractionResult`
+ * (crate::types::ExtractionResult).
  *
  * Builds a `MultidocInput` from `result.pages` (one `PageSignals` per
  * `PageContent` entry), then delegates to `detect_boundaries`.
