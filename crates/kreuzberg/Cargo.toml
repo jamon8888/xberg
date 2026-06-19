@@ -435,6 +435,13 @@ android-target = [
     "structured",
     "hwpx",
     "diff",
+    # LLM-driven features that depend only on liter-llm (HTTP), not ORT — safe on
+    # the no-ORT android emulator surface, and required so the Dart FRB dispatch
+    # (`frb_generated.rs`, not feature-aware) resolves `classify_document`,
+    # `caption_image`, and `LlmBackend` instead of referencing configured-out items.
+    "classification",
+    "captioning",
+    "ner-llm",
 ]
 # windows-target: curated feature set for Windows host builds across every
 # binding crate. Native libheif/libheif-sys is not installed on the standard

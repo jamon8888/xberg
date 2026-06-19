@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **presets**: derive `Clone` on `Registry`. The Dart FRB mirror crate generates a borrowed-return accessor for the `Registry::global()` singleton that clones the borrowed value before the owned `From` conversion (`Mirror::from(v.clone())`); without `Clone` on `Registry` this failed to compile (`From<&kreuzberg::Registry>` not satisfied). `Preset` already derived `Clone`.
+- **android**: add `classification`, `captioning`, and `ner-llm` to the `android-target` aggregate feature. These are LLM-driven (liter-llm/HTTP) and do not depend on ONNX Runtime, so they are safe on the no-ORT Android emulator surface. The Dart FRB dispatch (`frb_generated.rs`) is not feature-aware and referenced `classify_document`, `caption_image`, and `LlmBackend` unconditionally, so the binding crate failed to compile under `android-target` without them (E0425).
+- **alef**: bump `alef_version` to 0.25.47 and regenerate all bindings. Picks up the Dart rust-crate codegen fixes — converted slice arguments now borrow correctly, and opaque `use`/`impl` blocks are cfg-gated to match their source items.
 
 ## [5.0.0-rc.23] - 2026-06-18
 
