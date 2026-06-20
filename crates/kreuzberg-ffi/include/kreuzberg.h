@@ -1897,6 +1897,22 @@ typedef struct KREUZBERGTable KREUZBERGTable;
  */
 typedef struct KREUZBERGTableCell KREUZBERGTableCell;
 /**
+ * Controls how markdown tables are handled when they exceed the chunk size limit.
+ *
+ * Only applies when `chunker_type` is `Markdown`.
+ *
+ * # Variants
+ *
+ * * `Split` - Default behavior: tables are split at row boundaries like any
+ *   other block element. Continuation chunks contain only data rows without
+ *   the header, which can break downstream consumers that need column context.
+ * * `RepeatHeader` - Prepend the table header (header row + separator row) to
+ *   every continuation chunk that contains data rows from the same table.
+ *   Adds a small amount of duplicate text but ensures each chunk is
+ *   self-contained for extraction, search, and LLM consumption.
+ */
+typedef struct KREUZBERGTableChunkingMode KREUZBERGTableChunkingMode;
+/**
  * Cell-level changes for a pair of tables that share the same index.
  */
 typedef struct KREUZBERGTableDiff KREUZBERGTableDiff;
@@ -4145,6 +4161,13 @@ KREUZBERGImageOutputFormat *kreuzberg_image_extraction_config_output_format(cons
 KREUZBERGSvgOptions *kreuzberg_image_extraction_config_svg(const KREUZBERGImageExtractionConfig *ptr);
 
 /**
+ * Get the `include_data_base64` field from a `ImageExtractionConfig`.
+ * # Safety
+ * Pointer must be a valid handle returned by this library.
+ */
+int32_t kreuzberg_image_extraction_config_include_data_base64(const KREUZBERGImageExtractionConfig *ptr);
+
+/**
  * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
  * freed with the appropriate free function.
  */
@@ -5326,6 +5349,13 @@ int32_t kreuzberg_chunking_config_prepend_heading_context(const KREUZBERGChunkin
  * Pointer must be a valid handle returned by this library.
  */
 float kreuzberg_chunking_config_topic_threshold(const KREUZBERGChunkingConfig *ptr);
+
+/**
+ * Get the `table_chunking` field from a `ChunkingConfig`.
+ * # Safety
+ * Pointer must be a valid handle returned by this library.
+ */
+KREUZBERGTableChunkingMode *kreuzberg_chunking_config_table_chunking(const KREUZBERGChunkingConfig *ptr);
 
 /**
  * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
@@ -8671,6 +8701,13 @@ char *kreuzberg_extracted_image_caption(const KREUZBERGExtractedImage *ptr);
  * Pointer must be a valid handle returned by this library.
  */
 char *kreuzberg_extracted_image_qr_codes(const KREUZBERGExtractedImage *ptr);
+
+/**
+ * Get the `data_base64` field from a `ExtractedImage`.
+ * # Safety
+ * Pointer must be a valid handle returned by this library.
+ */
+char *kreuzberg_extracted_image_data_base64(const KREUZBERGExtractedImage *ptr);
 
 /**
  * Create a `BoundingBox` from a JSON string. Returns null on failure.
@@ -15711,6 +15748,21 @@ int32_t kreuzberg_vlm_fallback_policy_from_i32(int32_t value);
 int32_t kreuzberg_vlm_fallback_policy_from_str(const char *name);
 
 /**
+ * Convert an integer to a `TableChunkingMode` variant. Returns -1 on invalid input.
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+int32_t kreuzberg_table_chunking_mode_from_i32(int32_t value);
+
+/**
+ * Convert a `TableChunkingMode` variant name (C string) to its integer value. Returns -1 on invalid input.
+ * # Safety
+ * Caller must ensure `ptr` is a valid pointer to a `c_char` or null.
+ */
+int32_t kreuzberg_table_chunking_mode_from_str(const char *name);
+
+/**
  * Convert an integer to a `ChunkerType` variant. Returns -1 on invalid input.
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -16714,6 +16766,31 @@ char *kreuzberg_vlm_fallback_policy_to_json(const KREUZBERGVlmFallbackPolicy *pt
  * The returned string must be freed with `kreuzberg_free_string`.
  */
 char *kreuzberg_vlm_fallback_policy_to_string(const KREUZBERGVlmFallbackPolicy *ptr);
+
+/**
+ * Free a heap-allocated `TableChunkingMode` returned by a pointer-returning FFI function.
+ * # Safety
+ * Pointer must have been returned by this library, or be null.
+ */
+void kreuzberg_table_chunking_mode_free(KREUZBERGTableChunkingMode *ptr);
+
+/**
+ * Serialize a heap-allocated `TableChunkingMode` to a JSON string.
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_table_chunking_mode_to_json(const KREUZBERGTableChunkingMode *ptr);
+
+/**
+ * Render a heap-allocated `TableChunkingMode` as its string representation
+ * (the unit-variant name as serialized by serde — e.g. `"completed"`,
+ * without surrounding JSON quotes).
+ * # Safety
+ * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
+ * The returned string must be freed with `kreuzberg_free_string`.
+ */
+char *kreuzberg_table_chunking_mode_to_string(const KREUZBERGTableChunkingMode *ptr);
 
 /**
  * Free a heap-allocated `ChunkerType` returned by a pointer-returning FFI function.
