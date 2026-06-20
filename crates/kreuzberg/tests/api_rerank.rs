@@ -15,7 +15,7 @@ use async_trait::async_trait;
 use kreuzberg::{
     ExtractionConfig, KreuzbergError, Result,
     api::{RerankResponse, create_router},
-    plugins::{Plugin, RerankerBackend, clear_reranker_backends, register_reranker_backend},
+    plugins::{Plugin, RerankerBackend, register_reranker_backend, unregister_reranker_backend},
 };
 
 struct MockReranker {
@@ -60,7 +60,10 @@ impl RerankerBackend for MockReranker {
 /// sigmoid is applied (mixed-sign logits land on either side of 0.5).
 #[tokio::test(flavor = "multi_thread")]
 async fn test_rerank_happy_path_sorted_descending() {
-    let _ = clear_reranker_backends();
+    const BACKEND_NAME: &str = "rerank-happy";
+    // Targeted cleanup: only this test's backend, never the whole registry — a global
+    // clear races with peer tests that share the process-wide reranker registry.
+    let _ = unregister_reranker_backend(BACKEND_NAME);
     // Backend returns raw logits. Mixed-sign so the test catches a regression
     // where sigmoid is silently removed: negative logit must produce score
     // < 0.5, large positive logit must produce score close to 1.0.
@@ -69,7 +72,7 @@ async fn test_rerank_happy_path_sorted_descending() {
     // Sigmoid: [~0.119, ~0.953, ~0.622]
     // Sorted desc by score: idx=1 (0.953), idx=2 (0.622), idx=0 (0.119)
     register_reranker_backend(Arc::new(MockReranker {
-        name: "rerank-happy".to_string(),
+        name: BACKEND_NAME.to_string(),
         scores: vec![-2.0, 3.0, 0.5],
     }))
     .unwrap();
@@ -125,15 +128,16 @@ async fn test_rerank_happy_path_sorted_descending() {
     );
     assert!(score_for(1) > 0.9, "sigmoid(3.0) should be > 0.9, got {}", score_for(1));
 
-    let _ = clear_reranker_backends();
+    let _ = unregister_reranker_backend(BACKEND_NAME);
 }
 
 /// top_k truncates the response to the highest-scoring documents.
 #[tokio::test(flavor = "multi_thread")]
 async fn test_rerank_top_k_truncation() {
-    let _ = clear_reranker_backends();
+    const BACKEND_NAME: &str = "rerank-topk";
+    let _ = unregister_reranker_backend(BACKEND_NAME);
     register_reranker_backend(Arc::new(MockReranker {
-        name: "rerank-topk".to_string(),
+        name: BACKEND_NAME.to_string(),
         scores: vec![0.9, 0.1, 0.5],
     }))
     .unwrap();
@@ -165,7 +169,7 @@ async fn test_rerank_top_k_truncation() {
     let rr: RerankResponse = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(rr.results.len(), 2);
 
-    let _ = clear_reranker_backends();
+    let _ = unregister_reranker_backend(BACKEND_NAME);
 }
 
 /// Empty documents → empty results, not an error.
