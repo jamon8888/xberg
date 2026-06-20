@@ -447,8 +447,10 @@ impl OcrBackend for PaddleOcrBackend {
             Arc::clone(&self.config)
         };
 
-        // Map language code to PaddleOCR language, then use it for engine selection
-        let paddle_lang = map_language_code(&config.language).unwrap_or("en");
+        // Map the first language code to PaddleOCR language (PaddleOCR supports single language per call)
+        // Multi-language support would require multiple passes, which is beyond scope for this release.
+        let primary_lang = config.language.first().map(|s| s.as_str()).unwrap_or("eng");
+        let paddle_lang = map_language_code(primary_lang).unwrap_or("en");
 
         // Auto-rotate: detect page orientation and rotate image if needed
         let ocr_image_bytes: std::borrow::Cow<'_, [u8]> = if config.auto_rotate {
@@ -549,7 +551,7 @@ impl OcrBackend for PaddleOcrBackend {
 
         let metadata = Metadata {
             format: Some(FormatMetadata::Ocr(OcrMetadata {
-                language: config.language.clone(),
+                language: config.language.join("+"),
                 psm: 3,
                 output_format: "text".to_string(),
                 table_count,
@@ -572,7 +574,7 @@ impl OcrBackend for PaddleOcrBackend {
             mime_type: Cow::Borrowed("text/plain"),
             metadata,
             tables,
-            detected_languages: Some(vec![config.language.clone()]),
+            detected_languages: Some(config.language.clone()),
             ocr_elements: ocr_elements_opt,
             ocr_internal_document: Some(ocr_doc),
             ..Default::default()

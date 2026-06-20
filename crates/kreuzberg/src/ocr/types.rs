@@ -167,7 +167,7 @@ impl From<&crate::types::TesseractConfig> for TesseractConfig {
     fn from(config: &crate::types::TesseractConfig) -> Self {
         Self {
             psm: config.psm as u8,
-            language: config.language.clone(),
+            language: config.language.join("+"),
             output_format: config.output_format.clone(),
             oem: config.oem as u8,
             min_confidence: config.min_confidence,
@@ -409,7 +409,7 @@ mod tests {
     #[test]
     fn test_tesseract_config_from_public_api() {
         let public_config = crate::types::TesseractConfig {
-            language: "deu".to_string(),
+            language: vec!["deu".to_string()],  // public API uses Vec<String>
             psm: 6,
             output_format: "text".to_string(),
             oem: 1,

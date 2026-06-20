@@ -3,7 +3,7 @@
 //! Defines OCR-specific configuration including backend selection, language settings,
 //! Tesseract-specific parameters, quality thresholds, and multi-backend pipeline config.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use super::formats::OutputFormat;
 #[cfg(test)]
@@ -11,6 +11,83 @@ use crate::core::config_validation::validate_ocr_backend;
 #[cfg(test)]
 use crate::error::KreuzbergError;
 use crate::types::OcrElementConfig;
+
+/// Deserialize a language field that accepts either a string or a list of strings.
+///
+/// This helper enables backward compatibility: old configs with `language: "eng"`
+/// deserialize to `Vec<String>` via coercion, while new configs with
+/// `language: ["eng", "deu"]` deserialize directly.
+fn deserialize_languages<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    let value: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
+
+    match value {
+        serde_json::Value::String(s) => {
+            // Single string: split on "+" (Tesseract format) or treat as single language
+            if s.contains('+') {
+                // Tesseract multi-language format: "eng+deu" -> vec!["eng", "deu"]
+                Ok(s.split('+').map(|l| l.to_string()).collect())
+            } else {
+                // Single language: "eng" -> vec!["eng"]
+                Ok(vec![s])
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            // Array of strings: deserialize directly
+            arr.into_iter()
+                .map(|v| {
+                    v.as_str()
+                        .map(String::from)
+                        .ok_or_else(|| Error::custom("each language must be a string"))
+                })
+                .collect()
+        }
+        _ => Err(Error::custom(
+            "language must be a string (e.g., \"eng\") or an array of strings (e.g., [\"eng\", \"deu\"])",
+        )),
+    }
+}
+
+/// Deserialize an optional language field (for pipeline stages).
+fn deserialize_optional_languages<'de, D>(deserializer: D) -> Result<Option<Vec<String>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+
+    match value {
+        None => Ok(None),
+        Some(serde_json::Value::String(s)) => {
+            // Single string: split on "+" or treat as single language
+            if s.contains('+') {
+                Ok(Some(s.split('+').map(|l| l.to_string()).collect()))
+            } else {
+                Ok(Some(vec![s]))
+            }
+        }
+        Some(serde_json::Value::Array(arr)) => {
+            // Array of strings
+            let langs: Result<Vec<String>, D::Error> = arr
+                .into_iter()
+                .map(|v| {
+                    v.as_str()
+                        .map(String::from)
+                        .ok_or_else(|| Error::custom("each language must be a string"))
+                })
+                .collect();
+            langs.map(Some)
+        }
+        Some(_) => Err(Error::custom(
+            "language must be a string or an array of strings",
+        )),
+    }
+}
 
 /// Quality thresholds for OCR fallback decisions and pipeline quality gating.
 ///
@@ -168,8 +245,9 @@ pub struct OcrPipelineStage {
     pub priority: u32,
 
     /// Language override for this stage (None = use parent OcrConfig.language).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub language: Option<String>,
+    /// Accepts either a single language code ("eng") or a list (["eng", "deu"]).
+    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_optional_languages")]
+    pub language: Option<Vec<String>>,
 
     /// Tesseract-specific config override for this stage.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -300,9 +378,11 @@ pub struct OcrConfig {
     #[serde(default = "default_tesseract_backend")]
     pub backend: String,
 
-    /// Language code (e.g., "eng", "deu")
-    #[serde(default = "default_eng")]
-    pub language: String,
+    /// Language code(s) for OCR recognition.
+    /// Accepts either a single language code ("eng") or a list (["eng", "deu"]).
+    /// Defaults to ["eng"]. For Tesseract, languages are joined with "+".
+    #[serde(default = "default_eng", deserialize_with = "deserialize_languages")]
+    pub language: Vec<String>,
 
     /// Tesseract-specific configuration (optional)
     #[serde(default)]
@@ -419,7 +499,7 @@ impl Default for OcrConfig {
         Self {
             enabled: true,
             backend: default_tesseract_backend(),
-            language: default_eng(),
+            language: vec!["eng".to_string()],
             tesseract_config: None,
             output_format: None,
             paddle_ocr_config: None,
@@ -518,7 +598,11 @@ impl OcrConfig {
                 let classical_stage = OcrPipelineStage {
                     backend: self.backend.clone(),
                     priority: 100,
-                    language: None,
+                    language: if self.language.len() == 1 && self.language[0] == "eng" {
+                        None
+                    } else {
+                        Some(self.language.clone())
+                    },
                     tesseract_config: self.tesseract_config.clone(),
                     paddle_ocr_config: None,
                     vlm_config: None,
@@ -583,7 +667,11 @@ impl OcrConfig {
                 OcrPipelineStage {
                     backend: self.backend.clone(),
                     priority: 100,
-                    language: None,
+                    language: if self.language.len() == 1 && self.language[0] == "eng" {
+                        None
+                    } else {
+                        Some(self.language.clone())
+                    },
                     tesseract_config: self.tesseract_config.clone(),
                     paddle_ocr_config: None,
                     vlm_config: self.vlm_config.clone(),
@@ -620,8 +708,8 @@ fn default_tesseract_backend() -> String {
     "tesseract".to_string()
 }
 
-fn default_eng() -> String {
-    "eng".to_string()
+fn default_eng() -> Vec<String> {
+    vec!["eng".to_string()]
 }
 
 #[cfg(test)]
@@ -632,7 +720,7 @@ mod tests {
     fn test_ocr_config_default() {
         let config = OcrConfig::default();
         assert_eq!(config.backend, "tesseract");
-        assert_eq!(config.language, "eng");
+        assert_eq!(config.language, vec!["eng".to_string()]);
         assert!(config.tesseract_config.is_none());
         assert!(config.output_format.is_none());
     }
@@ -641,11 +729,44 @@ mod tests {
     fn test_ocr_config_with_tesseract() {
         let config = OcrConfig {
             backend: "tesseract".to_string(),
-            language: "fra".to_string(),
+            language: vec!["fra".to_string()],
             ..Default::default()
         };
         assert_eq!(config.backend, "tesseract");
-        assert_eq!(config.language, "fra");
+        assert_eq!(config.language, vec!["fra".to_string()]);
+    }
+
+    #[test]
+    fn test_ocr_config_with_multiple_languages() {
+        let config = OcrConfig {
+            backend: "tesseract".to_string(),
+            language: vec!["eng".to_string(), "deu".to_string()],
+            ..Default::default()
+        };
+        assert_eq!(config.backend, "tesseract");
+        assert_eq!(config.language, vec!["eng".to_string(), "deu".to_string()]);
+    }
+
+    #[test]
+    fn test_language_deserialization_single_string() {
+        let json = r#"{"language": "eng"}"#;
+        let config: OcrConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.language, vec!["eng".to_string()]);
+    }
+
+    #[test]
+    fn test_language_deserialization_array() {
+        let json = r#"{"language": ["eng", "deu", "fra"]}"#;
+        let config: OcrConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.language, vec!["eng".to_string(), "deu".to_string(), "fra".to_string()]);
+    }
+
+    #[test]
+    fn test_language_deserialization_tesseract_format() {
+        // Tesseract multi-language format: "eng+deu" should be split
+        let json = r#"{"language": "eng+deu"}"#;
+        let config: OcrConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.language, vec!["eng".to_string(), "deu".to_string()]);
     }
 
     #[test]
@@ -714,7 +835,7 @@ mod tests {
             stages: vec![OcrPipelineStage {
                 backend: "easyocr".to_string(),
                 priority: 200,
-                language: Some("fra".to_string()),
+                language: Some(vec!["fra".to_string()]),
                 tesseract_config: None,
                 paddle_ocr_config: None,
                 vlm_config: None,
@@ -730,7 +851,7 @@ mod tests {
         assert_eq!(result.stages.len(), 1);
         assert_eq!(result.stages[0].backend, "easyocr");
         assert_eq!(result.stages[0].priority, 200);
-        assert_eq!(result.stages[0].language, Some("fra".to_string()));
+        assert_eq!(result.stages[0].language, Some(vec!["fra".to_string()]));
     }
 
     #[cfg(feature = "ocr")]
@@ -849,7 +970,7 @@ mod tests {
 
     /// `OnLowQuality` synthesises a two-stage pipeline equivalent to what a caller
     /// would write by hand with an explicit `OcrPipelineConfig`.
-    #[cfg(feature = "ocr")]
+    #[cfg(all(feature = "ocr", feature = "pdf"))]
     #[test]
     fn test_vlm_fallback_on_low_quality_synthesises_two_stage_pipeline() {
         use super::super::llm::LlmConfig;
@@ -938,7 +1059,7 @@ mod tests {
     }
 
     /// `Always` synthesises a single-stage VLM-only pipeline.
-    #[cfg(feature = "ocr")]
+    #[cfg(all(feature = "ocr", feature = "pdf"))]
     #[test]
     fn test_vlm_fallback_always_synthesises_single_stage_vlm_pipeline() {
         use super::super::llm::LlmConfig;
@@ -962,7 +1083,7 @@ mod tests {
 
     /// `Disabled` with no explicit pipeline produces no synthesised pipeline
     /// (consistent with pre-policy single-backend mode).
-    #[cfg(feature = "ocr")]
+    #[cfg(all(feature = "ocr", feature = "pdf"))]
     #[test]
     fn test_vlm_fallback_disabled_no_synthesis() {
         let config = OcrConfig {
@@ -977,7 +1098,7 @@ mod tests {
     }
 
     /// Explicit pipeline always wins over vlm_fallback (regression guard).
-    #[cfg(feature = "ocr")]
+    #[cfg(all(feature = "ocr", feature = "pdf"))]
     #[test]
     fn test_explicit_pipeline_wins_over_vlm_fallback() {
         use super::super::llm::LlmConfig;
@@ -1058,7 +1179,7 @@ mod tests {
                 OcrPipelineStage {
                     backend: "tesseract".to_string(),
                     priority: 100,
-                    language: Some("eng".to_string()),
+                    language: Some(vec!["eng".to_string()]),
                     tesseract_config: None,
                     paddle_ocr_config: None,
                     vlm_config: None,
@@ -1099,6 +1220,20 @@ mod tests {
     }
 
     #[test]
+    fn test_pipeline_stage_language_deserialization_single() {
+        let json = r#"{"backend": "tesseract", "language": "eng"}"#;
+        let stage: OcrPipelineStage = serde_json::from_str(json).unwrap();
+        assert_eq!(stage.language, Some(vec!["eng".to_string()]));
+    }
+
+    #[test]
+    fn test_pipeline_stage_language_deserialization_array() {
+        let json = r#"{"backend": "tesseract", "language": ["eng", "deu"]}"#;
+        let stage: OcrPipelineStage = serde_json::from_str(json).unwrap();
+        assert_eq!(stage.language, Some(vec!["eng".to_string(), "deu".to_string()]));
+    }
+
+    #[test]
     fn test_pipeline_stage_default_priority_is_100() {
         let json = r#"{"backend": "easyocr"}"#;
         let stage: OcrPipelineStage = serde_json::from_str(json).unwrap();
@@ -1110,7 +1245,7 @@ mod tests {
         let json = r#"{}"#;
         let config: OcrConfig = serde_json::from_str(json).unwrap();
         assert_eq!(config.backend, "tesseract");
-        assert_eq!(config.language, "eng");
+        assert_eq!(config.language, vec!["eng".to_string()]);
         assert!(config.pipeline.is_none());
         assert!(config.quality_thresholds.is_none());
         assert!(config.element_config.is_none());
@@ -1161,6 +1296,37 @@ mod tests {
         assert!(result.is_err(), "Should catch invalid backend in pipeline stages");
         let err_msg = result.unwrap_err().to_string();
         assert!(err_msg.contains("Invalid OCR backend") || err_msg.contains("invalid_backend"));
+    }
+
+    #[test]
+    fn test_validate_passes_with_valid_pipeline_stages() {
+        let config = OcrConfig {
+            pipeline: Some(OcrPipelineConfig {
+                stages: vec![
+                    OcrPipelineStage {
+                        backend: "tesseract".to_string(),
+                        priority: 100,
+                        language: None,
+                        tesseract_config: None,
+                        paddle_ocr_config: None,
+                        vlm_config: None,
+                        backend_options: None,
+                    },
+                    OcrPipelineStage {
+                        backend: "paddleocr".to_string(),
+                        priority: 50,
+                        language: None,
+                        tesseract_config: None,
+                        paddle_ocr_config: None,
+                        vlm_config: None,
+                        backend_options: None,
+                    },
+                ],
+                quality_thresholds: OcrQualityThresholds::default(),
+            }),
+            ..Default::default()
+        };
+        assert!(config.validate().is_ok());
     }
 
     // ── backend_options tests ──
@@ -1324,34 +1490,4 @@ mod tests {
         assert_eq!(returned_opts["batch"], 8);
     }
 
-    #[test]
-    fn test_validate_passes_with_valid_pipeline_stages() {
-        let config = OcrConfig {
-            pipeline: Some(OcrPipelineConfig {
-                stages: vec![
-                    OcrPipelineStage {
-                        backend: "tesseract".to_string(),
-                        priority: 100,
-                        language: None,
-                        tesseract_config: None,
-                        paddle_ocr_config: None,
-                        vlm_config: None,
-                        backend_options: None,
-                    },
-                    OcrPipelineStage {
-                        backend: "paddleocr".to_string(),
-                        priority: 50,
-                        language: None,
-                        tesseract_config: None,
-                        paddle_ocr_config: None,
-                        vlm_config: None,
-                        backend_options: None,
-                    },
-                ],
-                quality_thresholds: OcrQualityThresholds::default(),
-            }),
-            ..Default::default()
-        };
-        assert!(config.validate().is_ok());
-    }
 }

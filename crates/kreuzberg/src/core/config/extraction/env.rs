@@ -69,7 +69,7 @@ impl ExtractionConfig {
                 self.ocr = Some(OcrConfig::default());
             }
             if let Some(ref mut ocr) = self.ocr {
-                ocr.language = lang;
+                ocr.language = vec![lang];
             }
         }
 

@@ -468,10 +468,10 @@ impl ExtractionOverrides {
                     _ => "tesseract",
                 };
                 let language = match &self.ocr_language {
-                    Some(lang) => lang.clone(),
+                    Some(lang) => vec![lang.clone()],
                     None => match backend {
-                        "paddle-ocr" | "easyocr" | "candle-paddleocr-vl" | "candle-glm-ocr" => "en".to_string(),
-                        _ => "eng".to_string(),
+                        "paddle-ocr" | "easyocr" | "candle-paddleocr-vl" | "candle-glm-ocr" => vec!["en".to_string()],
+                        _ => vec!["eng".to_string()],
                     },
                 };
                 // Preserve existing paddle_ocr_config and element_config from config file/inline JSON
@@ -508,7 +508,7 @@ impl ExtractionOverrides {
             && let Some(ref lang) = self.ocr_language
             && let Some(ref mut existing_ocr) = config.ocr
         {
-            existing_ocr.language = lang.clone();
+            existing_ocr.language = vec![lang.clone()];
         }
 
         // Override auto_rotate on existing OCR config when used without --ocr
@@ -548,7 +548,7 @@ impl ExtractionOverrides {
             let ocr = config.ocr.get_or_insert_with(|| OcrConfig {
                 enabled: true,
                 backend: "vlm".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 tesseract_config: None,
                 output_format: None,
                 paddle_ocr_config: None,

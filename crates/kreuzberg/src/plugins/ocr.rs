@@ -559,7 +559,7 @@ mod tests {
 
         let config = OcrConfig {
             backend: "mock".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         };
 
@@ -646,7 +646,7 @@ mod tests {
 
         let config = OcrConfig {
             backend: "mock".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         };
 
@@ -683,7 +683,7 @@ mod tests {
 
         let config = OcrConfig {
             backend: "mock".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         };
 

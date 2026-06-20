@@ -1,13 +1,49 @@
 //! Format-specific extraction results and OCR configuration types.
 
 use bytes::Bytes;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
 use super::document_structure::DocumentStructure;
 use super::extraction::ExtractedImage;
 use super::metadata::PptxMetadata;
 use super::page::{PageContent, PageStructure};
+
+/// Deserialize a language field that accepts either a string or a list of strings.
+fn deserialize_languages<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    let value: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
+
+    match value {
+        serde_json::Value::String(s) => {
+            // Single string: split on "+" (Tesseract format) or treat as single language
+            if s.contains('+') {
+                // Tesseract multi-language format: "eng+deu" -> vec!["eng", "deu"]
+                Ok(s.split('+').map(|l| l.to_string()).collect())
+            } else {
+                // Single language: "eng" -> vec!["eng"]
+                Ok(vec![s])
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            // Array of strings: deserialize directly
+            arr.into_iter()
+                .map(|v| {
+                    v.as_str()
+                        .map(String::from)
+                        .ok_or_else(|| Error::custom("each language must be a string"))
+                })
+                .collect()
+        }
+        _ => Err(Error::custom(
+            "language must be a string (e.g., \"eng\") or an array of strings (e.g., [\"eng\", \"deu\"])",
+        )),
+    }
+}
 
 /// Excel workbook representation.
 ///
@@ -304,8 +340,11 @@ impl Default for ImagePreprocessingConfig {
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 #[serde(default)]
 pub struct TesseractConfig {
-    /// Language code (e.g., "eng", "deu", "fra")
-    pub language: String,
+    /// Language code(s) for OCR recognition.
+    /// Accepts either a single language code ("eng") or a list (["eng", "deu"]).
+    /// For Tesseract backend, languages are joined with "+".
+    #[serde(deserialize_with = "deserialize_languages")]
+    pub language: Vec<String>,
 
     /// Page Segmentation Mode (0-13).
     ///
@@ -387,7 +426,7 @@ pub struct TesseractConfig {
 impl Default for TesseractConfig {
     fn default() -> Self {
         Self {
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             // PSM_AUTO (3) hangs 60-90s on sparse/no-text images in WASM (issue #855)
             #[cfg(target_arch = "wasm32")]
             psm: 6,

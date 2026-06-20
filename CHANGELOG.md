@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **pdf**: Control character (U+0002/U+0003) ligature glyph decoding now correctly repairs text corruption in PDFs with broken ToUnicode CMaps. When a PDF font's ToUnicode mapping is absent or invalid, ligature glyphs like "ft" map to C0 control characters (STX/ETX). The fix detects these in mid-word contexts and decomposes them to their constituent letters. Issue #1135: "blijft" now extracts as "blijft" (not "blij␃"), "Software" as "Software" (not "So␃ware"), and "veiligheidsvoorschriften" correctly. Both pdf_oxide (default) and pdfium backends are covered. The repair applies in `fix_pdf_control_chars()` with two passes: (1) decode known ligature control chars (U+0002 → "ft", U+0003 → "ft" when mid-word), (2) apply heuristic fallback for any remaining controls, avoiding duplicate letters and preserving legitimate \t/\n/\r (#1135).
+
+### Changed
+
+- **ocr**: Multi-language OCR support via config. `OcrConfig.language` and `OcrPipelineStage.language` now accept both single language codes (`"eng"`) and lists (`["eng", "deu"]`) for deserialiation. Internally, languages are stored as `Vec<String>` and joined with `"+"` for Tesseract (e.g., `["eng", "deu"]` → `"eng+deu"`). Backward compatibility: old configs with single-string language codes deserialize correctly; Tesseract's `"+"` format is automatically split into a list. This fixes issue #1139 — multi-language OCR can now be set from config files and the Python API (#1139).
+
 ## [5.0.0-rc.26] - 2026-06-20
 
 ### Added

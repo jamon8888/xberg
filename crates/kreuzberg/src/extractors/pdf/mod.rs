@@ -1344,7 +1344,7 @@ mod tests {
             force_ocr: true,
             ocr: Some(OcrConfig {
                 backend: "pdf-extraction-method-ocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..Default::default()
@@ -1378,7 +1378,7 @@ mod tests {
             force_ocr_pages: Some(vec![1]),
             ocr: Some(OcrConfig {
                 backend: "pdf-extraction-method-mixed".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..Default::default()
@@ -1741,7 +1741,7 @@ mod tests {
             force_ocr: true,
             ocr: Some(OcrConfig {
                 backend: "is-blank-fix-1095".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             pages: Some(PageConfig {
@@ -1928,7 +1928,7 @@ mod tests {
             force_ocr: true,
             ocr: Some(OcrConfig {
                 backend: "inject-placeholder-ocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             images: Some(ImageExtractionConfig {
@@ -1983,7 +1983,7 @@ mod tests {
             force_ocr: true,
             ocr: Some(OcrConfig {
                 backend: "inject-placeholder-absent-ocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             pdf_options: Some(PdfConfig {

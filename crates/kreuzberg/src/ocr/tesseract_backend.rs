@@ -73,9 +73,11 @@ impl TesseractBackend {
     ///
     /// The public API types (crate::types) use i32 for compatibility with PyO3,
     /// while internal types (crate::ocr::types) use u8/u32 for efficiency.
+    ///
+    /// Joins the language Vec into a "+" separated string for Tesseract.
     fn convert_config(public_config: &crate::types::TesseractConfig) -> InternalTesseractConfig {
         InternalTesseractConfig {
-            language: public_config.language.clone(),
+            language: public_config.language.join("+"),
             psm: public_config.psm as u8,
             output_format: public_config.output_format.clone(),
             oem: public_config.oem as u8,
@@ -107,12 +109,12 @@ impl TesseractBackend {
     /// Convert OcrConfig to internal TesseractConfig.
     ///
     /// Uses tesseract_config from OcrConfig if provided, otherwise uses defaults
-    /// with the language from OcrConfig.
+    /// with the language from OcrConfig. Multi-language configs are joined with "+".
     fn config_to_tesseract(&self, config: &OcrConfig) -> InternalTesseractConfig {
         let mut internal = match &config.tesseract_config {
             Some(tess_config) => Self::convert_config(tess_config),
             None => InternalTesseractConfig {
-                language: config.language.clone(),
+                language: config.language.join("+"),
                 ..Default::default()
             },
         };
@@ -473,7 +475,7 @@ mod tests {
         let backend = TesseractBackend::new();
         let ocr_config = OcrConfig {
             backend: "tesseract".to_string(),
-            language: "deu".to_string(),
+            language: vec!["deu".to_string()],
             ..Default::default()
         };
 
@@ -486,7 +488,7 @@ mod tests {
     fn test_config_to_tesseract_with_some() {
         let backend = TesseractBackend::new();
         let custom_tess_config = crate::types::TesseractConfig {
-            language: "fra".to_string(),
+            language: vec!["fra".to_string()],
             psm: 6,
             enable_table_detection: true,
             ..Default::default()
@@ -494,7 +496,7 @@ mod tests {
 
         let ocr_config = OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(custom_tess_config),
             ..Default::default()
         };
@@ -526,7 +528,7 @@ mod tests {
         };
 
         let custom_tess_config = crate::types::TesseractConfig {
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             psm: 6,
             output_format: "markdown".to_string(),
             oem: 1,
@@ -538,7 +540,7 @@ mod tests {
 
         let ocr_config = OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(custom_tess_config),
             ..Default::default()
         };
@@ -563,7 +565,7 @@ mod tests {
     #[test]
     fn test_convert_config_type_conversions() {
         let public_config = crate::types::TesseractConfig {
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             psm: 6,
             oem: 3,
             table_column_threshold: 100,

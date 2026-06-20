@@ -57,10 +57,13 @@ impl OcrBackend for VlmOcrBackend {
         // Detect MIME type from image bytes
         let mime = infer::get(image_bytes).map(|t| t.mime_type()).unwrap_or("image/png");
 
+        // Use the first language from the list (primary language)
+        let lang_str = config.language.first().map(|s| s.as_str()).unwrap_or("eng");
+
         let (text, usage) = vlm_ocr(
             image_bytes,
             mime,
-            &config.language,
+            lang_str,
             vlm_config,
             config.vlm_prompt.as_deref(),
         )
