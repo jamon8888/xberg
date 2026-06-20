@@ -231,11 +231,15 @@ pub use presets::{
 pub use text::{ReductionLevel, TokenReductionConfig};
 
 // `ner-llm` is liter-llm (HTTP) + pure-Rust `ner`; it has no ORT dependency, so it
-// is enabled on the x86_64 Android emulator via `android-target`. The real
-// `LlmBackend` must therefore be re-exported wherever the feature is on — gating it
-// out for android x86_64 left the symbol undefined (the `not(feature = "ner-llm")`
-// stub below is also excluded when the feature is on), breaking the Dart FRB dispatch.
-#[cfg(all(feature = "ner-llm", not(target_arch = "wasm32")))]
+// is enabled on the x86_64 Android emulator via `android-target`. However, the
+// `text::ner::llm` module itself is gated out on android x86_64 (upstream linkage
+// constraint), so the re-export must carry the same exclusion to avoid E0432.
+// The stub below covers both the no-ner-llm case and the android-x86_64+ner-llm case.
+#[cfg(all(
+    feature = "ner-llm",
+    not(target_arch = "wasm32"),
+    not(all(target_os = "android", target_arch = "x86_64"))
+))]
 pub use text::ner::llm::LlmBackend;
 
 // Re-export the NerBackend trait at crate root so consumers (e.g. the alef-generated
@@ -244,18 +248,23 @@ pub use text::ner::llm::LlmBackend;
 #[cfg(feature = "ner-llm")]
 pub use text::ner::NerBackend;
 
-// Stub for every config that drops ner-llm: WASM, all Android arches, all iOS
-// arches, Windows. Previously narrowed to (wasm32 OR android x86_64 OR windows)
-// — but with the iOS/Android-wide target gates added to the binding crates,
-// aarch64-apple-ios and aarch64-linux-android would hit the missing-symbol
-// error too. Simplest gate: any target compiled WITHOUT `ner-llm`.
-#[cfg(not(feature = "ner-llm"))]
+// Stub for every config where the real `text::ner::llm` module is absent:
+//   (a) `ner-llm` feature is off entirely, OR
+//   (b) `ner-llm` is on but we are on android x86_64 (module gated out there).
+// This ensures `LlmBackend` is always in scope for alef-generated bindings.
+#[cfg(any(
+    not(feature = "ner-llm"),
+    all(target_os = "android", target_arch = "x86_64")
+))]
 #[derive(Clone, Debug)]
 pub struct LlmBackend {
     _config: LlmConfig,
 }
 
-#[cfg(not(feature = "ner-llm"))]
+#[cfg(any(
+    not(feature = "ner-llm"),
+    all(target_os = "android", target_arch = "x86_64")
+))]
 impl LlmBackend {
     pub fn new(config: LlmConfig) -> Self {
         Self { _config: config }
