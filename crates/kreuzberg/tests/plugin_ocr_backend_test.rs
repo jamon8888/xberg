@@ -29,7 +29,7 @@ struct MockOcrBackend {
     name: String,
     return_text: String,
     call_count: AtomicUsize,
-    last_language: Mutex<String>,
+    last_language: Mutex<Vec<String>>,
     initialized: AtomicBool,
 }
 
@@ -66,7 +66,7 @@ impl OcrBackend for MockOcrBackend {
 
         use std::borrow::Cow;
         Ok(ExtractionResult {
-            content: format!("{} (lang: {})", self.return_text, config.language),
+            content: format!("{} (lang: {})", self.return_text, config.language.join(",")),
             mime_type: Cow::Borrowed("text/plain"),
             ..Default::default()
         })
@@ -311,7 +311,7 @@ fn test_register_custom_ocr_backend() {
         name: "test-ocr".to_string(),
         return_text: "Mocked OCR Result".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -355,7 +355,7 @@ fn test_ocr_backend_used_for_image_extraction() {
         name: "extraction-test-ocr".to_string(),
         return_text: "CUSTOM OCR TEXT".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -367,7 +367,7 @@ fn test_ocr_backend_used_for_image_extraction() {
 
     let ocr_config = OcrConfig {
         backend: "extraction-test-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -416,7 +416,7 @@ fn test_ocr_backend_receives_correct_parameters() {
         name: "param-test-ocr".to_string(),
         return_text: "Test".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -428,7 +428,7 @@ fn test_ocr_backend_receives_correct_parameters() {
 
     let ocr_config = OcrConfig {
         backend: "param-test-ocr".to_string(),
-        language: "deu".to_string(),
+        language: vec!["deu".to_string()],
         ..Default::default()
     };
 
@@ -443,7 +443,7 @@ fn test_ocr_backend_receives_correct_parameters() {
     assert!(result.is_ok());
 
     let last_lang = backend.last_language.lock().expect("Operation failed");
-    assert_eq!(*last_lang, "deu", "Language parameter not passed correctly");
+    assert_eq!(*last_lang, vec!["deu".to_string()], "Language parameter not passed correctly");
 
     let extraction_result = result.expect("Operation failed");
     assert!(extraction_result.content.contains("(lang: deu)"));
@@ -477,7 +477,7 @@ fn test_ocr_backend_returns_correct_format() {
 
     let ocr_config = OcrConfig {
         backend: "format-test-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -528,7 +528,7 @@ fn test_ocr_backend_error_handling() {
 
     let ocr_config = OcrConfig {
         backend: "failing-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -579,7 +579,7 @@ fn test_ocr_backend_validation_error() {
 
     let ocr_config = OcrConfig {
         backend: "validating-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -622,7 +622,7 @@ fn test_switching_between_ocr_backends() {
         name: "backend-1".to_string(),
         return_text: "BACKEND ONE OUTPUT".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -630,7 +630,7 @@ fn test_switching_between_ocr_backends() {
         name: "backend-2".to_string(),
         return_text: "BACKEND TWO OUTPUT".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -644,7 +644,7 @@ fn test_switching_between_ocr_backends() {
 
     let ocr_config1 = OcrConfig {
         backend: "backend-1".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -667,7 +667,7 @@ fn test_switching_between_ocr_backends() {
 
     let ocr_config2 = OcrConfig {
         backend: "backend-2".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -709,7 +709,7 @@ fn test_ocr_backend_language_support() {
         name: "lang-test-ocr".to_string(),
         return_text: "Test".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -744,7 +744,7 @@ fn test_ocr_backend_type() {
         name: "type-test".to_string(),
         return_text: "Test".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     };
 
@@ -766,7 +766,7 @@ fn test_ocr_backend_invalid_name() {
         name: "invalid name".to_string(),
         return_text: "Test".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -802,7 +802,7 @@ fn test_ocr_backend_initialization_lifecycle() {
         name: "lifecycle-ocr".to_string(),
         return_text: "Test".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -848,7 +848,7 @@ fn test_unregister_ocr_backend() {
         name: "unregister-ocr".to_string(),
         return_text: "Test".to_string(),
         call_count: AtomicUsize::new(0),
-        last_language: Mutex::new(String::new()),
+        last_language: Mutex::new(Vec::new()),
         initialized: AtomicBool::new(false),
     });
 
@@ -903,7 +903,7 @@ fn test_ocr_backend_document_processing_fallback() {
 
     let ocr_config = OcrConfig {
         backend: "fallback-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -970,7 +970,7 @@ fn test_ocr_backend_document_processing_override() {
 
     let ocr_config = OcrConfig {
         backend: "override-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 
@@ -1033,7 +1033,7 @@ fn test_ocr_backend_document_processing_missing_path_fallback() {
 
     let ocr_config = OcrConfig {
         backend: "missing-path-ocr".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     };
 

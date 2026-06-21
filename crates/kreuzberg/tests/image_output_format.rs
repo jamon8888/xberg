@@ -417,7 +417,7 @@ fn ocr_runs_before_reencode() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,

@@ -387,7 +387,7 @@ max_overlap = 300
 
     let ocr_config = config.ocr.expect("Operation failed");
     assert_eq!(ocr_config.backend, "tesseract");
-    assert_eq!(ocr_config.language, "deu");
+    assert_eq!(ocr_config.language, vec!["deu".to_string()]);
 
     let chunking_config = config.chunking.expect("Operation failed");
     assert_eq!(chunking_config.max_characters, 2000);
@@ -479,7 +479,7 @@ async fn test_extraction_with_ocr_config() {
     let config = ExtractionConfig {
         ocr: Some(kreuzberg::OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,

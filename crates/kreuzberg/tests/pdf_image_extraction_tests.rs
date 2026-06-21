@@ -927,7 +927,7 @@ fn test_include_page_rasters_produces_rasters_on_force_ocr_pdf() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -1020,7 +1020,7 @@ fn test_include_page_rasters_false_does_not_capture_rasters() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -1073,7 +1073,7 @@ fn test_include_page_rasters_on_force_ocr_pages_path() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr_pages: Some(vec![1]),
@@ -1150,7 +1150,7 @@ fn test_include_page_rasters_no_warning_on_out_of_range_pages() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr_pages: Some(vec![99]),

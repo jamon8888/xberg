@@ -165,7 +165,7 @@ fn test_ocr_quality_simple_text_high_accuracy() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -239,7 +239,7 @@ fn test_ocr_quality_numeric_accuracy() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -304,7 +304,7 @@ fn test_ocr_quality_layout_preservation() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -363,7 +363,7 @@ fn test_ocr_quality_technical_document() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -407,7 +407,7 @@ fn test_ocr_consistency_across_runs() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -469,7 +469,7 @@ fn test_ocr_consistency_with_different_psm() {
     let config_psm3 = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(kreuzberg::types::TesseractConfig {
                 psm: 3,
                 ..Default::default()
@@ -483,7 +483,7 @@ fn test_ocr_consistency_with_different_psm() {
     let config_psm6 = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(kreuzberg::types::TesseractConfig {
                 psm: 6,
                 ..Default::default()
@@ -557,7 +557,7 @@ fn test_ocr_quality_multi_page_consistency() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -604,7 +604,7 @@ fn test_ocr_quality_with_tables() {
     let ocr_config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(kreuzberg::types::TesseractConfig {
                 enable_table_detection: true,
                 table_min_confidence: 0.5,

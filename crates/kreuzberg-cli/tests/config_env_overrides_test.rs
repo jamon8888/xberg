@@ -8,7 +8,7 @@ fn test_regression_773_env_override_loading() {
     let mut config = ExtractionConfig::default();
 
     if let Some(ref ocr) = config.ocr {
-        assert_ne!(ocr.language, "fra");
+        assert_ne!(ocr.language, vec!["fra".to_string()]);
     }
 
     unsafe { std::env::set_var("KREUZBERG_OCR_LANGUAGE", "fra") };
@@ -18,7 +18,7 @@ fn test_regression_773_env_override_loading() {
     let ocr = config
         .ocr
         .expect("OCR config should be Some when KREUZBERG_OCR_LANGUAGE is set");
-    assert_eq!(ocr.language, "fra");
+    assert_eq!(ocr.language, vec!["fra".to_string()]);
 }
 
 #[test]

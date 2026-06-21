@@ -114,7 +114,7 @@ fn test_cli_complex_config_deserialization() {
 
     let ocr = config.ocr.unwrap();
     assert_eq!(ocr.backend, "tesseract");
-    assert_eq!(ocr.language, "eng");
+    assert_eq!(ocr.language, vec!["eng".to_string()]);
 
     let chunking = config.chunking.unwrap();
     assert_eq!(chunking.max_characters, 2000);

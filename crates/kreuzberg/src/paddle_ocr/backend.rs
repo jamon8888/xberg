@@ -715,7 +715,7 @@ mod tests {
         let backend = PaddleOcrBackend::new().unwrap();
         let config = OcrConfig {
             backend: "paddle-ocr".to_string(),
-            language: "ch".to_string(),
+            language: vec!["ch".to_string()],
             ..Default::default()
         };
 

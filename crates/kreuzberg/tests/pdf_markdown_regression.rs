@@ -666,7 +666,7 @@ fn extract_ocr(pdf_path: &std::path::Path) -> Option<kreuzberg::types::Extractio
         output_format: OutputFormat::Plain,
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,

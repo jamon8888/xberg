@@ -24,7 +24,7 @@ fn test_docx_ocr_content_injection() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         images: Some(ImageExtractionConfig {

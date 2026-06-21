@@ -72,7 +72,7 @@ async fn run_vlm_ocr(model: &str, api_key: String) {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "vlm".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             vlm_config: Some(llm(model, api_key)),
             ..Default::default()
         }),
@@ -215,7 +215,7 @@ async fn test_vlm_fallback_always_routes_to_vlm() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             vlm_fallback: VlmFallbackPolicy::Always,
             vlm_config: Some(llm("openai/gpt-4o-mini", api_key)),
             ..Default::default()
@@ -252,7 +252,7 @@ async fn test_vlm_fallback_on_low_quality() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             vlm_fallback: VlmFallbackPolicy::OnLowQuality {
                 quality_threshold: 0.95,
             },
@@ -302,7 +302,7 @@ async fn test_vlm_fallback_disabled_does_not_call_llm() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             vlm_fallback: VlmFallbackPolicy::Disabled,
             vlm_config: None,
             ..Default::default()

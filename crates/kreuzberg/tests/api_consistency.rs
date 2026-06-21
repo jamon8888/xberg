@@ -295,7 +295,7 @@ fn test_extraction_config_needs_image_processing() {
     // With OCR enabled, should need image processing
     config.ocr = Some(kreuzberg::OcrConfig {
         backend: "tesseract".to_string(),
-        language: "eng".to_string(),
+        language: vec!["eng".to_string()],
         ..Default::default()
     });
     assert!(

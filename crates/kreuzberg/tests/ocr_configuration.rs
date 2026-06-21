@@ -30,7 +30,7 @@ fn test_ocr_language_english() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: false,
@@ -55,7 +55,7 @@ fn test_ocr_language_german() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "deu".to_string(),
+            language: vec!["deu".to_string()],
             ..Default::default()
         }),
         force_ocr: false,
@@ -93,7 +93,7 @@ fn test_ocr_language_multiple() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng+kor".to_string(),
+            language: vec!["eng+kor".to_string()],
             ..Default::default()
         }),
         force_ocr: false,
@@ -131,7 +131,7 @@ fn test_ocr_psm_auto() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 psm: 3,
                 ..Default::default()
@@ -160,7 +160,7 @@ fn test_ocr_psm_single_block() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 psm: 6,
                 ..Default::default()
@@ -189,7 +189,7 @@ fn test_ocr_psm_single_line() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 psm: 7,
                 ..Default::default()
@@ -219,7 +219,7 @@ fn test_force_ocr_on_text_pdf() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true,
@@ -249,7 +249,7 @@ fn test_force_ocr_disabled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: false,
@@ -278,7 +278,7 @@ fn test_table_detection_enabled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 enable_table_detection: true,
                 table_min_confidence: 0.5,
@@ -310,7 +310,7 @@ fn test_table_detection_disabled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 enable_table_detection: false,
                 ..Default::default()
@@ -339,7 +339,7 @@ fn test_language_model_ngram_configuration() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 language_model_ngram_on: true,
                 ..Default::default()
@@ -369,7 +369,7 @@ fn test_dictionary_correction_enabled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 tessedit_enable_dict_correction: true,
                 ..Default::default()
@@ -399,7 +399,7 @@ fn test_character_whitelist() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ".to_string(),
                 ..Default::default()
@@ -428,7 +428,7 @@ fn test_ocr_cache_enabled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 use_cache: true,
                 ..Default::default()
@@ -468,7 +468,7 @@ fn test_ocr_cache_disabled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 use_cache: false,
                 ..Default::default()
@@ -498,7 +498,7 @@ fn test_complex_configuration_combination() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             tesseract_config: Some(TesseractConfig {
                 psm: 3,
                 enable_table_detection: true,

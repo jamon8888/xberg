@@ -281,7 +281,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             // and falls back to tesseract OCR only when needed.
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -290,7 +290,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -299,7 +299,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             layout: Some(LayoutDetectionConfig::default()),
@@ -309,7 +309,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "paddleocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 auto_rotate: true,
                 ..Default::default()
             }),
@@ -319,7 +319,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "paddleocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 auto_rotate: true,
                 ..Default::default()
             }),
@@ -330,7 +330,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "paddleocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 auto_rotate: true,
                 paddle_ocr_config: Some(serde_json::json!({"model_tier": "server"})),
                 ..Default::default()
@@ -341,7 +341,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "paddleocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 auto_rotate: true,
                 paddle_ocr_config: Some(serde_json::json!({"model_tier": "server"})),
                 ..Default::default()
@@ -353,7 +353,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 auto_rotate: true,
                 ..Default::default()
             }),
@@ -363,7 +363,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "paddleocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 auto_rotate: false,
                 ..Default::default()
             }),
@@ -376,7 +376,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             }),
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -393,7 +393,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             use_layout_for_markdown: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -409,7 +409,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             use_layout_for_markdown: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -422,7 +422,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             }),
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -434,7 +434,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             }),
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -446,7 +446,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             }),
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -455,7 +455,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-trocr".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -464,7 +464,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-paddleocr-vl".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -473,7 +473,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-glm-ocr".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -482,7 +482,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-glm-ocr".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             layout: Some(LayoutDetectionConfig::default()),
@@ -492,7 +492,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-glm-ocr".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             layout: Some(LayoutDetectionConfig {
@@ -505,7 +505,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-hunyuan-ocr".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -514,7 +514,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-deepseek-ocr".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             ..base
@@ -523,7 +523,7 @@ pub fn build_extraction_config(pipeline: Pipeline) -> kreuzberg::ExtractionConfi
             force_ocr: true,
             ocr: Some(kreuzberg::core::config::OcrConfig {
                 backend: "candle-paddleocr-vl".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             ..base

@@ -38,7 +38,7 @@ fn test_ocr_content_not_doubled() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         pages: Some(PageConfig {
@@ -111,7 +111,7 @@ fn test_ocr_page_content_matches_top_level_content() {
     let config = ExtractionConfig {
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         pages: Some(PageConfig {

@@ -1289,7 +1289,7 @@ mod tests {
             use_cache: false,
             ocr: Some(crate::OcrConfig {
                 backend: "tesseract".to_string(),
-                language: "spa".to_string(),
+                language: vec!["spa".to_string()],
                 ..Default::default()
             }),
             ..Default::default()

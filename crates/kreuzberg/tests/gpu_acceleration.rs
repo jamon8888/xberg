@@ -133,7 +133,7 @@ mod paddle_ocr_cuda {
 
         let ocr_config = OcrConfig {
             backend: "paddle-ocr".to_string(),
-            language: "en".to_string(),
+            language: vec!["en".to_string()],
             acceleration: Some(cuda_accel()),
             ..Default::default()
         };
@@ -162,7 +162,7 @@ mod paddle_ocr_cuda {
 
         let ocr_config = OcrConfig {
             backend: "paddle-ocr".to_string(),
-            language: "en".to_string(),
+            language: vec!["en".to_string()],
             acceleration: Some(cuda_accel()),
             ..Default::default()
         };
@@ -188,7 +188,7 @@ mod paddle_ocr_cuda {
 
         let ocr_config = OcrConfig {
             backend: "paddle-ocr".to_string(),
-            language: "ch".to_string(),
+            language: vec!["ch".to_string()],
             acceleration: Some(cuda_accel()),
             ..Default::default()
         };
@@ -214,7 +214,7 @@ mod paddle_ocr_cuda {
 
         let ocr_config = OcrConfig {
             backend: "paddle-ocr".to_string(),
-            language: "en".to_string(),
+            language: vec!["en".to_string()],
             acceleration: Some(cuda_accel()),
             ..Default::default()
         };
@@ -374,7 +374,7 @@ mod doc_orientation_cuda {
 
         let ocr_config = OcrConfig {
             backend: "paddle-ocr".to_string(),
-            language: "en".to_string(),
+            language: vec!["en".to_string()],
             auto_rotate: true,
             acceleration: Some(cuda_accel()),
             ..Default::default()
@@ -409,7 +409,7 @@ mod e2e_cuda {
         let config = kreuzberg::ExtractionConfig {
             ocr: Some(OcrConfig {
                 backend: "paddle-ocr".to_string(),
-                language: "en".to_string(),
+                language: vec!["en".to_string()],
                 ..Default::default()
             }),
             acceleration: Some(cuda_accel()),

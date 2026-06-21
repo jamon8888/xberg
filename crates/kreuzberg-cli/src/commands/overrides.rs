@@ -963,7 +963,7 @@ mod tests {
         overrides.apply(&mut config);
         let ocr = config.ocr.unwrap();
         assert_eq!(ocr.backend, "tesseract");
-        assert_eq!(ocr.language, "eng");
+        assert_eq!(ocr.language, vec!["eng".to_string()]);
     }
 
     #[test]
@@ -977,7 +977,7 @@ mod tests {
         overrides.apply(&mut config);
         let ocr = config.ocr.unwrap();
         assert_eq!(ocr.backend, "paddle-ocr");
-        assert_eq!(ocr.language, "en");
+        assert_eq!(ocr.language, vec!["en".to_string()]);
     }
 
     #[test]
@@ -991,7 +991,7 @@ mod tests {
         overrides.apply(&mut config);
         let ocr = config.ocr.unwrap();
         assert_eq!(ocr.backend, "easyocr");
-        assert_eq!(ocr.language, "en");
+        assert_eq!(ocr.language, vec!["en".to_string()]);
     }
 
     #[test]
@@ -1005,7 +1005,7 @@ mod tests {
         overrides.apply(&mut config);
         let ocr = config.ocr.unwrap();
         assert_eq!(ocr.backend, "tesseract");
-        assert_eq!(ocr.language, "fra");
+        assert_eq!(ocr.language, vec!["fra".to_string()]);
     }
 
     #[test]
@@ -1020,7 +1020,7 @@ mod tests {
         overrides.apply(&mut config);
         let ocr = config.ocr.unwrap();
         assert_eq!(ocr.backend, "paddle-ocr");
-        assert_eq!(ocr.language, "ch");
+        assert_eq!(ocr.language, vec!["ch".to_string()]);
     }
 
     #[test]
@@ -1041,7 +1041,7 @@ mod tests {
             ocr: Some(OcrConfig {
                 enabled: true,
                 backend: "tesseract".to_string(),
-                language: "eng".to_string(),
+                language: vec!["eng".to_string()],
                 tesseract_config: None,
                 output_format: None,
                 paddle_ocr_config: None,
@@ -1065,7 +1065,7 @@ mod tests {
         overrides.apply(&mut config);
         let ocr = config.ocr.unwrap();
         assert_eq!(ocr.backend, "tesseract");
-        assert_eq!(ocr.language, "deu");
+        assert_eq!(ocr.language, vec!["deu".to_string()]);
     }
 
     #[test]

@@ -18,7 +18,7 @@ fn ocr_markdown_config() -> ExtractionConfig {
         output_format: OutputFormat::Markdown,
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: false,
@@ -32,7 +32,7 @@ fn ocr_plain_config() -> ExtractionConfig {
         output_format: OutputFormat::Plain,
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: false,

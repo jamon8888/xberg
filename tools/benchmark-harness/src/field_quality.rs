@@ -412,7 +412,7 @@ fn build_layout_config() -> kreuzberg::ExtractionConfig {
         force_ocr: true,
         ocr: Some(kreuzberg::core::config::OcrConfig {
             backend: "candle-glm-ocr".to_string(),
-            language: "en".to_string(),
+            language: vec!["en".to_string()],
             ..Default::default()
         }),
         layout: Some(kreuzberg::LayoutDetectionConfig::default()),

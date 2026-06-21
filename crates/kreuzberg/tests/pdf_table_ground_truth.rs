@@ -240,7 +240,7 @@ fn test_ocr_path_table_document() {
         output_format: OutputFormat::Markdown,
         ocr: Some(OcrConfig {
             backend: "tesseract".to_string(),
-            language: "eng".to_string(),
+            language: vec!["eng".to_string()],
             ..Default::default()
         }),
         force_ocr: true, // Force OCR since this is image-only
