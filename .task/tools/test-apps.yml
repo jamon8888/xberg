@@ -119,7 +119,7 @@ tasks:
     desc: Run Kotlin Android test_app smoke test
     dir: "{{.ROOT_DIR}}/test_apps/kotlin_android"
     cmds:
-      - ./gradlew test --tests "*SmokeTest"
+      - ./gradlew testDebugUnitTest --tests "*SmokeTest"
 
   comprehensive:
     desc: Run all test_app comprehensive tests
