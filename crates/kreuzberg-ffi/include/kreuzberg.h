@@ -4998,6 +4998,13 @@ KREUZBERGAccelerationConfig *kreuzberg_ocr_config_acceleration(const KREUZBERGOc
 char *kreuzberg_ocr_config_tessdata_bytes(const KREUZBERGOcrConfig *ptr);
 
 /**
+ * Get the `tessdata_path` field from a `OcrConfig`.
+ * # Safety
+ * Pointer must be a valid handle returned by this library.
+ */
+char *kreuzberg_ocr_config_tessdata_path(const KREUZBERGOcrConfig *ptr);
+
+/**
  * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
  * freed with the appropriate free function.
  */

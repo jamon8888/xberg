@@ -6,7 +6,7 @@
 // `cargo build -p kreuzberg-swift` via swift_bridge_build.
 
 #include <stdint.h>
-#include <stdbool.h>
+#include <stdbool.h> 
 typedef struct RustStr { uint8_t* const start; uintptr_t len; } RustStr;
 typedef struct __private__FfiSlice { void* const start; uintptr_t len; } __private__FfiSlice;
 void* __swift_bridge__null_pointer(void);
@@ -3060,7 +3060,7 @@ void* __swift_bridge__$OcrPipelineStage$vlm_config(void* self);
 void* __swift_bridge__$OcrPipelineStage$backend_options(void* self);
 void* __swift_bridge__$OcrPipelineConfig$stages(void* self);
 void* __swift_bridge__$OcrPipelineConfig$quality_thresholds(void* self);
-void* __swift_bridge__$OcrConfig$new(bool enabled, void* backend, void* language, void* tesseract_config, void* output_format, void* paddle_ocr_config, void* backend_options, void* element_config, void* quality_thresholds, void* pipeline, bool auto_rotate, void* vlm_fallback, void* vlm_config, void* vlm_prompt, void* acceleration, void* tessdata_bytes);
+void* __swift_bridge__$OcrConfig$new(bool enabled, void* backend, void* language, void* tesseract_config, void* output_format, void* paddle_ocr_config, void* backend_options, void* element_config, void* quality_thresholds, void* pipeline, bool auto_rotate, void* vlm_fallback, void* vlm_config, void* vlm_prompt, void* acceleration, void* tessdata_bytes, void* tessdata_path);
 bool __swift_bridge__$OcrConfig$enabled(void* self);
 void* __swift_bridge__$OcrConfig$backend(void* self);
 void* __swift_bridge__$OcrConfig$language(void* self);
@@ -3077,6 +3077,7 @@ void* __swift_bridge__$OcrConfig$vlm_config(void* self);
 void* __swift_bridge__$OcrConfig$vlm_prompt(void* self);
 void* __swift_bridge__$OcrConfig$acceleration(void* self);
 void* __swift_bridge__$OcrConfig$tessdata_bytes(void* self);
+void* __swift_bridge__$OcrConfig$tessdata_path(void* self);
 void* __swift_bridge__$PageConfig$new(bool extract_pages, bool insert_page_markers, void* marker_format);
 bool __swift_bridge__$PageConfig$extract_pages(void* self);
 bool __swift_bridge__$PageConfig$insert_page_markers(void* self);
@@ -4480,6 +4481,7 @@ void* __swift_bridge__$__alef_phantom_vec_region_kind(void);
 void* __swift_bridge__$__alef_phantom_vec_psm_mode(void);
 void* __swift_bridge__$__alef_phantom_vec_paddle_language(void);
 void* __swift_bridge__$__alef_phantom_vec_layout_class(void);
+
 
 
 #endif /* RUST_BRIDGE_C_H */

@@ -4230,8 +4230,8 @@ public class OcrConfig: OcrConfigRefMut {
     }
 }
 extension OcrConfig {
-    public convenience init<GenericIntoRustString: IntoRustString>(_ enabled: Bool, _ backend: GenericIntoRustString, _ language: RustVec<GenericIntoRustString>, _ tesseract_config: Optional<TesseractConfig>, _ output_format: Optional<OutputFormat>, _ paddle_ocr_config: Optional<GenericIntoRustString>, _ backend_options: Optional<GenericIntoRustString>, _ element_config: Optional<OcrElementConfig>, _ quality_thresholds: Optional<OcrQualityThresholds>, _ pipeline: Optional<OcrPipelineConfig>, _ auto_rotate: Bool, _ vlm_fallback: VlmFallbackPolicy, _ vlm_config: Optional<LlmConfig>, _ vlm_prompt: Optional<GenericIntoRustString>, _ acceleration: Optional<AccelerationConfig>, _ tessdata_bytes: GenericIntoRustString) {
-        self.init(ptr: __swift_bridge__$OcrConfig$new(enabled, { let rustString = backend.intoRustString(); rustString.isOwned = false; return rustString.ptr }(), { let val = language; val.isOwned = false; return val.ptr }(), { if let val = tesseract_config { val.isOwned = false; return val.ptr } else { return nil } }(), { if let val = output_format { val.isOwned = false; return val.ptr } else { return nil } }(), { if let rustString = optionalStringIntoRustString(paddle_ocr_config) { rustString.isOwned = false; return rustString.ptr } else { return nil } }(), { if let rustString = optionalStringIntoRustString(backend_options) { rustString.isOwned = false; return rustString.ptr } else { return nil } }(), { if let val = element_config { val.isOwned = false; return val.ptr } else { return nil } }(), { if let val = quality_thresholds { val.isOwned = false; return val.ptr } else { return nil } }(), { if let val = pipeline { val.isOwned = false; return val.ptr } else { return nil } }(), auto_rotate, {vlm_fallback.isOwned = false; return vlm_fallback.ptr;}(), { if let val = vlm_config { val.isOwned = false; return val.ptr } else { return nil } }(), { if let rustString = optionalStringIntoRustString(vlm_prompt) { rustString.isOwned = false; return rustString.ptr } else { return nil } }(), { if let val = acceleration { val.isOwned = false; return val.ptr } else { return nil } }(), { let rustString = tessdata_bytes.intoRustString(); rustString.isOwned = false; return rustString.ptr }()))
+    public convenience init<GenericIntoRustString: IntoRustString>(_ enabled: Bool, _ backend: GenericIntoRustString, _ language: RustVec<GenericIntoRustString>, _ tesseract_config: Optional<TesseractConfig>, _ output_format: Optional<OutputFormat>, _ paddle_ocr_config: Optional<GenericIntoRustString>, _ backend_options: Optional<GenericIntoRustString>, _ element_config: Optional<OcrElementConfig>, _ quality_thresholds: Optional<OcrQualityThresholds>, _ pipeline: Optional<OcrPipelineConfig>, _ auto_rotate: Bool, _ vlm_fallback: VlmFallbackPolicy, _ vlm_config: Optional<LlmConfig>, _ vlm_prompt: Optional<GenericIntoRustString>, _ acceleration: Optional<AccelerationConfig>, _ tessdata_bytes: GenericIntoRustString, _ tessdata_path: Optional<GenericIntoRustString>) {
+        self.init(ptr: __swift_bridge__$OcrConfig$new(enabled, { let rustString = backend.intoRustString(); rustString.isOwned = false; return rustString.ptr }(), { let val = language; val.isOwned = false; return val.ptr }(), { if let val = tesseract_config { val.isOwned = false; return val.ptr } else { return nil } }(), { if let val = output_format { val.isOwned = false; return val.ptr } else { return nil } }(), { if let rustString = optionalStringIntoRustString(paddle_ocr_config) { rustString.isOwned = false; return rustString.ptr } else { return nil } }(), { if let rustString = optionalStringIntoRustString(backend_options) { rustString.isOwned = false; return rustString.ptr } else { return nil } }(), { if let val = element_config { val.isOwned = false; return val.ptr } else { return nil } }(), { if let val = quality_thresholds { val.isOwned = false; return val.ptr } else { return nil } }(), { if let val = pipeline { val.isOwned = false; return val.ptr } else { return nil } }(), auto_rotate, {vlm_fallback.isOwned = false; return vlm_fallback.ptr;}(), { if let val = vlm_config { val.isOwned = false; return val.ptr } else { return nil } }(), { if let rustString = optionalStringIntoRustString(vlm_prompt) { rustString.isOwned = false; return rustString.ptr } else { return nil } }(), { if let val = acceleration { val.isOwned = false; return val.ptr } else { return nil } }(), { let rustString = tessdata_bytes.intoRustString(); rustString.isOwned = false; return rustString.ptr }(), { if let rustString = optionalStringIntoRustString(tessdata_path) { rustString.isOwned = false; return rustString.ptr } else { return nil } }()))
     }
 }
 public class OcrConfigRefMut: OcrConfigRef {
@@ -4309,6 +4309,10 @@ extension OcrConfigRef {
 
     public func tessdataBytes() -> RustString {
         RustString(ptr: __swift_bridge__$OcrConfig$tessdata_bytes(ptr))
+    }
+
+    public func tessdataPath() -> Optional<RustString> {
+        { let val = __swift_bridge__$OcrConfig$tessdata_path(ptr); if val != nil { return RustString(ptr: val!) } else { return nil } }()
     }
 }
 extension OcrConfig: Vectorizable {
@@ -23421,3 +23425,6 @@ func __swift_bridge__SwiftRendererBox__free (ptr: UnsafeMutableRawPointer) {
 func __swift_bridge__SwiftRerankerBackendBox__free (ptr: UnsafeMutableRawPointer) {
     let _ = Unmanaged<SwiftRerankerBackendBox>.fromOpaque(ptr).takeRetainedValue()
 }
+
+
+
