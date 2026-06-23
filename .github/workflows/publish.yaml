@@ -595,11 +595,21 @@ jobs:
         with:
           ort-version: "1.24.2"
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - name: Build NAPI binding
         uses: kreuzberg-dev/actions/build-node-napi@v1
         with:
           crate-dir: crates/kreuzberg-node
           build-command: pnpm exec napi build --release --target ${{ matrix.target }} --platform
+          use-napi-cross: ${{ contains(matrix.target, '-linux-gnu') }}
 
       - uses: actions/upload-artifact@v7
         with:
@@ -800,6 +810,15 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - uses: kreuzberg-dev/actions/build-rust-cli@v1
         id: build
         with:
@@ -812,6 +831,7 @@ jobs:
           # is deliberately excluded — it needs vcpkg libheif on the Windows
           # release target. Docker images already build with `--features all`.
           extra-cargo-args: --features mcp,mcp-http,api
+          glibc-version: "2.28"
 
       - name: Package CLI artifact
         # Inline: archive layout (.tar.gz on Unix, .zip on Windows) varies per
@@ -914,6 +934,15 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - uses: kreuzberg-dev/actions/build-go-ffi@v1
         with:
           target: ${{ matrix.target }}
@@ -922,6 +951,7 @@ jobs:
           header-path: crates/kreuzberg-ffi/include/kreuzberg.h
           archive-name: kreuzberg-go-${{ matrix.platform }}.tar.gz
           output-dir: dist/go-ffi
+          glibc-version: "2.28"
 
       - uses: actions/upload-artifact@v7
         with:
@@ -957,10 +987,20 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - uses: kreuzberg-dev/actions/build-rust-ffi@v1
         with:
           crate-name: kreuzberg-ffi
           target: ${{ matrix.target }}
+          glibc-version: ${{ contains(matrix.target, '-linux-gnu') && '2.28' || '' }}
 
       - name: Stage C FFI distribution
         # Inline: bundle library + header + LICENSE into a single tarball
@@ -1014,12 +1054,22 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - uses: kreuzberg-dev/actions/build-java-natives@v1
         with:
           target: ${{ matrix.target }}
           crate-name: kreuzberg-ffi
           lib-name: kreuzberg_ffi
           classifier: ${{ matrix.classifier }}
+          glibc-version: ${{ contains(matrix.target, '-linux-gnu') && '2.28' || '' }}
 
       - uses: actions/upload-artifact@v7
         with:
@@ -1135,12 +1185,22 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - uses: kreuzberg-dev/actions/build-csharp-natives@v1
         with:
           target: ${{ matrix.target }}
           crate-name: kreuzberg-ffi
           lib-name: kreuzberg_ffi
           rid: ${{ matrix.rid }}
+          glibc-version: ${{ contains(matrix.target, '-linux-gnu') && '2.28' || '' }}
 
       - uses: actions/upload-artifact@v7
         with:
@@ -1252,6 +1312,15 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+
       - uses: kreuzberg-dev/actions/build-elixir-natives@v1
         with:
           target: ${{ matrix.target }}
@@ -1260,6 +1329,7 @@ jobs:
           package-dir: packages/elixir
           nif-version: ${{ needs.prepare.outputs.version }}
           nif-api-version: ${{ matrix.nif }}
+          glibc-version: ${{ contains(matrix.target, '-linux-gnu') && '2.28' || '' }}
 
       - uses: actions/upload-artifact@v7
         with:
@@ -1433,9 +1503,29 @@ jobs:
         uses: ./.github/actions/setup-onnx-runtime
         with:
           ort-version: "1.24.2"
-      - name: Build Dart server native
-        run: cargo build --locked -p kreuzberg-dart --release --target ${{ matrix.target }}
+      - name: Setup Zig for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
+        uses: kreuzberg-dev/actions/setup-zig@v1
+      - name: Install cargo-zigbuild for glibc 2.28 floor
+        if: contains(matrix.target, '-linux-gnu')
         shell: bash
+        run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
+      - name: Build Dart server native
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="${{ matrix.target }}"
+          # `cargo zigbuild` REPLACES the `build` subcommand (no literal "build"
+          # after it), so bake the whole subcommand into BUILD_CMD.
+          BUILD_CMD="cargo build"
+          TARGET_ARG="$TARGET"
+          # Use zigbuild for linux-gnu targets to set glibc floor to 2.28
+          if [[ "$TARGET" == *"-linux-gnu" ]]; then
+            BUILD_CMD="cargo zigbuild"
+            TARGET_ARG="${TARGET}.2.28"
+            echo "[publish] glibc floor: 2.28 (target: ${TARGET_ARG})"
+          fi
+          ${BUILD_CMD} --locked -p kreuzberg-dart --release --target "${TARGET_ARG}"
       - name: Stage native library
         shell: bash
         env:
