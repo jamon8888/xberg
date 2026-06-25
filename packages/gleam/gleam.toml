@@ -1,5 +1,5 @@
 name = "xberg"
-version = "4.10.0-rc.15"
+version = "1.0.0-rc.1"
 description = "High-performance document intelligence library"
 licences = ["MIT"]
 target = "erlang"

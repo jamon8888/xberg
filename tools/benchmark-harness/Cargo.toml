@@ -8,6 +8,7 @@ license.workspace = true
 repository.workspace = true
 homepage = "https://xberg.io"
 default-run = "benchmark-harness"
+publish = false
 
 [lib]
 name = "benchmark_harness"
