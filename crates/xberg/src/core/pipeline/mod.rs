@@ -17,7 +17,7 @@ pub use format::apply_output_format;
 
 use crate::Result;
 use crate::core::config::ExtractionConfig;
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use crate::types::internal::InternalDocument;
 
 use execution::{execute_processor_stages, execute_validators};
@@ -26,7 +26,7 @@ use initialization::{get_processors_from_cache, initialize_features, initialize_
 
 /// Run the post-processing pipeline on an `InternalDocument`.
 ///
-/// Derives `ExtractedDocument` from `InternalDocument` via the derivation pipeline,
+/// Derives `ExtractionResult` from `InternalDocument` via the derivation pipeline,
 /// then executes post-processing in the following order:
 /// 1. Post-Processors - Execute by stage (Early, Middle, Late) to modify/enhance the result
 /// 2. Quality Processing - Text cleaning and quality scoring
@@ -55,7 +55,7 @@ use initialization::{get_processors_from_cache, initialize_features, initialize_
     )
 ))]
 #[cfg_attr(alef, alef(skip))]
-pub async fn run_pipeline(mut doc: InternalDocument, config: &ExtractionConfig) -> Result<ExtractedDocument> {
+pub async fn run_pipeline(mut doc: InternalDocument, config: &ExtractionConfig) -> Result<ExtractionResult> {
     // Propagate rendering preferences from config into the document.
     doc.ocr_text_only = config.images.as_ref().map(|i| i.ocr_text_only).unwrap_or(false);
     doc.append_ocr_text = config.images.as_ref().map(|i| i.append_ocr_text).unwrap_or(false);
@@ -133,7 +133,7 @@ pub async fn run_pipeline(mut doc: InternalDocument, config: &ExtractionConfig) 
         }
     };
 
-    // 2. Derive ExtractedDocument from InternalDocument
+    // 2. Derive ExtractionResult from InternalDocument
     // Clone the document before derivation consumes it so that downstream steps
     // (element-based result format) can walk the native reading order instead of
     // reassembling from per-page reconstruction. DOCX in particular has no native
@@ -303,7 +303,7 @@ pub async fn run_pipeline(mut doc: InternalDocument, config: &ExtractionConfig) 
 /// - Async validators
 #[cfg(not(feature = "tokio-runtime"))]
 #[cfg_attr(alef, alef(skip))]
-pub fn run_pipeline_sync(doc: InternalDocument, config: &ExtractionConfig) -> Result<ExtractedDocument> {
+pub fn run_pipeline_sync(doc: InternalDocument, config: &ExtractionConfig) -> Result<ExtractionResult> {
     // Pre-render markdown for chunker heading context (same logic as async path).
     #[cfg(feature = "chunking")]
     let chunker_heading_source = {
@@ -343,7 +343,7 @@ pub fn run_pipeline_sync(doc: InternalDocument, config: &ExtractionConfig) -> Re
         }
     };
 
-    // 1. Derive ExtractedDocument from InternalDocument
+    // 1. Derive ExtractionResult from InternalDocument
     // Clone the document before derivation so element-based transformation can use
     // the native reading order. Mirrors the async pipeline.
     let doc_for_elements = if config.result_format == crate::types::ResultFormat::ElementBased {
@@ -412,7 +412,7 @@ pub fn run_pipeline_sync(doc: InternalDocument, config: &ExtractionConfig) -> Re
 /// sanitization pass is still applied to SVG images if `config.svg.sanitize` is set.
 #[cfg(feature = "image-encode")]
 fn apply_output_format_pass(
-    result: &mut ExtractedDocument,
+    result: &mut ExtractionResult,
     config: &crate::core::config::extraction::ImageExtractionConfig,
 ) {
     use crate::core::config::extraction::ImageOutputFormat;
@@ -451,7 +451,7 @@ fn apply_output_format_pass(
 /// Populate `ExtractedImage::data_base64` when the caller opts in via
 /// `ImageExtractionConfig::include_data_base64`.
 fn apply_data_base64_pass(
-    result: &mut ExtractedDocument,
+    result: &mut ExtractionResult,
     config: &crate::core::config::extraction::ImageExtractionConfig,
 ) {
     if !config.include_data_base64 {
@@ -464,7 +464,7 @@ fn apply_data_base64_pass(
 }
 
 /// Transform to element-based output if requested by the config.
-fn apply_element_transform(result: &mut ExtractedDocument, config: &ExtractionConfig) {
+fn apply_element_transform(result: &mut ExtractionResult, config: &ExtractionConfig) {
     if config.result_format == crate::types::ResultFormat::ElementBased {
         result.elements = Some(crate::extraction::transform::transform_extraction_result_to_elements(
             result,
@@ -591,7 +591,7 @@ fn is_markdown_image_reference(text: &str) -> bool {
 ///
 /// Ensures consistent representation of composed characters (e.g., é vs e+combining accent)
 /// across all extraction backends (PDF, OCR, DOCX, HTML, etc.).
-fn normalize_nfc(result: &mut ExtractedDocument) {
+fn normalize_nfc(result: &mut ExtractionResult) {
     #[cfg(feature = "quality")]
     {
         use unicode_normalization::UnicodeNormalization;

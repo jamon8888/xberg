@@ -2,7 +2,7 @@
 //!
 //! Provides public APIs for converting between different representations:
 //! - DjotContent to djot markup
-//! - ExtractedDocument to djot markup
+//! - ExtractionResult to djot markup
 //! - Djot markup to HTML
 
 use super::rendering::render_block_to_djot;
@@ -45,15 +45,15 @@ pub fn djot_content_to_djot(content: &crate::types::DjotContent) -> String {
     output
 }
 
-/// Convert any ExtractedDocument to djot format.
+/// Convert any ExtractionResult to djot format.
 ///
-/// This function converts an `ExtractedDocument` to djot markup:
+/// This function converts an `ExtractionResult` to djot markup:
 /// - If `djot_content` is `Some`, uses `djot_content_to_djot` for full fidelity conversion
 /// - Otherwise, wraps the plain text content in paragraphs
 ///
 /// # Arguments
 ///
-/// * `result` - The ExtractedDocument to convert
+/// * `result` - The ExtractionResult to convert
 ///
 /// # Returns
 ///
@@ -66,7 +66,7 @@ pub fn djot_content_to_djot(content: &crate::types::DjotContent) -> String {
 /// let djot_markup = extraction_result_to_djot(&result)?;
 /// ```
 #[cfg_attr(alef, alef(skip))]
-pub fn extraction_result_to_djot(result: &crate::types::ExtractedDocument) -> crate::Result<String> {
+pub fn extraction_result_to_djot(result: &crate::types::ExtractionResult) -> crate::Result<String> {
     if let Some(ref djot_content) = result.djot_content {
         Ok(djot_content_to_djot(djot_content))
     } else {
@@ -120,9 +120,7 @@ pub(crate) fn djot_to_html(djot_source: &str) -> crate::Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{
-        BlockType, DjotContent, ExtractedDocument, FormattedBlock, InlineElement, InlineType, Metadata,
-    };
+    use crate::types::{BlockType, DjotContent, ExtractionResult, FormattedBlock, InlineElement, InlineType, Metadata};
 
     #[test]
     fn test_djot_content_to_djot_heading() {
@@ -156,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_extraction_result_to_djot_with_djot_content() {
-        let result = ExtractedDocument {
+        let result = ExtractionResult {
             content: "Test content".to_string(),
             mime_type: Cow::Borrowed("text/djot"),
             djot_content: Some(DjotContent {
@@ -191,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_extraction_result_to_djot_without_djot_content() {
-        let result = ExtractedDocument {
+        let result = ExtractionResult {
             content: "Paragraph one\n\nParagraph two".to_string(),
             mime_type: Cow::Borrowed("text/plain"),
             ..Default::default()

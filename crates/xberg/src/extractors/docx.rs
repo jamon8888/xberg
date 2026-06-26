@@ -296,7 +296,7 @@ fn build_document_structure(doc: &crate::extraction::docx::parser::Document) -> 
 /// Mirrors `build_document_structure` but outputs the flat `InternalDocument` representation.
 ///
 /// When `inject_placeholders` is `false`, `Drawing` elements are **not** pushed into the
-/// returned `InternalDocument`, so they will not appear in `ExtractedDocument::elements`.
+/// returned `InternalDocument`, so they will not appear in `ExtractionResult::elements`.
 /// Image data is still extracted separately by the caller.
 fn build_internal_document(
     doc: &crate::extraction::docx::parser::Document,
@@ -1338,7 +1338,7 @@ impl DocumentExtractor for DocxExtractor {
         }
 
         // Build PageContent from page boundaries and store as prebuilt_pages so
-        // derive_extraction_result can populate ExtractedDocument.pages.
+        // derive_extraction_result can populate ExtractionResult.pages.
         let page_contents = {
             let arc_tables: Vec<Arc<Table>> = tables.iter().map(|t| Arc::new(t.clone())).collect();
 

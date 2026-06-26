@@ -5,7 +5,7 @@
 
 use crate::core::config::ExtractionConfig;
 use crate::plugins::ProcessingStage;
-use crate::types::{ExtractedDocument, ProcessingWarning};
+use crate::types::{ExtractionResult, ProcessingWarning};
 use crate::{Result, XbergError};
 use std::borrow::Cow;
 #[cfg(feature = "otel")]
@@ -15,7 +15,7 @@ use tracing::Instrument;
 
 /// Execute registered post-processors for the supplied stages.
 pub(super) async fn execute_processor_stages(
-    result: &mut ExtractedDocument,
+    result: &mut ExtractionResult,
     config: &ExtractionConfig,
     pp_config: &Option<&crate::core::config::PostProcessorConfig>,
     stages: &[(
@@ -106,7 +106,7 @@ fn should_processor_run(pp_config: &Option<&crate::core::config::PostProcessorCo
 }
 
 /// Execute all registered validators.
-pub(super) async fn execute_validators(result: &ExtractedDocument, config: &ExtractionConfig) -> Result<()> {
+pub(super) async fn execute_validators(result: &ExtractionResult, config: &ExtractionConfig) -> Result<()> {
     let validator_registry = crate::plugins::registry::get_validator_registry();
     let validators = {
         let registry = validator_registry.read();

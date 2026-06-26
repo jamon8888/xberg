@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 use tower::util::BoxCloneService;
 
-use crate::{ExtractionConfig, XbergError, service::ExtractionRequest, types::ExtractedDocument};
+use crate::{ExtractionConfig, XbergError, service::ExtractionRequest, types::ExtractionResult};
 
 /// API server size limit configuration.
 ///
@@ -185,7 +185,7 @@ pub struct ApiState {
     /// Wrapped in `Arc<Mutex>` because `BoxCloneService` is `Send` but not `Sync`,
     /// while `ApiState` must be `Clone + Sync` for Axum's state requirement.
     /// The lock is held only long enough to clone the service.
-    pub extraction_service: Arc<Mutex<BoxCloneService<ExtractionRequest, ExtractedDocument, XbergError>>>,
+    pub extraction_service: Arc<Mutex<BoxCloneService<ExtractionRequest, ExtractionResult, XbergError>>>,
     /// In-memory job store for async extraction polling.
     #[cfg(feature = "api")]
     pub job_store: Arc<super::jobs::JobStore>,

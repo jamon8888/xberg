@@ -35,7 +35,7 @@ pub use extraction::ExtractionService;
 pub use request::{ExtractionRequest, ExtractionSource};
 
 use crate::XbergError;
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -109,7 +109,7 @@ impl ExtractionServiceBuilder {
     ///
     /// Layer order (outermost to innermost):
     /// `Tracing → Metrics → Timeout → ConcurrencyLimit → ExtractionService`
-    pub(crate) fn build(self) -> BoxCloneService<ExtractionRequest, ExtractedDocument, XbergError> {
+    pub(crate) fn build(self) -> BoxCloneService<ExtractionRequest, ExtractionResult, XbergError> {
         let svc = ExtractionService::new();
 
         // Apply concurrency limit (innermost optional layer).
@@ -124,7 +124,7 @@ impl ExtractionServiceBuilder {
         // Apply timeout. We wrap inline rather than using Tower's Timeout layer
         // because Timeout changes the error type to BoxError — we need to keep
         // XbergError throughout the stack.
-        let svc: BoxCloneService<ExtractionRequest, ExtractedDocument, XbergError> = match self.timeout {
+        let svc: BoxCloneService<ExtractionRequest, ExtractionResult, XbergError> = match self.timeout {
             Some(duration) => {
                 let timeout_svc = TimeoutService { inner: svc, duration };
                 timeout_svc.boxed_clone()
@@ -163,14 +163,14 @@ impl ExtractionServiceBuilder {
 /// [`XbergError::Timeout`] instead of a `BoxError`.
 #[derive(Clone)]
 struct TimeoutService {
-    inner: BoxCloneService<ExtractionRequest, ExtractedDocument, XbergError>,
+    inner: BoxCloneService<ExtractionRequest, ExtractionResult, XbergError>,
     duration: Duration,
 }
 
 impl Service<ExtractionRequest> for TimeoutService {
-    type Response = ExtractedDocument;
+    type Response = ExtractionResult;
     type Error = XbergError;
-    type Future = Pin<Box<dyn Future<Output = crate::Result<ExtractedDocument>> + Send>>;
+    type Future = Pin<Box<dyn Future<Output = crate::Result<ExtractionResult>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
         self.inner.poll_ready(cx)

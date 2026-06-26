@@ -756,7 +756,7 @@ mod tests {
             bits_per_component: None,
             is_mask: false,
             description: None,
-            ocr_result: Some(Box::new(crate::types::ExtractedDocument {
+            ocr_result: Some(Box::new(crate::types::ExtractionResult {
                 content: "OCR caption".to_string(),
                 mime_type: Cow::Borrowed("text/plain"),
                 ..Default::default()

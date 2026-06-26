@@ -2,7 +2,7 @@
 //!
 //! Shared by:
 //! - the NER post-processor at `crate::plugins::processor::builtin::ner` (populates
-//!   [`ExtractedDocument::entities`](crate::types::ExtractedDocument::entities))
+//!   [`ExtractionResult::entities`](crate::types::ExtractionResult::entities))
 //! - the redaction engine at `crate::text::redaction::engine` (consumes the same
 //!   `Entity` stream to redact PERSON / ORGANIZATION / LOCATION mentions that the
 //!   pure-Rust pattern engine cannot detect).

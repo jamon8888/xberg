@@ -25,13 +25,13 @@
 //! - [`prompt`] — build system/user prompts from a resolved preset.
 //! - [`cache`] — the [`VisionCallCache`] trait and an in-process Moka implementation.
 
-pub mod cache;
-pub mod chunker;
-pub mod citations;
-pub mod postprocess;
-pub mod prompt;
-pub mod rasterize;
-pub mod vision_client;
+pub(crate) mod cache;
+pub(crate) mod chunker;
+pub(crate) mod citations;
+pub(crate) mod postprocess;
+pub(crate) mod prompt;
+pub(crate) mod rasterize;
+pub(crate) mod vision_client;
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -289,7 +289,7 @@ impl From<StructuredError> for crate::XbergError {
 ///
 /// Returns [`StructuredError`] on preset resolution failure, extraction failure,
 /// rasterization failure, or if all vision batches fail.
-pub async fn extract_structured(
+pub(crate) async fn extract_structured(
     bytes: &[u8],
     mime: &str,
     spec: PresetSpec,
@@ -307,7 +307,7 @@ pub async fn extract_structured(
 /// # Errors
 ///
 /// Returns [`StructuredError`] if any individual segment fails.
-pub async fn split_and_extract(
+pub(crate) async fn split_and_extract(
     bytes: &[u8],
     mime: &str,
     spec: PresetSpec,

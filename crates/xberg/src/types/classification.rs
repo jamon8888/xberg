@@ -2,7 +2,7 @@
 //!
 //! Produced by the page-classification post-processor
 //! (`crates/xberg/src/text/classification/`) and attached to
-//! [`ExtractedDocument::page_classifications`](super::extraction::ExtractedDocument::page_classifications).
+//! [`ExtractionResult::page_classifications`](super::extraction::ExtractionResult::page_classifications).
 
 use serde::{Deserialize, Serialize};
 

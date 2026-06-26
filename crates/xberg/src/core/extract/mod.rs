@@ -16,11 +16,11 @@ use crawlberg::{CrawlConfig, CrawlEngine, CrawlPageResult, DownloadedDocument, S
 #[cfg(feature = "url-ingestion")]
 use crate::core::config::UrlExtractionMode;
 use crate::core::config::{
-    ExtractInput, ExtractInputKind, ExtractionConfig, ExtractionErrorItem, ExtractionResult, ExtractionSummary,
+    ExtractInput, ExtractInputKind, ExtractionConfig, ExtractionErrorItem, ExtractionOutput, ExtractionSummary,
 };
 #[cfg(feature = "url-ingestion")]
 use crate::types::ExtractedUri;
-use crate::types::{ExtractedDocument, UriKind};
+use crate::types::{ExtractionResult, UriKind};
 use crate::{Result, XbergError};
 
 use crate::core::extractor::{extract_bytes, extract_file};
@@ -30,7 +30,7 @@ const HTTPS_SCHEME: &str = "https://";
 const FILE_SCHEME: &str = "file://";
 
 /// Extract content from a single bytes or URI input.
-pub async fn extract(input: ExtractInput, config: &ExtractionConfig) -> Result<ExtractionResult> {
+pub async fn extract(input: ExtractInput, config: &ExtractionConfig) -> Result<ExtractionOutput> {
     let mut seen = initial_seen_urls(std::slice::from_ref(&input));
     let seed_hosts = initial_seed_hosts(std::slice::from_ref(&input));
     let mut output = extract_one(input, config, 0).await?;
@@ -39,7 +39,7 @@ pub async fn extract(input: ExtractInput, config: &ExtractionConfig) -> Result<E
 }
 
 /// Extract content from multiple bytes or URI inputs.
-pub async fn extract_batch(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionResult> {
+pub async fn extract_batch(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionOutput> {
     #[cfg(feature = "tokio-runtime")]
     {
         extract_batch_concurrent(inputs, config).await
@@ -52,10 +52,10 @@ pub async fn extract_batch(inputs: Vec<ExtractInput>, config: &ExtractionConfig)
 }
 
 #[cfg(not(feature = "tokio-runtime"))]
-async fn extract_batch_sequential(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionResult> {
+async fn extract_batch_sequential(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionOutput> {
     let mut seen = initial_seen_urls(&inputs);
     let seed_hosts = initial_seed_hosts(&inputs);
-    let mut output = ExtractionResult {
+    let mut output = ExtractionOutput {
         summary: ExtractionSummary {
             inputs: inputs.len(),
             ..Default::default()
@@ -77,14 +77,14 @@ async fn extract_batch_sequential(inputs: Vec<ExtractInput>, config: &Extraction
 }
 
 #[cfg(feature = "tokio-runtime")]
-async fn extract_batch_concurrent(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionResult> {
+async fn extract_batch_concurrent(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionOutput> {
     use tokio::sync::Semaphore;
     use tokio::task::JoinSet;
 
     let input_count = inputs.len();
     let mut seen = initial_seen_urls(&inputs);
     let seed_hosts = initial_seed_hosts(&inputs);
-    let mut output = ExtractionResult {
+    let mut output = ExtractionOutput {
         summary: ExtractionSummary {
             inputs: input_count,
             ..Default::default()
@@ -160,7 +160,7 @@ async fn extract_batch_concurrent(inputs: Vec<ExtractInput>, config: &Extraction
 struct BatchItemResult {
     index: usize,
     source: String,
-    result: Result<ExtractionResult>,
+    result: Result<ExtractionOutput>,
 }
 
 #[cfg(feature = "tokio-runtime")]
@@ -174,7 +174,7 @@ async fn run_batch_item<F, Fut>(
 ) -> BatchItemResult
 where
     F: FnOnce() -> Fut,
-    Fut: Future<Output = Result<ExtractionResult>>,
+    Fut: Future<Output = Result<ExtractionOutput>>,
 {
     let permit = match semaphore.acquire_owned().await {
         Ok(permit) => permit,
@@ -218,7 +218,7 @@ where
     BatchItemResult { index, source, result }
 }
 
-fn append_extraction_output(output: &mut ExtractionResult, mut item_output: ExtractionResult) {
+fn append_extraction_output(output: &mut ExtractionOutput, mut item_output: ExtractionOutput) {
     output.summary.remote_urls += item_output.summary.remote_urls;
     output.summary.pages_crawled += item_output.summary.pages_crawled;
     output.summary.documents_downloaded += item_output.summary.documents_downloaded;
@@ -232,7 +232,7 @@ fn append_extraction_output(output: &mut ExtractionResult, mut item_output: Extr
     );
 }
 
-async fn extract_one(input: ExtractInput, base_config: &ExtractionConfig, index: usize) -> Result<ExtractionResult> {
+async fn extract_one(input: ExtractInput, base_config: &ExtractionConfig, index: usize) -> Result<ExtractionOutput> {
     let config = resolve_input_config(&input, base_config);
     extract_one_resolved(input, &config, index).await
 }
@@ -249,14 +249,14 @@ async fn extract_one_resolved(
     input: ExtractInput,
     config: &ExtractionConfig,
     index: usize,
-) -> Result<ExtractionResult> {
+) -> Result<ExtractionOutput> {
     match input.kind {
         ExtractInputKind::Bytes => extract_bytes_input(input, config, index).await,
         ExtractInputKind::Uri => extract_uri_input(input, config, index).await,
     }
 }
 
-async fn extract_bytes_input(input: ExtractInput, config: &ExtractionConfig, index: usize) -> Result<ExtractionResult> {
+async fn extract_bytes_input(input: ExtractInput, config: &ExtractionConfig, index: usize) -> Result<ExtractionOutput> {
     let bytes = input
         .bytes
         .ok_or_else(|| XbergError::validation("extract input kind 'bytes' requires the 'bytes' field".to_string()))?;
@@ -269,10 +269,10 @@ async fn extract_bytes_input(input: ExtractInput, config: &ExtractionConfig, ind
         input.filename.as_deref().unwrap_or("<bytes>"),
         index,
     );
-    Ok(ExtractionResult::single(result))
+    Ok(ExtractionOutput::single(result))
 }
 
-async fn extract_uri_input(input: ExtractInput, config: &ExtractionConfig, index: usize) -> Result<ExtractionResult> {
+async fn extract_uri_input(input: ExtractInput, config: &ExtractionConfig, index: usize) -> Result<ExtractionOutput> {
     let uri = input
         .uri
         .ok_or_else(|| XbergError::validation("extract input kind 'uri' requires the 'uri' field".to_string()))?;
@@ -305,7 +305,7 @@ async fn extract_uri_input(input: ExtractInput, config: &ExtractionConfig, index
 
     let mut result = extract_file(&path, input.mime_type.as_deref(), config).await?;
     annotate_source(&mut result, "uri", &uri, path.to_string_lossy().as_ref(), index);
-    Ok(ExtractionResult::single(result))
+    Ok(ExtractionOutput::single(result))
 }
 
 fn resolve_bytes_mime_type(mime_type: Option<&str>, filename: Option<&str>, bytes: &[u8]) -> Result<String> {
@@ -349,7 +349,7 @@ fn file_uri_to_path(uri: &str) -> Result<PathBuf> {
         .map_err(|()| XbergError::UnsupportedFormat(format!("unsupported file URI path: {uri}")))
 }
 
-fn annotate_source(result: &mut ExtractedDocument, source_kind: &str, source_uri: &str, final_uri: &str, index: usize) {
+fn annotate_source(result: &mut ExtractionResult, source_kind: &str, source_uri: &str, final_uri: &str, index: usize) {
     result
         .metadata
         .additional
@@ -376,7 +376,7 @@ fn input_source(input: &ExtractInput) -> String {
 }
 
 #[cfg(feature = "url-ingestion")]
-async fn extract_remote_uri(uri: &str, config: &ExtractionConfig, index: usize) -> Result<ExtractionResult> {
+async fn extract_remote_uri(uri: &str, config: &ExtractionConfig, index: usize) -> Result<ExtractionOutput> {
     let crawl_config = crawlberg_config(config)?;
     let engine = CrawlEngine::builder()
         .config(crawl_config)
@@ -396,7 +396,7 @@ async fn extract_remote_uri(uri: &str, config: &ExtractionConfig, index: usize) 
 }
 
 #[cfg(not(feature = "url-ingestion"))]
-async fn extract_remote_uri(uri: &str, _config: &ExtractionConfig, _index: usize) -> Result<ExtractionResult> {
+async fn extract_remote_uri(uri: &str, _config: &ExtractionConfig, _index: usize) -> Result<ExtractionOutput> {
     Err(XbergError::UnsupportedFormat(format!(
         "HTTP(S) URI extraction requires the 'url-ingestion' feature: {uri}"
     )))
@@ -410,9 +410,9 @@ fn crawlberg_config(config: &ExtractionConfig) -> Result<CrawlConfig> {
 }
 
 #[cfg(feature = "url-ingestion")]
-async fn output_from_scrape(scrape: ScrapeResult, config: &ExtractionConfig, index: usize) -> Result<ExtractionResult> {
+async fn output_from_scrape(scrape: ScrapeResult, config: &ExtractionConfig, index: usize) -> Result<ExtractionOutput> {
     let final_url = scrape.final_url.clone();
-    let mut output = ExtractionResult {
+    let mut output = ExtractionOutput {
         summary: ExtractionSummary {
             inputs: 1,
             remote_urls: 1,
@@ -442,12 +442,12 @@ async fn output_from_crawl(
     crawl: crawlberg::CrawlResult,
     config: &ExtractionConfig,
     index: usize,
-) -> Result<ExtractionResult> {
+) -> Result<ExtractionOutput> {
     let final_url = crawl.final_url.clone();
     let redirect_count = crawl.redirect_count;
     let unique_normalized_urls = crawl.normalized_urls.clone();
     let crawl_error = crawl.error.clone();
-    let mut output = ExtractionResult {
+    let mut output = ExtractionOutput {
         summary: ExtractionSummary {
             inputs: 1,
             remote_urls: 1,
@@ -491,7 +491,7 @@ async fn output_from_crawl(
 }
 
 fn merge_crawl_summary(
-    output: &mut ExtractionResult,
+    output: &mut ExtractionOutput,
     final_urls: Vec<String>,
     redirect_count: usize,
     unique_normalized_urls: Vec<String>,
@@ -518,7 +518,7 @@ async fn extract_downloaded_document(
     document: DownloadedDocument,
     config: &ExtractionConfig,
     index: usize,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     let mime_type = document.mime_type.to_string();
     let mut result = extract_bytes(&document.content, &mime_type, config).await?;
     annotate_source(&mut result, "url_document", &document.url, &document.url, index);
@@ -544,7 +544,7 @@ async fn result_from_scrape_page(
     scrape: ScrapeResult,
     config: &ExtractionConfig,
     index: usize,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     let final_url = scrape.final_url.clone();
     let status_code = scrape.status_code;
     let browser_used = scrape.browser_used;
@@ -580,7 +580,7 @@ async fn result_from_crawl_page(
     page: CrawlPageResult,
     config: &ExtractionConfig,
     index: usize,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     let url = page.url.clone();
     let normalized_url = page.normalized_url.clone();
     let status_code = page.status_code;
@@ -624,7 +624,7 @@ async fn run_url_page_pipeline(
     content_type: &str,
     uris: Vec<ExtractedUri>,
     config: &ExtractionConfig,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     let mime_type = if is_markdown {
         "text/markdown".to_string()
     } else {
@@ -667,7 +667,7 @@ fn map_crawl_error(error: crawlberg::CrawlError) -> XbergError {
 }
 
 async fn follow_recursive_document_urls(
-    output: &mut ExtractionResult,
+    output: &mut ExtractionOutput,
     config: &ExtractionConfig,
     seen: &mut HashSet<String>,
     seed_hosts: &HashSet<String>,
@@ -716,7 +716,7 @@ async fn follow_recursive_document_urls(
 }
 
 fn enqueue_discovered_urls(
-    output: &ExtractionResult,
+    output: &ExtractionOutput,
     config: &ExtractionConfig,
     pattern: &Option<regex::Regex>,
     seed_hosts: &HashSet<String>,
@@ -742,7 +742,7 @@ fn enqueue_discovered_urls(
     }
 }
 
-fn urls_from_result(result: &ExtractedDocument) -> Vec<String> {
+fn urls_from_result(result: &ExtractionResult) -> Vec<String> {
     let mut urls = Vec::new();
     if let Some(uris) = &result.uris {
         urls.extend(
@@ -1059,7 +1059,7 @@ mod tests {
             None,
             || async {
                 std::future::pending::<()>().await;
-                Ok(ExtractionResult::default())
+                Ok(ExtractionOutput::default())
             },
         )
         .await;

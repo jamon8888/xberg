@@ -40,7 +40,7 @@ pub struct XbergMcp {
     /// while `XbergMcp` must be `Sync` for the MCP handler trait.
     /// The lock is held only long enough to clone the service.
     extraction_service:
-        std::sync::Mutex<BoxCloneService<ExtractionRequest, crate::types::ExtractedDocument, crate::XbergError>>,
+        std::sync::Mutex<BoxCloneService<ExtractionRequest, crate::types::ExtractionResult, crate::XbergError>>,
 }
 
 impl Clone for XbergMcp {
@@ -104,8 +104,8 @@ impl XbergMcp {
     #[tool(
         description = "Extract content from bytes, a local path, file:// URI, remote document URL, or website URL.",
         annotations(title = "Extract", read_only_hint = true, idempotent_hint = true, open_world_hint = true),
-        output_schema = rmcp::handler::server::common::schema_for_output::<super::schema::ExtractionResult>()
-            .expect("ExtractionResult schema must be valid")
+        output_schema = rmcp::handler::server::common::schema_for_output::<super::schema::ExtractionOutput>()
+            .expect("ExtractionOutput schema must be valid")
     )]
     async fn extract(
         &self,
@@ -134,8 +134,8 @@ impl XbergMcp {
     #[tool(
         description = "Extract content from multiple bytes, local paths, file:// URIs, remote document URLs, or website URLs.",
         annotations(title = "Extract Batch", read_only_hint = true, idempotent_hint = true, open_world_hint = true),
-        output_schema = rmcp::handler::server::common::schema_for_output::<super::schema::ExtractionResult>()
-            .expect("ExtractionResult schema must be valid")
+        output_schema = rmcp::handler::server::common::schema_for_output::<super::schema::ExtractionOutput>()
+            .expect("ExtractionOutput schema must be valid")
     )]
     async fn extract_batch(
         &self,
@@ -554,7 +554,7 @@ fn parse_extract_input(value: serde_json::Value) -> Result<crate::ExtractInput, 
         .map_err(|error| rmcp::ErrorData::invalid_params(format!("Invalid ExtractInput: {error}"), None))
 }
 
-fn format_extraction_result_for_wire(output: &crate::ExtractionResult, use_toon: bool) -> String {
+fn format_extraction_result_for_wire(output: &crate::ExtractionOutput, use_toon: bool) -> String {
     if use_toon {
         serde_toon::to_string(output).unwrap_or_else(|error| {
             tracing::error!(%error, "Failed to serialize extraction result to TOON, falling back to JSON");

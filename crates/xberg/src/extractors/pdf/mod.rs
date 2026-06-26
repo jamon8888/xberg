@@ -834,7 +834,7 @@ impl PdfExtractor {
         }
 
         // Carry formulas on the InternalDocument; derive_extraction_result moves
-        // them into ExtractedDocument.formulas (mirrors form_fields/llm_usage).
+        // them into ExtractionResult.formulas (mirrors form_fields/llm_usage).
         #[cfg(any(feature = "ocr", feature = "ocr-pipeline"))]
         if !ocr_formulas.is_empty() {
             doc.formulas = ocr_formulas;
@@ -929,7 +929,7 @@ mod tests {
     }
 
     #[cfg(feature = "pdf")]
-    fn extraction_method(result: &crate::types::ExtractedDocument) -> Option<ExtractionMethod> {
+    fn extraction_method(result: &crate::types::ExtractionResult) -> Option<ExtractionMethod> {
         result.extraction_method
     }
 
@@ -985,8 +985,8 @@ mod tests {
             &self,
             _image_bytes: &[u8],
             _config: &crate::core::config::OcrConfig,
-        ) -> crate::Result<crate::types::ExtractedDocument> {
-            Ok(crate::types::ExtractedDocument {
+        ) -> crate::Result<crate::types::ExtractionResult> {
+            Ok(crate::types::ExtractionResult {
                 content: self.content.to_string(),
                 mime_type: std::borrow::Cow::Borrowed("text/plain"),
                 ..Default::default()
@@ -1433,7 +1433,7 @@ mod tests {
     async fn test_ocr_page_texts_override_native_page_content() {
         use crate::core::config::OcrConfig;
         use crate::plugins::{OcrBackend, OcrBackendType, Plugin};
-        use crate::types::ExtractedDocument;
+        use crate::types::ExtractionResult;
         use std::sync::Arc;
 
         struct PerPageMockBackend;
@@ -1446,10 +1446,10 @@ mod tests {
             fn supports_language(&self, _: &str) -> bool {
                 true
             }
-            async fn process_image(&self, _: &[u8], _: &OcrConfig) -> crate::Result<ExtractedDocument> {
+            async fn process_image(&self, _: &[u8], _: &OcrConfig) -> crate::Result<ExtractionResult> {
                 static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
                 let n = COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-                Ok(ExtractedDocument {
+                Ok(ExtractionResult {
                     content: format!("ocr-page-{n}"),
                     ..Default::default()
                 })
@@ -2211,9 +2211,9 @@ mod tests {
             &self,
             _image_bytes: &[u8],
             config: &crate::core::config::OcrConfig,
-        ) -> crate::Result<crate::types::ExtractedDocument> {
+        ) -> crate::Result<crate::types::ExtractionResult> {
             *self.received_config.lock().unwrap() = Some(config.clone());
-            Ok(crate::types::ExtractedDocument {
+            Ok(crate::types::ExtractionResult {
                 content: self.sentinel.to_string(),
                 mime_type: std::borrow::Cow::Borrowed("text/plain"),
                 ..Default::default()
@@ -2506,7 +2506,7 @@ mod tests {
             "metadata.additional should not contain _pdf_form_fields (leak check)"
         );
 
-        // Convert to ExtractedDocument through the pipeline to verify the carrier works
+        // Convert to ExtractionResult through the pipeline to verify the carrier works
         let result =
             crate::extraction::derive::derive_extraction_result(doc, false, crate::core::config::OutputFormat::Plain);
 
@@ -2529,7 +2529,7 @@ mod tests {
         // Verify metadata.additional does NOT contain _pdf_form_fields
         assert!(doc.metadata.additional.get("_pdf_form_fields").is_none());
 
-        // Convert to ExtractedDocument and verify form_fields is empty
+        // Convert to ExtractionResult and verify form_fields is empty
         let result =
             crate::extraction::derive::derive_extraction_result(doc, false, crate::core::config::OutputFormat::Plain);
 

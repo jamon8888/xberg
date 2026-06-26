@@ -24,7 +24,7 @@ use parking_lot::{Mutex, RwLock};
 use crate::Result;
 use crate::core::config::OcrConfig;
 use crate::plugins::{OcrBackend, OcrBackendType, Plugin};
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use xberg_candle_ocr::DType;
 use xberg_candle_ocr::DevicePreference;
 use xberg_candle_ocr::models::PaddleOcrVlEngine;
@@ -191,7 +191,7 @@ impl OcrBackend for PaddleOcrVlBackend {
     /// or `model_path` is not provided in `backend_options`.
     /// Returns [`crate::XbergError::Ocr`] if device selection, engine
     /// initialisation, or inference fails.
-    async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractedDocument> {
+    async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
         let (task, model_path, device) = Self::parse_options(config);
 
         // Validate image data
@@ -232,7 +232,7 @@ impl OcrBackend for PaddleOcrVlBackend {
             source: None,
         })??;
 
-        Ok(ExtractedDocument {
+        Ok(ExtractionResult {
             content,
             mime_type: Cow::Borrowed("text/markdown"),
             ..Default::default()
@@ -244,7 +244,7 @@ impl OcrBackend for PaddleOcrVlBackend {
     /// # Errors
     ///
     /// Returns an error if the file cannot be read or if inference fails.
-    async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractedDocument> {
+    async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractionResult> {
         let bytes = crate::core::io::read_file_async(path).await?;
         self.process_image(&bytes, config).await
     }

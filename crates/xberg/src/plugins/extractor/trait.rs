@@ -5,7 +5,7 @@
 use crate::Result;
 use crate::core::config::{ExtractInput, ExtractInputKind, ExtractionConfig};
 use crate::plugins::Plugin;
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use crate::types::internal::InternalDocument;
 use async_trait::async_trait;
 use std::path::Path;
@@ -18,7 +18,7 @@ use crate::XbergError;
 /// Implement this trait to add support for new document formats or override
 /// built-in extraction behavior. Foreign-language bindings expose the
 /// [`DocumentExtractor::extract`] method, which accepts [`ExtractInput`] and
-/// returns an [`ExtractedDocument`].
+/// returns an [`ExtractionResult`].
 ///
 /// Native Rust extractors can override the skipped internal byte/file methods
 /// below to participate in the full pipeline representation.
@@ -41,7 +41,7 @@ use crate::XbergError;
 ///
 /// ```rust
 /// use xberg::plugins::{Plugin, DocumentExtractor};
-/// use xberg::{ExtractInput, ExtractionConfig, ExtractedDocument, Result};
+/// use xberg::{ExtractInput, ExtractionConfig, ExtractionResult, Result};
 /// use async_trait::async_trait;
 ///
 /// struct CustomTextExtractor;
@@ -56,9 +56,9 @@ use crate::XbergError;
 /// #[async_trait]
 /// impl DocumentExtractor for CustomTextExtractor {
 ///     async fn extract(&self, input: ExtractInput, _config: &ExtractionConfig)
-///         -> Result<ExtractedDocument> {
+///         -> Result<ExtractionResult> {
 ///         let bytes = input.bytes.unwrap_or_default();
-///         Ok(ExtractedDocument {
+///         Ok(ExtractionResult {
 ///             content: String::from_utf8_lossy(&bytes).to_string(),
 ///             mime_type: "text/plain".into(),
 ///             ..Default::default()
@@ -78,7 +78,7 @@ pub trait DocumentExtractor: Plugin {
     /// This is the only document-extractor method generated into language
     /// bindings. It accepts the same unified input shape as the public
     /// extraction API and returns one extracted document result.
-    async fn extract(&self, input: ExtractInput, config: &ExtractionConfig) -> Result<ExtractedDocument> {
+    async fn extract(&self, input: ExtractInput, config: &ExtractionConfig) -> Result<ExtractionResult> {
         let doc = match input.kind {
             ExtractInputKind::Bytes => {
                 let bytes = input.bytes.ok_or_else(|| {
@@ -120,7 +120,7 @@ pub trait DocumentExtractor: Plugin {
     /// # Returns
     ///
     /// An `InternalDocument` containing the extracted elements, metadata, and tables.
-    /// The pipeline will convert this into the public `ExtractedDocument`.
+    /// The pipeline will convert this into the public `ExtractionResult`.
     ///
     /// # Errors
     ///

@@ -10,8 +10,8 @@ use crate::core::config::BatchBytesItem;
 use crate::core::config::BatchFileItem;
 use crate::core::config::ExtractionConfig;
 #[cfg(feature = "tokio-runtime")]
-use crate::core::config::{ExtractInput, ExtractionResult};
-use crate::types::ExtractedDocument;
+use crate::core::config::{ExtractInput, ExtractionOutput};
+use crate::types::ExtractionResult;
 
 #[cfg(feature = "tokio-runtime")]
 use std::path::Path;
@@ -37,14 +37,14 @@ use super::helpers::error_extraction_result;
 /// Synchronous wrapper for `extract`.
 #[cfg(feature = "tokio-runtime")]
 #[cfg_attr(alef, alef(skip))]
-pub(crate) fn extract_sync(input: ExtractInput, config: &ExtractionConfig) -> Result<ExtractionResult> {
+pub(crate) fn extract_sync(input: ExtractInput, config: &ExtractionConfig) -> Result<ExtractionOutput> {
     global_runtime()?.block_on(extract(input, config))
 }
 
 /// Synchronous wrapper for `extract_batch`.
 #[cfg(feature = "tokio-runtime")]
 #[cfg_attr(alef, alef(skip))]
-pub(crate) fn extract_batch_sync(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionResult> {
+pub(crate) fn extract_batch_sync(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> Result<ExtractionOutput> {
     global_runtime()?.block_on(extract_batch(inputs, config))
 }
 
@@ -76,7 +76,7 @@ pub(crate) fn extract_file_sync(
     path: impl AsRef<Path>,
     mime_type: Option<&str>,
     config: &ExtractionConfig,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     global_runtime()?.block_on(extract_file(path, mime_type, config))
 }
 
@@ -106,7 +106,7 @@ pub(crate) fn extract_bytes_sync(
     content: &[u8],
     mime_type: &str,
     config: &ExtractionConfig,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     global_runtime()?.block_on(extract_bytes(content, mime_type, config))
 }
 
@@ -120,7 +120,7 @@ pub(crate) fn extract_bytes_sync(
     content: &[u8],
     mime_type: &str,
     config: &ExtractionConfig,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     super::legacy::extract_bytes_sync_impl(content, Some(mime_type), Some(config))
 }
 
@@ -151,7 +151,7 @@ pub(crate) fn extract_bytes_sync(
 pub(crate) fn batch_extract_files_sync(
     items: Vec<BatchFileItem>,
     config: &ExtractionConfig,
-) -> Result<Vec<ExtractedDocument>> {
+) -> Result<Vec<ExtractionResult>> {
     global_runtime()?.block_on(batch_extract_files(items, config))
 }
 
@@ -185,7 +185,7 @@ pub(crate) fn batch_extract_files_sync(
 pub(crate) fn batch_extract_bytes_sync(
     items: Vec<BatchBytesItem>,
     config: &ExtractionConfig,
-) -> Result<Vec<ExtractedDocument>> {
+) -> Result<Vec<ExtractionResult>> {
     global_runtime()?.block_on(batch_extract_bytes(items, config))
 }
 
@@ -197,7 +197,7 @@ pub(crate) fn batch_extract_bytes_sync(
 pub(crate) fn batch_extract_bytes_sync(
     items: Vec<BatchBytesItem>,
     config: &ExtractionConfig,
-) -> Result<Vec<ExtractedDocument>> {
+) -> Result<Vec<ExtractionResult>> {
     let mut results = Vec::with_capacity(items.len());
     for item in items {
         let resolved = match &item.config {

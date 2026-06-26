@@ -110,7 +110,7 @@ pub struct PageInfo {
     ///
     /// Indicates the presence of vector-drawn content such as charts, diagrams,
     /// or geometric shapes (e.g., from Adobe InDesign, LaTeX TikZ). These are
-    /// invisible to `ExtractedDocument.images` since they are not embedded as raster
+    /// invisible to `ExtractionResult.images` since they are not embedded as raster
     /// XObjects. Set to `true` when path count exceeds a heuristic threshold,
     /// signaling that downstream consumers may want to rasterize the page to
     /// capture this content.
@@ -151,7 +151,7 @@ pub struct PageContent {
     #[cfg_attr(feature = "api", schema(value_type = Vec<Table>))]
     pub tables: Vec<Arc<Table>>,
 
-    /// Indices into `ExtractedDocument.images` for images found on this page.
+    /// Indices into `ExtractionResult.images` for images found on this page.
     ///
     /// Each value is a zero-based index into the top-level `images` collection.
     /// Only populated when `extract_images = true` in the extraction config.

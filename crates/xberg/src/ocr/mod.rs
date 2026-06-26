@@ -97,6 +97,6 @@ pub use tessdata_manager::TessdataManager;
 pub use tesseract_backend::TesseractBackend;
 #[cfg(all(feature = "ocr-wasm", not(feature = "ocr")))]
 pub use tesseract_wasm_backend::TesseractWasmBackend;
-pub use types::{BatchItemResult, ExtractedDocument, PSMMode, Table, TesseractConfig};
+pub use types::{BatchItemResult, ExtractionResult, PSMMode, Table, TesseractConfig};
 #[cfg(feature = "ocr")]
 pub use utils::compute_hash;

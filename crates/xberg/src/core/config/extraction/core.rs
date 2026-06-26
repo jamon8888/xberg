@@ -241,7 +241,7 @@ pub struct ExtractionConfig {
 
     /// Enable structured document tree output.
     ///
-    /// When true, populates the `document` field on `ExtractedDocument` with a
+    /// When true, populates the `document` field on `ExtractionResult` with a
     /// hierarchical `DocumentStructure` containing heading-driven section nesting,
     /// table grids, content layer classification, and inline annotations.
     ///
@@ -310,37 +310,37 @@ pub struct ExtractionConfig {
     ///
     /// When set, the extracted document content is sent to an LLM with the
     /// provided JSON schema. The structured response is stored in
-    /// `ExtractedDocument::structured_output`.
+    /// `ExtractionResult::structured_output`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub structured_extraction: Option<super::super::llm::StructuredExtractionConfig>,
 
     /// Named-entity recognition configuration. When set, the NER post-processor runs at
-    /// the Middle stage and populates `ExtractedDocument::entities`.
+    /// the Middle stage and populates `ExtractionResult::entities`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "alef-meta", alef(since = "5.0.0"))]
     pub ner: Option<super::super::ner::NerConfig>,
 
     /// Redaction / anonymisation configuration. When set, the redaction post-processor
-    /// runs at the Late stage and rewrites every textual field in `ExtractedDocument`,
-    /// emitting an audit trail in `ExtractedDocument::redaction_report`.
+    /// runs at the Late stage and rewrites every textual field in `ExtractionResult`,
+    /// emitting an audit trail in `ExtractionResult::redaction_report`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "alef-meta", alef(since = "5.0.0"))]
     pub redaction: Option<super::super::redaction::RedactionConfig>,
 
     /// Summarisation configuration. When set, the summarisation post-processor runs at
-    /// the Middle stage and populates `ExtractedDocument::summary`.
+    /// the Middle stage and populates `ExtractionResult::summary`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "alef-meta", alef(since = "5.0.0"))]
     pub summarization: Option<super::super::summarization::SummarizationConfig>,
 
     /// Translation configuration. When set, the translation post-processor runs at the
-    /// Middle stage and populates `ExtractedDocument::translation`.
+    /// Middle stage and populates `ExtractionResult::translation`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "alef-meta", alef(since = "5.0.0"))]
     pub translation: Option<super::super::translation::TranslationConfig>,
 
     /// Per-page classification configuration. When set, the classification post-processor
-    /// runs at the Middle stage and populates `ExtractedDocument::page_classifications`.
+    /// runs at the Middle stage and populates `ExtractionResult::page_classifications`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "alef-meta", alef(since = "5.0.0"))]
     pub page_classification: Option<super::super::classification::PageClassificationConfig>,

@@ -52,12 +52,12 @@ impl ExtractionMethod {
 
 /// Document extracted by the core extraction pipeline.
 ///
-/// `extract` and `extract_batch` return an `ExtractionResult` envelope whose
+/// `extract` and `extract_batch` return an `ExtractionOutput` envelope whose
 /// `results` field contains these per-document payloads.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 #[cfg_attr(feature = "api", schema(no_recursion))]
-pub struct ExtractedDocument {
+pub struct ExtractionResult {
     /// Plain-text representation of the extracted document content.
     pub content: String,
     /// MIME type of the source document (e.g. `"application/pdf"`).
@@ -356,7 +356,7 @@ pub struct ExtractedDocument {
     /// `InternalDocument` is always in reading order.
     ///
     /// `None` for extraction paths that do not go through the async/sync pipeline
-    /// (e.g., direct `ExtractedDocument::from_ocr` construction).
+    /// (e.g., direct `ExtractionResult::from_ocr` construction).
     #[serde(skip)]
     #[allow(dead_code)]
     #[cfg_attr(alef, alef(skip))]
@@ -366,7 +366,7 @@ pub struct ExtractedDocument {
 /// A single file extracted from an archive.
 ///
 /// When archives (ZIP, TAR, 7Z, GZIP) are extracted with recursive extraction
-/// enabled, each processable file produces its own full `ExtractedDocument`.
+/// enabled, each processable file produces its own full `ExtractionResult`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 pub struct ArchiveEntry {
@@ -375,7 +375,7 @@ pub struct ArchiveEntry {
     /// Detected MIME type of the file.
     pub mime_type: String,
     /// Full extraction result for this file.
-    pub result: Box<ExtractedDocument>,
+    pub result: Box<ExtractionResult>,
 }
 
 /// A non-fatal warning from a processing pipeline stage.
@@ -563,7 +563,7 @@ pub struct ChunkMetadata {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub heading_path: Vec<String>,
 
-    /// Indices into `ExtractedDocument.images` for images on pages covered by this chunk.
+    /// Indices into `ExtractionResult.images` for images on pages covered by this chunk.
     ///
     /// Contains zero-based indices into the top-level `images` collection for every
     /// image whose `page_number` falls within `[first_page, last_page]`.
@@ -657,8 +657,8 @@ pub struct ExtractedImage {
     /// When OCR is performed on this image, the result is embedded here
     /// rather than in a separate collection, making the relationship explicit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "api", schema(value_type = Option<ExtractedDocument>))]
-    pub ocr_result: Option<Box<ExtractedDocument>>,
+    #[cfg_attr(feature = "api", schema(value_type = Option<ExtractionResult>))]
+    pub ocr_result: Option<Box<ExtractionResult>>,
 
     /// Bounding box of the image on the page (PDF coordinates: x0=left, y0=bottom, x1=right, y1=top).
     /// Only populated for PDF-extracted images when position data is available from the PDF extractor.
@@ -845,7 +845,7 @@ pub struct Element {
     pub metadata: ElementMetadata,
 }
 
-impl ExtractedDocument {
+impl ExtractionResult {
     /// Convert from an OCR result.
     pub fn from_ocr(ocr: super::formats::OcrExtractionResult) -> Self {
         Self {
@@ -900,7 +900,7 @@ mod tests {
         );
     }
 
-    // ── ExtractedDocument serde behavior ─────────────────────────────────────
+    // ── ExtractionResult serde behavior ─────────────────────────────────────
 
     #[test]
     fn extraction_result_omitting_formulas_and_form_fields_defaults_to_empty() {
@@ -913,7 +913,7 @@ mod tests {
             "metadata": {},
             "tables": []
         }"#;
-        let result: ExtractedDocument = serde_json::from_str(json).unwrap();
+        let result: ExtractionResult = serde_json::from_str(json).unwrap();
         assert!(result.formulas.is_empty(), "omitted formulas must default to empty vec");
         assert!(
             result.form_fields.is_empty(),
@@ -936,7 +936,7 @@ mod tests {
             page: 1,
         };
 
-        let result = ExtractedDocument {
+        let result = ExtractionResult {
             content: "Physics document".to_string(),
             mime_type: std::borrow::Cow::Borrowed("application/pdf"),
             formulas: vec![formula],
@@ -947,7 +947,7 @@ mod tests {
         // formulas must be present in JSON when non-empty
         assert!(json.contains("formulas"), "non-empty formulas must be serialized");
 
-        let deserialized: ExtractedDocument = serde_json::from_str(&json).unwrap();
+        let deserialized: ExtractionResult = serde_json::from_str(&json).unwrap();
         assert_eq!(deserialized.formulas.len(), 1);
         assert_eq!(deserialized.formulas[0].latex, r"E = mc^2");
         assert_eq!(deserialized.formulas[0].page, 1);
@@ -976,7 +976,7 @@ mod tests {
             tooltip: Some("Enter your first name".to_string()),
         };
 
-        let result = ExtractedDocument {
+        let result = ExtractionResult {
             content: "Form document".to_string(),
             mime_type: std::borrow::Cow::Borrowed("application/pdf"),
             form_fields: vec![field],
@@ -986,7 +986,7 @@ mod tests {
         let json = serde_json::to_string(&result).unwrap();
         assert!(json.contains("form_fields"), "non-empty form_fields must be serialized");
 
-        let deserialized: ExtractedDocument = serde_json::from_str(&json).unwrap();
+        let deserialized: ExtractionResult = serde_json::from_str(&json).unwrap();
         assert_eq!(deserialized.form_fields.len(), 1);
         assert_eq!(deserialized.form_fields[0].name, "FirstName");
         assert_eq!(deserialized.form_fields[0].full_name, "PersonalInfo.FirstName");

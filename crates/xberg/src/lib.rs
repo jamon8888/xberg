@@ -121,15 +121,9 @@ pub use heuristics::{
 pub mod presets;
 
 // Native HTTP (liter-llm) + PDF rendering are required, so the structured orchestrator is excluded
-// on wasm32. The helper API remains module-scoped and Rust-only.
+// on wasm32. Structured extraction is reached through ExtractionConfig, not public helper entrypoints.
 #[cfg(all(feature = "structured", not(target_arch = "wasm32")))]
-pub mod structured;
-
-#[cfg(all(feature = "structured", not(target_arch = "wasm32")))]
-pub use structured::{
-    CacheKey, CitationEnvelope, CitationSource, CitedField, MokaVisionCache, PageImage, PresetSpec, StructuredError,
-    StructuredOptions, StructuredOutput, VisionCallCache, VisionConfig,
-};
+pub(crate) mod structured;
 
 #[cfg(any(feature = "ocr", feature = "ocr-wasm"))]
 pub mod ocr;
@@ -196,7 +190,7 @@ pub use core::extract::{extract, extract_batch};
 pub use core::config::{
     AccelerationConfig, CallMode, CaptioningConfig, ChunkSizing, ChunkerType, ChunkingConfig, ContentFilterConfig,
     EmailConfig, EmbeddingConfig, EmbeddingModelType, ExecutionProviderType, ExtractInput, ExtractInputKind,
-    ExtractionConfig, ExtractionErrorItem, ExtractionResult, ExtractionSummary, FileExtractionConfig,
+    ExtractionConfig, ExtractionErrorItem, ExtractionOutput, ExtractionSummary, FileExtractionConfig,
     ImageExtractionConfig, LanguageDetectionConfig, LlmConfig, MergeMode, NerBackendKind, NerConfig, OcrConfig,
     OutputFormat, PageClassificationConfig, PageConfig, PostProcessorConfig, RedactionConfig, RedactionPattern,
     RedactionTerm, RerankerConfig, RerankerModelType, StructuredExtractionConfig, SummarizationConfig,

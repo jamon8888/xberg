@@ -48,7 +48,7 @@ impl OcrBackend for VlmOcrBackend {
         &self,
         image_bytes: &[u8],
         config: &crate::OcrConfig,
-    ) -> crate::Result<crate::ExtractedDocument> {
+    ) -> crate::Result<crate::ExtractionResult> {
         let vlm_config = config
             .vlm_config
             .as_ref()
@@ -62,7 +62,7 @@ impl OcrBackend for VlmOcrBackend {
 
         let (text, usage) = vlm_ocr(image_bytes, mime, lang_str, vlm_config, config.vlm_prompt.as_deref()).await?;
 
-        Ok(crate::ExtractedDocument {
+        Ok(crate::ExtractionResult {
             content: text,
             mime_type: Cow::Borrowed("text/plain"),
             llm_usage: usage.map(|u| vec![u]),

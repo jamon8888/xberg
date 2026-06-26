@@ -16,7 +16,7 @@
 use crate::Result;
 use crate::core::config::OcrConfig;
 use crate::plugins::{OcrBackend, OcrBackendType, Plugin};
-use crate::types::{ExtractedDocument, FormatMetadata, Metadata, OcrMetadata};
+use crate::types::{ExtractionResult, FormatMetadata, Metadata, OcrMetadata};
 use async_trait::async_trait;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -102,7 +102,7 @@ impl Plugin for TesseractWasmBackend {
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl OcrBackend for TesseractWasmBackend {
-    async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractedDocument> {
+    async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
         if image_bytes.is_empty() {
             return Err(crate::XbergError::Validation {
                 message: "OCR input image is empty".to_string(),
@@ -160,7 +160,7 @@ impl OcrBackend for TesseractWasmBackend {
             ..Default::default()
         };
 
-        Ok(ExtractedDocument {
+        Ok(ExtractionResult {
             content: text,
             mime_type: Cow::Borrowed("text/plain"),
             metadata,
@@ -168,7 +168,7 @@ impl OcrBackend for TesseractWasmBackend {
         })
     }
 
-    async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractedDocument> {
+    async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractionResult> {
         let bytes = std::fs::read(path).map_err(crate::XbergError::from)?;
         self.process_image(&bytes, config).await
     }

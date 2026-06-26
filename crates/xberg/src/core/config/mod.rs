@@ -38,7 +38,7 @@ pub(crate) use extraction::BatchBytesItem;
 #[cfg(feature = "tokio-runtime")]
 pub(crate) use extraction::BatchFileItem;
 pub use extraction::{
-    ExtractInput, ExtractInputKind, ExtractionConfig, ExtractionErrorItem, ExtractionResult, ExtractionSummary,
+    ExtractInput, ExtractInputKind, ExtractionConfig, ExtractionErrorItem, ExtractionOutput, ExtractionSummary,
     FileExtractionConfig, ImageExtractionConfig, LanguageDetectionConfig, TokenReductionOptions, UrlExtractionConfig,
     UrlExtractionMode,
 };

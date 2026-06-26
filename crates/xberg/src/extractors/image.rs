@@ -107,7 +107,7 @@ impl ImageExtractor {
         let ocr_elements = ocr_result.ocr_elements;
         // Formulas recognized by paired-mode GLM-OCR (LayoutClass::Formula → LaTeX).
         // Carry them onto the InternalDocument so derive_extraction_result surfaces
-        // them on ExtractedDocument.formulas; otherwise the field is silently dropped.
+        // them on ExtractionResult.formulas; otherwise the field is silently dropped.
         let ocr_formulas = ocr_result.formulas;
 
         // Full OCR with TIFF multi-frame support (requires tiff crate)
@@ -272,7 +272,7 @@ impl ImageExtractor {
         // 5. Per-region OCR + formatting into InternalDocument
         let mut builder = InternalDocumentBuilder::new("image");
         // Typed formulas (LaTeX + pixel-space bbox) accumulated from Formula regions,
-        // surfaced on ExtractedDocument.formulas in addition to the rendered text element.
+        // surfaced on ExtractionResult.formulas in addition to the rendered text element.
         let mut formulas: Vec<crate::types::Formula> = Vec::new();
         let img_width = rgb.width();
         let img_height = rgb.height();
@@ -660,7 +660,7 @@ mod tests {
     async fn test_extract_with_ocr_populates_pages_for_elements_gated_backend() {
         use crate::core::config::OcrConfig;
         use crate::plugins::{OcrBackend, OcrBackendType, Plugin, register_ocr_backend, unregister_ocr_backend};
-        use crate::types::{ExtractedDocument, OcrBoundingGeometry, OcrConfidence, OcrElement, OcrElementLevel};
+        use crate::types::{ExtractionResult, OcrBoundingGeometry, OcrConfidence, OcrElement, OcrElementLevel};
 
         // 1×1 white PNG generated via the `image` crate so CRCs are valid.
         let mut png_buf = std::io::Cursor::new(Vec::new());
@@ -681,7 +681,7 @@ mod tests {
             fn supports_language(&self, _: &str) -> bool {
                 true
             }
-            async fn process_image(&self, _: &[u8], config: &OcrConfig) -> crate::Result<ExtractedDocument> {
+            async fn process_image(&self, _: &[u8], config: &OcrConfig) -> crate::Result<ExtractionResult> {
                 let include_elements = config.element_config.as_ref().is_some_and(|ec| ec.include_elements);
 
                 let elements = if include_elements {
@@ -699,7 +699,7 @@ mod tests {
                     None
                 };
 
-                Ok(ExtractedDocument {
+                Ok(ExtractionResult {
                     content: "hello world".to_string(),
                     ocr_elements: elements,
                     ..Default::default()
@@ -760,7 +760,7 @@ mod tests {
     async fn test_extract_with_ocr_page_content_matches_top_level_content() {
         use crate::core::config::OcrConfig;
         use crate::plugins::{OcrBackend, OcrBackendType, Plugin, register_ocr_backend, unregister_ocr_backend};
-        use crate::types::{ExtractedDocument, OcrBoundingGeometry, OcrConfidence, OcrElement, OcrElementLevel};
+        use crate::types::{ExtractionResult, OcrBoundingGeometry, OcrConfidence, OcrElement, OcrElementLevel};
 
         let mut png_buf = std::io::Cursor::new(Vec::new());
         image::ImageBuffer::<image::Rgb<u8>, _>::from_pixel(1, 1, image::Rgb([255u8, 255, 255]))
@@ -780,7 +780,7 @@ mod tests {
             fn supports_language(&self, _: &str) -> bool {
                 true
             }
-            async fn process_image(&self, _: &[u8], _: &OcrConfig) -> crate::Result<ExtractedDocument> {
+            async fn process_image(&self, _: &[u8], _: &OcrConfig) -> crate::Result<ExtractionResult> {
                 let content = COHERENT.to_string();
                 let words = [
                     "Sales",
@@ -806,7 +806,7 @@ mod tests {
                         .with_page_number(1);
                     elements.push(elem);
                 }
-                Ok(ExtractedDocument {
+                Ok(ExtractionResult {
                     content,
                     ocr_elements: Some(elements),
                     ..Default::default()
@@ -909,7 +909,7 @@ mod tests {
     async fn test_extract_with_ocr_populates_images_for_captioning() {
         use crate::core::config::{CaptioningConfig, LlmConfig, OcrConfig};
         use crate::plugins::{OcrBackend, OcrBackendType, Plugin, register_ocr_backend, unregister_ocr_backend};
-        use crate::types::ExtractedDocument;
+        use crate::types::ExtractionResult;
 
         let mut png_buf = std::io::Cursor::new(Vec::new());
         image::ImageBuffer::<image::Rgb<u8>, _>::from_pixel(1, 1, image::Rgb([255u8, 255, 255]))
@@ -928,8 +928,8 @@ mod tests {
             fn supports_language(&self, _: &str) -> bool {
                 true
             }
-            async fn process_image(&self, _: &[u8], _config: &OcrConfig) -> crate::Result<ExtractedDocument> {
-                Ok(ExtractedDocument {
+            async fn process_image(&self, _: &[u8], _config: &OcrConfig) -> crate::Result<ExtractionResult> {
+                Ok(ExtractionResult {
                     content: String::new(),
                     ..Default::default()
                 })
@@ -988,14 +988,14 @@ mod tests {
     }
 
     /// Full-pipeline regression for #732: InternalDocument.images must survive the
-    /// derive.rs conversion so ExtractedDocument.images is Some after run_pipeline.
+    /// derive.rs conversion so ExtractionResult.images is Some after run_pipeline.
     #[cfg(feature = "ocr")]
     #[tokio::test]
     async fn test_pipeline_images_some_after_ocr_with_captioning() {
         use crate::core::config::{CaptioningConfig, LlmConfig, OcrConfig};
         use crate::core::pipeline::run_pipeline;
         use crate::plugins::{OcrBackend, OcrBackendType, Plugin, register_ocr_backend, unregister_ocr_backend};
-        use crate::types::ExtractedDocument;
+        use crate::types::ExtractionResult;
 
         let mut png_buf = std::io::Cursor::new(Vec::new());
         image::ImageBuffer::<image::Rgb<u8>, _>::from_pixel(1, 1, image::Rgb([255u8, 255, 255]))
@@ -1013,8 +1013,8 @@ mod tests {
             fn supports_language(&self, _: &str) -> bool {
                 true
             }
-            async fn process_image(&self, _: &[u8], _config: &OcrConfig) -> crate::Result<ExtractedDocument> {
-                Ok(ExtractedDocument {
+            async fn process_image(&self, _: &[u8], _config: &OcrConfig) -> crate::Result<ExtractionResult> {
+                Ok(ExtractionResult {
                     content: String::new(),
                     ..Default::default()
                 })
@@ -1069,7 +1069,7 @@ mod tests {
         let result = run_pipeline(doc, &config).await.unwrap();
         assert!(
             result.images.is_some(),
-            "ExtractedDocument.images must be Some after pipeline — regression of #732"
+            "ExtractionResult.images must be Some after pipeline — regression of #732"
         );
         assert_eq!(
             result.images.unwrap().len(),

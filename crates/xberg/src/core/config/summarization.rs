@@ -2,7 +2,7 @@
 //!
 //! When `ExtractionConfig::summarization` is `Some`, the summarisation post-processor
 //! runs at the Middle stage and populates
-//! [`ExtractedDocument::summary`](crate::types::ExtractedDocument::summary).
+//! [`ExtractionResult::summary`](crate::types::ExtractionResult::summary).
 
 use crate::types::summary::SummaryStrategy;
 use serde::{Deserialize, Serialize};

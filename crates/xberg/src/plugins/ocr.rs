@@ -5,7 +5,7 @@
 use crate::Result;
 use crate::core::config::OcrConfig;
 use crate::plugins::Plugin;
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use async_trait::async_trait;
 use std::path::Path;
 use std::sync::Arc;
@@ -46,7 +46,7 @@ pub enum OcrBackendType {
 /// use async_trait::async_trait;
 /// use std::borrow::Cow;
 /// use std::path::Path;
-/// use xberg::types::{ExtractedDocument, Metadata};
+/// use xberg::types::{ExtractionResult, Metadata};
 ///
 /// struct CustomOcrBackend;
 ///
@@ -59,16 +59,16 @@ pub enum OcrBackendType {
 ///
 /// #[async_trait]
 /// impl OcrBackend for CustomOcrBackend {
-///     async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractedDocument> {
+///     async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
 ///         // Implement OCR logic here
-///         Ok(ExtractedDocument {
+///         Ok(ExtractionResult {
 ///             content: "Extracted text".to_string(),
 ///             mime_type: Cow::Borrowed("text/plain"),
 ///             ..Default::default()
 ///         })
 ///     }
 ///
-///     async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractedDocument> {
+///     async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractionResult> {
 ///         let bytes = std::fs::read(path)?;
 ///         self.process_image(&bytes, config).await
 ///     }
@@ -94,7 +94,7 @@ pub trait OcrBackend: Plugin {
     ///
     /// # Returns
     ///
-    /// An `ExtractedDocument` containing the extracted text and metadata.
+    /// An `ExtractionResult` containing the extracted text and metadata.
     ///
     /// # Errors
     ///
@@ -114,7 +114,7 @@ pub trait OcrBackend: Plugin {
     /// # use async_trait::async_trait;
     /// # use std::borrow::Cow;
     /// # use std::path::Path;
-    /// # use xberg::types::{ExtractedDocument, Metadata};
+    /// # use xberg::types::{ExtractionResult, Metadata};
     /// # struct MyOcr;
     /// # impl Plugin for MyOcr {
     /// #     fn name(&self) -> &str { "my-ocr" }
@@ -127,8 +127,8 @@ pub trait OcrBackend: Plugin {
     /// # impl OcrBackend for MyOcr {
     /// #     fn supports_language(&self, _: &str) -> bool { true }
     /// #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractedDocument> { todo!() }
-    /// async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractedDocument> {
+    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
+    /// async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
     ///     // Read backend-specific options; unknown keys are silently ignored.
     ///     let fast_mode = config.backend_options
     ///         .as_ref()
@@ -150,7 +150,7 @@ pub trait OcrBackend: Plugin {
     ///         format!("Extracted text in language: {}", config.language)
     ///     };
     ///
-    ///     Ok(ExtractedDocument {
+    ///     Ok(ExtractionResult {
     ///         content: text,
     ///         mime_type: Cow::Borrowed("text/plain"),
     ///         ..Default::default()
@@ -158,7 +158,7 @@ pub trait OcrBackend: Plugin {
     /// }
     /// # }
     /// ```
-    async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractedDocument>;
+    async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult>;
 
     /// Process a file and extract text via OCR.
     ///
@@ -173,7 +173,7 @@ pub trait OcrBackend: Plugin {
     /// # Errors
     ///
     /// Same as `process_image`, plus file I/O errors.
-    async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractedDocument> {
+    async fn process_image_file(&self, path: &Path, config: &OcrConfig) -> Result<ExtractionResult> {
         #[cfg(feature = "tokio-runtime")]
         {
             use crate::core::io;
@@ -214,12 +214,12 @@ pub trait OcrBackend: Plugin {
     /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
     /// # }
     /// # use xberg::plugins::OcrBackendType;
-    /// # use xberg::{ExtractedDocument, OcrConfig};
+    /// # use xberg::{ExtractionResult, OcrConfig};
     /// # #[async_trait]
     /// # impl OcrBackend for MyOcr {
     /// #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-    /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractedDocument> { todo!() }
-    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractedDocument> { todo!() }
+    /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
+    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
     /// fn supports_language(&self, lang: &str) -> bool {
     ///     self.languages.contains(&lang.to_string())
     /// }
@@ -247,12 +247,12 @@ pub trait OcrBackend: Plugin {
     /// #     fn initialize(&self) -> Result<()> { Ok(()) }
     /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
     /// # }
-    /// # use xberg::{ExtractedDocument, OcrConfig};
+    /// # use xberg::{ExtractionResult, OcrConfig};
     /// # #[async_trait]
     /// # impl OcrBackend for TesseractBackend {
     /// #     fn supports_language(&self, _: &str) -> bool { true }
-    /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractedDocument> { todo!() }
-    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractedDocument> { todo!() }
+    /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
+    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
     /// fn backend_type(&self) -> OcrBackendType {
     ///     OcrBackendType::Tesseract
     /// }
@@ -299,7 +299,7 @@ pub trait OcrBackend: Plugin {
     ///
     /// * `path` - Path to the document file (e.g. .pdf)
     /// * `config` - OCR configuration
-    async fn process_document(&self, _path: &Path, _config: &OcrConfig) -> Result<ExtractedDocument> {
+    async fn process_document(&self, _path: &Path, _config: &OcrConfig) -> Result<ExtractionResult> {
         Err(crate::XbergError::Other(
             "Document-level OCR processing not supported by this backend".to_string(),
         ))
@@ -330,7 +330,7 @@ pub trait OcrBackend: Plugin {
 /// ```rust
 /// use xberg::plugins::{Plugin, OcrBackend, register_ocr_backend, OcrBackendType};
 /// use xberg::{Result, OcrConfig};
-/// use xberg::types::{ExtractedDocument, Metadata};
+/// use xberg::types::{ExtractionResult, Metadata};
 /// use async_trait::async_trait;
 /// use std::borrow::Cow;
 /// use std::sync::Arc;
@@ -347,8 +347,8 @@ pub trait OcrBackend: Plugin {
 ///
 /// #[async_trait]
 /// impl OcrBackend for CustomOcr {
-///     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractedDocument> {
-///         Ok(ExtractedDocument {
+///     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> {
+///         Ok(ExtractionResult {
 ///             content: "text".to_string(),
 ///             mime_type: Cow::Borrowed("text/plain"),
 ///             ..Default::default()
@@ -528,8 +528,8 @@ mod tests {
 
     #[async_trait]
     impl OcrBackend for MockOcrBackend {
-        async fn process_image(&self, _image_bytes: &[u8], _config: &OcrConfig) -> Result<ExtractedDocument> {
-            Ok(ExtractedDocument {
+        async fn process_image(&self, _image_bytes: &[u8], _config: &OcrConfig) -> Result<ExtractionResult> {
+            Ok(ExtractionResult {
                 content: "Mocked OCR text".to_string(),
                 mime_type: Cow::Borrowed("text/plain"),
                 ..Default::default()
@@ -711,7 +711,7 @@ mod tests {
 
     #[async_trait]
     impl OcrBackend for OptionAwareBackend {
-        async fn process_image(&self, _image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractedDocument> {
+        async fn process_image(&self, _image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
             let mode = config
                 .backend_options
                 .as_ref()
@@ -719,7 +719,7 @@ mod tests {
                 .and_then(|v| v.as_str())
                 .unwrap_or("standard");
 
-            Ok(ExtractedDocument {
+            Ok(ExtractionResult {
                 content: format!("mode={mode}"),
                 mime_type: Cow::Borrowed("text/plain"),
                 ..Default::default()

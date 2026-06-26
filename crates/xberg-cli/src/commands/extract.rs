@@ -9,7 +9,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use xberg::{
-    ExtractInput, ExtractInputKind, ExtractedDocument, ExtractedImage, ExtractionConfig, ExtractionErrorItem,
+    ExtractInput, ExtractInputKind, ExtractedImage, ExtractionConfig, ExtractionErrorItem, ExtractionOutput,
     ExtractionResult, FileExtractionConfig, extract, extract_batch,
 };
 
@@ -130,7 +130,7 @@ pub fn batch_command(
             // Per-file config overrides are honoured: files without an override use the
             // batch-level config directly; files with an override use a one-shot batch of
             // one item so the library's own merge logic applies.
-            let mut results: Vec<ExtractedDocument> = Vec::with_capacity(uris.len());
+            let mut results: Vec<ExtractionResult> = Vec::with_capacity(uris.len());
             let mut errors: Vec<ExtractionErrorItem> = Vec::new();
             let mut per_file_ms: Vec<f64> = Vec::with_capacity(uris.len());
             let total_t0 = Instant::now();
@@ -191,7 +191,7 @@ fn extract_input_sync(
     input: ExtractInputSource,
     mime_type: Option<&str>,
     config: &ExtractionConfig,
-) -> Result<ExtractedDocument> {
+) -> Result<ExtractionResult> {
     let output = match input {
         ExtractInputSource::Uri(uri) => {
             let mut input = ExtractInput::from_uri(uri);
@@ -273,7 +273,7 @@ fn run_batch_sync(
     uris: &[String],
     file_configs_map: Option<&std::collections::HashMap<String, serde_json::Value>>,
     config: &ExtractionConfig,
-) -> Result<Vec<ExtractedDocument>> {
+) -> Result<Vec<ExtractionResult>> {
     let inputs = build_batch_inputs(uris, file_configs_map)?;
     let output = block_on_extract_batch(inputs, config).context(
         "Failed to batch extract documents. Check that all resources are readable and formats are supported.",
@@ -286,7 +286,7 @@ fn extract_uri_output_sync(
     uri: &str,
     file_configs_map: Option<&std::collections::HashMap<String, serde_json::Value>>,
     config: &ExtractionConfig,
-) -> Result<ExtractionResult> {
+) -> Result<ExtractionOutput> {
     let input = build_extract_input(uri, file_configs_map)?;
     block_on_extract(input, config).with_context(|| {
         format!(
@@ -296,11 +296,11 @@ fn extract_uri_output_sync(
     })
 }
 
-fn block_on_extract(input: ExtractInput, config: &ExtractionConfig) -> xberg::Result<ExtractionResult> {
+fn block_on_extract(input: ExtractInput, config: &ExtractionConfig) -> xberg::Result<ExtractionOutput> {
     tokio::runtime::Runtime::new()?.block_on(extract(input, config))
 }
 
-fn block_on_extract_batch(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> xberg::Result<ExtractionResult> {
+fn block_on_extract_batch(inputs: Vec<ExtractInput>, config: &ExtractionConfig) -> xberg::Result<ExtractionOutput> {
     tokio::runtime::Runtime::new()?.block_on(extract_batch(inputs, config))
 }
 
@@ -333,7 +333,7 @@ fn build_extract_input(
     })
 }
 
-fn single_result_from_output(mut output: ExtractionResult) -> Result<ExtractedDocument> {
+fn single_result_from_output(mut output: ExtractionOutput) -> Result<ExtractionResult> {
     fail_if_errors(&output.errors)?;
     if output.results.len() != 1 {
         anyhow::bail!("Expected one extraction result, got {}.", output.results.len());

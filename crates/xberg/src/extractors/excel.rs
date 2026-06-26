@@ -164,7 +164,7 @@ impl ExcelExtractor {
     ///
     /// Each sheet becomes a table preceded by an H2 heading with the sheet name (when
     /// non-empty). Additionally, `prebuilt_pages` is set to `Some(Vec<PageContent>)` with
-    /// one entry per sheet so that `ExtractedDocument.pages` is always `Some` for Excel.
+    /// one entry per sheet so that `ExtractionResult.pages` is always `Some` for Excel.
     ///
     /// Empty sheets still produce a `PageContent` entry so the page index aligns with the
     /// sheet index. The top-level `content` remains the concatenation of all per-sheet
@@ -638,7 +638,7 @@ mod tests {
 
     #[test]
     fn test_top_level_tables_populated_for_multi_sheet_workbook() {
-        // ExtractedDocument.tables (top-level) must be populated after XLSX extraction
+        // ExtractionResult.tables (top-level) must be populated after XLSX extraction
         // and the count must equal the number of sheets with data. This is the primary
         // backward-compat surface for callers that do not read .pages.
         let sheet1_cells = vec![

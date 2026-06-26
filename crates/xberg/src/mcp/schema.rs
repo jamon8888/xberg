@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 /// Structured output for unified extraction.
 #[derive(Debug, Clone, Serialize, Deserialize, schemars::JsonSchema)]
-pub struct ExtractionResult {
+pub struct ExtractionOutput {
     /// Extraction results in discovery order.
     #[schemars(description = "Extraction results in discovery order")]
     pub results: Vec<serde_json::Value>,

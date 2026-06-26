@@ -3,7 +3,7 @@
 //! Wraps [`crate::llm::text_completion::complete_text`] with a prompt template
 //! tuned for summary generation. Returns the prose summary plus the captured
 //! LLM usage entry so the caller can append it to
-//! [`crate::types::ExtractedDocument::llm_usage`].
+//! [`crate::types::ExtractionResult::llm_usage`].
 
 use crate::core::config::LlmConfig;
 use crate::types::LlmUsage;

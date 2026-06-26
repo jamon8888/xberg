@@ -24,7 +24,7 @@ pub(crate) use self::types::BatchFileItem;
 #[cfg(feature = "svg")]
 pub use self::types::SvgOptions;
 pub use self::types::{
-    ExtractInput, ExtractInputKind, ExtractionErrorItem, ExtractionResult, ExtractionSummary, ImageExtractionConfig,
+    ExtractInput, ExtractInputKind, ExtractionErrorItem, ExtractionOutput, ExtractionSummary, ImageExtractionConfig,
     ImageOutputFormat, LanguageDetectionConfig, TokenReductionOptions, UrlExtractionConfig, UrlExtractionMode,
 };
 

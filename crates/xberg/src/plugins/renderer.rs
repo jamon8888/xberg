@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::Result;
 use crate::plugins::Plugin;
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use crate::types::internal::InternalDocument;
 
 /// Trait for document renderers that convert extraction results to output strings.
@@ -30,7 +30,7 @@ use crate::types::internal::InternalDocument;
 ///
 /// ```rust
 /// use xberg::plugins::{Plugin, Renderer};
-/// use xberg::{ExtractedDocument, Result};
+/// use xberg::{ExtractionResult, Result};
 ///
 /// struct CustomRenderer;
 ///
@@ -39,7 +39,7 @@ use crate::types::internal::InternalDocument;
 /// }
 ///
 /// impl Renderer for CustomRenderer {
-///     fn render_result(&self, result: &ExtractedDocument) -> Result<String> {
+///     fn render_result(&self, result: &ExtractionResult) -> Result<String> {
 ///         Ok(result.content.to_uppercase())
 ///     }
 /// }
@@ -50,7 +50,7 @@ pub trait Renderer: Plugin {
     /// This is the only renderer method generated into language bindings.
     /// Native Rust renderers may override the skipped internal render method
     /// below when they need lower-level document structure.
-    fn render_result(&self, result: &ExtractedDocument) -> Result<String> {
+    fn render_result(&self, result: &ExtractionResult) -> Result<String> {
         Ok(result.content.clone())
     }
 
@@ -69,7 +69,7 @@ pub trait Renderer: Plugin {
     /// Returns an error if rendering fails.
     #[cfg_attr(alef, alef(skip))]
     fn render(&self, doc: &InternalDocument) -> Result<String> {
-        let result = ExtractedDocument::from(doc.clone());
+        let result = ExtractionResult::from(doc.clone());
         self.render_result(&result)
     }
 }

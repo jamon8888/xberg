@@ -29,7 +29,7 @@
 //! use std::sync::Arc;
 //!
 //! # struct MyExtractor;
-//! # use xberg::types::{ExtractedDocument, Metadata};
+//! # use xberg::types::{ExtractionResult, Metadata};
 //! # impl xberg::plugins::Plugin for MyExtractor {
 //! #     fn name(&self) -> &str { "my" }
 //! #     fn version(&self) -> String { "1.0.0".to_string() }
@@ -39,12 +39,12 @@
 //! # #[async_trait::async_trait]
 //! # impl DocumentExtractor for MyExtractor {
 //! #     async fn extract_bytes(&self, _: &[u8], _: &str, _: &xberg::ExtractionConfig)
-//! #         -> xberg::Result<ExtractedDocument> {
-//! #         Ok(ExtractedDocument::default())
+//! #         -> xberg::Result<ExtractionResult> {
+//! #         Ok(ExtractionResult::default())
 //! #     }
 //! #     async fn extract_file(&self, _: &std::path::Path, _: &str, _: &xberg::ExtractionConfig)
-//! #         -> xberg::Result<ExtractedDocument> {
-//! #         Ok(ExtractedDocument::default())
+//! #         -> xberg::Result<ExtractionResult> {
+//! #         Ok(ExtractionResult::default())
 //! #     }
 //! #     fn supported_mime_types(&self) -> &[&str] { &[] }
 //! #     fn priority(&self) -> i32 { 50 }
@@ -67,7 +67,7 @@
 //! ```rust
 //! use xberg::plugins::{Plugin, DocumentExtractor};
 //! use xberg::{Result, ExtractionConfig};
-//! use xberg::types::{ExtractedDocument, Metadata};
+//! use xberg::types::{ExtractionResult, Metadata};
 //! use async_trait::async_trait;
 //! use std::path::Path;
 //!
@@ -89,7 +89,7 @@
 //! #[async_trait]
 //! impl DocumentExtractor for CustomJsonExtractor {
 //!     async fn extract_bytes(&self, content: &[u8], _mime_type: &str, _config: &ExtractionConfig)
-//!         -> Result<ExtractedDocument> {
+//!         -> Result<ExtractionResult> {
 //!         // Parse JSON and extract all string values
 //!         let json: serde_json::Value = serde_json::from_slice(content)?;
 //!         let extracted_text = extract_strings_from_json(&json);
@@ -97,7 +97,7 @@
 //!         let mut metadata = Metadata::default();
 //!         metadata.additional.insert("extracted_fields".to_string().into(), serde_json::json!(true));
 //!
-//!         Ok(ExtractedDocument {
+//!         Ok(ExtractionResult {
 //!             content: extracted_text,
 //!             mime_type: std::borrow::Cow::Borrowed("application/json"),
 //!             metadata,
@@ -106,7 +106,7 @@
 //!     }
 //!
 //!     async fn extract_file(&self, path: &Path, mime_type: &str, config: &ExtractionConfig)
-//!         -> Result<ExtractedDocument> {
+//!         -> Result<ExtractionResult> {
 //!         // Read file and delegate to extract_bytes
 //!         let content = tokio::fs::read(path).await?;
 //!         self.extract_bytes(&content, mime_type, config).await

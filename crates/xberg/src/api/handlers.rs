@@ -8,7 +8,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD};
 use bytes::Bytes;
 
 use crate::cache;
-use crate::core::config::{ExtractInput, ExtractInputKind, ExtractionResult};
+use crate::core::config::{ExtractInput, ExtractInputKind, ExtractionOutput};
 
 use std::sync::Arc;
 
@@ -471,7 +471,7 @@ fn wants_toon(headers: &HeaderMap) -> bool {
 }
 
 /// Serialize extraction results as a TOON response.
-fn toon_response(results: &ExtractionResult) -> Result<axum::response::Response<axum::body::Body>, ApiError> {
+fn toon_response(results: &ExtractionOutput) -> Result<axum::response::Response<axum::body::Body>, ApiError> {
     let body = serde_toon::to_string(results).map_err(|e| {
         ApiError::internal(crate::error::XbergError::Other(format!(
             "Failed to serialize response to TOON: {}",
@@ -494,7 +494,7 @@ fn toon_response(results: &ExtractionResult) -> Result<axum::response::Response<
 /// - `format` (optional): Wire format for the response (`json` or `toon`, default: `json`).
 ///   Alternatively, set the `Accept: application/toon` header.
 ///
-/// Returns an `ExtractionResult` envelope with extraction results and summary counts.
+/// Returns an `ExtractionOutput` envelope with extraction results and summary counts.
 ///
 /// # Size Limits
 ///
@@ -514,7 +514,7 @@ fn toon_response(results: &ExtractionResult) -> Result<axum::response::Response<
     tag = "extraction",
     request_body(content_type = "multipart/form-data"),
     responses(
-        (status = 200, description = "Extraction successful", body = crate::core::config::ExtractionResult),
+        (status = 200, description = "Extraction successful", body = crate::core::config::ExtractionOutput),
         (status = 400, description = "Bad request", body = crate::api::types::ErrorResponse),
         (status = 413, description = "Payload too large", body = crate::api::types::ErrorResponse),
         (status = 500, description = "Internal server error", body = crate::api::types::ErrorResponse),
@@ -554,7 +554,7 @@ pub(crate) async fn extract_handler(
 async fn extract_unified_inputs(
     inputs: Vec<ApiExtractInput>,
     config: crate::core::config::ExtractionConfig,
-) -> Result<ExtractionResult, ApiError> {
+) -> Result<ExtractionOutput, ApiError> {
     if inputs.is_empty() {
         return Err(ApiError::validation(crate::error::XbergError::validation(
             "No inputs provided for extraction",

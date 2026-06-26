@@ -486,7 +486,7 @@ mod tests {
     }
 
     /// Full round-trip through PptxExtractor::extract_bytes → derive_extraction_result →
-    /// ExtractedDocument.pages, asserting that speaker_notes and section_name are present.
+    /// ExtractionResult.pages, asserting that speaker_notes and section_name are present.
     #[tokio::test]
     async fn test_extract_bytes_populates_speaker_notes_and_section_name() {
         use crate::core::config::{ExtractionConfig, PageConfig};

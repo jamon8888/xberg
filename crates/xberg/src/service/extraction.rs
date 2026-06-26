@@ -2,7 +2,7 @@
 
 use crate::core::config::ExtractionConfig;
 use crate::core::extractor::{extract_bytes, extract_file};
-use crate::types::ExtractedDocument;
+use crate::types::ExtractionResult;
 use crate::{Result, XbergError};
 use std::future::Future;
 use std::pin::Pin;
@@ -49,9 +49,9 @@ impl Default for ExtractionService {
 }
 
 impl Service<ExtractionRequest> for ExtractionService {
-    type Response = ExtractedDocument;
+    type Response = ExtractionResult;
     type Error = XbergError;
-    type Future = Pin<Box<dyn Future<Output = Result<ExtractedDocument>> + Send>>;
+    type Future = Pin<Box<dyn Future<Output = Result<ExtractionResult>> + Send>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))

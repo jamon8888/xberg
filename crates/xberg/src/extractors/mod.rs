@@ -30,9 +30,9 @@ use std::sync::Arc;
 ///
 /// ```rust,ignore
 /// impl SyncExtractor for PlainTextExtractor {
-///     fn extract_sync(&self, content: &[u8], config: &ExtractionConfig) -> Result<ExtractedDocument> {
+///     fn extract_sync(&self, content: &[u8], config: &ExtractionConfig) -> Result<ExtractionResult> {
 ///         let text = String::from_utf8_lossy(content).to_string();
-///         Ok(ExtractedDocument {
+///         Ok(ExtractionResult {
 ///             content: text,
 ///             mime_type: "text/plain".to_string(),
 ///             metadata: Metadata::default(),
