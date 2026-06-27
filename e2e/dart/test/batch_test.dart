@@ -77,44 +77,14 @@ void main() {
     }
   });
 
-  test('extract_batch invalid MIME', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"bytes":[72,101,108,108,111],"kind":"bytes","mime_type":"application/x-nonexistent"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
-    final result = await XbergBridge.extractBatch(inputs);
-  });
-
-  test('Extract text from multiple files asynchronously', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"pdf/fake_memo.pdf"},{"kind":"uri","uri":"text/fake_text.txt"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
-    final result = await XbergBridge.extractBatch(inputs);
-  });
-
-  test('extract_batch async nonexistent', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"/nonexistent/a.pdf"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
-    final result = await XbergBridge.extractBatch(inputs);
-  });
-
-  test('extract_batch nonexistent', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"/nonexistent/a.pdf"},{"kind":"uri","uri":"/nonexistent/b.txt"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
-    final result = await XbergBridge.extractBatch(inputs);
-  });
-
-  test('extract_batch mixed', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"text/plain.txt"},{"kind":"uri","uri":"/nonexistent/missing.pdf"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
-    final result = await XbergBridge.extractBatch(inputs);
-  });
-
-  test('Extract text from multiple files synchronously', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"pdf/fake_memo.pdf"},{"kind":"uri","uri":"text/fake_text.txt"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
-    final result = await XbergBridge.extractBatch(inputs);
-  });
-
   test('extract_batch: happy path with mixed inputs', () async {
     final inputs = await Future.wait((jsonDecode(r'[{"bytes":[72,101,108,108,111,44,32,119,111,114,108,100,33],"kind":"bytes","mime_type":"text/plain"},{"bytes":[60,104,116,109,108,62,60,98,111,100,121,62,84,101,115,116,60,47,98,111,100,121,62,60,47,104,116,109,108,62],"kind":"bytes","mime_type":"text/html"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
     final result = await XbergBridge.extractBatch(inputs);
     expect(result.results.length, greaterThanOrEqualTo(1));
   });
 
-  test('extract_batch: unsupported MIME', () async {
-    final inputs = await Future.wait((jsonDecode(r'[{"bytes":[100,97,116,97],"kind":"bytes","mime_type":"application/x-unknown"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
+  test('extract_batch with invalid bytes MIME type', () async {
+    final inputs = await Future.wait((jsonDecode(r'[{"bytes":[72,101,108,108,111],"kind":"bytes","mime_type":"application/x-nonexistent"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
     final result = await XbergBridge.extractBatch(inputs);
   });
 
@@ -123,10 +93,35 @@ void main() {
     final result = await XbergBridge.extractBatch(inputs);
   });
 
+  test('extract_batch with unsupported bytes MIME type', () async {
+    final inputs = await Future.wait((jsonDecode(r'[{"bytes":[100,97,116,97],"kind":"bytes","mime_type":"application/x-unknown"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
+    final result = await XbergBridge.extractBatch(inputs);
+  });
+
   test('extract_batch: empty batch', () async {
     final inputs = await Future.wait((jsonDecode(r'[]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
     final result = await XbergBridge.extractBatch(inputs);
     expect(result.results.length, equals(0));
+  });
+
+  test('extract_batch with missing URI inputs', () async {
+    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"/nonexistent/a.pdf"},{"kind":"uri","uri":"/nonexistent/b.txt"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
+    final result = await XbergBridge.extractBatch(inputs);
+  });
+
+  test('extract_batch over URI inputs', () async {
+    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"pdf/fake_memo.pdf"},{"kind":"uri","uri":"text/fake_text.txt"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
+    final result = await XbergBridge.extractBatch(inputs);
+  });
+
+  test('extract_batch with missing URI input', () async {
+    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"/nonexistent/a.pdf"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
+    final result = await XbergBridge.extractBatch(inputs);
+  });
+
+  test('extract_batch with mixed valid and missing URI inputs', () async {
+    final inputs = await Future.wait((jsonDecode(r'[{"kind":"uri","uri":"text/plain.txt"},{"kind":"uri","uri":"/nonexistent/missing.pdf"}]') as List<dynamic>).cast<Map<String, dynamic>>().map((m) => createExtractInputFromJson(json: jsonEncode(m))));
+    final result = await XbergBridge.extractBatch(inputs);
   });
 
 }

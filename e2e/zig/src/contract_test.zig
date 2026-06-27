@@ -19,8 +19,8 @@ fn suppress_abort() void {
 
 // E2e tests for category: contract
 
-test "api_extract_batch_bytes_async" {
-    // Tests async batch bytes extraction API (extract_batch)
+test "api_extract_batch_bytes" {
+    // Tests batch bytes extraction API (extract_batch)
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
@@ -39,8 +39,8 @@ test "api_extract_batch_bytes_async" {
     );
 }
 
-test "api_extract_batch_bytes_with_config_async" {
-    // Tests async batch bytes extraction with per-file configs (extract_batch with file_configs parameter)
+test "api_extract_batch_bytes_with_config" {
+    // Tests batch bytes extraction with per-input config (extract_batch)
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
@@ -56,8 +56,8 @@ test "api_extract_batch_bytes_with_config_async" {
     try testing.expectEqualStrings("markdown", std.mem.trim(u8, result.object.get("results").?.array.items[0].object.get("metadata").?.object.get("output_format").?.string, " \n\r\t"));
 }
 
-test "api_extract_batch_uri_async" {
-    // Tests async batch file extraction API (extract_batch)
+test "api_extract_batch_uri" {
+    // Tests batch URI extraction API (extract_batch)
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
@@ -76,8 +76,8 @@ test "api_extract_batch_uri_async" {
     );
 }
 
-test "api_extract_batch_uri_with_config_async" {
-    // Tests async batch file extraction with per-file configs (extract_batch with file_configs parameter)
+test "api_extract_batch_uri_with_config" {
+    // Tests batch URI extraction with per-input config (extract_batch)
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
@@ -93,8 +93,8 @@ test "api_extract_batch_uri_with_config_async" {
     try testing.expectEqualStrings("markdown", std.mem.trim(u8, result.object.get("results").?.array.items[0].object.get("metadata").?.object.get("output_format").?.string, " \n\r\t"));
 }
 
-test "api_extract_input_bytes_async" {
-    // Tests async bytes extraction API (extract)
+test "api_extract_bytes_input" {
+    // Tests bytes input extraction API (extract)
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
@@ -113,8 +113,8 @@ test "api_extract_input_bytes_async" {
     );
 }
 
-test "api_extract_uri_async" {
-    // Tests async URI extraction API
+test "api_extract_uri" {
+    // Tests URI extraction API
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();

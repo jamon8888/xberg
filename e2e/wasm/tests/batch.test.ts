@@ -59,18 +59,18 @@ function _alefE2eFormatMetadataDisplay(fm: unknown): string {
 
 describe("batch", () => {
 
-	it("batch_bytes_invalid_mime: extract_batch invalid MIME", async () => {
-		await extractBatch([{ bytes: [72, 101, 108, 108, 111], kind: "bytes", mimeType: "application/x-nonexistent" }], undefined);
-	}, 30000);
 	it("extract_batch_bytes_happy: extract_batch: happy path with mixed inputs", async () => {
 		const result = await extractBatch([{ bytes: [72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33], kind: "bytes", mimeType: "text/plain" }, { bytes: [60, 104, 116, 109, 108, 62, 60, 98, 111, 100, 121, 62, 84, 101, 115, 116, 60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62], kind: "bytes", mimeType: "text/html" }], undefined);
     expect(result.results.length).toBeGreaterThanOrEqual(1);
 	}, 30000);
-	it("extract_batch_bytes_invalid_mime_sync: extract_batch: unsupported MIME", async () => {
-		await extractBatch([{ bytes: [100, 97, 116, 97], kind: "bytes", mimeType: "application/x-unknown" }], undefined);
+	it("extract_batch_bytes_invalid_mime: extract_batch with invalid bytes MIME type", async () => {
+		await extractBatch([{ bytes: [72, 101, 108, 108, 111], kind: "bytes", mimeType: "application/x-nonexistent" }], undefined);
 	}, 30000);
 	it("extract_batch_bytes_mixed_format: extract_batch: handles unsupported MIME gracefully", async () => {
 		await extractBatch([{ bytes: [80, 68, 70, 32, 112, 108, 97, 99, 101, 104, 111, 108, 100, 101, 114], kind: "bytes", mimeType: "application/x-unknown" }], undefined);
+	}, 30000);
+	it("extract_batch_bytes_unsupported_mime: extract_batch with unsupported bytes MIME type", async () => {
+		await extractBatch([{ bytes: [100, 97, 116, 97], kind: "bytes", mimeType: "application/x-unknown" }], undefined);
 	}, 30000);
 	it("extract_batch_empty_inputs: extract_batch: empty batch", async () => {
 		const result = await extractBatch([], undefined);

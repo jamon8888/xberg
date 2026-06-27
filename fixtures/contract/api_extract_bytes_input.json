@@ -1,13 +1,8 @@
 {
-	"id": "async_input_bytes",
-	"category": "async",
-	"description": "Async extract call on PDF document",
-	"tags": ["async", "api", "extract"],
+	"id": "api_extract_bytes_input",
+	"description": "Tests bytes input extraction API (extract)",
+	"tags": ["contract", "api"],
 	"call": "extract",
-	"skip": {
-		"languages": ["wasm"],
-		"reason": "WASM uses synchronous-only API; async extraction is not available on the wasm target"
-	},
 	"input": {
 		"kind": "bytes",
 		"bytes": [
@@ -573,13 +568,9 @@
 			57, 54, 100, 98, 49, 48, 101, 100, 101, 100, 52, 62, 32, 93, 32, 62, 62, 10, 115, 116, 97, 114, 116, 120,
 			114, 101, 102, 10, 49, 50, 55, 51, 53, 10, 37, 37, 69, 79, 70, 10
 		],
-		"mime_type": "application/pdf",
 		"filename": "fake_memo.pdf"
 	},
 	"assertions": [
-		{
-			"type": "not_error"
-		},
 		{
 			"type": "equals",
 			"field": "results[0].mime_type",
@@ -588,7 +579,16 @@
 		{
 			"type": "min_length",
 			"field": "results[0].content",
-			"value": 50
+			"value": 10
+		},
+		{
+			"type": "contains_any",
+			"field": "results[0].content",
+			"values": ["May 5, 2023", "Mallori"]
 		}
-	]
+	],
+	"skip": {
+		"languages": ["wasm"],
+		"reason": "WASM e2e uses dedicated browser-safe fixtures for bytes input"
+	}
 }

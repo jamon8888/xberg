@@ -1,18 +1,14 @@
 {
-	"id": "batch_file_async_basic",
+	"id": "extract_batch_uri_not_found",
 	"category": "batch",
-	"description": "Extract text from multiple files asynchronously",
-	"tags": ["batch", "async", "concurrent", "multiple_files"],
+	"description": "extract_batch with missing URI input",
+	"tags": ["batch", "uri", "error"],
 	"call": "extract_batch",
 	"input": {
 		"inputs": [
 			{
 				"kind": "uri",
-				"uri": "pdf/fake_memo.pdf"
-			},
-			{
-				"kind": "uri",
-				"uri": "text/fake_text.txt"
+				"uri": "/nonexistent/a.pdf"
 			}
 		]
 	},

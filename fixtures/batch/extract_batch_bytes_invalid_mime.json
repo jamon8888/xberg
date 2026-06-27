@@ -1,9 +1,10 @@
 {
-	"id": "batch_bytes_invalid_mime",
+	"id": "extract_batch_bytes_invalid_mime",
 	"category": "batch",
-	"description": "extract_batch invalid MIME",
+	"description": "extract_batch with invalid bytes MIME type",
 	"tags": [
 		"batch",
+		"bytes",
 		"error"
 	],
 	"call": "extract_batch",

@@ -9,50 +9,14 @@ require 'xberg'
 require 'json'
 
 RSpec.describe 'batch' do
-  it 'batch_bytes_invalid_mime: extract_batch invalid MIME' do
-    result = Xberg.extract_batch([{ 'bytes' => [72, 101, 108, 108, 111], 'kind' => 'bytes', 'mime_type' => 'application/x-nonexistent' }])
-
-    expect(result).not_to be_nil
-  end
-
-  it 'batch_file_async_basic: Extract text from multiple files asynchronously' do
-    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => 'pdf/fake_memo.pdf' }, { 'kind' => 'uri', 'uri' => 'text/fake_text.txt' }])
-
-    expect(result).not_to be_nil
-  end
-
-  it 'batch_file_async_not_found: extract_batch async nonexistent' do
-    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => '/nonexistent/a.pdf' }])
-
-    expect(result).not_to be_nil
-  end
-
-  it 'batch_file_not_found: extract_batch nonexistent' do
-    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => '/nonexistent/a.pdf' }, { 'kind' => 'uri', 'uri' => '/nonexistent/b.txt' }])
-
-    expect(result).not_to be_nil
-  end
-
-  it 'batch_file_partial: extract_batch mixed' do
-    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => 'text/plain.txt' }, { 'kind' => 'uri', 'uri' => '/nonexistent/missing.pdf' }])
-
-    expect(result).not_to be_nil
-  end
-
-  it 'batch_file_sync_basic: Extract text from multiple files synchronously' do
-    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => 'pdf/fake_memo.pdf' }, { 'kind' => 'uri', 'uri' => 'text/fake_text.txt' }])
-
-    expect(result).not_to be_nil
-  end
-
   it 'extract_batch_bytes_happy: extract_batch: happy path with mixed inputs' do
     result = Xberg.extract_batch([{ 'bytes' => [72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33], 'kind' => 'bytes', 'mime_type' => 'text/plain' }, { 'bytes' => [60, 104, 116, 109, 108, 62, 60, 98, 111, 100, 121, 62, 84, 101, 115, 116, 60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62], 'kind' => 'bytes', 'mime_type' => 'text/html' }])
     expect(result.results.length).to be >= 1
 
   end
 
-  it 'extract_batch_bytes_invalid_mime_sync: extract_batch: unsupported MIME' do
-    result = Xberg.extract_batch([{ 'bytes' => [100, 97, 116, 97], 'kind' => 'bytes', 'mime_type' => 'application/x-unknown' }])
+  it 'extract_batch_bytes_invalid_mime: extract_batch with invalid bytes MIME type' do
+    result = Xberg.extract_batch([{ 'bytes' => [72, 101, 108, 108, 111], 'kind' => 'bytes', 'mime_type' => 'application/x-nonexistent' }])
 
     expect(result).not_to be_nil
   end
@@ -63,9 +27,39 @@ RSpec.describe 'batch' do
     expect(result).not_to be_nil
   end
 
+  it 'extract_batch_bytes_unsupported_mime: extract_batch with unsupported bytes MIME type' do
+    result = Xberg.extract_batch([{ 'bytes' => [100, 97, 116, 97], 'kind' => 'bytes', 'mime_type' => 'application/x-unknown' }])
+
+    expect(result).not_to be_nil
+  end
+
   it 'extract_batch_empty_inputs: extract_batch: empty batch' do
     result = Xberg.extract_batch([])
     expect(result.results.length).to eq(0)
 
+  end
+
+  it 'extract_batch_uri_all_missing: extract_batch with missing URI inputs' do
+    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => '/nonexistent/a.pdf' }, { 'kind' => 'uri', 'uri' => '/nonexistent/b.txt' }])
+
+    expect(result).not_to be_nil
+  end
+
+  it 'extract_batch_uri_basic: extract_batch over URI inputs' do
+    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => 'pdf/fake_memo.pdf' }, { 'kind' => 'uri', 'uri' => 'text/fake_text.txt' }])
+
+    expect(result).not_to be_nil
+  end
+
+  it 'extract_batch_uri_not_found: extract_batch with missing URI input' do
+    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => '/nonexistent/a.pdf' }])
+
+    expect(result).not_to be_nil
+  end
+
+  it 'extract_batch_uri_partial_failure: extract_batch with mixed valid and missing URI inputs' do
+    result = Xberg.extract_batch([{ 'kind' => 'uri', 'uri' => 'text/plain.txt' }, { 'kind' => 'uri', 'uri' => '/nonexistent/missing.pdf' }])
+
+    expect(result).not_to be_nil
   end
 end

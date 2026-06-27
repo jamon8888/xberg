@@ -6,42 +6,6 @@
 defmodule E2e.BatchTest do
   use ExUnit.Case, async: false
 
-  describe "batch_bytes_invalid_mime" do
-    test "batch_bytes_invalid_mime" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"bytes" => [72, 101, 108, 108, 111], "kind" => "bytes", "mime_type" => "application/x-nonexistent"}])
-    end
-  end
-
-  describe "batch_file_async_basic" do
-    test "batch_file_async_basic" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "pdf/fake_memo.pdf"}, %{"kind" => "uri", "uri" => "text/fake_text.txt"}])
-    end
-  end
-
-  describe "batch_file_async_not_found" do
-    test "batch_file_async_not_found" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "/nonexistent/a.pdf"}])
-    end
-  end
-
-  describe "batch_file_not_found" do
-    test "batch_file_not_found" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "/nonexistent/a.pdf"}, %{"kind" => "uri", "uri" => "/nonexistent/b.txt"}])
-    end
-  end
-
-  describe "batch_file_partial" do
-    test "batch_file_partial" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "text/plain.txt"}, %{"kind" => "uri", "uri" => "/nonexistent/missing.pdf"}])
-    end
-  end
-
-  describe "batch_file_sync_basic" do
-    test "batch_file_sync_basic" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "pdf/fake_memo.pdf"}, %{"kind" => "uri", "uri" => "text/fake_text.txt"}])
-    end
-  end
-
   describe "extract_batch_bytes_happy" do
     test "extract_batch_bytes_happy" do
       {:ok, result} = Xberg.extract_batch(inputs: [%{"bytes" => [72, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33], "kind" => "bytes", "mime_type" => "text/plain"}, %{"bytes" => [60, 104, 116, 109, 108, 62, 60, 98, 111, 100, 121, 62, 84, 101, 115, 116, 60, 47, 98, 111, 100, 121, 62, 60, 47, 104, 116, 109, 108, 62], "kind" => "bytes", "mime_type" => "text/html"}])
@@ -49,9 +13,9 @@ defmodule E2e.BatchTest do
     end
   end
 
-  describe "extract_batch_bytes_invalid_mime_sync" do
-    test "extract_batch_bytes_invalid_mime_sync" do
-      {:ok, result} = Xberg.extract_batch(inputs: [%{"bytes" => [100, 97, 116, 97], "kind" => "bytes", "mime_type" => "application/x-unknown"}])
+  describe "extract_batch_bytes_invalid_mime" do
+    test "extract_batch_bytes_invalid_mime" do
+      {:ok, result} = Xberg.extract_batch(inputs: [%{"bytes" => [72, 101, 108, 108, 111], "kind" => "bytes", "mime_type" => "application/x-nonexistent"}])
     end
   end
 
@@ -61,10 +25,40 @@ defmodule E2e.BatchTest do
     end
   end
 
+  describe "extract_batch_bytes_unsupported_mime" do
+    test "extract_batch_bytes_unsupported_mime" do
+      {:ok, result} = Xberg.extract_batch(inputs: [%{"bytes" => [100, 97, 116, 97], "kind" => "bytes", "mime_type" => "application/x-unknown"}])
+    end
+  end
+
   describe "extract_batch_empty_inputs" do
     test "extract_batch_empty_inputs" do
       {:ok, result} = Xberg.extract_batch(inputs: [])
       assert length(result.results) == 0
+    end
+  end
+
+  describe "extract_batch_uri_all_missing" do
+    test "extract_batch_uri_all_missing" do
+      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "/nonexistent/a.pdf"}, %{"kind" => "uri", "uri" => "/nonexistent/b.txt"}])
+    end
+  end
+
+  describe "extract_batch_uri_basic" do
+    test "extract_batch_uri_basic" do
+      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "pdf/fake_memo.pdf"}, %{"kind" => "uri", "uri" => "text/fake_text.txt"}])
+    end
+  end
+
+  describe "extract_batch_uri_not_found" do
+    test "extract_batch_uri_not_found" do
+      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "/nonexistent/a.pdf"}])
+    end
+  end
+
+  describe "extract_batch_uri_partial_failure" do
+    test "extract_batch_uri_partial_failure" do
+      {:ok, result} = Xberg.extract_batch(inputs: [%{"kind" => "uri", "uri" => "text/plain.txt"}, %{"kind" => "uri", "uri" => "/nonexistent/missing.pdf"}])
     end
   end
 end

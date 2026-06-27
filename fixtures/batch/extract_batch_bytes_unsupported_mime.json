@@ -1,7 +1,7 @@
 {
-	"id": "extract_batch_bytes_invalid_mime_sync",
+	"id": "extract_batch_bytes_unsupported_mime",
 	"category": "batch",
-	"description": "extract_batch: unsupported MIME",
+	"description": "extract_batch with unsupported bytes MIME type",
 	"call": "extract_batch",
 	"input": {
 		"inputs": [

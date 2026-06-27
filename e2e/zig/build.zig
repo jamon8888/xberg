@@ -81,35 +81,6 @@ pub fn build(b: *std.Build) void {
         }
     }
 
-    const async_module = b.createModule(.{
-        .root_source_file = b.path("src/async_test.zig"),
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-    });
-    async_module.addImport("xberg", xberg_module);
-    const async_tests = b.addTest(.{
-        .name = "async_test",
-        .root_module = async_module,
-        .use_llvm = true,
-    });
-    async_tests.root_module.addRPath(.{ .cwd_relative = ffi_path_abs });
-    const async_run = b.addRunArtifact(async_tests);
-    async_run.setEnvironmentVariable("CRAWLBERG_ALLOW_PRIVATE_NETWORK", "true");
-    if (mock_server_url) |_url| {
-        async_run.setEnvironmentVariable("MOCK_SERVER_URL", _url);
-    }
-    if (mock_servers_json) |_json| {
-        async_run.setEnvironmentVariable("MOCK_SERVERS", _json);
-    }
-    {
-        var _it = mock_servers_map.iterator();
-        while (_it.next()) |_entry| {
-            async_run.setEnvironmentVariable(_entry.key_ptr.*, _entry.value_ptr.*);
-        }
-    }
-    test_step.dependOn(&async_run.step);
-
     const batch_module = b.createModule(.{
         .root_source_file = b.path("src/batch_test.zig"),
         .target = target,
@@ -137,7 +108,6 @@ pub fn build(b: *std.Build) void {
             batch_run.setEnvironmentVariable(_entry.key_ptr.*, _entry.value_ptr.*);
         }
     }
-    batch_run.step.dependOn(&async_run.step);
     test_step.dependOn(&batch_run.step);
 
     const contract_module = b.createModule(.{
@@ -230,6 +200,36 @@ pub fn build(b: *std.Build) void {
     error_run.step.dependOn(&embedding_backend_management_run.step);
     test_step.dependOn(&error_run.step);
 
+    const extract_module = b.createModule(.{
+        .root_source_file = b.path("src/extract_test.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    extract_module.addImport("xberg", xberg_module);
+    const extract_tests = b.addTest(.{
+        .name = "extract_test",
+        .root_module = extract_module,
+        .use_llvm = true,
+    });
+    extract_tests.root_module.addRPath(.{ .cwd_relative = ffi_path_abs });
+    const extract_run = b.addRunArtifact(extract_tests);
+    extract_run.setEnvironmentVariable("CRAWLBERG_ALLOW_PRIVATE_NETWORK", "true");
+    if (mock_server_url) |_url| {
+        extract_run.setEnvironmentVariable("MOCK_SERVER_URL", _url);
+    }
+    if (mock_servers_json) |_json| {
+        extract_run.setEnvironmentVariable("MOCK_SERVERS", _json);
+    }
+    {
+        var _it = mock_servers_map.iterator();
+        while (_it.next()) |_entry| {
+            extract_run.setEnvironmentVariable(_entry.key_ptr.*, _entry.value_ptr.*);
+        }
+    }
+    extract_run.step.dependOn(&error_run.step);
+    test_step.dependOn(&extract_run.step);
+
     const format_specific_module = b.createModule(.{
         .root_source_file = b.path("src/format_specific_test.zig"),
         .target = target,
@@ -257,7 +257,7 @@ pub fn build(b: *std.Build) void {
             format_specific_run.setEnvironmentVariable(_entry.key_ptr.*, _entry.value_ptr.*);
         }
     }
-    format_specific_run.step.dependOn(&error_run.step);
+    format_specific_run.step.dependOn(&extract_run.step);
     test_step.dependOn(&format_specific_run.step);
 
     const ocr_backend_management_module = b.createModule(.{

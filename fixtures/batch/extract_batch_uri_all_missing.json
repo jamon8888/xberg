@@ -1,18 +1,18 @@
 {
-	"id": "batch_file_sync_basic",
+	"id": "extract_batch_uri_all_missing",
 	"category": "batch",
-	"description": "Extract text from multiple files synchronously",
-	"tags": ["batch", "sync", "multiple_files"],
+	"description": "extract_batch with missing URI inputs",
+	"tags": ["batch", "uri", "error"],
 	"call": "extract_batch",
 	"input": {
 		"inputs": [
 			{
 				"kind": "uri",
-				"uri": "pdf/fake_memo.pdf"
+				"uri": "/nonexistent/a.pdf"
 			},
 			{
 				"kind": "uri",
-				"uri": "text/fake_text.txt"
+				"uri": "/nonexistent/b.txt"
 			}
 		]
 	},

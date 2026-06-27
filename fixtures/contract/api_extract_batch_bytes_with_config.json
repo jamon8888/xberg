@@ -1,7 +1,7 @@
 {
-	"id": "api_extract_batch_bytes_with_config_async",
-	"description": "Tests async batch bytes extraction with per-file configs (extract_batch with file_configs parameter)",
-	"tags": ["contract", "api", "batch", "file_config"],
+	"id": "api_extract_batch_bytes_with_config",
+	"description": "Tests batch bytes extraction with per-input config (extract_batch)",
+	"tags": ["contract", "api", "batch", "input_config"],
 	"call": "extract_batch",
 	"input": {
 		"inputs": [

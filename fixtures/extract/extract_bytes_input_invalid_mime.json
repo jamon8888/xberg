@@ -1,9 +1,10 @@
 {
-	"id": "async_input_bytes_invalid_mime",
-	"category": "async",
-	"description": "extract unsupported MIME async",
+	"id": "extract_bytes_input_invalid_mime",
+	"category": "extract",
+	"description": "extract bytes input with unsupported MIME type",
 	"tags": [
-		"async",
+		"extract",
+		"bytes",
 		"error"
 	],
 	"call": "extract",

@@ -17,10 +17,10 @@ fn suppress_abort() void {
     }
 }
 
-// E2e tests for category: async
+// E2e tests for category: extract
 
-test "async_input_bytes" {
-    // Async extract call on PDF document
+test "extract_bytes_input" {
+    // extract bytes input from PDF document
     suppress_abort();
     var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
@@ -35,8 +35,8 @@ test "async_input_bytes" {
     try testing.expect(result.object.get("results").?.array.items[0].object.get("content").?.string.len >= @as(usize, 50));
 }
 
-test "async_input_bytes_empty_mime" {
-    // extract empty MIME async
+test "extract_bytes_input_empty_mime" {
+    // extract bytes input with empty MIME type
     suppress_abort();
     const _result_json = xberg.extract("{\"bytes\":[84,104,105,115,32,105,115,32,97,32,112,108,97,105,110,32,116,101,120,116,32,102,105,108,101,32,102,111,114,32,116,101,115,116,105,110,103,46,10],\"config\":{},\"filename\":\"plain.txt\",\"kind\":\"bytes\",\"mime_type\":\"\"}", "{}") catch {
         try testing.expect(true); // Error occurred as expected
@@ -45,8 +45,8 @@ test "async_input_bytes_empty_mime" {
     _ = _result_json;
 }
 
-test "async_input_bytes_invalid_mime" {
-    // extract unsupported MIME async
+test "extract_bytes_input_invalid_mime" {
+    // extract bytes input with unsupported MIME type
     suppress_abort();
     const _result_json = xberg.extract("{\"bytes\":[84,104,105,115,32,105,115,32,97,32,112,108,97,105,110,32,116,101,120,116,32,102,105,108,101,32,102,111,114,32,116,101,115,116,105,110,103,46,10],\"config\":{},\"filename\":\"plain.txt\",\"kind\":\"bytes\",\"mime_type\":\"application/x-nonexistent\"}", "{}") catch {
         try testing.expect(true); // Error occurred as expected

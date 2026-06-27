@@ -57,14 +57,14 @@ function _alefE2eFormatMetadataDisplay(fm: unknown): string {
 }
 
 
-describe("async", () => {
+describe("extract", () => {
 
-	it("async_input_bytes_empty_mime: extract empty MIME async", async () => {
+	it("extract_bytes_input_empty_mime: extract bytes input with empty MIME type", async () => {
 		await expect(async () => {
 			await extract((() => { const _u0 = new ExtractInput(); _u0.bytes = [84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 112, 108, 97, 105, 110, 32, 116, 101, 120, 116, 32, 102, 105, 108, 101, 32, 102, 111, 114, 32, 116, 101, 115, 116, 105, 110, 103, 46, 10]; _u0.config = (() => { const _u1 = WasmFileExtractionConfig.default(); return _u1; })(); _u0.filename = "plain.txt"; _u0.kind = "bytes"; _u0.mimeType = ""; return _u0; })(), undefined);
 		}).rejects.toThrow();
 	}, 30000);
-	it("async_input_bytes_invalid_mime: extract unsupported MIME async", async () => {
+	it("extract_bytes_input_invalid_mime: extract bytes input with unsupported MIME type", async () => {
 		await expect(async () => {
 			await extract((() => { const _u0 = new ExtractInput(); _u0.bytes = [84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 112, 108, 97, 105, 110, 32, 116, 101, 120, 116, 32, 102, 105, 108, 101, 32, 102, 111, 114, 32, 116, 101, 115, 116, 105, 110, 103, 46, 10]; _u0.config = (() => { const _u1 = WasmFileExtractionConfig.default(); return _u1; })(); _u0.filename = "plain.txt"; _u0.kind = "bytes"; _u0.mimeType = "application/x-nonexistent"; return _u0; })(), undefined);
 		}).rejects.toThrow();

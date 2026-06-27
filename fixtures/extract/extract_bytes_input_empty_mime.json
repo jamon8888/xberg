@@ -1,8 +1,8 @@
 {
-	"id": "async_input_bytes_empty_mime",
-	"category": "async",
-	"description": "extract empty MIME async",
-	"tags": ["async", "error"],
+	"id": "extract_bytes_input_empty_mime",
+	"category": "extract",
+	"description": "extract bytes input with empty MIME type",
+	"tags": ["extract", "bytes", "error"],
 	"call": "extract",
 	"input": {
 		"kind": "bytes",

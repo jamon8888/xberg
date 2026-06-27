@@ -18,66 +18,6 @@ use Xberg\ExtractionConfig;
 final class BatchTest extends TestCase
 {
 
-    /** extract_batch invalid MIME */
-    public function test_batch_bytes_invalid_mime(): void
-    {
-        $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"bytes":[72,101,108,108,111],"kind":"bytes","mime_type":"application/x-nonexistent"}')], \Xberg\ExtractionConfig::from_json('{}'));
-
-
-    }
-
-
-    /** Extract text from multiple files asynchronously */
-    public function test_batch_file_async_basic(): void
-    {
-        $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"pdf/fake_memo.pdf"}'), ExtractInput::from_json('{"kind":"uri","uri":"text/fake_text.txt"}')], \Xberg\ExtractionConfig::from_json('{}'));
-
-
-    }
-
-
-    /** extract_batch async nonexistent */
-    public function test_batch_file_async_not_found(): void
-    {
-        $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/a.pdf"}')], \Xberg\ExtractionConfig::from_json('{}'));
-
-
-    }
-
-
-    /** extract_batch nonexistent */
-    public function test_batch_file_not_found(): void
-    {
-        $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/a.pdf"}'), ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/b.txt"}')], \Xberg\ExtractionConfig::from_json('{}'));
-
-
-    }
-
-
-    /** extract_batch mixed */
-    public function test_batch_file_partial(): void
-    {
-        $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"text/plain.txt"}'), ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/missing.pdf"}')], \Xberg\ExtractionConfig::from_json('{}'));
-
-
-    }
-
-
-    /** Extract text from multiple files synchronously */
-    public function test_batch_file_sync_basic(): void
-    {
-        $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"pdf/fake_memo.pdf"}'), ExtractInput::from_json('{"kind":"uri","uri":"text/fake_text.txt"}')], \Xberg\ExtractionConfig::from_json('{}'));
-
-
-    }
-
-
     /** extract_batch: happy path with mixed inputs */
     public function test_extract_batch_bytes_happy(): void
     {
@@ -90,11 +30,11 @@ final class BatchTest extends TestCase
     }
 
 
-    /** extract_batch: unsupported MIME */
-    public function test_extract_batch_bytes_invalid_mime_sync(): void
+    /** extract_batch with invalid bytes MIME type */
+    public function test_extract_batch_bytes_invalid_mime(): void
     {
         $this->expectNotToPerformAssertions();
-        $result = Xberg::extractBatch([ExtractInput::from_json('{"bytes":[100,97,116,97],"kind":"bytes","mime_type":"application/x-unknown"}')], \Xberg\ExtractionConfig::from_json('{}'));
+        $result = Xberg::extractBatch([ExtractInput::from_json('{"bytes":[72,101,108,108,111],"kind":"bytes","mime_type":"application/x-nonexistent"}')], \Xberg\ExtractionConfig::from_json('{}'));
 
 
     }
@@ -110,6 +50,16 @@ final class BatchTest extends TestCase
     }
 
 
+    /** extract_batch with unsupported bytes MIME type */
+    public function test_extract_batch_bytes_unsupported_mime(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $result = Xberg::extractBatch([ExtractInput::from_json('{"bytes":[100,97,116,97],"kind":"bytes","mime_type":"application/x-unknown"}')], \Xberg\ExtractionConfig::from_json('{}'));
+
+
+    }
+
+
     /** extract_batch: empty batch */
     public function test_extract_batch_empty_inputs(): void
     {
@@ -117,6 +67,46 @@ final class BatchTest extends TestCase
         $results = $result->getResults();
 
             $this->assertCount(0, $results);
+
+
+    }
+
+
+    /** extract_batch with missing URI inputs */
+    public function test_extract_batch_uri_all_missing(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/a.pdf"}'), ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/b.txt"}')], \Xberg\ExtractionConfig::from_json('{}'));
+
+
+    }
+
+
+    /** extract_batch over URI inputs */
+    public function test_extract_batch_uri_basic(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"pdf/fake_memo.pdf"}'), ExtractInput::from_json('{"kind":"uri","uri":"text/fake_text.txt"}')], \Xberg\ExtractionConfig::from_json('{}'));
+
+
+    }
+
+
+    /** extract_batch with missing URI input */
+    public function test_extract_batch_uri_not_found(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/a.pdf"}')], \Xberg\ExtractionConfig::from_json('{}'));
+
+
+    }
+
+
+    /** extract_batch with mixed valid and missing URI inputs */
+    public function test_extract_batch_uri_partial_failure(): void
+    {
+        $this->expectNotToPerformAssertions();
+        $result = Xberg::extractBatch([ExtractInput::from_json('{"kind":"uri","uri":"text/plain.txt"}'), ExtractInput::from_json('{"kind":"uri","uri":"/nonexistent/missing.pdf"}')], \Xberg\ExtractionConfig::from_json('{}'));
 
 
     }

@@ -1,13 +1,16 @@
 {
-	"id": "api_extract_batch_uri_async",
-	"description": "Tests async batch file extraction API (extract_batch)",
-	"tags": ["contract", "api", "batch"],
+	"id": "api_extract_batch_uri_with_config",
+	"description": "Tests batch URI extraction with per-input config (extract_batch)",
+	"tags": ["contract", "api", "batch", "input_config"],
 	"call": "extract_batch",
 	"input": {
 		"inputs": [
 			{
 				"kind": "uri",
-				"uri": "pdf/fake_memo.pdf"
+				"uri": "pdf/fake_memo.pdf",
+				"config": {
+					"output_format": "markdown"
+				}
 			}
 		]
 	},
@@ -23,9 +26,9 @@
 			"value": 10
 		},
 		{
-			"type": "contains_any",
-			"field": "results[0].content",
-			"values": ["May 5, 2023", "Mallori"]
+			"type": "equals",
+			"field": "results[0].metadata.output_format",
+			"value": "markdown"
 		}
 	],
 	"skip": {

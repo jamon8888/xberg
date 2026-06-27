@@ -1,10 +1,15 @@
 {
-	"id": "api_extract_uri_async",
-	"description": "Tests async URI extraction API",
-	"tags": ["contract", "api"],
+	"id": "api_extract_batch_uri",
+	"description": "Tests batch URI extraction API (extract_batch)",
+	"tags": ["contract", "api", "batch"],
+	"call": "extract_batch",
 	"input": {
-		"kind": "uri",
-		"uri": "pdf/fake_memo.pdf"
+		"inputs": [
+			{
+				"kind": "uri",
+				"uri": "pdf/fake_memo.pdf"
+			}
+		]
 	},
 	"assertions": [
 		{
@@ -25,8 +30,6 @@
 	],
 	"skip": {
 		"languages": ["wasm"],
-		"reason": "WASM uses synchronous-only API; async extraction is not available on the wasm target"
-	},
-	"category": "contract",
-	"call": "extract"
+		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
+	}
 }
