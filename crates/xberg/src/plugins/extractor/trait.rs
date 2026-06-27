@@ -124,14 +124,6 @@ pub trait DocumentExtractor: Plugin {
         true
     }
 
-    /// Attempt to get a reference to this extractor as a SyncExtractor.
-    ///
-    /// Returns None if the extractor doesn't support synchronous extraction.
-    /// This is used for WASM and other sync-only environments.
-    #[doc(hidden)]
-    fn as_sync_extractor(&self) -> Option<&dyn crate::extractors::SyncExtractor> {
-        None
-    }
 }
 
 /// Crate-private extraction capability used by native Rust extractors.
@@ -229,7 +221,4 @@ where
         InternalDocumentExtractor::can_handle(self, path, mime_type)
     }
 
-    fn as_sync_extractor(&self) -> Option<&dyn crate::extractors::SyncExtractor> {
-        InternalDocumentExtractor::as_sync_extractor(self)
-    }
 }

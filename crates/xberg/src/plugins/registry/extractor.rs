@@ -132,7 +132,7 @@ impl InternalDocumentExtractor for RegisteredDocumentExtractor {
     }
 
     fn as_sync_extractor(&self) -> Option<&dyn crate::extractors::SyncExtractor> {
-        self.plugin().as_sync_extractor()
+        self.internal.as_ref()?.as_sync_extractor()
     }
 }
 

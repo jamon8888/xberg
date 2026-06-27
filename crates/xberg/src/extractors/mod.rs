@@ -44,8 +44,7 @@ use std::sync::Arc;
 ///     }
 /// }
 /// ```
-#[cfg_attr(alef, alef(skip))]
-pub trait SyncExtractor {
+pub(crate) trait SyncExtractor {
     /// Extract content from a byte array synchronously.
     ///
     /// This method performs extraction without requiring an async runtime.
