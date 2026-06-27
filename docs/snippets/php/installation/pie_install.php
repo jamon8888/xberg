@@ -20,7 +20,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 
 echo "Xberg Extension Installation Check\n";
 echo "========================================\n\n";

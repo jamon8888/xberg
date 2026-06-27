@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 
 $options = getopt('f:o:h', ['file:', 'output:', 'help']);
 
@@ -43,7 +42,7 @@ try {
     fwrite(STDERR, "Extracting: $inputFile\n");
     $start = microtime(true);
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($inputFile), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($inputFile), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     $elapsed = microtime(true) - $start;

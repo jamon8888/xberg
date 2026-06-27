@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\TokenReductionConfig;
 
@@ -23,7 +22,7 @@ $config = new ExtractionConfig(
     )
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 echo "Token Reduction Results:\n";
@@ -62,7 +61,7 @@ foreach ($modes as $mode => $description) {
         )
     );
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('sample.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('sample.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     $contentLength = strlen($result->content);
@@ -104,7 +103,7 @@ $advancedConfig = new ExtractionConfig(
     )
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('verbose_document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('verbose_document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 echo "Advanced Token Reduction:\n";

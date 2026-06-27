@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\ChunkingConfig;
 
@@ -23,7 +22,7 @@ $config1 = new ExtractionConfig(
     chunking: new ChunkingConfig()
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('long_document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('long_document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 if ($result->chunks !== null) {
@@ -52,7 +51,7 @@ $config2 = new ExtractionConfig(
     )
 );
 
-$result2 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config2)->results[0];
+$result2 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config2)->results[0];
 echo "Chunks created: " . (isset($result2->chunks) ? count($result2->chunks) : 0) . "\n\n";
 
 echo "Example 3: Large Chunks (More context per chunk)\n";
@@ -67,7 +66,7 @@ $config3 = new ExtractionConfig(
     )
 );
 
-$result3 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config3)->results[0];
+$result3 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config3)->results[0];
 echo "Chunks created: " . (isset($result3->chunks) ? count($result3->chunks) : 0) . "\n\n";
 
 echo "Example 4: RAG-Optimized Configuration\n";
@@ -82,7 +81,7 @@ $config4 = new ExtractionConfig(
     )
 );
 
-$result4 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config4)->results[0];
+$result4 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config4)->results[0];
 
 if ($result4->chunks !== null) {
     echo "Total chunks: " . count($result4->chunks) . "\n";
@@ -106,7 +105,7 @@ $config5 = new ExtractionConfig(
     )
 );
 
-$result5 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config5)->results[0];
+$result5 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config5)->results[0];
 
 if ($result5->chunks !== null) {
     foreach ($result5->chunks as $i => $chunk) {
@@ -143,7 +142,7 @@ $config6 = new ExtractionConfig(
     )
 );
 
-$result6 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.md'), $config6)->results[0];
+$result6 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.md'), $config6)->results[0];
 
 if ($result6->chunks !== null) {
     echo "Total chunks: " . count($result6->chunks) . "\n";
@@ -184,7 +183,7 @@ $config7 = new ExtractionConfig(
     )
 );
 
-$result7 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.md'), $config7)->results[0];
+$result7 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.md'), $config7)->results[0];
 
 if ($result7->chunks !== null) {
     echo "Total chunks: " . count($result7->chunks) . "\n";

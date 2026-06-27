@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\OcrConfig;
 use Xberg\ChunkingConfig;
@@ -85,7 +84,7 @@ try {
     fwrite(STDERR, "  Format: $format\n\n");
 
     $start = microtime(true);
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($inputFile), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($inputFile), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
     $elapsed = microtime(true) - $start;
 

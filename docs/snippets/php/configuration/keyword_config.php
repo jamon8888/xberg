@@ -7,7 +7,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Xberg\ExtractInput;
 use Xberg\ExtractionConfig;
-use Xberg\Xberg;
 
 function keywordConfig(array $keywords): ExtractionConfig
 {

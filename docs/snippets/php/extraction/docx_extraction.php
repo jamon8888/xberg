@@ -11,10 +11,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.docx'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.docx'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 echo "Word Document Extraction:\n";
@@ -36,7 +35,7 @@ $config = new ExtractionConfig(
     preserveFormatting: true
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('report.docx'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('report.docx'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 foreach ($result->tables as $index => $table) {
@@ -63,7 +62,7 @@ foreach ($conversions as $name => $format) {
         preserveFormatting: $format !== null
     );
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.docx'), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.docx'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     $outputFile = "output_$name.txt";
@@ -91,7 +90,7 @@ if (!empty($docxFiles)) {
     }
 }
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('reviewed_document.docx'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('reviewed_document.docx'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 if (!empty($result->metadata->createdBy)) {
@@ -103,7 +102,7 @@ if (!empty($result->metadata->producer)) {
     echo "Producer: " . $result->metadata->producer . "\n";
 }
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.docx'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.docx'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 $content = $result->content;
 

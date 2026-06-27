@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 
 if (!extension_loaded('xberg')) {
     echo "Error: xberg extension is not loaded\n";

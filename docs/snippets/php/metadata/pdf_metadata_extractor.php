@@ -14,7 +14,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Xberg\PostProcessor\PostProcessorInterface;
 use Xberg\Types\ExtractedDocument;
-use Xberg\Xberg;
 
 /**
  * Post-processor for extracting and enriching PDF metadata

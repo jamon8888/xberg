@@ -12,9 +12,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
-use function Xberg\detect_mime_type_from_path;
 
 $formats = [
     'PDF' => 'document.pdf',
@@ -38,10 +36,7 @@ foreach ($formats as $type => $file) {
 
     echo "Processing $type ($file):\n";
 
-    $mimeType = detect_mime_type_from_path($file);
-    echo "  MIME type: $mimeType\n";
-
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     echo "  Content length: " . strlen($result->content) . " chars\n";
@@ -55,18 +50,16 @@ $mixedFiles = glob('documents/*.*');
 $byFormat = [];
 
 foreach ($mixedFiles as $file) {
-    $mimeType = detect_mime_type_from_path($file);
     $extension = pathinfo($file, PATHINFO_EXTENSION);
 
     if (!isset($byFormat[$extension])) {
         $byFormat[$extension] = [];
     }
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
     $byFormat[$extension][] = [
         'file' => basename($file),
-        'mime' => $mimeType,
         'size' => strlen($result->content),
         'tables' => count($result->tables),
     ];
@@ -116,7 +109,7 @@ foreach ($mixedFiles as $file) {
     }
 
     $config = $formatConfigs[$ext];
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     echo "Processed " . basename($file) . " with $ext config\n";
@@ -130,7 +123,7 @@ function convertToMarkdown(string $inputFile): string
         extractTables: true
     );
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($inputFile), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($inputFile), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     $markdown = "# " . ($result->metadata?->title ?? basename($inputFile)) . "\n\n";
@@ -166,7 +159,7 @@ foreach (['document.pdf', 'document.docx'] as $file) {
 
 function extractFromArchive(string $archiveFile): array
 {
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($archiveFile), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($archiveFile), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     return [
@@ -178,35 +171,33 @@ $result = $output->results[0];
 
 class UniversalExtractor
 {
-    private Xberg $xberg;
     private array $formatHandlers = [];
 
     public function __construct()
     {
-        $this->xberg = new Xberg();
-
         $this->formatHandlers = [
-            'application/pdf' => [$this, 'handlePDF'],
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => [$this, 'handleDOCX'],
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => [$this, 'handleXLSX'],
-            'image/png' => [$this, 'handleImage'],
-            'image/jpeg' => [$this, 'handleImage'],
+            'pdf' => [$this, 'handlePDF'],
+            'docx' => [$this, 'handleDOCX'],
+            'xlsx' => [$this, 'handleXLSX'],
+            'png' => [$this, 'handleImage'],
+            'jpg' => [$this, 'handleImage'],
+            'jpeg' => [$this, 'handleImage'],
         ];
     }
 
     public function extract(string $file): array
     {
-        $mimeType = detect_mime_type_from_path($file);
-        $handler = $this->formatHandlers[$mimeType] ?? [$this, 'handleGeneric'];
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $handler = $this->formatHandlers[$extension] ?? [$this, 'handleGeneric'];
 
-        return $handler($file, $mimeType);
+        return $handler($file, $extension);
     }
 
-    private function handlePDF(string $file, string $mimeType): array
+    private function handlePDF(string $file, string $ext): array
     {
         $config = new ExtractionConfig(extractTables: true, extractImages: true);
-        $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
-$result = $output->results[0];
+        $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config);
+        $result = $output->results[0];
 
         return [
             'type' => 'PDF',
@@ -217,9 +208,9 @@ $result = $output->results[0];
         ];
     }
 
-    private function handleDOCX(string $file, string $mimeType): array
+    private function handleDOCX(string $file, string $ext): array
     {
-        $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+        $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), new ExtractionConfig());
         $result = $output->results[0];
 
         return [
@@ -230,26 +221,26 @@ $result = $output->results[0];
         ];
     }
 
-    private function handleXLSX(string $file, string $mimeType): array
+    private function handleXLSX(string $file, string $ext): array
     {
         $config = new ExtractionConfig(extractTables: true);
-        $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
-$result = $output->results[0];
+        $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config);
+        $result = $output->results[0];
 
         return [
             'type' => 'Excel Spreadsheet',
             'content' => $result->content,
-            'sheets' => count($result->tables),  
+            'sheets' => count($result->tables),
         ];
     }
 
-    private function handleImage(string $file, string $mimeType): array
+    private function handleImage(string $file, string $ext): array
     {
         $config = new ExtractionConfig(
             ocr: new \Xberg\OcrConfig(backend: 'tesseract', language: 'eng')
         );
-        $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
-$result = $output->results[0];
+        $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config);
+        $result = $output->results[0];
 
         return [
             'type' => 'Image (OCR)',
@@ -258,14 +249,14 @@ $result = $output->results[0];
         ];
     }
 
-    private function handleGeneric(string $file, string $mimeType): array
+    private function handleGeneric(string $file, string $ext): array
     {
-        $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+        $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), new ExtractionConfig());
         $result = $output->results[0];
 
         return [
             'type' => 'Generic',
-            'mime' => $mimeType,
+            'ext' => $ext,
             'content' => $result->content,
         ];
     }
@@ -277,7 +268,7 @@ echo "\nUniversal Extraction:\n";
 echo str_repeat('=', 60) . "\n";
 
 foreach ($mixedFiles as $file) {
-    $data = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default())->results[0];
+    $data = $extractor->extract($file);
     echo basename($file) . " ({$data['type']}):\n";
     print_r(array_filter($data, fn($k) => $k !== 'content', ARRAY_FILTER_USE_KEY));
     echo "\n";

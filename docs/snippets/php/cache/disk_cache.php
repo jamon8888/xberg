@@ -12,9 +12,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
-use Xberg\Types\ExtractionResult;
+use Xberg\ExtractionResult;
 
 class DiskCache
 {
@@ -111,12 +110,12 @@ $file = 'document.pdf';
 echo "First extraction (will be cached)...\n";
 $start = microtime(true);
 
-$result = $cache->get($file, $config);
+$extractedResult = $cache->get($file, $config);
 
-if ($result === null) {
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config);
-$result = $output->results[0];
-    $cache->set($file, $config, $result);
+if ($extractedResult === null) {
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config);
+    $extractedResult = $output->results[0];
+    $cache->set($file, $config, $extractedResult);
     echo "  Status: Extracted and cached\n";
 } else {
     echo "  Status: Retrieved from cache\n";
@@ -124,18 +123,17 @@ $result = $output->results[0];
 
 $elapsed = microtime(true) - $start;
 echo "  Time: " . number_format($elapsed, 4) . "s\n";
-$document = $result->results[0];
-echo "  Content length: " . strlen($document->content) . " chars\n\n";
+echo "  Content length: " . strlen($extractedResult->content) . " chars\n\n";
 
 echo "Second extraction (from cache)...\n";
 $start = microtime(true);
 
-$result = $cache->get($file, $config);
+$extractedResult = $cache->get($file, $config);
 
-if ($result === null) {
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config);
-$result = $output->results[0];
-    $cache->set($file, $config, $result);
+if ($extractedResult === null) {
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config);
+    $extractedResult = $output->results[0];
+    $cache->set($file, $config, $extractedResult);
     echo "  Status: Extracted and cached\n";
 } else {
     echo "  Status: Retrieved from cache\n";
@@ -143,8 +141,7 @@ $result = $output->results[0];
 
 $elapsed = microtime(true) - $start;
 echo "  Time: " . number_format($elapsed, 4) . "s\n";
-$document = $result->results[0];
-echo "  Content length: " . strlen($document->content) . " chars\n\n";
+echo "  Content length: " . strlen($extractedResult->content) . " chars\n\n";
 
 $stats = $cache->getStats();
 echo "Cache Statistics:\n";
@@ -156,13 +153,11 @@ echo "Cache directory: {$stats['cache_dir']}\n\n";
 class CachedXberg
 {
     public function __construct(
-        private Xberg $xberg,
         private DiskCache $cache
     ) {}
 
     public function extract(
         string $filePath,
-        ?string $mimeType = null,
         ?ExtractionConfig $config = null
     ): ExtractionResult {
         $config = $config ?? new ExtractionConfig();
@@ -170,7 +165,8 @@ class CachedXberg
         $result = $this->cache->get($filePath, $config);
 
         if ($result === null) {
-            $result = $this->xberg->extract($filePath, $mimeType, $config);
+            $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($filePath), $config);
+            $result = $output->results[0];
             $this->cache->set($filePath, $config, $result);
         }
 
@@ -189,7 +185,6 @@ class CachedXberg
 }
 
 $cachedXberg = new CachedXberg(
-    new Xberg(),
     new DiskCache()
 );
 
@@ -201,7 +196,7 @@ foreach ($files as $file) {
     if (!file_exists($file)) continue;
 
     $start = microtime(true);
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
     $elapsed = microtime(true) - $start;
 

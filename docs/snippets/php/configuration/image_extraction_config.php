@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\ImageExtractionConfig;
 use Xberg\OcrConfig;
@@ -26,7 +25,7 @@ $config1 = new ExtractionConfig(
     )
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('presentation.pptx'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('presentation.pptx'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 if ($result->images !== null) {
@@ -53,7 +52,7 @@ $config2 = new ExtractionConfig(
     )
 );
 
-$result2 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config2)->results[0];
+$result2 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config2)->results[0];
 
 echo "Filtering images smaller than 200x200 pixels\n";
 if ($result2->images !== null) {
@@ -106,7 +105,7 @@ $config5 = new ExtractionConfig(
     )
 );
 
-$result5 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document_with_images.pdf'), $config5)->results[0];
+$result5 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document_with_images.pdf'), $config5)->results[0];
 
 if ($result5->images !== null) {
     echo "Extracted " . count($result5->images) . " images with OCR:\n\n";
@@ -136,7 +135,7 @@ $config6 = new ExtractionConfig(
     )
 );
 
-$result6 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('presentation.pptx'), $config6)->results[0];
+$result6 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('presentation.pptx'), $config6)->results[0];
 
 if ($result6->images !== null) {
     $outputDir = 'extracted_images';
@@ -215,7 +214,7 @@ $config8 = new ExtractionConfig(
     )
 );
 
-$result8 = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('mixed_content.pdf'), $config8)->results[0];
+$result8 = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('mixed_content.pdf'), $config8)->results[0];
 
 if ($result8->images !== null) {
     echo "Extracted images: " . count($result8->images) . "\n\n";

@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\PdfConfig;
 
@@ -24,7 +23,7 @@ $config = new ExtractionConfig(
     )
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 echo "PDF extraction complete\n";
@@ -39,7 +38,7 @@ $highQualityConfig = new ExtractionConfig(
     extractImages: true
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('presentation.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('presentation.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 foreach ($result->images ?? [] as $image) {
@@ -61,7 +60,7 @@ $fastConfig = new ExtractionConfig(
 );
 
 $start = microtime(true);
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('large_document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('large_document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 $elapsed = microtime(true) - $start;
 

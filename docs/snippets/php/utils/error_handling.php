@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\Exceptions\XbergException;
 use Xberg\Exceptions\ParsingException;
@@ -21,7 +20,7 @@ use Xberg\Exceptions\ValidationException;
 
 
 try {
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
     echo "Extracted " . strlen($result->content) . " characters\n";
 } catch (ParsingException $e) {
@@ -45,7 +44,7 @@ try {
         throw new \RuntimeException('Failed to read file');
     }
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromBytes($pdfBytes, 'application/pdf'), $config);
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromBytes($pdfBytes, 'application/pdf'), $config);
     $result = $output->results[0];
     echo "Extracted from bytes: " . substr($result->content, 0, 100) . "...\n";
 } catch (ValidationException $e) {
@@ -65,7 +64,7 @@ $failedExtractions = [];
 
 foreach ($files as $file) {
     try {
-        $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+        $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
         $successfulExtractions[$file] = $result;
         echo "Success: $file\n";
@@ -91,7 +90,7 @@ function extractWithRetry(
 
     while ($attempt < $maxRetries) {
         try {
-            return \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+            return \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
         } catch (OcrException $e) {
             $attempt++;
             if ($attempt >= $maxRetries) {

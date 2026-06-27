@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Xberg\Xberg;
 use Xberg\ExtractionConfig;
 use Xberg\ChunkingConfig;
 use Xberg\EmbeddingConfig;
@@ -28,7 +27,7 @@ $config = new ExtractionConfig(
     )
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 echo "Embedding Generation Results:\n";
@@ -67,7 +66,7 @@ foreach ($models as $model) {
     );
 
     $start = microtime(true);
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('test_doc.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('test_doc.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
     $elapsed = microtime(true) - $start;
 
@@ -99,7 +98,7 @@ $config = new ExtractionConfig(
     embedding: new EmbeddingConfig(model: 'all-MiniLM-L6-v2', normalize: true)
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('document.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 echo "Chunk Similarity Analysis:\n";
@@ -175,7 +174,7 @@ $files = ['doc1.pdf', 'doc2.pdf', 'doc3.pdf'];
 foreach ($files as $file) {
     if (!file_exists($file)) continue;
 
-    $output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
+    $output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri($file), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
     foreach ($result->chunks ?? [] as $chunk) {
@@ -194,7 +193,7 @@ $config = new ExtractionConfig(
     embedding: new EmbeddingConfig(model: 'all-MiniLM-L6-v2', normalize: true)
 );
 
-$output = \Xberg\Xberg::extract(\Xberg\ExtractInput::fromUri('export_doc.pdf'), $config ?? \Xberg\ExtractionConfig::default());
+$output = \Xberg\XbergApi::extract(\Xberg\ExtractInput::fromUri('export_doc.pdf'), $config ?? \Xberg\ExtractionConfig::default());
 $result = $output->results[0];
 
 $exportData = [];
