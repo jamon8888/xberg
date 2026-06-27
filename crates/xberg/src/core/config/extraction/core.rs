@@ -66,8 +66,6 @@ pub struct ExtractionConfig {
     /// native text extraction without OCR fallback.
     ///
     /// Cannot be `true` simultaneously with `force_ocr`.
-    ///
-    /// *Added in v4.7.0.*
     #[serde(default)]
     pub disable_ocr: bool,
 

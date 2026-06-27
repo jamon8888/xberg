@@ -483,7 +483,7 @@ Powered by [tree-sitter-language-pack](https://github.com/xberg-io/tree-sitter-l
 | **CLI** | `xberg extract document.pdf` | 12 commands | Scripts, batch jobs, CI/CD |
 | **REST API** | `xberg serve` | HTTP POST | Microservice, serverless deployment |
 | **MCP Server** | `xberg mcp` | stdio or HTTP | Claude, Cursor, IDE agents |
-| **Docker** | `docker run ghcr.io/xberg-io/xberg` | All modes | Container deployment, Kubernetes |
+| **Docker** | `docker run ghcr.io/xberg-io/xberg` | All modes | Container deployment |
 
 ### OCR Backends
 
