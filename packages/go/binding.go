@@ -4287,7 +4287,7 @@ func (v ExtractInput) MarshalJSON() ([]byte, error) {
 	// key. Bytes fields rendered as `[]int`; everything else copied verbatim.
 	aux := struct {
 		Kind     *ExtractInputKind     `json:"kind,omitempty"`
-		Bytes    []int                 `json:"bytes,omitempty"`
+		Bytes    []int                 `json:"bytes"`
 		URI      *string               `json:"uri,omitempty"`
 		MimeType *string               `json:"mime_type,omitempty"`
 		Filename *string               `json:"filename,omitempty"`
