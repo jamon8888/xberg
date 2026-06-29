@@ -1679,7 +1679,7 @@ e2e = "cd e2e/node && pnpm test"
 
 [crates.test.go]
 precondition = "command -v go >/dev/null 2>&1"
-before = "cargo build --release -p xberg-ffi && mkdir -p packages/go/include && cp crates/xberg-ffi/include/xberg.h packages/go/include/"
+before = "cargo build --release -p xberg-ffi && mkdir -p packages/go/include && cp crates/xberg-ffi/include/xberg.h packages/go/include/ && bash scripts/stage_go_native_local.sh"
 e2e = "cd e2e/go && go test ./... -count=1"
 
 [crates.test.ruby]
