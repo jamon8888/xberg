@@ -10,6 +10,9 @@ import { registerPiiTools } from "./tools/pii.js";
 import { registerCacheTools } from "./tools/cache.js";
 import { registerReportTools } from "./tools/reports.js";
 import { registerStatsTools } from "./tools/stats.js";
+import { registerIntelligenceTools } from "./tools/intelligence.js";
+import { registerMediaTools } from "./tools/media.js";
+import { registerWebTools } from "./tools/web.js";
 import { WarmupManager } from "./warmup.js";
 
 const server = new McpServer({
@@ -27,6 +30,9 @@ registerPiiTools(server);
 registerCacheTools(server);
 registerReportTools(server);
 registerStatsTools(server);
+registerIntelligenceTools(server);
+registerMediaTools(server);
+registerWebTools(server);
 
 async function main() {
   const cacheDir = process.env.XBERG_CACHE_DIR ?? `${process.env.HOME ?? process.env.USERPROFILE ?? "~"}/.cache/xberg`;

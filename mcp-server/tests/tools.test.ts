@@ -76,6 +76,23 @@ describe("tool registration", () => {
   });
 });
 
+describe("intelligence/media/web tool modules", () => {
+  it("intelligence module exports registerIntelligenceTools", async () => {
+    const m = await import("../src/tools/intelligence.js");
+    expect(typeof m.registerIntelligenceTools).toBe("function");
+  });
+
+  it("media module exports registerMediaTools", async () => {
+    const m = await import("../src/tools/media.js");
+    expect(typeof m.registerMediaTools).toBe("function");
+  });
+
+  it("web module exports registerWebTools", async () => {
+    const m = await import("../src/tools/web.js");
+    expect(typeof m.registerWebTools).toBe("function");
+  });
+});
+
 describe("rehydration encryption", () => {
   it("round-trips a token map through encrypt/decrypt", async () => {
     const { encryptMapFile, decryptMapFile } = await import("../src/redaction/rehydration.js");
