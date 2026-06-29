@@ -46,6 +46,78 @@ export function detectPii(text: string, filterCategories?: string[]): PiiFinding
   return findings.sort((a, b) => a.start - b.start);
 }
 
+export interface NerEntity {
+  text: string;
+  label: string;
+  score: number;
+  start?: number;
+  end?: number;
+}
+
+const NER_LABEL_TO_CATEGORY: Record<string, string> = {
+  PERSON: "NAME",
+  PER: "NAME",
+  ORG: "ORG",
+  GPE: "LOCATION",
+  LOC: "LOCATION",
+  LOCATION: "LOCATION",
+  EMAIL: "EMAIL",
+  PHONE: "PHONE",
+};
+
+function spansOverlap(a: PiiFinding, b: { start: number; end: number }): boolean {
+  return a.start < b.end && b.start < a.end;
+}
+
+export function mergeNerEntities(regex: PiiFinding[], entities: NerEntity[], text: string): PiiFinding[] {
+  const findings = [...regex];
+  const counters: Record<string, number> = {};
+  for (const f of findings) {
+    counters[f.category] = Math.max(counters[f.category] ?? 0, Number(f.token.match(/_(\d+)\]$/)?.[1] ?? 0));
+  }
+
+  for (const entity of entities) {
+    const category = NER_LABEL_TO_CATEGORY[entity.label.toUpperCase()] ?? `NER_${entity.label.toUpperCase()}`;
+    const entityText = entity.text;
+
+    let start: number;
+    let end: number;
+    if (entity.start != null && entity.end != null) {
+      start = entity.start;
+      end = entity.end;
+    } else {
+      const idx = text.indexOf(entityText);
+      if (idx < 0) continue;
+      start = idx;
+      end = idx + entityText.length;
+    }
+
+    const overlap = findings.find((f) => spansOverlap(f, { start, end }));
+    if (overlap) {
+      if (entity.score > overlap.confidence) {
+        overlap.category = category;
+        overlap.confidence = entity.score;
+        overlap.original = entityText;
+        overlap.start = start;
+        overlap.end = end;
+      }
+      continue;
+    }
+
+    counters[category] = (counters[category] ?? 0) + 1;
+    findings.push({
+      token: `[${category}_${counters[category]}]`,
+      category,
+      original: entityText,
+      start,
+      end,
+      confidence: entity.score,
+    });
+  }
+
+  return findings.sort((a, b) => a.start - b.start);
+}
+
 export function groupByCategory(findings: PiiFinding[]): Record<string, number> {
   const grouped: Record<string, number> = {};
   for (const f of findings) {

@@ -2,8 +2,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { extract, extractInputFromUri } from "@xberg-io/xberg";
-import { detectPii } from "../redaction/detect.js";
+import { extract, extractInputFromUri, type ExtractionConfig } from "@xberg-io/xberg";
+import { detectPii, mergeNerEntities, type NerEntity } from "../redaction/detect.js";
 import { applyRedaction } from "../redaction/redact.js";
 import { writeRedactedDocx } from "../redaction/output/docx.js";
 import { writeRedactedPdf } from "../redaction/output/pdf.js";
@@ -94,8 +94,14 @@ export function registerIngestTools(server: McpServer): void {
       redaction_strategy: z.enum(["token_replace", "mask", "hash"]).optional().default("token_replace"),
       preserve_structure: z.boolean().optional().default(true),
       rehydration_passphrase: z.string().optional().describe("AES-256-GCM passphrase for encrypting rehydration maps (GDPR Art. 32). Omit for plaintext (dev only)."),
+      use_ner: z.boolean().optional().default(false).describe(
+        "Run GLiNER NER on each document and merge detected persons, orgs, and locations into PII findings before redaction. Adds ~200ms per page; model downloads on first use (~200MB)."
+      ),
+      ner_categories: z.array(z.string()).optional().describe(
+        "NER categories to detect, e.g. ['PERSON', 'ORG', 'LOCATION']. Defaults to all if use_ner is enabled."
+      ),
     },
-    async ({ source_folder, redacted_folder, collection, redaction_strategy, rehydration_passphrase }) => {
+    async ({ source_folder, redacted_folder, collection, redaction_strategy, rehydration_passphrase, use_ner, ner_categories }) => {
       try {
         if (!fs.existsSync(source_folder)) {
           return { content: [{ type: "text" as const, text: "Error: source_folder does not exist" }], isError: true };
@@ -124,12 +130,18 @@ export function registerIngestTools(server: McpServer): void {
 
           try {
             const input = extractInputFromUri(filePath);
-            const result = await extract(input, null);
+            const extractConfig: ExtractionConfig | null = use_ner
+              ? { ner: { backend: "onnx" as const, categories: ner_categories as never } }
+              : null;
+            const result = await extract(input, extractConfig);
             const doc = (result.results ?? [])[0];
             if (!doc) continue;
 
             const rawText = doc.content ?? "";
-            const findings = detectPii(rawText);
+            const regexFindings = detectPii(rawText);
+            const findings = use_ner
+              ? mergeNerEntities(regexFindings, (doc.entities ?? []) as NerEntity[], rawText)
+              : regexFindings;
             totalPii += findings.length;
 
             const { redacted: redactedText, token_map } = applyRedaction(rawText, findings, redaction_strategy);
@@ -195,6 +207,7 @@ export function registerIngestTools(server: McpServer): void {
                     )
                   ),
                   ingestion_date: new Date().toISOString(),
+                  ner_enabled: use_ner,
                 },
               };
 
