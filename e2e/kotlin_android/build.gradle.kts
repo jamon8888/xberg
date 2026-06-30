@@ -138,6 +138,7 @@ tasks.register("copyHostJni", Copy::class) {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    environment("CRAWLBERG_ALLOW_PRIVATE_NETWORK", "true")
 
     // Resolve the native library location (e.g., ../../target/release)
     val libPath = System.getProperty("kb.lib.path") ?: "${rootDir}/../../target/release"

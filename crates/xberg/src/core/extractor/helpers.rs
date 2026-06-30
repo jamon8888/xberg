@@ -2,12 +2,12 @@
 //!
 //! This module provides shared utilities used across extraction modules.
 
-use crate::plugins::InternalDocumentExtractor;
-#[cfg(feature = "tokio-runtime")]
-use crate::types::{ErrorMetadata, ExtractedDocument, Metadata};
 use crate::Result;
 #[cfg(feature = "tokio-runtime")]
 use crate::XbergError;
+use crate::plugins::InternalDocumentExtractor;
+#[cfg(feature = "tokio-runtime")]
+use crate::types::{ErrorMetadata, ExtractedDocument, Metadata};
 #[cfg(feature = "tokio-runtime")]
 use std::borrow::Cow;
 use std::sync::Arc;

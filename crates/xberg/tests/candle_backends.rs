@@ -57,7 +57,10 @@ fn new_registry_names() -> Vec<String> {
 /// missing weights cause a panic, so CI test failures are visible. Otherwise,
 /// missing weights cause a graceful skip for local development without model cache.
 fn require_models() -> bool {
-    matches!(std::env::var("XBERG_REQUIRE_MODELS").as_deref(), Ok("1" | "true" | "yes"))
+    matches!(
+        std::env::var("XBERG_REQUIRE_MODELS").as_deref(),
+        Ok("1" | "true" | "yes")
+    )
 }
 
 /// Check for a required local model path environment variable.

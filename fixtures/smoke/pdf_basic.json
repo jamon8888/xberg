@@ -2,11 +2,7 @@
 	"id": "smoke_pdf_basic",
 	"category": "smoke",
 	"description": "Smoke test: PDF with simple text extraction",
-	"tags": [
-		"smoke",
-		"pdf",
-		"basic"
-	],
+	"tags": ["smoke", "pdf", "basic"],
 	"input": {
 		"mock_responses": [
 			{
@@ -38,16 +34,11 @@
 		{
 			"type": "contains_any",
 			"field": "results[0].content",
-			"values": [
-				"May 5, 2023",
-				"To Whom it May Concern"
-			]
+			"values": ["May 5, 2023", "To Whom it May Concern"]
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"call": "extract",

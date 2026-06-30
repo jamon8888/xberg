@@ -2,11 +2,7 @@
 	"id": "summarization_abstractive_smoke",
 	"category": "summarization",
 	"description": "LLM-driven abstractive summary. Skipped automatically when XBERG_LLM_API_KEY (or OPENAI_API_KEY) is not set.",
-	"tags": [
-		"summarization",
-		"abstractive",
-		"llm"
-	],
+	"tags": ["summarization", "abstractive", "llm"],
 	"call": "extract",
 	"input": {
 		"mock_responses": [

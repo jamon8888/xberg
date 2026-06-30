@@ -3955,6 +3955,7 @@ void* __swift_bridge__$EmailAttachment$mime_type(void* self);
 struct __private__OptionUsize __swift_bridge__$EmailAttachment$size(void* self);
 bool __swift_bridge__$EmailAttachment$is_image(void* self);
 void* __swift_bridge__$EmailAttachment$data(void* self);
+void* __swift_bridge__$OcrExtractionResult$new(void* content, void* mime_type, void* metadata, void* tables, void* ocr_elements);
 void* __swift_bridge__$OcrExtractionResult$content(void* self);
 void* __swift_bridge__$OcrExtractionResult$mime_type(void* self);
 void* __swift_bridge__$OcrExtractionResult$metadata(void* self);

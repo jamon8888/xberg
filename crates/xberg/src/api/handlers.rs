@@ -1595,7 +1595,9 @@ mod tests {
             JobState::Completed,
             "unsupported-format input is reported in the result envelope, not as a job failure"
         );
-        let result = final_status.result.expect("completed job must carry an extraction result");
+        let result = final_status
+            .result
+            .expect("completed job must carry an extraction result");
         let errors = result
             .get("errors")
             .and_then(|value| value.as_array())

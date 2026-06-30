@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.30.0"
+alef_version = "0.30.1"
 languages = [
   "python",
   "node",
@@ -1543,6 +1543,26 @@ methods = [
 ]
 
 functions = [
+  # Rust-only structured-extraction mechanism free functions
+  # (crates/xberg/src/engine/structured/). Same isolation as the engine/structured
+  # types excluded above: they live under the bare `pub mod engine`, are not listed
+  # in `sources`, and are not re-exported from lib.rs. alef otherwise discovers them
+  # through the public module tree and trips lossy_sanitized_surface because their
+  # signatures reference the excluded mechanism types (PageImage, Batch, BuiltPrompt,
+  # CitationOutput, …). Exclude them so the Rust-only engine stays off the binding surface.
+  "fuse",
+  "build_prompt",
+  "build_vision_fallback_prompt",
+  "batch_pages",
+  "pages_for_call",
+  "validate_and_merge",
+  "xberg::engine::structured::citations::fuse",
+  "xberg::engine::structured::prompts::build_prompt",
+  "xberg::engine::structured::prompts::build_vision_fallback_prompt",
+  "xberg::engine::structured::chunk::batch_pages",
+  "xberg::engine::structured::rasterize::pages_for_call",
+  "xberg::engine::structured::schema::validate_and_merge",
+
   # apply_strategy takes &mut TokenCounter; alef v0.23.2 wraps TokenCounter in
   # Arc<Mutex<T>> in binding types and generates &counter.inner instead of
   # &mut *counter.inner.lock().unwrap(). The higher-level redact() function

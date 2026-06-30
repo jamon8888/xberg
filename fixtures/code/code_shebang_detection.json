@@ -2,11 +2,7 @@
 	"id": "code_shebang_detection",
 	"category": "code",
 	"description": "Test language detection from shebang line via bytes input",
-	"tags": [
-		"code",
-		"shebang",
-		"tree-sitter"
-	],
+	"tags": ["code", "shebang", "tree-sitter"],
 	"call": "extract",
 	"input": {
 		"mock_responses": [
@@ -39,10 +35,7 @@
 		{
 			"type": "contains_all",
 			"field": "results[0].content",
-			"values": [
-				"build",
-				"clean"
-			]
+			"values": ["build", "clean"]
 		}
 	],
 	"skip": {

@@ -2,11 +2,7 @@
 	"id": "smoke_json_basic",
 	"category": "smoke",
 	"description": "Smoke test: JSON file extraction",
-	"tags": [
-		"smoke",
-		"structured",
-		"json"
-	],
+	"tags": ["smoke", "structured", "json"],
 	"input": {
 		"mock_responses": [
 			{
@@ -37,9 +33,7 @@
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"call": "extract",

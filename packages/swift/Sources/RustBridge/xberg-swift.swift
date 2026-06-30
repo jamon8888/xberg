@@ -11573,6 +11573,11 @@ public class OcrExtractionResult: OcrExtractionResultRefMut {
         }
     }
 }
+extension OcrExtractionResult {
+    public convenience init<GenericIntoRustString: IntoRustString>(_ content: GenericIntoRustString, _ mime_type: GenericIntoRustString, _ metadata: GenericIntoRustString, _ tables: RustVec<OcrTable>, _ ocr_elements: Optional<RustVec<OcrElement>>) {
+        self.init(ptr: __swift_bridge__$OcrExtractionResult$new({ let rustString = content.intoRustString(); rustString.isOwned = false; return rustString.ptr }(), { let rustString = mime_type.intoRustString(); rustString.isOwned = false; return rustString.ptr }(), { let rustString = metadata.intoRustString(); rustString.isOwned = false; return rustString.ptr }(), { let val = tables; val.isOwned = false; return val.ptr }(), { if let val = ocr_elements { val.isOwned = false; return val.ptr } else { return nil } }()))
+    }
+}
 public class OcrExtractionResultRefMut: OcrExtractionResultRef {
     public override init(ptr: UnsafeMutableRawPointer) {
         super.init(ptr: ptr)

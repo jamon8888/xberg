@@ -6,7 +6,7 @@
     <Version>1.0.0-rc.2</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0-rc.1</InformationalVersion>
+    <InformationalVersion>1.0.0-rc.2</InformationalVersion>
     <Description>High-performance document intelligence library</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/xberg-io/xberg</RepositoryUrl>
