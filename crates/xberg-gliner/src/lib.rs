@@ -16,6 +16,7 @@ mod tensor;
 mod tokenizer;
 mod v2_preprocess;
 mod v2_splitter;
+mod v2_tensor;
 mod v2_tokenizer;
 
 pub use config::{Parameters, RuntimeConfig};
