@@ -19,6 +19,12 @@ path = "src/lib.rs"
 default = []
 cuda = ["candle-core/cuda", "candle-nn/cuda", "candle-transformers/cuda"]
 metal = ["candle-core/metal", "candle-nn/metal", "candle-transformers/metal"]
+# ORT backend selection — pass through to xberg-gliner. One of these must be
+# active for tests and binaries to link (ORT symbols are unconditional in
+# xberg-gliner). Use ort-bundled in dev; ort-dynamic when a system ORT is
+# guaranteed present.
+ort-bundled = ["xberg-gliner/ort-bundled"]
+ort-dynamic = ["xberg-gliner/ort-dynamic"]
 
 [dependencies]
 candle-core = { workspace = true }
