@@ -564,7 +564,10 @@ impl BenchmarkRunner {
 
             let has_timeout = batch_results.iter().any(|r| r.error_kind == ErrorKind::Timeout);
 
-            if iteration >= config.warmup_iterations {
+            // Record benchmark iterations normally; also record a timed-out warmup
+            // iteration so a genuine batch timeout surfaces as a Timeout result rather
+            // than falling through to the opaque "No batch results" error below.
+            if iteration >= config.warmup_iterations || has_timeout {
                 all_batch_results.push(batch_results);
             }
 

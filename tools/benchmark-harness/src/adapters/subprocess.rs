@@ -894,11 +894,20 @@ impl FrameworkAdapter for SubprocessAdapter {
         force_ocr: &[bool],
         output_format: OutputFormat,
     ) -> Result<Vec<BenchmarkResult>> {
-        let timeout = self.effective_timeout(timeout);
         // Early return if file_paths is empty
         if file_paths.is_empty() {
             return Ok(Vec::new());
         }
+        // `timeout` is a per-document budget. A batch runs every file under a single
+        // subprocess invocation (one `lit batch-parse`, or one shell command over all
+        // paths), so the whole batch needs roughly per-document × file-count. Without
+        // this scaling the adapter's per-document max_timeout clamp (e.g. liteparse's
+        // 180s) is applied to the entire corpus and guarantees a timeout on any
+        // non-trivial batch.
+        let timeout = self
+            .effective_timeout(timeout)
+            .checked_mul(file_paths.len() as u32)
+            .unwrap_or(Duration::MAX);
 
         if !self.supports_batch {
             let mut results = Vec::new();
