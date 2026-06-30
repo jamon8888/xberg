@@ -1,0 +1,101 @@
+name: CI GLiNER
+
+on:
+  push:
+    branches: [main, "feature/**", "fix/**"]
+    paths:
+      - "crates/xberg-gliner/**"
+      - "crates/xberg/src/core/config/ner.rs"
+      - "crates/xberg/src/text/ner/**"
+      - "crates/xberg/src/plugins/processor/builtin/ner.rs"
+      - "crates/xberg/src/text/redaction/engine.rs"
+      - "crates/xberg-node/src/lib.rs"
+      - "crates/xberg-node/index.d.ts"
+      - ".github/workflows/ci-gliner.yaml"
+  pull_request:
+    branches: [main, "feature/**", "fix/**"]
+    paths:
+      - "crates/xberg-gliner/**"
+      - "crates/xberg/src/core/config/ner.rs"
+      - "crates/xberg/src/text/ner/**"
+      - "crates/xberg/src/plugins/processor/builtin/ner.rs"
+      - "crates/xberg/src/text/redaction/engine.rs"
+      - "crates/xberg-node/src/lib.rs"
+      - "crates/xberg-node/index.d.ts"
+      - ".github/workflows/ci-gliner.yaml"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-gliner-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  fmt-check:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --check -p xberg-gliner -p xberg
+
+  clippy:
+    name: cargo clippy (xberg-gliner + xberg NER)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: gliner-clippy
+      - name: Install ORT system deps
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            libssl-dev pkg-config
+      - name: clippy xberg-gliner
+        run: cargo clippy -p xberg-gliner -- -D warnings
+      - name: clippy xberg NER features
+        run: cargo clippy -p xberg --features ner-onnx -- -D warnings
+
+  check-ner-config:
+    name: cargo check (NerConfig surface)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: gliner-check
+      - name: check xberg-gliner
+        run: cargo check -p xberg-gliner
+      - name: check xberg NER
+        run: cargo check -p xberg --features ner-onnx
+
+  unit-tests:
+    name: cargo test (no-network NER unit tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: gliner-test
+      - name: Run unit tests (skip network smoke tests)
+        run: |
+          cargo test -p xberg --features ner-onnx --lib ner::gline \
+            -- --skip smoke_test
