@@ -15,6 +15,7 @@ mod splitter;
 mod tensor;
 mod tokenizer;
 mod v2_decode;
+mod v2_engine;
 mod v2_preprocess;
 mod v2_session;
 mod v2_splitter;
@@ -27,6 +28,8 @@ pub use engine::Gliner;
 pub use error::{GlinerError, Result};
 pub use input::{TextInput, Token};
 pub use session::{INPUT_NAMES, OUTPUT_NAMES};
+pub use v2_engine::Gliner2;
+pub use v2_session::{INPUT_NAMES_V2, OUTPUT_NAMES_V2};
 
 pub(crate) use decode::EntityContext;
 pub(crate) use preprocess::EncodedInput;
