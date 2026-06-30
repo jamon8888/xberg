@@ -63,9 +63,16 @@ pub async fn pages_for_call(
             // never stalls the async runtime's worker threads.
             let bytes = bytes.to_vec();
             let mime = mime.to_string();
-            tokio::task::spawn_blocking(move || render_all_pages(&bytes, &mime, dpi))
-                .await
-                .map_err(|e| RasterizeError::Pdf(format!("rasterization task failed: {e}")))??
+            #[cfg(feature = "tokio-runtime")]
+            {
+                tokio::task::spawn_blocking(move || render_all_pages(&bytes, &mime, dpi))
+                    .await
+                    .map_err(|e| RasterizeError::Pdf(format!("rasterization task failed: {e}")))??
+            }
+            #[cfg(not(feature = "tokio-runtime"))]
+            {
+                render_all_pages(&bytes, &mime, dpi)?
+            }
         }
     };
 
