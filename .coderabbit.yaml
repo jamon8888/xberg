@@ -12,9 +12,9 @@ reviews:
     drafts: false
     base_branches:
       - "main"
-      - "feature/**"
-      - "fix/**"
-      - "chore/**"
+      - "feature/.*"
+      - "fix/.*"
+      - "chore/.*"
   path_filters:
     - "!**/package-lock.json"
     - "!**/Cargo.lock"
