@@ -672,6 +672,15 @@ enum GlinerEngine {
     V2(Gliner2),
 }
 
+impl std::fmt::Debug for GlinerEngine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::V1(_) => f.write_str("GlinerEngine::V1"),
+            Self::V2(_) => f.write_str("GlinerEngine::V2"),
+        }
+    }
+}
+
 impl GlinerEngine {
     fn inference(&self, input: TextInput) -> xberg_gliner::Result<xberg_gliner::SpanOutput> {
         match self {
@@ -1019,6 +1028,21 @@ mod tests {
     #[test]
     fn backend_cache_key_rejects_empty_model_name_without_downloading() {
         assert!(backend_cache_key(Some("   "), None, 4).is_err());
+    }
+
+    #[test]
+    fn backend_cache_key_isolates_architecture() {
+        use crate::core::config::ner::GlinerArchitecture;
+        let v1 = CustomGlinerSource {
+            repo: "lion-ai/gliner2-base-v1-onnx".to_string(),
+            model_file: "model.onnx".to_string(),
+            tokenizer_file: "tokenizer.json".to_string(),
+            architecture: GlinerArchitecture::Gliner1,
+        };
+        let v2 = CustomGlinerSource { architecture: GlinerArchitecture::Gliner2, ..v1.clone() };
+        let k1 = backend_cache_key(None, Some(&v1), 4).expect("v1 key");
+        let k2 = backend_cache_key(None, Some(&v2), 4).expect("v2 key");
+        assert_ne!(k1, k2, "Gliner1 and Gliner2 must produce different cache keys for the same model files");
     }
 
     #[test]
