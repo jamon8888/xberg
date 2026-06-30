@@ -4,11 +4,10 @@
 //! includes the user text; subsequent batches omit it to avoid duplication.
 //!
 //! All tuning lives in [`ChunkerConfig`], which the caller supplies. The
-//! mechanism reads no environment variables and decides no parallelism policy —
-//! the enterprise worker's `from_env` / `max_parallel_calls_from_env` knobs stay
-//! in the worker. [`ChunkerConfig::default`] exposes the worker's historical
-//! constants (4 chars/token, 1500 tokens/image, 800k max input tokens) as plain
-//! overridable defaults.
+//! mechanism reads no environment variables and decides no parallelism policy;
+//! those concerns belong to the caller. [`ChunkerConfig::default`] exposes
+//! conventional constants (4 chars/token, 1500 tokens/image, 800k max input
+//! tokens) as plain overridable defaults.
 
 use super::rasterize::PageImage;
 
@@ -112,7 +111,14 @@ pub fn batch_pages(pages: Vec<PageImage>, user_text: Option<String>, config: &Ch
             is_first_batch = false;
         } else {
             current_batch.push(page);
-            current_text_tokens = new_total;
+            // Update the running total incrementally rather than assigning
+            // `new_total`. `new_total` was computed before the flush branch
+            // above may have reset `current_text_tokens` to 0; reusing it here
+            // would carry the just-flushed batch's tokens into the new batch and
+            // over-split subsequent pages. Adding `page_tokens` yields
+            // `page_tokens` after a flush and the correct cumulative total
+            // otherwise.
+            current_text_tokens += page_tokens;
         }
     }
 
@@ -269,5 +275,57 @@ mod tests {
         // The divisor clamps to 1, so packing proceeds normally rather than panicking.
         assert!(!batches.is_empty());
         assert!(batches[0].user_text.is_some());
+    }
+
+    #[test]
+    fn post_flush_total_does_not_carry_flushed_batch_tokens() {
+        // Regression test for the running-total bug in `batch_pages`. After a
+        // flush resets `current_text_tokens` to 0, the post-flush page must
+        // start the new batch's running total from `page_tokens` alone. The
+        // pre-fix code reused the pre-flush `new_total`, inflating the new
+        // batch's total by the just-flushed batch's tokens and over-splitting
+        // later pages into extra batches (extra vision-LLM calls).
+        //
+        // Config note: this uses `avg_tokens_per_image = 1500` and
+        // `chars_per_token = 4` (the historical defaults) but `max_input_tokens
+        // = 4000` rather than 3000. With a 3000 budget the bug is unobservable:
+        // every page costs `1500 + (len/4).max(1) >= 1501` tokens, so any two
+        // pages total >= 3002 > 3000 and never share a batch in EITHER version
+        // — each batch holds exactly one page and the counts are identical. A
+        // 4000 budget gives just enough slack for two pages to pack, which is
+        // the only situation in which the over-split is visible.
+        let config = ChunkerConfig {
+            max_input_tokens: 4000,
+            avg_tokens_per_image: 1500,
+            chars_per_token: 4,
+        };
+
+        // user_text: 4000 bytes / 4 = 1000 text tokens.
+        let user_text = Some("u".repeat(4000));
+        // Each page: png 4 bytes -> (4/4).max(1) = 1, + 1500 image = 1501 tokens.
+        let pages = vec![stub_page(1, 4), stub_page(2, 4), stub_page(3, 4)];
+
+        // Token arithmetic (budget 4000):
+        //   page1: 1000 + 1501 = 2501  <= 4000  -> stays in batch1 (with user_text)
+        //   page2: 2501 + 1501 = 4002  >  4000  -> flush batch1 = [page1]; reset to 0
+        //          fixed: running total becomes 1501 (page2 alone)
+        //          buggy: running total becomes 4002 (carries flushed batch1 + page2)
+        //   page3: fixed: 1501 + 1501 = 3002 <= 4000 -> packs with page2 => batch2 = [page2, page3]
+        //          buggy: 4002 + 1501 = 5503 >  4000 -> flush batch2 = [page2]; batch3 = [page3]
+        // => fixed code: 2 batches; pre-fix code: 3 batches.
+        let batches = batch_pages(pages, user_text, &config);
+
+        assert_eq!(batches.len(), 2, "page2 and page3 must share one post-flush batch");
+        assert_eq!(batches[0].pages.len(), 1, "batch1 holds only page1");
+        assert_eq!(batches[0].pages[0].page_number, 1);
+        assert!(batches[0].user_text.is_some(), "user_text rides on the first batch");
+        assert_eq!(
+            batches[1].pages.len(),
+            2,
+            "page2 and page3 pack together after the flush"
+        );
+        assert_eq!(batches[1].pages[0].page_number, 2);
+        assert_eq!(batches[1].pages[1].page_number, 3);
+        assert!(batches[1].user_text.is_none(), "subsequent batches omit user_text");
     }
 }
