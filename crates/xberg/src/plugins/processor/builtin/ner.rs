@@ -88,6 +88,7 @@ fn make_backend(config: &NerConfig) -> Result<Arc<dyn NerBackend>> {
                     config.hf_repo.as_deref(),
                     config.hf_model_file.as_deref(),
                     config.hf_tokenizer_file.as_deref(),
+                    config.hf_architecture,
                 )?;
                 Ok(crate::text::ner::gline::get_or_init_backend(
                     config.model.as_deref(),
