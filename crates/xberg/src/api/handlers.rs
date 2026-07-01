@@ -1190,12 +1190,12 @@ pub(crate) async fn rehydrate_handler(
             },
         })?;
 
-    #[cfg(feature = "redaction")]
+    #[cfg(feature = "redaction-rehydrate")]
     let restored =
         crate::text::redaction::rehydration::decrypt_map(&encrypted, &request.passphrase)
             .map_err(|e| ApiError::new(axum::http::StatusCode::FORBIDDEN, e))?;
 
-    #[cfg(not(feature = "redaction"))]
+    #[cfg(not(feature = "redaction-rehydrate"))]
     let restored = {
         let _ = encrypted;
         let _ = request.passphrase;
@@ -1695,7 +1695,7 @@ mod tests {
     }
 
     #[cfg(feature = "api")]
-    #[cfg(feature = "redaction")]
+    #[cfg(feature = "redaction-rehydrate")]
     #[tokio::test]
     async fn process_handler_redacts_email_with_mask_strategy() {
         use crate::api::types::{ProcessOperations, ProcessRedactOperation, ProcessRequest};
@@ -1724,7 +1724,7 @@ mod tests {
     }
 
     #[cfg(feature = "api")]
-    #[cfg(feature = "redaction")]
+    #[cfg(feature = "redaction-rehydrate")]
     #[tokio::test]
     async fn process_handler_requires_passphrase_when_rehydrate_is_true() {
         use crate::api::types::{ProcessOperations, ProcessRedactOperation, ProcessRequest};
@@ -1769,14 +1769,14 @@ mod tests {
         let result = rehydrate_handler(
             axum::extract::State(state),
             axum::extract::Path("reh_does_not_exist".to_string()),
-            axum::extract::Json(super::types::RehydrateRequest { passphrase: "anything".to_string() }),
+            axum::extract::Json(crate::api::types::RehydrateRequest { passphrase: "anything".to_string() }),
         )
         .await;
         let err = result.expect_err("unknown key must error");
         assert_eq!(err.status, axum::http::StatusCode::NOT_FOUND);
     }
 
-    #[cfg(all(feature = "api", feature = "redaction"))]
+    #[cfg(all(feature = "api", feature = "redaction-rehydrate"))]
     #[tokio::test]
     async fn rehydrate_handler_round_trips_a_stored_map() {
         let state = make_api_state();
@@ -1789,7 +1789,7 @@ mod tests {
         let response = rehydrate_handler(
             axum::extract::State(state),
             axum::extract::Path(key),
-            axum::extract::Json(super::types::RehydrateRequest {
+            axum::extract::Json(crate::api::types::RehydrateRequest {
                 passphrase: "test-passphrase".to_string(),
             }),
         )
@@ -1801,7 +1801,7 @@ mod tests {
         );
     }
 
-    #[cfg(all(feature = "api", feature = "redaction"))]
+    #[cfg(all(feature = "api", feature = "redaction-rehydrate"))]
     #[tokio::test]
     async fn rehydrate_handler_rejects_wrong_passphrase() {
         let state = make_api_state();
@@ -1813,7 +1813,7 @@ mod tests {
         let result = rehydrate_handler(
             axum::extract::State(state),
             axum::extract::Path(key),
-            axum::extract::Json(super::types::RehydrateRequest {
+            axum::extract::Json(crate::api::types::RehydrateRequest {
                 passphrase: "wrong".to_string(),
             }),
         )

@@ -44,7 +44,7 @@ pub async fn redact_capturing_rehydration_map(
     Ok(map)
 }
 
-// When redaction-rehydrate is off, redact_inner takes no rehydration_map arg.
+// When redaction is off, redact_inner takes no rehydration_map arg.
 // The cfg-gated parameter approach is used above; this comment documents intent.
 
 /// Core redaction implementation shared by [`redact`] and [`redact_capturing_rehydration_map`].
