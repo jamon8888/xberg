@@ -16,3 +16,48 @@ pub mod token_gather;
 /// (`span_rep`'s reshape, `scorer`'s axis sizing). Model-architecture-fixed —
 /// see Global Constraints.
 pub(crate) const MAX_WIDTH: usize = 8;
+
+use std::path::Path;
+
+use candle_core::{DType, Device};
+use candle_nn::VarBuilder;
+
+/// Container for the three parametric inference heads.
+pub struct AllHeads {
+    pub span_rep: span_rep::SpanRep,
+    pub count_lstm: count_lstm::CountLstmFixed,
+    pub count_pred: count_pred::CountPred,
+}
+
+impl AllHeads {
+    /// Load all heads' weights from a single safetensors file.
+    #[allow(unsafe_code)]
+    pub fn from_safetensors(weights_path: &Path, device: &Device) -> crate::Result<Self> {
+        // SAFETY: mmap-reads the weights file; safe as long as it isn't
+        // mutated under us — matches `encoder::Encoder`'s pattern.
+        let vb =
+            unsafe { VarBuilder::from_mmaped_safetensors(&[weights_path], DType::F32, device) }
+                .map_err(|e| crate::GlinerCandleError::Backend(format!("heads safetensors: {e}")))?;
+        Self::load(vb, device)
+    }
+
+    /// Load all heads from an already-built [`VarBuilder`] (post-LoRA-merge path).
+    pub fn from_var_builder(vb: VarBuilder<'_>, device: &Device) -> crate::Result<Self> {
+        Self::load(vb, device)
+    }
+
+    fn load(vb: VarBuilder<'_>, device: &Device) -> crate::Result<Self> {
+        let span_rep = span_rep::SpanRep::from_var_builder(&vb.pp("span_rep").pp("span_rep_layer"))
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("span_rep load: {e}")))?;
+        let count_lstm = count_lstm::CountLstmFixed::from_var_builder(&vb.pp("count_embed"), device)
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("count_embed load: {e}")))?;
+        let count_pred = count_pred::CountPred::from_var_builder(&vb.pp("count_pred"))
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("count_pred load: {e}")))?;
+
+        Ok(Self {
+            span_rep,
+            count_lstm,
+            count_pred,
+        })
+    }
+}

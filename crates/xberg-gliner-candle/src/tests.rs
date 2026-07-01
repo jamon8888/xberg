@@ -32,3 +32,17 @@ fn token_gather_selects_word_start_positions() {
     let v = out.flatten_all().unwrap().to_vec1::<f32>().unwrap();
     assert_eq!(v, vec![1., 1., 3., 3.]);
 }
+
+#[test]
+fn count_pred_clamps_argmax_to_19() {
+    use candle_core::{Device, Tensor};
+    use candle_nn::VarBuilder;
+    let device = Device::Cpu;
+    let varmap = candle_nn::VarMap::new();
+    let vb = VarBuilder::from_varmap(&varmap, candle_core::DType::F32, &device);
+    let head = crate::heads::count_pred::CountPred::from_var_builder(&vb.pp("count_pred"))
+        .expect("zero-initialised weights still build a valid head");
+    let p_emb = Tensor::zeros((1, 768), candle_core::DType::F32, &device).unwrap();
+    let pred = head.forward(&p_emb).expect("forward must not panic on zero weights");
+    assert!(pred < 20, "argmax must be clamped to [0, 19], got {pred}");
+}
