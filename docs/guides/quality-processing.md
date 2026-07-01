@@ -82,5 +82,5 @@ Score ranges: `0.0–0.3` very low, `0.3–0.6` low, `0.6–0.8` moderate, `0.8�
 
 ## See also
 
-- [Configuration Reference](../reference/configuration.md#qualityprocessingconfig) — all quality options
+- [Configuration Reference](../reference/configuration.md#ocrqualitythresholds) — all quality options
 - [Extraction Basics](extraction.md) — core extraction pipeline

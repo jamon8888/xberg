@@ -163,7 +163,7 @@ model, custom HuggingFace model, LLM API, or plugin), and returns sorted `Rerank
 results with scores.
 
 The RerankerRegistry manages backends by name (e.g., `"fast"`, `"my-llama-reranker"`), allowing
-runtime registration and selection. See [Reranking Concepts](reranking.md) for preset details.
+runtime registration and selection. See [Reranking Concepts](../guides/reranking.md) for preset details.
 
 ---
 
