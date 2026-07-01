@@ -87,8 +87,18 @@ mod tests {
         // shape (1, 1 label, 2 words, max_width 2)
         let mut scores = Array4::<f32>::zeros((1, 1, 2, 2));
         scores[[0, 0, 0, 0]] = 0.9; // "Ada" alone, score already a probability
-        let output = decode_span_scores(scores.into_dyn().view(), text, &words, &labels, 0.5, 2, true, false, false)
-            .expect("decoded");
+        let output = decode_span_scores(
+            scores.into_dyn().view(),
+            text,
+            &words,
+            &labels,
+            0.5,
+            2,
+            true,
+            false,
+            false,
+        )
+        .expect("decoded");
         assert_eq!(output.spans[0].len(), 1);
         assert_eq!(output.spans[0][0].text(), "Ada");
         assert_eq!(output.spans[0][0].probability(), 0.9);
@@ -101,7 +111,17 @@ mod tests {
         let labels = vec!["person".to_string()];
         let scores = Array4::<f32>::zeros((1, 1, 1, 1));
         // wrong max_width argument (2, but tensor only has width 1)
-        let result = decode_span_scores(scores.into_dyn().view(), text, &words, &labels, 0.5, 2, true, false, false);
+        let result = decode_span_scores(
+            scores.into_dyn().view(),
+            text,
+            &words,
+            &labels,
+            0.5,
+            2,
+            true,
+            false,
+            false,
+        );
         assert!(result.is_err());
     }
 }

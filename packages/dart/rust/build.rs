@@ -380,18 +380,14 @@ fn copy_compiled_library() {
 
     let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
     let lib_name = library_name();
-    let src = PathBuf::from(&target_dir)
-        .join(&profile)
-        .join(&lib_name);
+    let src = PathBuf::from(&target_dir).join(&profile).join(&lib_name);
 
     // Destination: packages/dart/lib/src/xberg_bridge_generated/
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR not set");
     let dest_dir = PathBuf::from(&manifest_dir)
         .join("../lib/src/xberg_bridge_generated")
         .canonicalize()
-        .unwrap_or_else(|_| {
-            PathBuf::from(&manifest_dir).join("../lib/src/xberg_bridge_generated")
-        });
+        .unwrap_or_else(|_| PathBuf::from(&manifest_dir).join("../lib/src/xberg_bridge_generated"));
 
     if !dest_dir.exists()
         && let Err(e) = fs::create_dir_all(&dest_dir)
@@ -410,16 +406,10 @@ fn copy_compiled_library() {
                 dest.display()
             );
         } else {
-            println!(
-                "cargo:warning=copied library to {}",
-                dest.display()
-            );
+            println!("cargo:warning=copied library to {}", dest.display());
         }
     } else {
-        println!(
-            "cargo:warning=library not found at {}, skipping copy",
-            src.display()
-        );
+        println!("cargo:warning=library not found at {}, skipping copy", src.display());
     }
 }
 
