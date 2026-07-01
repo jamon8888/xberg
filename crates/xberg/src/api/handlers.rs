@@ -1155,6 +1155,100 @@ pub(crate) async fn job_status_handler(
     }
 }
 
+/// Process endpoint handler.
+///
+/// POST /v1/process
+///
+/// Accepts a JSON body with `text` or `url` (mutually exclusive) and an
+/// `operations` block that controls NER and redaction. When
+/// `operations.redact.rehydrate` is `true` a passphrase must also be supplied;
+/// the encrypted rehydration map is stored server-side and its key is returned
+/// in the response.
+#[cfg(feature = "api")]
+#[cfg_attr(feature = "otel", tracing::instrument(name = "api.process", skip(state, request)))]
+pub(crate) async fn process_handler(
+    State(state): State<ApiState>,
+    Json(request): Json<super::types::ProcessRequest>,
+) -> Result<Json<super::types::ProcessResponse>, ApiError> {
+    let input = match (&request.text, &request.url) {
+        (Some(text), None) => ApiExtractInput::Bytes {
+            data: Bytes::from(text.clone().into_bytes()),
+            mime_type: "text/plain".to_string(),
+            file_name: None,
+        },
+        (None, Some(url)) => ApiExtractInput::Uri {
+            uri: url.clone(),
+            mime_type: None,
+        },
+        (Some(_), Some(_)) => {
+            return Err(ApiError::validation(crate::error::XbergError::validation(
+                "Exactly one of `text` or `url` must be set, not both",
+            )));
+        }
+        (None, None) => {
+            return Err(ApiError::validation(crate::error::XbergError::validation(
+                "Exactly one of `text` or `url` must be set",
+            )));
+        }
+    };
+
+    enforce_api_uri_policy(std::slice::from_ref(&input))?;
+
+    let rehydrate = request.operations.redact.as_ref().map(|r| r.rehydrate).unwrap_or(false);
+
+    if rehydrate {
+        let redact_op = request.operations.redact.as_ref().expect("checked above");
+        let passphrase = redact_op.passphrase.as_deref().ok_or_else(|| {
+            ApiError::validation(crate::error::XbergError::validation(
+                "operations.redact.passphrase is required when operations.redact.rehydrate is true",
+            ))
+        })?;
+
+        let mut config = (*state.default_config).clone();
+        config.ner = request.operations.ner.clone();
+
+        let mut results = extract_unified_inputs(vec![input], config).await?;
+        let mut document = results.results.pop().ok_or_else(|| {
+            ApiError::internal(crate::error::XbergError::Other(
+                "extraction produced no document".into(),
+            ))
+        })?;
+
+        #[cfg(feature = "redaction-rehydrate")]
+        let rehydration_key = {
+            let map = crate::text::redaction::redact_capturing_rehydration_map(&mut document, &redact_op.config)
+                .await
+                .map_err(ApiError::from)?;
+            let encrypted = crate::text::redaction::encrypt_map(&map, passphrase).map_err(ApiError::from)?;
+            Some(state.rehydration_store.store(encrypted))
+        };
+        #[cfg(not(feature = "redaction-rehydrate"))]
+        let rehydration_key: Option<String> = None;
+
+        Ok(Json(super::types::ProcessResponse {
+            document,
+            rehydration_key,
+        }))
+    } else {
+        let mut config = (*state.default_config).clone();
+        config.ner = request.operations.ner.clone();
+        if let Some(redact_op) = &request.operations.redact {
+            config.redaction = Some(redact_op.config.clone());
+        }
+
+        let mut results = extract_unified_inputs(vec![input], config).await?;
+        let document = results.results.pop().ok_or_else(|| {
+            ApiError::internal(crate::error::XbergError::Other(
+                "extraction produced no document".into(),
+            ))
+        })?;
+        Ok(Json(super::types::ProcessResponse {
+            document,
+            rehydration_key: None,
+        }))
+    }
+}
+
 /// Handler for 404 Not Found errors.
 ///
 /// Returns a JSON error response instead of the default plain text.
@@ -1523,6 +1617,85 @@ mod tests {
             final_status.result.is_some(),
             "completed job must carry an extraction result"
         );
+    }
+
+    #[cfg(feature = "api")]
+    fn make_api_state() -> ApiState {
+        let extraction_service = crate::service::ExtractionServiceBuilder::new().build();
+        ApiState {
+            default_config: std::sync::Arc::new(crate::ExtractionConfig::default()),
+            extraction_service: std::sync::Arc::new(std::sync::Mutex::new(extraction_service)),
+            job_store: std::sync::Arc::new(crate::api::jobs::JobStore::new()),
+            rehydration_store: std::sync::Arc::new(crate::api::rehydration_store::RehydrationStore::new()),
+        }
+    }
+
+    #[cfg(feature = "api")]
+    #[cfg(feature = "redaction")]
+    #[tokio::test]
+    async fn process_handler_redacts_email_with_mask_strategy() {
+        use crate::api::types::{ProcessOperations, ProcessRedactOperation, ProcessRequest};
+        let state = make_api_state();
+        let request = ProcessRequest {
+            text: Some("Contact Alice at alice@example.com.".to_string()),
+            url: None,
+            operations: ProcessOperations {
+                ner: None,
+                redact: Some(ProcessRedactOperation {
+                    config: crate::core::config::redaction::RedactionConfig {
+                        strategy: crate::types::redaction::RedactionStrategy::Mask,
+                        ..Default::default()
+                    },
+                    rehydrate: false,
+                    passphrase: None,
+                }),
+            },
+        };
+        let response = process_handler(axum::extract::State(state), axum::extract::Json(request))
+            .await
+            .expect("handler must succeed");
+        assert!(response.0.document.content.contains("[REDACTED]"));
+        assert!(!response.0.document.content.contains("alice@example.com"));
+        assert!(response.0.rehydration_key.is_none());
+    }
+
+    #[cfg(feature = "api")]
+    #[cfg(feature = "redaction")]
+    #[tokio::test]
+    async fn process_handler_requires_passphrase_when_rehydrate_is_true() {
+        use crate::api::types::{ProcessOperations, ProcessRedactOperation, ProcessRequest};
+        let state = make_api_state();
+        let request = ProcessRequest {
+            text: Some("Contact Alice at alice@example.com.".to_string()),
+            url: None,
+            operations: ProcessOperations {
+                ner: None,
+                redact: Some(ProcessRedactOperation {
+                    config: crate::core::config::redaction::RedactionConfig {
+                        strategy: crate::types::redaction::RedactionStrategy::TokenReplace,
+                        ..Default::default()
+                    },
+                    rehydrate: true,
+                    passphrase: None,
+                }),
+            },
+        };
+        let result = process_handler(axum::extract::State(state), axum::extract::Json(request)).await;
+        assert!(result.is_err(), "must reject rehydrate=true without a passphrase");
+    }
+
+    #[cfg(feature = "api")]
+    #[tokio::test]
+    async fn process_handler_rejects_both_text_and_url() {
+        use crate::api::types::{ProcessOperations, ProcessRequest};
+        let state = make_api_state();
+        let request = ProcessRequest {
+            text: Some("hello".to_string()),
+            url: Some("https://example.com/doc.txt".to_string()),
+            operations: ProcessOperations::default(),
+        };
+        let result = process_handler(axum::extract::State(state), axum::extract::Json(request)).await;
+        assert!(result.is_err(), "must reject when both text and url are set");
     }
 
     #[cfg(feature = "api")]
