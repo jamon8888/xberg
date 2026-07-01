@@ -1177,23 +1177,19 @@ pub(crate) async fn rehydrate_handler(
     axum::extract::Path(rehydration_key): axum::extract::Path<String>,
     Json(request): Json<super::types::RehydrateRequest>,
 ) -> Result<Json<super::types::RehydrateResponse>, ApiError> {
-    let encrypted = state
-        .rehydration_store
-        .get(&rehydration_key)
-        .ok_or_else(|| ApiError {
-            status: axum::http::StatusCode::NOT_FOUND,
-            body: super::types::ErrorResponse {
-                error_type: "NotFoundError".to_string(),
-                message: format!("Rehydration key '{rehydration_key}' not found or expired"),
-                traceback: None,
-                status_code: axum::http::StatusCode::NOT_FOUND.as_u16(),
-            },
-        })?;
+    let encrypted = state.rehydration_store.get(&rehydration_key).ok_or_else(|| ApiError {
+        status: axum::http::StatusCode::NOT_FOUND,
+        body: super::types::ErrorResponse {
+            error_type: "NotFoundError".to_string(),
+            message: format!("Rehydration key '{rehydration_key}' not found or expired"),
+            traceback: None,
+            status_code: axum::http::StatusCode::NOT_FOUND.as_u16(),
+        },
+    })?;
 
     #[cfg(feature = "redaction-rehydrate")]
-    let restored =
-        crate::text::redaction::rehydration::decrypt_map(&encrypted, &request.passphrase)
-            .map_err(|e| ApiError::new(axum::http::StatusCode::FORBIDDEN, e))?;
+    let restored = crate::text::redaction::rehydration::decrypt_map(&encrypted, &request.passphrase)
+        .map_err(|e| ApiError::new(axum::http::StatusCode::FORBIDDEN, e))?;
 
     #[cfg(not(feature = "redaction-rehydrate"))]
     let restored = {
@@ -1769,7 +1765,9 @@ mod tests {
         let result = rehydrate_handler(
             axum::extract::State(state),
             axum::extract::Path("reh_does_not_exist".to_string()),
-            axum::extract::Json(crate::api::types::RehydrateRequest { passphrase: "anything".to_string() }),
+            axum::extract::Json(crate::api::types::RehydrateRequest {
+                passphrase: "anything".to_string(),
+            }),
         )
         .await;
         let err = result.expect_err("unknown key must error");
@@ -1782,9 +1780,7 @@ mod tests {
         let state = make_api_state();
         let mut map = std::collections::HashMap::new();
         map.insert("[EMAIL_1]".to_string(), "alice@example.com".to_string());
-        let encrypted =
-            crate::text::redaction::rehydration::encrypt_map(&map, "test-passphrase")
-                .expect("encrypt");
+        let encrypted = crate::text::redaction::rehydration::encrypt_map(&map, "test-passphrase").expect("encrypt");
         let key = state.rehydration_store.store(encrypted);
         let response = rehydrate_handler(
             axum::extract::State(state),
@@ -1807,8 +1803,7 @@ mod tests {
         let state = make_api_state();
         let mut map = std::collections::HashMap::new();
         map.insert("[EMAIL_1]".to_string(), "alice@example.com".to_string());
-        let encrypted =
-            crate::text::redaction::rehydration::encrypt_map(&map, "correct").expect("encrypt");
+        let encrypted = crate::text::redaction::rehydration::encrypt_map(&map, "correct").expect("encrypt");
         let key = state.rehydration_store.store(encrypted);
         let result = rehydrate_handler(
             axum::extract::State(state),
