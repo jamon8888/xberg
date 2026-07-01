@@ -2056,6 +2056,18 @@ pub struct NerConfig {
     /// `None` lets the backend pick its pinned default xberg GLiNER model alias.
     #[pyo3(get)]
     pub model: Option<String>,
+    /// Custom Hugging Face repository to load a GLiNER ONNX export from.
+    #[pyo3(get)]
+    pub hf_repo: Option<String>,
+    /// Path to the ONNX model file within `hf_repo`.
+    #[pyo3(get)]
+    pub hf_model_file: Option<String>,
+    /// Path to the tokenizer file within `hf_repo`.
+    #[pyo3(get)]
+    pub hf_tokenizer_file: Option<String>,
+    /// GLiNER architecture family for `hf_repo`.
+    #[pyo3(get)]
+    pub hf_architecture: Option<GlinerArchitecture>,
     /// Optional LLM configuration — only used by `NerBackendKind.Llm`. Token usage
     /// for LLM backends is recorded in `ExtractedDocument.llm_usage`.
     #[pyo3(get)]
@@ -13435,6 +13447,59 @@ impl NerBackendKind {
     }
 }
 
+#[pyclass(eq, eq_int, from_py_object)]
+pub enum GlinerArchitecture {
+    #[pyo3(name = "GLINER1")]
+    #[default]
+    Gliner1 = 0,
+    #[pyo3(name = "GLINER2")]
+    Gliner2 = 1,
+}
+#[pymethods]
+impl GlinerArchitecture {
+    #[new]
+    fn __new__(value: pyo3::Bound<'_, pyo3::PyAny>) -> pyo3::PyResult<Self> {
+        use pyo3::prelude::*;
+        // Try to extract as string first
+        if let Ok(s) = value.extract::<&str>() {
+            let s_lower = s.to_lowercase();
+            match s_lower.as_str() {
+                "gliner1" => return Ok(Self::Gliner1),
+                "gliner2" => return Ok(Self::Gliner2),
+                _ => {}
+            }
+        }
+        // Try to extract as integer (by discriminant value)
+        if let Ok(n) = value.extract::<i32>() {
+            match n {
+                0 => return Ok(Self::Gliner1),
+                1 => return Ok(Self::Gliner2),
+                _ => {}
+            }
+        }
+        let type_name = stringify!(GlinerArchitecture);
+        Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "invalid value for {}: {:#?}. Expected variant name (str) or discriminant (int)",
+            type_name, value
+        )))
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        serde_json::to_value(self)
+            .map(|value| match value {
+                serde_json::Value::String(value) => value,
+                other => other.to_string(),
+            })
+            .map_err(|e| {
+                pyo3::exceptions::PyRuntimeError::new_err(format!("Failed to serialize GlinerArchitecture: {e}"))
+            })
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        self.__str__()
+    }
+}
+
 #[derive(Clone)]
 #[pyclass(frozen)]
 pub struct VlmFallbackPolicy {
@@ -22168,6 +22233,10 @@ impl From<NerConfig> for xberg::NerConfig {
             backend: val.backend.into(),
             categories: val.categories.into_iter().map(Into::into).collect(),
             model: val.model,
+            hf_repo: val.hf_repo,
+            hf_model_file: val.hf_model_file,
+            hf_tokenizer_file: val.hf_tokenizer_file,
+            hf_architecture: val.hf_architecture.map(Into::into),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
@@ -22181,6 +22250,10 @@ impl From<xberg::NerConfig> for NerConfig {
             backend: val.backend.into(),
             categories: val.categories.into_iter().map(Into::into).collect(),
             model: val.model.map(|v| v.to_string()),
+            hf_repo: val.hf_repo.map(|v| v.to_string()),
+            hf_model_file: val.hf_model_file.map(|v| v.to_string()),
+            hf_tokenizer_file: val.hf_tokenizer_file.map(|v| v.to_string()),
+            hf_architecture: val.hf_architecture.map(Into::into),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
@@ -23533,14 +23606,22 @@ impl From<ExtractedDocument> for xberg::ExtractedDocument {
         out.children = val.children.map(|v| v.into_iter().map(Into::into).collect());
         out.uris = val.uris.map(|v| v.into_iter().map(Into::into).collect());
         out.revisions = val.revisions.map(|v| v.into_iter().map(Into::into).collect());
-        out.structured_output = val.structured_output.as_ref().and_then(|s| serde_json::from_str(s).ok());
-        out.code_intelligence = val.code_intelligence.as_ref().and_then(|s| serde_json::from_str(s).ok());
+        out.structured_output = val
+            .structured_output
+            .as_ref()
+            .and_then(|s| serde_json::from_str(s).ok());
+        out.code_intelligence = val
+            .code_intelligence
+            .as_ref()
+            .and_then(|s| serde_json::from_str(s).ok());
         out.llm_usage = val.llm_usage.map(|v| v.into_iter().map(Into::into).collect());
         out.entities = val.entities.map(|v| v.into_iter().map(Into::into).collect());
         out.summary = val.summary.map(Into::into);
         out.extraction_confidence = val.extraction_confidence.map(Into::into);
         out.translation = val.translation.map(Into::into);
-        out.page_classifications = val.page_classifications.map(|v| v.into_iter().map(Into::into).collect());
+        out.page_classifications = val
+            .page_classifications
+            .map(|v| v.into_iter().map(Into::into).collect());
         out.redaction_report = val.redaction_report.map(Into::into);
         out.formulas = val.formulas.into_iter().map(Into::into).collect();
         out.form_fields = val.form_fields.into_iter().map(Into::into).collect();
@@ -26569,6 +26650,24 @@ impl From<xberg::NerBackendKind> for NerBackendKind {
         match val {
             xberg::NerBackendKind::Onnx => Self::Onnx,
             xberg::NerBackendKind::Llm => Self::Llm,
+        }
+    }
+}
+
+impl From<GlinerArchitecture> for xberg::GlinerArchitecture {
+    fn from(val: GlinerArchitecture) -> Self {
+        match val {
+            GlinerArchitecture::Gliner1 => Self::Gliner1,
+            GlinerArchitecture::Gliner2 => Self::Gliner2,
+        }
+    }
+}
+
+impl From<xberg::GlinerArchitecture> for GlinerArchitecture {
+    fn from(val: xberg::GlinerArchitecture) -> Self {
+        match val {
+            xberg::GlinerArchitecture::Gliner1 => Self::Gliner1,
+            xberg::GlinerArchitecture::Gliner2 => Self::Gliner2,
         }
     }
 }

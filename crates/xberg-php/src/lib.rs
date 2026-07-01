@@ -280,7 +280,7 @@ pub struct ContentFilterConfig {
     ///
     /// Default: `false` (headers are stripped or excluded).
     #[php(prop, name = "includeHeaders")]
-#[serde(default = "crate::serde_defaults::content_filter_config_include_headers")]
+    #[serde(default = "crate::serde_defaults::content_filter_config_include_headers")]
     pub include_headers: bool,
     /// Include running footers in extraction output.
     ///
@@ -292,7 +292,7 @@ pub struct ContentFilterConfig {
     ///
     /// Default: `false` (footers are stripped or excluded).
     #[php(prop, name = "includeFooters")]
-#[serde(default = "crate::serde_defaults::content_filter_config_include_footers")]
+    #[serde(default = "crate::serde_defaults::content_filter_config_include_footers")]
     pub include_footers: bool,
     /// Enable the heuristic cross-page repeating text detector.
     ///
@@ -309,7 +309,7 @@ pub struct ContentFilterConfig {
     ///
     /// Default: `true`.
     #[php(prop, name = "stripRepeatingText")]
-#[serde(default = "crate::serde_defaults::content_filter_config_strip_repeating_text")]
+    #[serde(default = "crate::serde_defaults::content_filter_config_strip_repeating_text")]
     pub strip_repeating_text: bool,
     /// Include watermark text in extraction output.
     ///
@@ -318,7 +318,7 @@ pub struct ContentFilterConfig {
     ///
     /// Default: `false` (watermarks are stripped).
     #[php(prop, name = "includeWatermarks")]
-#[serde(default = "crate::serde_defaults::content_filter_config_include_watermarks")]
+    #[serde(default = "crate::serde_defaults::content_filter_config_include_watermarks")]
     pub include_watermarks: bool,
 }
 
@@ -425,7 +425,10 @@ pub struct ExtractionConfig {
     pub use_cache: bool,
     /// Enable quality post-processing
     #[php(prop, name = "enableQualityProcessing")]
-    #[serde(default = "crate::serde_defaults::extraction_config_enable_quality_processing", alias = "enableQualityProcessing")]
+    #[serde(
+        default = "crate::serde_defaults::extraction_config_enable_quality_processing",
+        alias = "enableQualityProcessing"
+    )]
     pub enable_quality_processing: bool,
     /// OCR configuration (undefined = OCR disabled)
     pub ocr: Option<OcrConfig>,
@@ -450,7 +453,10 @@ pub struct ExtractionConfig {
     ///
     /// Cannot be `true` simultaneously with `force_ocr`.
     #[php(prop, name = "disableOcr")]
-    #[serde(default = "crate::serde_defaults::extraction_config_disable_ocr", alias = "disableOcr")]
+    #[serde(
+        default = "crate::serde_defaults::extraction_config_disable_ocr",
+        alias = "disableOcr"
+    )]
     pub disable_ocr: bool,
     /// Text chunking configuration (undefined = chunking disabled)
     pub chunking: Option<ChunkingConfig>,
@@ -578,7 +584,10 @@ pub struct ExtractionConfig {
     /// (~150-300ms/page CPU, ~20-50ms/page GPU). Default: `false`.
     /// Requires the `layout-detection` feature.
     #[php(prop, name = "useLayoutForMarkdown")]
-    #[serde(default = "crate::serde_defaults::extraction_config_use_layout_for_markdown", alias = "useLayoutForMarkdown")]
+    #[serde(
+        default = "crate::serde_defaults::extraction_config_use_layout_for_markdown",
+        alias = "useLayoutForMarkdown"
+    )]
     pub use_layout_for_markdown: bool,
     /// Enable structured document tree output.
     ///
@@ -588,7 +597,10 @@ pub struct ExtractionConfig {
     ///
     /// Independent of `result_format` — can be combined with Unified or ElementBased.
     #[php(prop, name = "includeDocumentStructure")]
-    #[serde(default = "crate::serde_defaults::extraction_config_include_document_structure", alias = "includeDocumentStructure")]
+    #[serde(
+        default = "crate::serde_defaults::extraction_config_include_document_structure",
+        alias = "includeDocumentStructure"
+    )]
     pub include_document_structure: bool,
     /// Hardware acceleration configuration for ONNX Runtime models.
     ///
@@ -1271,7 +1283,7 @@ pub struct SvgOptions {
     /// HEIF).  The tree's viewBox is scaled by `render_dpi / 96.0` before the
     /// pixel buffer is allocated.  Defaults to `96.0` (1× CSS pixel density).
     #[php(prop, name = "renderDpi")]
-#[serde(default = "crate::serde_defaults::svg_options_render_dpi")]
+    #[serde(default = "crate::serde_defaults::svg_options_render_dpi")]
     pub render_dpi: f32,
 }
 
@@ -1646,11 +1658,17 @@ pub struct UrlExtractionConfig {
     pub max_total_urls: Option<u32>,
     /// Allow bare local filesystem path inputs.
     #[php(prop, name = "allowLocalFileInputs")]
-    #[serde(default = "crate::serde_defaults::url_extraction_config_allow_local_file_inputs", alias = "allowLocalFileInputs")]
+    #[serde(
+        default = "crate::serde_defaults::url_extraction_config_allow_local_file_inputs",
+        alias = "allowLocalFileInputs"
+    )]
     pub allow_local_file_inputs: bool,
     /// Allow local `file://` URI inputs.
     #[php(prop, name = "allowFileUris")]
-    #[serde(default = "crate::serde_defaults::url_extraction_config_allow_file_uris", alias = "allowFileUris")]
+    #[serde(
+        default = "crate::serde_defaults::url_extraction_config_allow_file_uris",
+        alias = "allowFileUris"
+    )]
     pub allow_file_uris: bool,
 }
 
@@ -1730,34 +1748,34 @@ impl UrlExtractionConfig {
 pub struct ImageExtractionConfig {
     /// Extract images from documents
     #[php(prop, name = "extractImages")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_extract_images")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_extract_images")]
     pub extract_images: bool,
     /// Target DPI for image normalization
     #[php(prop, name = "targetDpi")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_target_dpi")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_target_dpi")]
     pub target_dpi: i32,
     /// Maximum dimension for images (width or height)
     #[php(prop, name = "maxImageDimension")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_max_image_dimension")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_max_image_dimension")]
     pub max_image_dimension: i32,
     /// Whether to inject image reference placeholders into markdown output.
     /// When `true` (default), image references like `![Image 1](embedded:p1_i0)`
     /// are appended to the markdown. Set to `false` to extract images as data
     /// without polluting the markdown output.
     #[php(prop, name = "injectPlaceholders")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_inject_placeholders")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_inject_placeholders")]
     pub inject_placeholders: bool,
     /// Automatically adjust DPI based on image content
     #[php(prop, name = "autoAdjustDpi")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_auto_adjust_dpi")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_auto_adjust_dpi")]
     pub auto_adjust_dpi: bool,
     /// Minimum DPI threshold
     #[php(prop, name = "minDpi")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_min_dpi")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_min_dpi")]
     pub min_dpi: i32,
     /// Maximum DPI threshold
     #[php(prop, name = "maxDpi")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_max_dpi")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_max_dpi")]
     pub max_dpi: i32,
     /// Maximum number of image objects to extract per PDF page.
     ///
@@ -1787,7 +1805,7 @@ pub struct ImageExtractionConfig {
     /// Defaults to `false`. Enable when downstream consumers need page thumbnails
     /// (e.g. citation previews, visual grounding).
     #[php(prop, name = "includePageRasters")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_include_page_rasters")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_include_page_rasters")]
     pub include_page_rasters: bool,
     /// Run OCR on extracted images and include the recognized text in the document content.
     ///
@@ -1795,18 +1813,18 @@ pub struct ImageExtractionConfig {
     /// are processed with the configured OCR backend. Set to `false` to extract images
     /// without OCR processing, even when OCR is enabled.
     #[php(prop, name = "runOcrOnImages")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_run_ocr_on_images")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_run_ocr_on_images")]
     pub run_ocr_on_images: bool,
     /// When `true`, image OCR results are rendered as plain text without the
     /// `![...](...)` markdown placeholder. Only takes effect when `run_ocr_on_images`
     /// is also `true`.
     #[php(prop, name = "ocrTextOnly")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_ocr_text_only")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_ocr_text_only")]
     pub ocr_text_only: bool,
     /// When `true` and `ocr_text_only` is `false`, append the OCR text after
     /// the image placeholder in the rendered output.
     #[php(prop, name = "appendOcrText")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_append_ocr_text")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_append_ocr_text")]
     pub append_ocr_text: bool,
     /// Target format for re-encoding extracted images.
     ///
@@ -1830,7 +1848,7 @@ pub struct ImageExtractionConfig {
     /// integer-array serialization of `data`. Defaults to `false`; enabling it
     /// doubles the in-memory image representation for the duration of the response.
     #[php(prop, name = "includeDataBase64")]
-#[serde(default = "crate::serde_defaults::image_extraction_config_include_data_base64")]
+    #[serde(default = "crate::serde_defaults::image_extraction_config_include_data_base64")]
     pub include_data_base64: bool,
 }
 
@@ -1965,7 +1983,7 @@ pub struct TokenReductionOptions {
     pub mode: String,
     /// Preserve important words (capitalized, technical terms)
     #[php(prop, name = "preserveImportantWords")]
-#[serde(default = "crate::serde_defaults::token_reduction_options_preserve_important_words")]
+    #[serde(default = "crate::serde_defaults::token_reduction_options_preserve_important_words")]
     pub preserve_important_words: bool,
 }
 
@@ -2016,11 +2034,11 @@ pub struct LanguageDetectionConfig {
     pub enabled: bool,
     /// Minimum confidence threshold (0.0-1.0)
     #[php(prop, name = "minConfidence")]
-#[serde(default = "crate::serde_defaults::language_detection_config_min_confidence")]
+    #[serde(default = "crate::serde_defaults::language_detection_config_min_confidence")]
     pub min_confidence: f64,
     /// Detect multiple languages in the document
     #[php(prop, name = "detectMultiple")]
-#[serde(default = "crate::serde_defaults::language_detection_config_detect_multiple")]
+    #[serde(default = "crate::serde_defaults::language_detection_config_detect_multiple")]
     pub detect_multiple: bool,
 }
 
@@ -2080,7 +2098,7 @@ pub struct HtmlOutputConfig {
     pub css_file: Option<String>,
     /// Built-in colour/typography theme. Default: `HtmlTheme.Unstyled`.
     #[php(prop, name = "theme")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub theme: String,
     /// CSS class prefix applied to every emitted class name.
     ///
@@ -2094,7 +2112,7 @@ pub struct HtmlOutputConfig {
     /// Set to `false` to emit only the structural markup and wire up your
     /// own stylesheet targeting the `kb-*` class names.
     #[php(prop, name = "embedCss")]
-#[serde(default = "crate::serde_defaults::html_output_config_embed_css")]
+    #[serde(default = "crate::serde_defaults::html_output_config_embed_css")]
     pub embed_css: bool,
 }
 
@@ -2165,14 +2183,14 @@ pub struct LayoutDetectionConfig {
     pub confidence_threshold: Option<f32>,
     /// Whether to apply postprocessing heuristics (default: true).
     #[php(prop, name = "applyHeuristics")]
-#[serde(default = "crate::serde_defaults::layout_detection_config_apply_heuristics")]
+    #[serde(default = "crate::serde_defaults::layout_detection_config_apply_heuristics")]
     pub apply_heuristics: bool,
     /// Table structure recognition model.
     ///
     /// Controls which model is used for table cell detection within layout-detected
     /// table regions. Defaults to `TableModel.Tatr`.
     #[php(prop, name = "tableModel")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub table_model: String,
     /// Hardware acceleration for ONNX models (layout detection + table structure).
     ///
@@ -2186,7 +2204,7 @@ pub struct LayoutDetectionConfig {
     /// generic image regions. Defaults to `false` — chart understanding is
     /// opt-in and has no effect on standard text/table extraction scores.
     #[php(prop, name = "enableChartUnderstanding")]
-#[serde(default = "crate::serde_defaults::layout_detection_config_enable_chart_understanding")]
+    #[serde(default = "crate::serde_defaults::layout_detection_config_enable_chart_understanding")]
     pub enable_chart_understanding: bool,
 }
 
@@ -2431,6 +2449,18 @@ pub struct NerConfig {
     /// `None` lets the backend pick its pinned default xberg GLiNER model alias.
     #[php(prop, name = "model")]
     pub model: Option<String>,
+    /// Custom Hugging Face repository to load a GLiNER ONNX export from.
+    #[php(prop, name = "hfRepo")]
+    pub hf_repo: Option<String>,
+    /// Path to the ONNX model file within `hfRepo`.
+    #[php(prop, name = "hfModelFile")]
+    pub hf_model_file: Option<String>,
+    /// Path to the tokenizer file within `hfRepo`.
+    #[php(prop, name = "hfTokenizerFile")]
+    pub hf_tokenizer_file: Option<String>,
+    /// GLiNER architecture family for `hfRepo`.
+    #[php(prop, name = "hfArchitecture")]
+    pub hf_architecture: Option<String>,
     /// Optional LLM configuration — only used by `NerBackendKind.Llm`. Token usage
     /// for LLM backends is recorded in `ExtractedDocument.llm_usage`.
     pub llm: Option<LlmConfig>,
@@ -2499,69 +2529,69 @@ impl NerConfig {
 pub struct OcrQualityThresholds {
     /// Minimum total non-whitespace characters to consider text substantive.
     #[php(prop, name = "minTotalNonWhitespace")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_total_non_whitespace")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_total_non_whitespace")]
     pub min_total_non_whitespace: i64,
     /// Minimum non-whitespace characters per page on average.
     #[php(prop, name = "minNonWhitespacePerPage")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_non_whitespace_per_page")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_non_whitespace_per_page")]
     pub min_non_whitespace_per_page: f64,
     /// Minimum character count for a word to be "meaningful".
     #[php(prop, name = "minMeaningfulWordLen")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_meaningful_word_len")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_meaningful_word_len")]
     pub min_meaningful_word_len: i64,
     /// Minimum count of meaningful words before text is accepted.
     #[php(prop, name = "minMeaningfulWords")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_meaningful_words")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_meaningful_words")]
     pub min_meaningful_words: i64,
     /// Minimum alphanumeric ratio (non-whitespace chars that are alphanumeric).
     #[php(prop, name = "minAlnumRatio")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_alnum_ratio")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_alnum_ratio")]
     pub min_alnum_ratio: f64,
     /// Minimum Unicode replacement characters (U+FFFD) to trigger OCR fallback.
     #[php(prop, name = "minGarbageChars")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_garbage_chars")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_garbage_chars")]
     pub min_garbage_chars: i64,
     /// Maximum fraction of short (1-2 char) words before text is considered fragmented.
     #[php(prop, name = "maxFragmentedWordRatio")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_max_fragmented_word_ratio")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_max_fragmented_word_ratio")]
     pub max_fragmented_word_ratio: f64,
     /// Critical fragmentation threshold — triggers OCR regardless of meaningful words.
     /// Normal English text has ~20-30% short words. 80%+ is definitive garbage.
     #[php(prop, name = "criticalFragmentedWordRatio")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_critical_fragmented_word_ratio")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_critical_fragmented_word_ratio")]
     pub critical_fragmented_word_ratio: f64,
     /// Minimum average word length. Below this with enough words indicates garbled extraction.
     #[php(prop, name = "minAvgWordLength")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_avg_word_length")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_avg_word_length")]
     pub min_avg_word_length: f64,
     /// Minimum word count before average word length check applies.
     #[php(prop, name = "minWordsForAvgLengthCheck")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_words_for_avg_length_check")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_words_for_avg_length_check")]
     pub min_words_for_avg_length_check: i64,
     /// Minimum consecutive word repetition ratio to detect column scrambling.
     #[php(prop, name = "minConsecutiveRepeatRatio")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_consecutive_repeat_ratio")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_consecutive_repeat_ratio")]
     pub min_consecutive_repeat_ratio: f64,
     /// Minimum word count before consecutive repetition check is applied.
     #[php(prop, name = "minWordsForRepeatCheck")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_words_for_repeat_check")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_min_words_for_repeat_check")]
     pub min_words_for_repeat_check: i64,
     /// Minimum character count for "substantive markdown" OCR skip gate.
     #[php(prop, name = "substantiveMinChars")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_substantive_min_chars")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_substantive_min_chars")]
     pub substantive_min_chars: i64,
     /// Minimum character count for "non-text content" OCR skip gate.
     #[php(prop, name = "nonTextMinChars")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_non_text_min_chars")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_non_text_min_chars")]
     pub non_text_min_chars: i64,
     /// Alphanumeric+whitespace ratio threshold for skip decisions.
     #[php(prop, name = "alnumWsRatioThreshold")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_alnum_ws_ratio_threshold")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_alnum_ws_ratio_threshold")]
     pub alnum_ws_ratio_threshold: f64,
     /// Minimum quality score (0.0-1.0) for a pipeline stage result to be accepted.
     /// If the result from a backend scores below this, try the next backend.
     #[php(prop, name = "pipelineMinQuality")]
-#[serde(default = "crate::serde_defaults::ocr_quality_thresholds_pipeline_min_quality")]
+    #[serde(default = "crate::serde_defaults::ocr_quality_thresholds_pipeline_min_quality")]
     pub pipeline_min_quality: f64,
 }
 
@@ -2831,7 +2861,7 @@ pub struct OcrConfig {
     pub tesseract_config: Option<TesseractConfig>,
     /// Output format for OCR results (optional, for format conversion)
     #[php(prop, name = "outputFormat")]
-#[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub output_format: Option<String>,
     /// PaddleOCR-specific configuration (optional, JSON passthrough)
     pub paddle_ocr_config: Option<serde_json::Value>,
@@ -2872,7 +2902,7 @@ pub struct OcrConfig {
     /// rotated with high confidence, the image is corrected before recognition.
     /// This is critical for handling rotated scanned documents.
     #[php(prop, name = "autoRotate")]
-#[serde(default = "crate::serde_defaults::ocr_config_auto_rotate")]
+    #[serde(default = "crate::serde_defaults::ocr_config_auto_rotate")]
     pub auto_rotate: bool,
     /// Ergonomic VLM fallback policy.
     ///
@@ -3055,16 +3085,19 @@ impl OcrConfig {
 pub struct PageConfig {
     /// Extract pages as separate array (ExtractedDocument.pages)
     #[php(prop, name = "extractPages")]
-#[serde(default = "crate::serde_defaults::page_config_extract_pages", alias = "extractPages")]
+    #[serde(default = "crate::serde_defaults::page_config_extract_pages", alias = "extractPages")]
     pub extract_pages: bool,
     /// Insert page markers in main content string
     #[php(prop, name = "insertPageMarkers")]
-#[serde(default = "crate::serde_defaults::page_config_insert_page_markers", alias = "insertPageMarkers")]
+    #[serde(
+        default = "crate::serde_defaults::page_config_insert_page_markers",
+        alias = "insertPageMarkers"
+    )]
     pub insert_page_markers: bool,
     /// Page marker format (use {page_num} placeholder)
     /// Default: "\n\n<!-- PAGE {page_num} -->\n\n"
     #[php(prop, name = "markerFormat")]
-#[serde(default = "crate::serde_defaults::page_config_marker_format", alias = "markerFormat")]
+    #[serde(default = "crate::serde_defaults::page_config_marker_format", alias = "markerFormat")]
     pub marker_format: String,
 }
 
@@ -3116,7 +3149,7 @@ impl PageConfig {
 pub struct PdfConfig {
     /// Extract images from PDF
     #[php(prop, name = "extractImages")]
-#[serde(default = "crate::serde_defaults::pdf_config_extract_images")]
+    #[serde(default = "crate::serde_defaults::pdf_config_extract_images")]
     pub extract_images: bool,
     /// Extract tables from PDF.
     ///
@@ -3125,21 +3158,21 @@ pub struct PdfConfig {
     /// `pdf.oxide.table.extract_tables_heuristic`. Set to `false` to skip
     /// both passes — `tables` will then be empty in the result.
     #[php(prop, name = "extractTables")]
-#[serde(default = "crate::serde_defaults::pdf_config_extract_tables")]
+    #[serde(default = "crate::serde_defaults::pdf_config_extract_tables")]
     pub extract_tables: bool,
     /// List of passwords to try when opening encrypted PDFs
     #[php(prop, name = "passwords")]
     pub passwords: Option<Vec<String>>,
     /// Extract PDF metadata
     #[php(prop, name = "extractMetadata")]
-#[serde(default = "crate::serde_defaults::pdf_config_extract_metadata")]
+    #[serde(default = "crate::serde_defaults::pdf_config_extract_metadata")]
     pub extract_metadata: bool,
     /// Hierarchy extraction configuration (undefined = hierarchy extraction disabled)
     pub hierarchy: Option<HierarchyConfig>,
     /// Extract PDF annotations (text notes, highlights, links, stamps).
     /// Default: false
     #[php(prop, name = "extractAnnotations")]
-#[serde(default = "crate::serde_defaults::pdf_config_extract_annotations")]
+    #[serde(default = "crate::serde_defaults::pdf_config_extract_annotations")]
     pub extract_annotations: bool,
     /// Top margin fraction (0.0–1.0) of page height to exclude headers/running heads.
     /// Default: 0.06 (6%)
@@ -3157,7 +3190,7 @@ pub struct PdfConfig {
     /// to be emitted as tables. Other quality filters (density, sparsity, prose
     /// detection) still apply.
     #[php(prop, name = "allowSingleColumnTables")]
-#[serde(default = "crate::serde_defaults::pdf_config_allow_single_column_tables")]
+    #[serde(default = "crate::serde_defaults::pdf_config_allow_single_column_tables")]
     pub allow_single_column_tables: bool,
     /// Perform OCR on inline images extracted from PDF pages and attach the
     /// recognized text to each `ExtractedImage.ocr_result`. Requires Tesseract
@@ -3166,7 +3199,7 @@ pub struct PdfConfig {
     /// gracefully (the image is returned without OCR text rather than failing
     /// the whole extraction). Default: `false`.
     #[php(prop, name = "ocrInlineImages")]
-#[serde(default = "crate::serde_defaults::pdf_config_ocr_inline_images")]
+    #[serde(default = "crate::serde_defaults::pdf_config_ocr_inline_images")]
     pub ocr_inline_images: bool,
     /// Extract AcroForm and XFA form fields into `ExtractedDocument.form_fields`.
     ///
@@ -3175,7 +3208,7 @@ pub struct PdfConfig {
     /// additive — non-form PDFs simply yield an empty list. Set to `false` to
     /// skip the form pass entirely.
     #[php(prop, name = "extractFormFields")]
-#[serde(default = "crate::serde_defaults::pdf_config_extract_form_fields")]
+    #[serde(default = "crate::serde_defaults::pdf_config_extract_form_fields")]
     pub extract_form_fields: bool,
     /// Reorder extracted text by layout-detected reading order.
     ///
@@ -3184,7 +3217,7 @@ pub struct PdfConfig {
     /// for multi-column academic PDFs). Requires the `layout-detection`
     /// feature; has no effect without it. Defaults to `false`.
     #[php(prop, name = "readingOrder")]
-#[serde(default = "crate::serde_defaults::pdf_config_reading_order")]
+    #[serde(default = "crate::serde_defaults::pdf_config_reading_order")]
     pub reading_order: bool,
 }
 
@@ -3300,11 +3333,11 @@ pub struct HierarchyConfig {
     /// Default: 6, which provides H1-H6 heading levels with body text.
     /// Larger values create more fine-grained hierarchy levels.
     #[php(prop, name = "kClusters")]
-#[serde(default = "crate::serde_defaults::hierarchy_config_k_clusters")]
+    #[serde(default = "crate::serde_defaults::hierarchy_config_k_clusters")]
     pub k_clusters: i64,
     /// Include bounding box information in hierarchy blocks
     #[php(prop, name = "includeBbox")]
-#[serde(default = "crate::serde_defaults::hierarchy_config_include_bbox")]
+    #[serde(default = "crate::serde_defaults::hierarchy_config_include_bbox")]
     pub include_bbox: bool,
     /// OCR coverage threshold for smart OCR triggering (0.0-1.0)
     ///
@@ -3453,7 +3486,7 @@ pub struct ChunkingConfig {
     ///
     /// Default: 1000
     #[php(prop, name = "maxCharacters")]
-#[serde(default = "crate::serde_defaults::chunking_config_max_characters")]
+    #[serde(default = "crate::serde_defaults::chunking_config_max_characters")]
     pub max_characters: i64,
     /// Overlap between chunks (in units determined by `sizing`).
     ///
@@ -3471,7 +3504,7 @@ pub struct ChunkingConfig {
     ///
     /// Default: Text
     #[php(prop, name = "chunkerType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub chunker_type: String,
     /// Optional embedding configuration for chunk embeddings.
     pub embedding: Option<EmbeddingConfig>,
@@ -3491,7 +3524,7 @@ pub struct ChunkingConfig {
     ///
     /// Default: `false`
     #[php(prop, name = "prependHeadingContext")]
-#[serde(default = "crate::serde_defaults::chunking_config_prepend_heading_context")]
+    #[serde(default = "crate::serde_defaults::chunking_config_prepend_heading_context")]
     pub prepend_heading_context: bool,
     /// Optional cosine similarity threshold for semantic topic boundary detection.
     ///
@@ -3513,7 +3546,7 @@ pub struct ChunkingConfig {
     ///
     /// Default: `Split`
     #[php(prop, name = "tableChunking")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub table_chunking: String,
 }
 
@@ -3615,11 +3648,11 @@ pub struct EmbeddingConfig {
     pub normalize: bool,
     /// Batch size for embedding generation
     #[php(prop, name = "batchSize")]
-#[serde(default = "crate::serde_defaults::embedding_config_batch_size")]
+    #[serde(default = "crate::serde_defaults::embedding_config_batch_size")]
     pub batch_size: i64,
     /// Show model download progress
     #[php(prop, name = "showDownloadProgress")]
-#[serde(default = "crate::serde_defaults::embedding_config_show_download_progress")]
+    #[serde(default = "crate::serde_defaults::embedding_config_show_download_progress")]
     pub show_download_progress: bool,
     /// Custom cache directory for model files
     ///
@@ -3734,7 +3767,7 @@ pub struct RedactionConfig {
     /// ranges still refer to the *original* content offsets — useful when downstream
     /// consumers want to map findings back to the original document.
     #[php(prop, name = "preserveOffsets")]
-#[serde(default = "crate::serde_defaults::redaction_config_preserve_offsets")]
+    #[serde(default = "crate::serde_defaults::redaction_config_preserve_offsets")]
     pub preserve_offsets: bool,
     /// Arbitrary user-supplied literal terms to redact.
     ///
@@ -3973,11 +4006,11 @@ pub struct RerankerConfig {
     pub top_k: Option<i64>,
     /// Batch size for local ONNX cross-encoder inference.
     #[php(prop, name = "batchSize")]
-#[serde(default = "crate::serde_defaults::reranker_config_batch_size")]
+    #[serde(default = "crate::serde_defaults::reranker_config_batch_size")]
     pub batch_size: i64,
     /// Show model download progress (local ONNX path only).
     #[php(prop, name = "showDownloadProgress")]
-#[serde(default = "crate::serde_defaults::reranker_config_show_download_progress")]
+    #[serde(default = "crate::serde_defaults::reranker_config_show_download_progress")]
     pub show_download_progress: bool,
     /// Custom cache directory for model files.
     ///
@@ -4182,14 +4215,14 @@ pub struct TranscriptionConfig {
     /// When `false`, only previously cached models may be used. Useful for
     /// air-gapped or fully offline deployments.
     #[php(prop, name = "allowNetwork")]
-#[serde(default = "crate::serde_defaults::transcription_config_allow_network")]
+    #[serde(default = "crate::serde_defaults::transcription_config_allow_network")]
     pub allow_network: bool,
     /// Request SHA256 verification of downloaded model files.
     ///
     /// Reserved for the checksum table follow-up. The current resolver logs a
     /// warning and treats this as a no-op.
     #[php(prop, name = "verifyHash")]
-#[serde(default = "crate::serde_defaults::transcription_config_verify_hash")]
+    #[serde(default = "crate::serde_defaults::transcription_config_verify_hash")]
     pub verify_hash: bool,
 }
 
@@ -4455,7 +4488,7 @@ pub struct TreeSitterProcessConfig {
     pub chunk_max_size: Option<i64>,
     /// Content rendering mode for code extraction.
     #[php(prop, name = "contentMode")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub content_mode: String,
 }
 
@@ -5302,19 +5335,19 @@ impl CoreProperties {
 pub struct SecurityLimits {
     /// Maximum uncompressed size for archives (500 MB)
     #[php(prop, name = "maxArchiveSize")]
-#[serde(default = "crate::serde_defaults::security_limits_max_archive_size")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_archive_size")]
     pub max_archive_size: i64,
     /// Maximum compression ratio before flagging as potential bomb (100:1)
     #[php(prop, name = "maxCompressionRatio")]
-#[serde(default = "crate::serde_defaults::security_limits_max_compression_ratio")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_compression_ratio")]
     pub max_compression_ratio: i64,
     /// Maximum number of files in archive (10,000)
     #[php(prop, name = "maxFilesInArchive")]
-#[serde(default = "crate::serde_defaults::security_limits_max_files_in_archive")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_files_in_archive")]
     pub max_files_in_archive: i64,
     /// Maximum nesting depth for structures (100)
     #[php(prop, name = "maxNestingDepth")]
-#[serde(default = "crate::serde_defaults::security_limits_max_nesting_depth")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_nesting_depth")]
     pub max_nesting_depth: i64,
     /// Maximum length of any single XML entity / attribute / token (1 MiB).
     /// This is a per-token cap, NOT a total cap — billion-laughs class
@@ -5322,23 +5355,23 @@ pub struct SecurityLimits {
     /// here, while normal long text content (a paragraph, a CDATA block) is
     /// caught by `max_content_size` instead.
     #[php(prop, name = "maxEntityLength")]
-#[serde(default = "crate::serde_defaults::security_limits_max_entity_length")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_entity_length")]
     pub max_entity_length: i64,
     /// Maximum string growth per document (100 MB)
     #[php(prop, name = "maxContentSize")]
-#[serde(default = "crate::serde_defaults::security_limits_max_content_size")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_content_size")]
     pub max_content_size: i64,
     /// Maximum iterations per operation
     #[php(prop, name = "maxIterations")]
-#[serde(default = "crate::serde_defaults::security_limits_max_iterations")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_iterations")]
     pub max_iterations: i64,
     /// Maximum XML depth (100 levels)
     #[php(prop, name = "maxXmlDepth")]
-#[serde(default = "crate::serde_defaults::security_limits_max_xml_depth")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_xml_depth")]
     pub max_xml_depth: i64,
     /// Maximum cells per table (100,000)
     #[php(prop, name = "maxTableCells")]
-#[serde(default = "crate::serde_defaults::security_limits_max_table_cells")]
+    #[serde(default = "crate::serde_defaults::security_limits_max_table_cells")]
     pub max_table_cells: i64,
 }
 
@@ -5437,23 +5470,23 @@ pub struct TokenReductionConfig {
     pub language_hint: Option<String>,
     /// Preserve Markdown formatting tokens during reduction.
     #[php(prop, name = "preserveMarkdown")]
-#[serde(default = "crate::serde_defaults::token_reduction_config_preserve_markdown")]
+    #[serde(default = "crate::serde_defaults::token_reduction_config_preserve_markdown")]
     pub preserve_markdown: bool,
     /// Preserve code block contents unchanged.
     #[php(prop, name = "preserveCode")]
-#[serde(default = "crate::serde_defaults::token_reduction_config_preserve_code")]
+    #[serde(default = "crate::serde_defaults::token_reduction_config_preserve_code")]
     pub preserve_code: bool,
     /// Cosine similarity threshold below which sentences are considered dissimilar.
     #[php(prop, name = "semanticThreshold")]
-#[serde(default = "crate::serde_defaults::token_reduction_config_semantic_threshold")]
+    #[serde(default = "crate::serde_defaults::token_reduction_config_semantic_threshold")]
     pub semantic_threshold: f32,
     /// Use Rayon parallel iterators for multi-core processing.
     #[php(prop, name = "enableParallel")]
-#[serde(default = "crate::serde_defaults::token_reduction_config_enable_parallel")]
+    #[serde(default = "crate::serde_defaults::token_reduction_config_enable_parallel")]
     pub enable_parallel: bool,
     /// Use SIMD-optimized text scanning where available.
     #[php(prop, name = "useSimd")]
-#[serde(default = "crate::serde_defaults::token_reduction_config_use_simd")]
+    #[serde(default = "crate::serde_defaults::token_reduction_config_use_simd")]
     pub use_simd: bool,
     /// Per-language custom stopword lists (`language_code → stopword_list`).
     pub custom_stopwords: Option<HashMap<String, Vec<String>>>,
@@ -5465,7 +5498,7 @@ pub struct TokenReductionConfig {
     pub target_reduction: Option<f32>,
     /// Group semantically similar sentences and emit only one per cluster.
     #[php(prop, name = "enableSemanticClustering")]
-#[serde(default = "crate::serde_defaults::token_reduction_config_enable_semantic_clustering")]
+    #[serde(default = "crate::serde_defaults::token_reduction_config_enable_semantic_clustering")]
     pub enable_semantic_clustering: bool,
 }
 
@@ -5645,7 +5678,7 @@ pub struct FootnoteConfig {
     /// When enabled, the parser will look for and extract citations from
     /// the block after `---` + `<!-- citations ... -->`.
     #[php(prop, name = "parseCitations")]
-#[serde(default = "crate::serde_defaults::footnote_config_parse_citations")]
+    #[serde(default = "crate::serde_defaults::footnote_config_parse_citations")]
     pub parse_citations: bool,
 }
 
@@ -5807,7 +5840,7 @@ impl Citation {
 pub struct PdfAnnotation {
     /// The type of annotation.
     #[php(prop, name = "annotationType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub annotation_type: String,
     /// Text content of the annotation (e.g., comment text, link URL).
     #[php(prop, name = "content")]
@@ -5998,7 +6031,7 @@ impl DjotContent {
 pub struct FormattedBlock {
     /// Type of block element
     #[php(prop, name = "blockType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub block_type: String,
     /// Heading level (1-6) for headings, or nesting level for lists
     #[php(prop, name = "level")]
@@ -6066,7 +6099,7 @@ impl FormattedBlock {
 pub struct InlineElement {
     /// Type of inline element
     #[php(prop, name = "elementType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub element_type: String,
     /// Text content
     #[php(prop, name = "content")]
@@ -6355,7 +6388,7 @@ pub struct DocumentNode {
     /// break consumer deserialisation.  `#[serde(default)]` covers the
     /// missing-field case on inbound JSON.
     #[php(prop, name = "contentLayer")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub content_layer: String,
     /// Page number where this node starts (1-indexed).
     #[php(prop, name = "page")]
@@ -6689,7 +6722,7 @@ pub struct ExtractedDocument {
     /// Populated when the extractor can reliably distinguish native text extraction,
     /// OCR-only extraction, or mixed native/OCR output.
     #[php(prop, name = "extractionMethod")]
-#[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub extraction_method: Option<String>,
     /// Tables extracted from the document, each with structured cell data.
     pub tables: Vec<Table>,
@@ -7255,7 +7288,7 @@ pub struct Chunk {
     /// Assigned by the heuristic classifier based on content patterns and
     /// heading context. Defaults to `ChunkType.Unknown` when no rule matches.
     #[php(prop, name = "chunkType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub chunk_type: String,
     /// Optional embedding vector for this chunk.
     ///
@@ -7531,7 +7564,7 @@ pub struct ExtractedImage {
     /// Heuristic classification of what this image likely depicts.
     /// `None` if classification was disabled or inconclusive.
     #[php(prop, name = "imageKind")]
-#[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image_kind: Option<String>,
     /// Confidence score for `image_kind`, in the range 0.0 to 1.0.
     #[php(prop, name = "kindConfidence")]
@@ -7802,7 +7835,7 @@ impl ElementMetadata {
 pub struct Element {
     /// Semantic type of this element
     #[php(prop, name = "elementType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub element_type: String,
     /// Text content of the element
     #[php(prop, name = "text")]
@@ -7854,7 +7887,7 @@ pub struct PdfFormField {
     pub full_name: String,
     /// Classified field type.
     #[php(prop, name = "fieldType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub field_type: String,
     /// Current field value, if any.
     #[php(prop, name = "value")]
@@ -8657,11 +8690,11 @@ impl OcrTableBoundingBox {
 pub struct ImagePreprocessingConfig {
     /// Target DPI for the image (300 is standard, 600 for small text).
     #[php(prop, name = "targetDpi")]
-#[serde(default = "crate::serde_defaults::image_preprocessing_config_target_dpi")]
+    #[serde(default = "crate::serde_defaults::image_preprocessing_config_target_dpi")]
     pub target_dpi: i32,
     /// Auto-detect and correct image rotation.
     #[php(prop, name = "autoRotate")]
-#[serde(default = "crate::serde_defaults::image_preprocessing_config_auto_rotate")]
+    #[serde(default = "crate::serde_defaults::image_preprocessing_config_auto_rotate")]
     pub auto_rotate: bool,
     /// Correct skew (tilted images).
     #[php(prop, name = "deskew")]
@@ -8673,15 +8706,15 @@ pub struct ImagePreprocessingConfig {
     pub denoise: bool,
     /// Enhance contrast for better text visibility.
     #[php(prop, name = "contrastEnhance")]
-#[serde(default = "crate::serde_defaults::image_preprocessing_config_contrast_enhance")]
+    #[serde(default = "crate::serde_defaults::image_preprocessing_config_contrast_enhance")]
     pub contrast_enhance: bool,
     /// Binarization method: "otsu", "sauvola", "adaptive".
     #[php(prop, name = "binarizationMethod")]
-#[serde(default = "crate::serde_defaults::image_preprocessing_config_binarization_method")]
+    #[serde(default = "crate::serde_defaults::image_preprocessing_config_binarization_method")]
     pub binarization_method: String,
     /// Invert colors (white text on black → black on white).
     #[php(prop, name = "invertColors")]
-#[serde(default = "crate::serde_defaults::image_preprocessing_config_invert_colors")]
+    #[serde(default = "crate::serde_defaults::image_preprocessing_config_invert_colors")]
     pub invert_colors: bool,
 }
 
@@ -8776,7 +8809,7 @@ pub struct TesseractConfig {
     pub psm: i32,
     /// Output format ("text" or "markdown")
     #[php(prop, name = "outputFormat")]
-#[serde(default = "crate::serde_defaults::tesseract_config_output_format")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_output_format")]
     pub output_format: String,
     /// OCR Engine Mode (0-3).
     ///
@@ -8791,7 +8824,7 @@ pub struct TesseractConfig {
     ///
     /// Words with confidence below this threshold may be rejected or flagged.
     #[php(prop, name = "minConfidence")]
-#[serde(default = "crate::serde_defaults::tesseract_config_min_confidence")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_min_confidence")]
     pub min_confidence: f64,
     /// Image preprocessing configuration.
     ///
@@ -8800,63 +8833,63 @@ pub struct TesseractConfig {
     pub preprocessing: Option<ImagePreprocessingConfig>,
     /// Enable automatic table detection and reconstruction
     #[php(prop, name = "enableTableDetection")]
-#[serde(default = "crate::serde_defaults::tesseract_config_enable_table_detection")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_enable_table_detection")]
     pub enable_table_detection: bool,
     /// Minimum confidence threshold for table detection (0.0-1.0)
     #[php(prop, name = "tableMinConfidence")]
-#[serde(default = "crate::serde_defaults::tesseract_config_table_min_confidence")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_table_min_confidence")]
     pub table_min_confidence: f64,
     /// Column threshold for table detection (pixels)
     #[php(prop, name = "tableColumnThreshold")]
-#[serde(default = "crate::serde_defaults::tesseract_config_table_column_threshold")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_table_column_threshold")]
     pub table_column_threshold: i32,
     /// Row threshold ratio for table detection (0.0-1.0)
     #[php(prop, name = "tableRowThresholdRatio")]
-#[serde(default = "crate::serde_defaults::tesseract_config_table_row_threshold_ratio")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_table_row_threshold_ratio")]
     pub table_row_threshold_ratio: f64,
     /// Enable OCR result caching
     #[php(prop, name = "useCache")]
-#[serde(default = "crate::serde_defaults::tesseract_config_use_cache")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_use_cache")]
     pub use_cache: bool,
     /// Use pre-adapted templates for character classification
     #[php(prop, name = "classifyUsePreAdaptedTemplates")]
-#[serde(default = "crate::serde_defaults::tesseract_config_classify_use_pre_adapted_templates")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_classify_use_pre_adapted_templates")]
     pub classify_use_pre_adapted_templates: bool,
     /// Enable N-gram language model
     #[php(prop, name = "languageModelNgramOn")]
-#[serde(default = "crate::serde_defaults::tesseract_config_language_model_ngram_on")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_language_model_ngram_on")]
     pub language_model_ngram_on: bool,
     /// Don't reject good words during block-level processing
     #[php(prop, name = "tesseditDontBlkrejGoodWds")]
-#[serde(default = "crate::serde_defaults::tesseract_config_tessedit_dont_blkrej_good_wds")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_tessedit_dont_blkrej_good_wds")]
     pub tessedit_dont_blkrej_good_wds: bool,
     /// Don't reject good words during row-level processing
     #[php(prop, name = "tesseditDontRowrejGoodWds")]
-#[serde(default = "crate::serde_defaults::tesseract_config_tessedit_dont_rowrej_good_wds")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_tessedit_dont_rowrej_good_wds")]
     pub tessedit_dont_rowrej_good_wds: bool,
     /// Enable dictionary correction
     #[php(prop, name = "tesseditEnableDictCorrection")]
-#[serde(default = "crate::serde_defaults::tesseract_config_tessedit_enable_dict_correction")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_tessedit_enable_dict_correction")]
     pub tessedit_enable_dict_correction: bool,
     /// Whitelist of allowed characters (empty = all allowed)
     #[php(prop, name = "tesseditCharWhitelist")]
-#[serde(default = "crate::serde_defaults::tesseract_config_tessedit_char_whitelist")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_tessedit_char_whitelist")]
     pub tessedit_char_whitelist: String,
     /// Blacklist of forbidden characters (empty = none forbidden)
     #[php(prop, name = "tesseditCharBlacklist")]
-#[serde(default = "crate::serde_defaults::tesseract_config_tessedit_char_blacklist")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_tessedit_char_blacklist")]
     pub tessedit_char_blacklist: String,
     /// Use primary language params model
     #[php(prop, name = "tesseditUsePrimaryParamsModel")]
-#[serde(default = "crate::serde_defaults::tesseract_config_tessedit_use_primary_params_model")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_tessedit_use_primary_params_model")]
     pub tessedit_use_primary_params_model: bool,
     /// Variable-width space detection
     #[php(prop, name = "textordSpaceSizeIsVariable")]
-#[serde(default = "crate::serde_defaults::tesseract_config_textord_space_size_is_variable")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_textord_space_size_is_variable")]
     pub textord_space_size_is_variable: bool,
     /// Use adaptive thresholding method
     #[php(prop, name = "thresholdingMethod")]
-#[serde(default = "crate::serde_defaults::tesseract_config_thresholding_method")]
+    #[serde(default = "crate::serde_defaults::tesseract_config_thresholding_method")]
     pub thresholding_method: bool,
 }
 
@@ -9854,7 +9887,7 @@ pub struct LinkMetadata {
     pub title: Option<String>,
     /// Link type classification
     #[php(prop, name = "linkType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub link_type: String,
     /// Rel attribute values
     #[php(prop, name = "rel")]
@@ -9916,7 +9949,7 @@ pub struct ImageMetadataType {
     pub title: Option<String>,
     /// Image type classification
     #[php(prop, name = "imageType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub image_type: String,
 }
 
@@ -9961,7 +9994,7 @@ impl ImageMetadataType {
 pub struct StructuredData {
     /// Type of structured data
     #[php(prop, name = "dataType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub data_type: String,
     /// Raw JSON string representation
     #[php(prop, name = "rawJson")]
@@ -10023,7 +10056,7 @@ pub struct HtmlMetadata {
     pub language: Option<String>,
     /// Document text direction from `dir` attribute
     #[php(prop, name = "textDirection")]
-#[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub text_direction: Option<String>,
     /// Open Graph metadata (og:* properties) for social media
     /// Keys like "title", "description", "image", "url", etc.
@@ -11183,7 +11216,7 @@ pub struct OcrElementConfig {
     ///
     /// Elements below this level (e.g., words when min_level is Line) will be excluded.
     #[php(prop, name = "minLevel")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub min_level: String,
     /// Minimum recognition confidence threshold (0.0-1.0).
     ///
@@ -11248,7 +11281,7 @@ pub struct PageStructure {
     pub total_count: u32,
     /// Type of paginated unit
     #[php(prop, name = "unitType")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub unit_type: String,
     /// Character offset boundaries for each page
     ///
@@ -12348,11 +12381,11 @@ impl DetectResponse {
 pub struct DiffOptions {
     /// Include metadata changes in the diff. Default: `true`.
     #[php(prop, name = "includeMetadata")]
-#[serde(default = "crate::serde_defaults::diff_options_include_metadata")]
+    #[serde(default = "crate::serde_defaults::diff_options_include_metadata")]
     pub include_metadata: bool,
     /// Include embedded-children changes in the diff. Default: `true`.
     #[php(prop, name = "includeEmbedded")]
-#[serde(default = "crate::serde_defaults::diff_options_include_embedded")]
+    #[serde(default = "crate::serde_defaults::diff_options_include_embedded")]
     pub include_embedded: bool,
     /// Truncate content to this many characters before diffing.
     ///
@@ -12696,7 +12729,7 @@ pub struct YakeParams {
     ///
     /// Controls the context window for computing co-occurrence statistics.
     #[php(prop, name = "windowSize")]
-#[serde(default = "crate::serde_defaults::yake_params_window_size")]
+    #[serde(default = "crate::serde_defaults::yake_params_window_size")]
     pub window_size: i64,
 }
 
@@ -12738,11 +12771,11 @@ impl YakeParams {
 pub struct RakeParams {
     /// Minimum word length to consider (default: 1).
     #[php(prop, name = "minWordLength")]
-#[serde(default = "crate::serde_defaults::rake_params_min_word_length")]
+    #[serde(default = "crate::serde_defaults::rake_params_min_word_length")]
     pub min_word_length: i64,
     /// Maximum words in a keyword phrase (default: 3).
     #[php(prop, name = "maxWordsPerPhrase")]
-#[serde(default = "crate::serde_defaults::rake_params_max_words_per_phrase")]
+    #[serde(default = "crate::serde_defaults::rake_params_max_words_per_phrase")]
     pub max_words_per_phrase: i64,
 }
 
@@ -12793,7 +12826,10 @@ pub struct KeywordConfig {
     pub algorithm: String,
     /// Maximum number of keywords to extract (default: 10).
     #[php(prop, name = "maxKeywords")]
-    #[serde(default = "crate::serde_defaults::keyword_config_max_keywords", alias = "maxKeywords")]
+    #[serde(
+        default = "crate::serde_defaults::keyword_config_max_keywords",
+        alias = "maxKeywords"
+    )]
     pub max_keywords: i64,
     /// Minimum score threshold (0.0-1.0, default: 0.0).
     ///
@@ -13063,7 +13099,7 @@ pub struct ExtractionConfidence {
     pub ocr_aggregate: Option<f32>,
     /// Whether the merged output validates against the preset schema.
     #[php(prop, name = "schemaCompliance")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub schema_compliance: String,
     /// Weighted blend in `[0, 1]`.  The value compared against the fallback threshold.
     #[php(prop, name = "combined")]
@@ -13109,72 +13145,72 @@ pub struct HeuristicsConfig {
     /// When `true`, PDFs with a substantial text layer will skip chunking.
     /// Default: `true`.
     #[php(prop, name = "enablePdfTextHeuristics")]
-#[serde(default = "crate::serde_defaults::heuristics_config_enable_pdf_text_heuristics")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_enable_pdf_text_heuristics")]
     pub enable_pdf_text_heuristics: bool,
     /// Minimum fraction of pages that must have text to skip chunking.
     ///
     /// Range `0.0..=1.0`. Default: `0.7` (70 % of pages).
     #[php(prop, name = "textLayerThreshold")]
-#[serde(default = "crate::serde_defaults::heuristics_config_text_layer_threshold")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_text_layer_threshold")]
     pub text_layer_threshold: f32,
     /// File size threshold in bytes for considering chunking.
     ///
     /// Files smaller than this are processed without chunking.
     /// Default: 10 MiB (10 × 1 024 × 1 024).
     #[php(prop, name = "fileSizeThresholdBytes")]
-#[serde(default = "crate::serde_defaults::heuristics_config_file_size_threshold_bytes")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_file_size_threshold_bytes")]
     pub file_size_threshold_bytes: i64,
     /// Page count threshold for considering chunking.
     ///
     /// Documents with fewer pages are processed without chunking.
     /// Default: 50.
     #[php(prop, name = "pageCountThreshold")]
-#[serde(default = "crate::serde_defaults::heuristics_config_page_count_threshold")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_page_count_threshold")]
     pub page_count_threshold: u32,
     /// Target number of pages per chunk for optimal parallel processing.
     ///
     /// Default: 10.
     #[php(prop, name = "targetPagesPerChunk")]
-#[serde(default = "crate::serde_defaults::heuristics_config_target_pages_per_chunk")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_target_pages_per_chunk")]
     pub target_pages_per_chunk: u32,
     /// Hard cap on pages per chunk.
     ///
     /// No chunk will exceed this limit. Must be ≥ `target_pages_per_chunk`.
     /// Default: 25.
     #[php(prop, name = "maxPagesPerChunk")]
-#[serde(default = "crate::serde_defaults::heuristics_config_max_pages_per_chunk")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_max_pages_per_chunk")]
     pub max_pages_per_chunk: u32,
     /// File size threshold for disk-based processing.
     ///
     /// Files larger than this are buffered to disk to prevent OOM.
     /// Default: 50 MiB (50 × 1 024 × 1 024).
     #[php(prop, name = "diskProcessingThresholdBytes")]
-#[serde(default = "crate::serde_defaults::heuristics_config_disk_processing_threshold_bytes")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_disk_processing_threshold_bytes")]
     pub disk_processing_threshold_bytes: i64,
     /// Minimum characters per page to consider a page as having text.
     ///
     /// Default: 50.
     #[php(prop, name = "minCharsPerPage")]
-#[serde(default = "crate::serde_defaults::heuristics_config_min_chars_per_page")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_min_chars_per_page")]
     pub min_chars_per_page: u32,
     /// Maximum sheet count allowed in an XLSX workbook.
     ///
     /// Workbooks beyond this are rejected pre-extraction to avoid OOM /
     /// abusive billing inflation. Default: 200.
     #[php(prop, name = "maxXlsxSheetCount")]
-#[serde(default = "crate::serde_defaults::heuristics_config_max_xlsx_sheet_count")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_max_xlsx_sheet_count")]
     pub max_xlsx_sheet_count: u32,
     /// Maximum cell count (sheets × rows × columns approximation) in an XLSX workbook.
     ///
     /// Default: 5 000 000 (≈ 200 sheets × 25 k cells).
     #[php(prop, name = "maxXlsxWorkbookCells")]
-#[serde(default = "crate::serde_defaults::heuristics_config_max_xlsx_workbook_cells")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_max_xlsx_workbook_cells")]
     pub max_xlsx_workbook_cells: i64,
     /// Maximum number of OLE-embedded objects extractable from a single PPTX or DOCX.
     ///
     /// Protects against zip-bomb-style nested-document abuse. Default: 50.
     #[php(prop, name = "maxPptxEmbeddedCount")]
-#[serde(default = "crate::serde_defaults::heuristics_config_max_pptx_embedded_count")]
+    #[serde(default = "crate::serde_defaults::heuristics_config_max_pptx_embedded_count")]
     pub max_pptx_embedded_count: u32,
 }
 
@@ -13561,12 +13597,12 @@ pub struct MultidocThresholds {
     /// Text density difference threshold for `DensityShift` detection.
     /// Default: 0.3.
     #[php(prop, name = "densityShiftThreshold")]
-#[serde(default = "crate::serde_defaults::multidoc_thresholds_density_shift_threshold")]
+    #[serde(default = "crate::serde_defaults::multidoc_thresholds_density_shift_threshold")]
     pub density_shift_threshold: f32,
     /// Minimum bigram-overlap ratio below which a density shift is promoted to
     /// a `DensityShift` boundary.  Default: 0.1 (10 % overlap).
     #[php(prop, name = "bigramOverlapMin")]
-#[serde(default = "crate::serde_defaults::multidoc_thresholds_bigram_overlap_min")]
+    #[serde(default = "crate::serde_defaults::multidoc_thresholds_bigram_overlap_min")]
     pub bigram_overlap_min: f32,
 }
 
@@ -13754,11 +13790,11 @@ pub struct ResolvedPreset {
     pub system_prompt: String,
     /// Merge strategy for paginated outputs.
     #[php(prop, name = "mergeMode")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub merge_mode: String,
     /// Preferred call mode.
     #[php(prop, name = "preferredCallMode")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub preferred_call_mode: String,
     /// Whether the prompt asks for per-field citations.
     #[php(prop, name = "emitCitations")]
@@ -13899,11 +13935,11 @@ pub struct Preset {
     pub context_template: Option<String>,
     /// Strategy for merging per-batch outputs across paginated calls.
     #[php(prop, name = "mergeMode")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub merge_mode: String,
     /// Default call mode suggested for this preset; heuristics may override.
     #[php(prop, name = "preferredCallMode")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub preferred_call_mode: String,
     /// When true, the prompt asks the model to wrap each field as
     /// `{value, page, bbox, confidence}` for downstream citation overlays.
@@ -14042,7 +14078,7 @@ pub struct PresetSummary {
     pub tags: Vec<String>,
     /// Default call mode.
     #[php(prop, name = "preferredCallMode")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub preferred_call_mode: String,
     /// Whether the preset prompts the model for citations.
     #[php(prop, name = "emitCitations")]
@@ -14598,7 +14634,7 @@ impl BBox {
 pub struct LayoutDetection {
     /// Detected layout class (e.g. `Table`, `Text`, `Title`).
     #[php(prop, name = "className")]
-#[serde(skip_serializing_if = "String::is_empty")]
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub class_name: String,
     /// Detection confidence score in `[0.0, 1.0]`.
     #[php(prop, name = "confidence")]
@@ -14899,7 +14935,7 @@ impl ProxyConfig {
 pub struct ContentConfig {
     /// Output format: `"markdown"` (default), `"plain"`, `"djot"`.
     #[php(prop, name = "outputFormat")]
-#[serde(default = "crate::serde_defaults::content_config_output_format")]
+    #[serde(default = "crate::serde_defaults::content_config_output_format")]
     pub output_format: String,
     /// Preprocessing aggressiveness: `"minimal"`, `"standard"` (default), `"aggressive"`.
     ///
@@ -14907,15 +14943,15 @@ pub struct ContentConfig {
     /// - Standard: also removes nav, nav-hinted headers/footers/asides, forms.
     /// - Aggressive: removes all footers/asides unconditionally.
     #[php(prop, name = "preprocessingPreset")]
-#[serde(default = "crate::serde_defaults::content_config_preprocessing_preset")]
+    #[serde(default = "crate::serde_defaults::content_config_preprocessing_preset")]
     pub preprocessing_preset: String,
     /// Remove navigation elements (nav, breadcrumbs, menus). Default: `true`.
     #[php(prop, name = "removeNavigation")]
-#[serde(default = "crate::serde_defaults::content_config_remove_navigation")]
+    #[serde(default = "crate::serde_defaults::content_config_remove_navigation")]
     pub remove_navigation: bool,
     /// Remove form elements. Default: `true`.
     #[php(prop, name = "removeForms")]
-#[serde(default = "crate::serde_defaults::content_config_remove_forms")]
+    #[serde(default = "crate::serde_defaults::content_config_remove_forms")]
     pub remove_forms: bool,
     /// HTML tag names to strip (render children only, remove the tag wrapper).
     /// Default: `["noscript"]`.
@@ -14935,22 +14971,22 @@ pub struct ContentConfig {
     pub exclude_selectors: Vec<String>,
     /// Skip image elements in output. Default: `false`.
     #[php(prop, name = "skipImages")]
-#[serde(default = "crate::serde_defaults::content_config_skip_images")]
+    #[serde(default = "crate::serde_defaults::content_config_skip_images")]
     pub skip_images: bool,
     /// Max DOM traversal depth. Prevents stack overflow on deeply nested HTML.
     #[php(prop, name = "maxDepth")]
     pub max_depth: Option<i64>,
     /// Enable line wrapping. Default: `false`.
     #[php(prop, name = "wrap")]
-#[serde(default = "crate::serde_defaults::content_config_wrap")]
+    #[serde(default = "crate::serde_defaults::content_config_wrap")]
     pub wrap: bool,
     /// Wrap width when `wrap` is enabled. Default: `80`.
     #[php(prop, name = "wrapWidth")]
-#[serde(default = "crate::serde_defaults::content_config_wrap_width")]
+    #[serde(default = "crate::serde_defaults::content_config_wrap_width")]
     pub wrap_width: i64,
     /// Include document structure tree in output. Default: `true`.
     #[php(prop, name = "includeDocumentStructure")]
-#[serde(default = "crate::serde_defaults::content_config_include_document_structure")]
+    #[serde(default = "crate::serde_defaults::content_config_include_document_structure")]
     pub include_document_structure: bool,
 }
 
@@ -15099,13 +15135,13 @@ pub struct BrowserConfig {
     /// Capture the full network event stream into the result. Default false
     /// (only the document event is captured). Native only.
     #[php(prop, name = "captureNetworkEvents")]
-#[serde(default = "crate::serde_defaults::browser_config_capture_network_events")]
+    #[serde(default = "crate::serde_defaults::browser_config_capture_network_events")]
     pub capture_network_events: bool,
     /// Enable session affinity: reuse chromiumoxide Pages for same-domain
     /// requests so cookies + fingerprint + solved challenges persist.
     /// Default: true. When false, each request gets a fresh Page.
     #[php(prop, name = "sessionAffinity")]
-#[serde(default = "crate::serde_defaults::browser_config_session_affinity")]
+    #[serde(default = "crate::serde_defaults::browser_config_session_affinity")]
     pub session_affinity: bool,
 }
 
@@ -15227,7 +15263,10 @@ pub struct CrawlConfig {
     pub max_concurrent: Option<i64>,
     /// Whether to respect robots.txt directives.
     #[php(prop, name = "respectRobotsTxt")]
-    #[serde(default = "crate::serde_defaults::crawl_config_respect_robots_txt", alias = "respectRobotsTxt")]
+    #[serde(
+        default = "crate::serde_defaults::crawl_config_respect_robots_txt",
+        alias = "respectRobotsTxt"
+    )]
     pub respect_robots_txt: bool,
     /// When true, HTTP-level error responses (404 NotFound, 403 Forbidden, WAF blocks)
     /// are surfaced as `ScrapeResult` records with the matching `status_code` rather
@@ -15237,18 +15276,18 @@ pub struct CrawlConfig {
     /// the user opted into redirect-following, so receiving a 404 there is part of
     /// the normal flow rather than an unexpected error.
     #[php(prop, name = "softHttpErrors")]
-#[serde(default = "crate::serde_defaults::crawl_config_soft_http_errors")]
+    #[serde(default = "crate::serde_defaults::crawl_config_soft_http_errors")]
     pub soft_http_errors: bool,
     /// Custom user-agent string.
     #[php(prop, name = "userAgent")]
     pub user_agent: Option<String>,
     /// Whether to restrict crawling to the same domain.
     #[php(prop, name = "stayOnDomain")]
-#[serde(default = "crate::serde_defaults::crawl_config_stay_on_domain")]
+    #[serde(default = "crate::serde_defaults::crawl_config_stay_on_domain")]
     pub stay_on_domain: bool,
     /// Whether to allow subdomains when `stay_on_domain` is true.
     #[php(prop, name = "allowSubdomains")]
-#[serde(default = "crate::serde_defaults::crawl_config_allow_subdomains")]
+    #[serde(default = "crate::serde_defaults::crawl_config_allow_subdomains")]
     pub allow_subdomains: bool,
     /// Regex patterns for paths to include during crawling.
     #[php(prop, name = "includePaths")]
@@ -15260,7 +15299,7 @@ pub struct CrawlConfig {
     pub custom_headers: HashMap<String, String>,
     /// Timeout for individual HTTP requests (in milliseconds when serialized).
     #[php(prop, name = "requestTimeout")]
-#[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub request_timeout: Option<i64>,
     /// Per-domain rate limit in milliseconds. When set, enforces a minimum delay
     /// between requests to the same domain. Defaults to 200ms when `None`.
@@ -15268,18 +15307,18 @@ pub struct CrawlConfig {
     pub rate_limit_ms: Option<i64>,
     /// Maximum number of redirects to follow.
     #[php(prop, name = "maxRedirects")]
-#[serde(default = "crate::serde_defaults::crawl_config_max_redirects")]
+    #[serde(default = "crate::serde_defaults::crawl_config_max_redirects")]
     pub max_redirects: i64,
     /// Number of retry attempts for failed requests.
     #[php(prop, name = "retryCount")]
-#[serde(default = "crate::serde_defaults::crawl_config_retry_count")]
+    #[serde(default = "crate::serde_defaults::crawl_config_retry_count")]
     pub retry_count: i64,
     /// HTTP status codes that should trigger a retry.
     #[php(prop, name = "retryCodes")]
     pub retry_codes: Vec<u16>,
     /// Whether to enable cookie handling.
     #[php(prop, name = "cookiesEnabled")]
-#[serde(default = "crate::serde_defaults::crawl_config_cookies_enabled")]
+    #[serde(default = "crate::serde_defaults::crawl_config_cookies_enabled")]
     pub cookies_enabled: bool,
     /// Authentication configuration.
     pub auth: Option<AuthConfig>,
@@ -15299,7 +15338,7 @@ pub struct CrawlConfig {
     pub map_search: Option<String>,
     /// Whether to download assets (CSS, JS, images, etc.) from the page.
     #[php(prop, name = "downloadAssets")]
-#[serde(default = "crate::serde_defaults::crawl_config_download_assets")]
+    #[serde(default = "crate::serde_defaults::crawl_config_download_assets")]
     pub download_assets: bool,
     /// Filter for asset categories to download.
     #[php(prop, name = "assetTypes")]
@@ -15316,13 +15355,16 @@ pub struct CrawlConfig {
     pub user_agents: Vec<String>,
     /// Whether to capture a screenshot when using the browser.
     #[php(prop, name = "captureScreenshot")]
-#[serde(default = "crate::serde_defaults::crawl_config_capture_screenshot")]
+    #[serde(default = "crate::serde_defaults::crawl_config_capture_screenshot")]
     pub capture_screenshot: bool,
     /// Re-enqueue discovered `LinkType.Document` URLs into the crawl frontier so
     /// the crawl follows links *from* document pages (PDFs, etc.) as it would
     /// from HTML pages. Default: `false` (documents terminate at materialisation).
     #[php(prop, name = "followDocumentUrls")]
-    #[serde(default = "crate::serde_defaults::crawl_config_follow_document_urls", alias = "followDocumentUrls")]
+    #[serde(
+        default = "crate::serde_defaults::crawl_config_follow_document_urls",
+        alias = "followDocumentUrls"
+    )]
     pub follow_document_urls: bool,
     /// Maximum document-depth (from the seed URL through document links only)
     /// when `follow_document_urls` is true. `None` means inherit `max_depth`.
@@ -15333,7 +15375,7 @@ pub struct CrawlConfig {
     pub document_url_depth: Option<u32>,
     /// Whether to download non-HTML documents (PDF, DOCX, images, code, etc.) instead of skipping them.
     #[php(prop, name = "downloadDocuments")]
-#[serde(default = "crate::serde_defaults::crawl_config_download_documents")]
+    #[serde(default = "crate::serde_defaults::crawl_config_download_documents")]
     pub download_documents: bool,
     /// Maximum size in bytes for document downloads. Defaults to 50 MB.
     #[php(prop, name = "documentMaxSize")]
@@ -15349,7 +15391,7 @@ pub struct CrawlConfig {
     pub browser_profile: Option<String>,
     /// Whether to save changes back to the browser profile on exit.
     #[php(prop, name = "saveBrowserProfile")]
-#[serde(default = "crate::serde_defaults::crawl_config_save_browser_profile")]
+    #[serde(default = "crate::serde_defaults::crawl_config_save_browser_profile")]
     pub save_browser_profile: bool,
     /// SSRF policy for outbound network requests. Default: deny private networks,
     /// allow http/https only, max 5 redirects.
@@ -15617,11 +15659,11 @@ impl CrawlConfig {
 pub struct SsrfPolicy {
     /// If true, reject URLs that resolve to private/metadata IP ranges.
     #[php(prop, name = "denyPrivate")]
-#[serde(default = "crate::serde_defaults::ssrf_policy_deny_private")]
+    #[serde(default = "crate::serde_defaults::ssrf_policy_deny_private")]
     pub deny_private: bool,
     /// Maximum number of HTTP redirects to follow during validation.
     #[php(prop, name = "maxRedirects")]
-#[serde(default = "crate::serde_defaults::ssrf_policy_max_redirects")]
+    #[serde(default = "crate::serde_defaults::ssrf_policy_max_redirects")]
     pub max_redirects: u8,
 }
 
@@ -20134,6 +20176,14 @@ impl From<NerConfig> for xberg::NerConfig {
                 })
                 .collect(),
             model: val.model,
+            hf_repo: val.hf_repo,
+            hf_model_file: val.hf_model_file,
+            hf_tokenizer_file: val.hf_tokenizer_file,
+            hf_architecture: val.hf_architecture.and_then(|s| match s.as_str() {
+                "gliner1" => Some(xberg::GlinerArchitecture::Gliner1),
+                "gliner2" => Some(xberg::GlinerArchitecture::Gliner2),
+                _ => None,
+            }),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
@@ -20159,6 +20209,14 @@ impl From<xberg::NerConfig> for NerConfig {
                 })
                 .collect(),
             model: val.model.map(|v| v.to_string()),
+            hf_repo: val.hf_repo.map(|v| v.to_string()),
+            hf_model_file: val.hf_model_file.map(|v| v.to_string()),
+            hf_tokenizer_file: val.hf_tokenizer_file.map(|v| v.to_string()),
+            hf_architecture: val.hf_architecture.and_then(|arch| {
+                serde_json::to_value(arch)
+                    .ok()
+                    .and_then(|s| s.as_str().map(String::from))
+            }),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
