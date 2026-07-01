@@ -19,8 +19,8 @@ fn base_model_extracts_entities_and_adapter_changes_output() {
         return;
     };
 
-    let mut model = xberg_gliner_candle::Gliner2Candle::from_local(std::path::Path::new(&model_dir))
-        .expect("load base model");
+    let mut model =
+        xberg_gliner_candle::Gliner2Candle::from_local(std::path::Path::new(&model_dir)).expect("load base model");
     let text = "Steve Jobs founded Apple in Cupertino.";
     let labels = ["person", "organization", "location"];
 

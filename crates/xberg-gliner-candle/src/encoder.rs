@@ -19,32 +19,20 @@ pub struct Encoder {
 
 impl Encoder {
     /// Load the encoder from a `model.safetensors` + `config.json` pair.
-    pub fn from_safetensors(
-        weights_path: &Path,
-        config_path: &Path,
-        device: &Device,
-    ) -> crate::Result<Self> {
+    pub fn from_safetensors(weights_path: &Path, config_path: &Path, device: &Device) -> crate::Result<Self> {
         let cfg_str = std::fs::read_to_string(config_path).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!(
-                "encoder config read {}: {e}",
-                config_path.display()
-            ))
+            crate::GlinerCandleError::Backend(format!("encoder config read {}: {e}", config_path.display()))
         })?;
         let config: DebertaV2Config = serde_json::from_str(&cfg_str).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!(
-                "encoder config parse {}: {e}",
-                config_path.display()
-            ))
+            crate::GlinerCandleError::Backend(format!("encoder config parse {}: {e}", config_path.display()))
         })?;
 
         // SAFETY: VarBuilder::from_mmaped_safetensors mmap-reads the weights
         // file. Safe as long as the file isn't mutated under us — Candle's
         // standard pattern.
         #[allow(unsafe_code)]
-        let vb = unsafe {
-            VarBuilder::from_mmaped_safetensors(&[weights_path], candle_core::DType::F32, device)
-        }
-        .map_err(|e| crate::GlinerCandleError::Backend(format!("encoder safetensors: {e}")))?;
+        let vb = unsafe { VarBuilder::from_mmaped_safetensors(&[weights_path], candle_core::DType::F32, device) }
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("encoder safetensors: {e}")))?;
 
         // GLiNER2 stores all encoder tensors under the `encoder.` prefix
         // (e.g. `encoder.embeddings.word_embeddings.weight`). DebertaV2Model
@@ -63,9 +51,8 @@ impl Encoder {
     /// into the `encoder.` prefix; this constructor calls `DebertaV2Model::load`
     /// directly on the provided VarBuilder.
     pub fn from_var_builder(vb: VarBuilder<'_>, config: &DebertaV2Config) -> crate::Result<Self> {
-        let model = DebertaV2Model::load(vb, config).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!("encoder DebertaV2Model::load (vb): {e}"))
-        })?;
+        let model = DebertaV2Model::load(vb, config)
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("encoder DebertaV2Model::load (vb): {e}")))?;
         Ok(Self {
             model,
             config: config.clone(),
@@ -86,11 +73,8 @@ impl Encoder {
     ) -> candle_core::Result<Tensor> {
         // DebertaV2Model::forward takes Option<Tensor> (owned). Clone the
         // borrowed inputs — Candle Tensors are Arc-backed so this is cheap.
-        self.model.forward(
-            input_ids,
-            token_type_ids.cloned(),
-            Some(attention_mask.clone()),
-        )
+        self.model
+            .forward(input_ids, token_type_ids.cloned(), Some(attention_mask.clone()))
     }
 
     /// Hidden size (read from config). Matches the encoder's output

@@ -167,7 +167,11 @@ impl Gliner2Candle {
 
 fn resolve_encoder_config_path(model_dir: &Path) -> PathBuf {
     let nested = model_dir.join("encoder_config").join("config.json");
-    if nested.exists() { nested } else { model_dir.join("config.json") }
+    if nested.exists() {
+        nested
+    } else {
+        model_dir.join("config.json")
+    }
 }
 
 #[cfg(test)]
@@ -177,8 +181,7 @@ mod tests {
     #[test]
     fn from_local_with_device_rejects_missing_weights() {
         let dir = tempfile::tempdir().expect("tempdir");
-        let err = Gliner2Candle::from_local_with_device(dir.path(), &Device::Cpu)
-            .expect_err("empty dir must fail");
+        let err = Gliner2Candle::from_local_with_device(dir.path(), &Device::Cpu).expect_err("empty dir must fail");
         assert!(err.to_string().contains("model.safetensors"));
     }
 }

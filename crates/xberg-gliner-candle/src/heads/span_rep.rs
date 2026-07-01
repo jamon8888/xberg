@@ -2,7 +2,7 @@
 //! `out_project`) with ReLU between layers.
 
 use candle_core::{IndexOp, Tensor};
-use candle_nn::{linear, Linear, Module, VarBuilder};
+use candle_nn::{Linear, Module, VarBuilder, linear};
 
 use super::MAX_WIDTH;
 
@@ -62,9 +62,7 @@ impl SpanRep {
 
         let cat = Tensor::cat(&[&start_at, &end_at], 1)?.relu()?;
 
-        let out_2d = self
-            .out_project_3
-            .forward(&self.out_project_0.forward(&cat)?.relu()?)?; // [T*W, 768]
+        let out_2d = self.out_project_3.forward(&self.out_project_0.forward(&cat)?.relu()?)?; // [T*W, 768]
 
         out_2d.reshape((1, t, MAX_WIDTH, 768))
     }

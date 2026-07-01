@@ -16,9 +16,7 @@ impl Scorer {
         let (t, w, h) = span_rep.dims3()?;
         let (count, f, h2) = struct_proj.dims3()?;
         if h != h2 {
-            return Err(candle_core::Error::Msg(format!(
-                "scorer: hidden mismatch {h} vs {h2}"
-            )));
+            return Err(candle_core::Error::Msg(format!("scorer: hidden mismatch {h} vs {h2}")));
         }
 
         let span_flat = span_rep.reshape(((), h))?.contiguous()?; // [T*W, H]

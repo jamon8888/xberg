@@ -36,8 +36,7 @@ fn token_gather_selects_word_start_positions() {
 #[test]
 fn from_local_rejects_missing_weights() {
     let dir = tempfile::tempdir().expect("tempdir");
-    let err = crate::Gliner2Candle::from_local(dir.path())
-        .expect_err("empty dir must fail");
+    let err = crate::Gliner2Candle::from_local(dir.path()).expect_err("empty dir must fail");
     assert!(
         err.to_string().contains("model.safetensors"),
         "error must mention 'model.safetensors', got: {err}"

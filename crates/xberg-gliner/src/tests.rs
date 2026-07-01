@@ -15,8 +15,7 @@ fn v2_prompt_encoding_surface_is_public() {
 
 #[test]
 fn span_new_and_greedy_search_are_public() {
-    let span = crate::Span::new(0, 0, 5, "hello".to_string(), "greeting".to_string(), 0.9)
-        .expect("valid span");
+    let span = crate::Span::new(0, 0, 5, "hello".to_string(), "greeting".to_string(), 0.9).expect("valid span");
     let merged = crate::decode::greedy_search(&[span], true, false, false);
     assert_eq!(merged.len(), 1);
 }

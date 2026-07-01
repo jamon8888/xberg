@@ -1,7 +1,7 @@
 //! `count_pred` head — 2-layer MLP over the pooled prompt embedding.
 
 use candle_core::Tensor;
-use candle_nn::{linear, Linear, Module, VarBuilder};
+use candle_nn::{Linear, Module, VarBuilder, linear};
 
 /// Maximum count class index. Output dim is `MAX_COUNT_CLASSES = 20`,
 /// so valid argmax results fall in `[0, 19]`.

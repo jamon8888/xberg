@@ -133,8 +133,18 @@ mod tests {
         let words = vec![Token::new(0, 3, "ada"), Token::new(4, 12, "lovelace")];
         let labels = vec!["person".to_string()];
         let scores = ndarray::Array4::<f32>::zeros((MAX_COUNT, 2, MAX_WIDTH, 1));
-        let out = decode_span_scores(text, &words, &labels, &ScorerOutput { scores }, 1, 0.5, true, false, false)
-            .expect("decode must not error on all-below-threshold scores");
+        let out = decode_span_scores(
+            text,
+            &words,
+            &labels,
+            &ScorerOutput { scores },
+            1,
+            0.5,
+            true,
+            false,
+            false,
+        )
+        .expect("decode must not error on all-below-threshold scores");
         assert!(out.spans[0].is_empty());
     }
 }

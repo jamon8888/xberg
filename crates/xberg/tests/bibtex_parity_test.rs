@@ -63,9 +63,7 @@ async fn test_all_entry_types() {
     for (bibtex_content, expected_type) in test_cases {
         let config = ExtractionConfig::default();
         let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-        let result = extractor
-            .extract(input, &config)
-            .await;
+        let result = extractor.extract(input, &config).await;
 
         assert!(result.is_ok(), "Failed to parse {} entry", expected_type);
         let result = result.expect("Operation failed");
@@ -117,9 +115,7 @@ async fn test_all_common_fields() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -185,9 +181,7 @@ async fn test_author_parsing() {
 
         let config = ExtractionConfig::default();
         let input = ExtractInput::from_bytes(bibtex.as_bytes().to_vec(), "application/x-bibtex", None);
-        let result = extractor
-            .extract(input, &config)
-            .await;
+        let result = extractor.extract(input, &config).await;
 
         assert!(result.is_ok());
         let result = result.expect("Operation failed");
@@ -220,9 +214,7 @@ async fn test_special_characters() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -250,9 +242,7 @@ async fn test_year_range_extraction() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -279,9 +269,7 @@ async fn test_citation_keys_extraction() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -314,9 +302,7 @@ async fn test_entry_type_distribution() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -347,9 +333,7 @@ async fn test_unicode_support() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -377,9 +361,7 @@ async fn test_empty_fields() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content.as_bytes().to_vec(), "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");
@@ -400,9 +382,7 @@ async fn test_comprehensive_file() {
 
     let config = ExtractionConfig::default();
     let input = ExtractInput::from_bytes(bibtex_content, "application/x-bibtex", None);
-    let result = extractor
-        .extract(input, &config)
-        .await;
+    let result = extractor.extract(input, &config).await;
 
     assert!(result.is_ok());
     let result = result.expect("Operation failed");

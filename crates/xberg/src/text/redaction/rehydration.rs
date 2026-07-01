@@ -6,8 +6,8 @@
 
 use std::collections::HashMap;
 
-use aes_gcm::aead::{AeadInPlace, KeyInit, OsRng};
 use aes_gcm::aead::rand_core::RngCore;
+use aes_gcm::aead::{AeadInPlace, KeyInit, OsRng};
 use aes_gcm::{Aes256Gcm, Key, Nonce};
 use scrypt::Params as ScryptParams;
 

@@ -29,8 +29,8 @@
 //! weights load directly with no permutation.
 
 use candle_core::{Device, IndexOp, Tensor};
-use candle_nn::rnn::{gru, GRUConfig, GRUState, GRU, RNN};
-use candle_nn::{embedding, linear, Embedding, Linear, Module, VarBuilder};
+use candle_nn::rnn::{GRU, GRUConfig, GRUState, RNN, gru};
+use candle_nn::{Embedding, Linear, Module, VarBuilder, embedding, linear};
 
 /// Maximum supported count value (matches `pos_embedding.weight.shape[0]`
 /// and the `count_pred` output dimension).
@@ -69,12 +69,7 @@ impl CountLstmFixed {
     }
 
     /// Forward pass.
-    pub fn forward(
-        &self,
-        field_embs: &Tensor,
-        pred_count: usize,
-        device: &Device,
-    ) -> candle_core::Result<Tensor> {
+    pub fn forward(&self, field_embs: &Tensor, pred_count: usize, device: &Device) -> candle_core::Result<Tensor> {
         let _ = device;
         let (f, h) = field_embs.dims2()?;
         debug_assert_eq!(h, HIDDEN);
@@ -102,10 +97,7 @@ impl CountLstmFixed {
 
         let out_h = Tensor::stack(&hidden_states, 0)?;
 
-        let field_b = field_embs
-            .unsqueeze(0)?
-            .broadcast_as((l, f, HIDDEN))?
-            .contiguous()?;
+        let field_b = field_embs.unsqueeze(0)?.broadcast_as((l, f, HIDDEN))?.contiguous()?;
 
         let cat = Tensor::cat(&[&out_h, &field_b], 2)?;
 

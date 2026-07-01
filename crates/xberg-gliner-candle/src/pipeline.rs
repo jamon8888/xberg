@@ -50,16 +50,14 @@ pub(crate) fn run_pipeline(
     if num_words == 0 {
         return Ok((empty_scorer_output(), 0, encoded));
     }
-    let word_indices =
-        Tensor::from_slice(&filtered_positions[..], (num_words,), device)?;
+    let word_indices = Tensor::from_slice(&filtered_positions[..], (num_words,), device)?;
     let text_emb = TokenGather.forward(&hidden, &word_indices)?; // [1, num_words, H]
 
     // 4. Span rep.
     let span_idx_arr = build_span_idx(num_words)?;
     // index_select requires U32 indices on the CPU backend.
     let span_idx_data: Vec<u32> = span_idx_arr.iter().map(|&v| v as u32).collect();
-    let span_idx =
-        Tensor::from_slice(&span_idx_data[..], (1, num_words * MAX_WIDTH, 2), device)?;
+    let span_idx = Tensor::from_slice(&span_idx_data[..], (1, num_words * MAX_WIDTH, 2), device)?;
     let span_rep_out = heads.span_rep.forward(&text_emb, &span_idx)?; // [1, num_words, MAX_WIDTH, H]
 
     // 5. Schema gather: `[P]` index first, then per-label `[E]` indices —
@@ -70,8 +68,7 @@ pub(crate) fn run_pipeline(
         ));
     }
     let schema_idx: Vec<u32> = encoded.schema_positions.iter().map(|&p| p as u32).collect();
-    let schema_idx_t =
-        Tensor::from_slice(&schema_idx[..], (schema_idx.len(),), device)?;
+    let schema_idx_t = Tensor::from_slice(&schema_idx[..], (schema_idx.len(),), device)?;
     let sg_out = SchemaGather.forward(&hidden, &schema_idx_t)?;
 
     // 6. Count pred.
@@ -81,9 +78,7 @@ pub(crate) fn run_pipeline(
     }
 
     // 7. Count LSTM (GRU): struct_proj [pred_count, F, H].
-    let struct_proj = heads
-        .count_lstm
-        .forward(&sg_out.field_embs, pred_count, device)?;
+    let struct_proj = heads.count_lstm.forward(&sg_out.field_embs, pred_count, device)?;
 
     // 8. Scorer: [pred_count, F, num_words, MAX_WIDTH] sigmoid scores.
     let span_rep_per_sample = span_rep_out.squeeze(0)?;
@@ -102,11 +97,8 @@ pub(crate) fn run_pipeline(
 
     // 10. Read back to host as Array4<f32>.
     let scores_vec: Vec<f32> = scores_padded.flatten_all()?.to_vec1::<f32>()?;
-    let scores_arr =
-        Array4::from_shape_vec((MAX_COUNT, num_words, MAX_WIDTH, num_labels), scores_vec)
-            .map_err(|e| {
-                crate::GlinerCandleError::Backend(format!("scores reshape: {e}"))
-            })?;
+    let scores_arr = Array4::from_shape_vec((MAX_COUNT, num_words, MAX_WIDTH, num_labels), scores_vec)
+        .map_err(|e| crate::GlinerCandleError::Backend(format!("scores reshape: {e}")))?;
 
     Ok((ScorerOutput { scores: scores_arr }, pred_count, encoded))
 }

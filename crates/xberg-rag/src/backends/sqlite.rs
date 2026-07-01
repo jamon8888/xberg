@@ -896,7 +896,7 @@ impl VectorStore for SqliteVectorStore {
                     return Err(RagError::UnsupportedMode {
                         backend: backend_name.clone(),
                         mode: mode.as_str().to_string(),
-                    })
+                    });
                 }
             };
 

@@ -84,15 +84,10 @@ impl LoraAdapter {
     /// Load a PEFT adapter from a directory.
     pub fn load(adapter_dir: &Path, device: &Device) -> crate::Result<Self> {
         let config_path = adapter_dir.join("adapter_config.json");
-        let cfg_str = std::fs::read_to_string(&config_path).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!("lora: read {}: {e}", config_path.display()))
-        })?;
-        let config: LoraConfig = serde_json::from_str(&cfg_str).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!(
-                "lora: parse {}: {e}",
-                config_path.display()
-            ))
-        })?;
+        let cfg_str = std::fs::read_to_string(&config_path)
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("lora: read {}: {e}", config_path.display())))?;
+        let config: LoraConfig = serde_json::from_str(&cfg_str)
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("lora: parse {}: {e}", config_path.display())))?;
         if config.r == 0 {
             return Err(crate::GlinerCandleError::Backend(
                 "lora: adapter_config.json has r=0; refusing to merge".into(),
@@ -110,17 +105,10 @@ impl LoraAdapter {
             )));
         };
 
-        let bytes = std::fs::read(&weights_path).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!(
-                "lora: read {}: {e}",
-                weights_path.display()
-            ))
-        })?;
+        let bytes = std::fs::read(&weights_path)
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("lora: read {}: {e}", weights_path.display())))?;
         let st = SafeTensors::deserialize(&bytes).map_err(|e| {
-            crate::GlinerCandleError::Backend(format!(
-                "lora: deserialize {}: {e}",
-                weights_path.display()
-            ))
+            crate::GlinerCandleError::Backend(format!("lora: deserialize {}: {e}", weights_path.display()))
         })?;
 
         // Walk keys, group by module path, slot lora_A/lora_B.
@@ -144,9 +132,8 @@ impl LoraAdapter {
             for chunk in bytes.chunks_exact(4) {
                 data.push(f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]));
             }
-            let tensor = Tensor::from_vec(data, shape, device).map_err(|e| {
-                crate::GlinerCandleError::Backend(format!("lora: tensor {key}: {e}"))
-            })?;
+            let tensor = Tensor::from_vec(data, shape, device)
+                .map_err(|e| crate::GlinerCandleError::Backend(format!("lora: tensor {key}: {e}")))?;
             let entry = by_module.entry(module_path).or_default();
             match slot {
                 LoraSlot::A => entry.0 = Some(tensor),
@@ -157,16 +144,10 @@ impl LoraAdapter {
         // Validate every module has both A and B.
         let mut modules = HashMap::new();
         for (path, (a, b)) in by_module {
-            let lora_a = a.ok_or_else(|| {
-                crate::GlinerCandleError::Backend(format!(
-                    "lora: missing lora_A for module {path}"
-                ))
-            })?;
-            let lora_b = b.ok_or_else(|| {
-                crate::GlinerCandleError::Backend(format!(
-                    "lora: missing lora_B for module {path}"
-                ))
-            })?;
+            let lora_a =
+                a.ok_or_else(|| crate::GlinerCandleError::Backend(format!("lora: missing lora_A for module {path}")))?;
+            let lora_b =
+                b.ok_or_else(|| crate::GlinerCandleError::Backend(format!("lora: missing lora_B for module {path}")))?;
             modules.insert(path, LoraModule { lora_a, lora_b });
         }
 
@@ -185,9 +166,7 @@ enum LoraSlot {
 /// PEFT convention.
 fn parse_lora_key(key: &str) -> crate::Result<(String, LoraSlot)> {
     let stripped = key.strip_prefix("base_model.model.").ok_or_else(|| {
-        crate::GlinerCandleError::Backend(format!(
-            "lora: key {key} does not start with 'base_model.model.'"
-        ))
+        crate::GlinerCandleError::Backend(format!("lora: key {key} does not start with 'base_model.model.'"))
     })?;
     if let Some(path) = stripped.strip_suffix(".lora_A.weight") {
         Ok((path.to_string(), LoraSlot::A))
@@ -218,16 +197,10 @@ pub(crate) fn merge_into_base(
     device: &Device,
 ) -> crate::Result<HashMap<String, Tensor>> {
     let bytes = std::fs::read(base_safetensors).map_err(|e| {
-        crate::GlinerCandleError::Backend(format!(
-            "lora_merge: read {}: {e}",
-            base_safetensors.display()
-        ))
+        crate::GlinerCandleError::Backend(format!("lora_merge: read {}: {e}", base_safetensors.display()))
     })?;
     let st = SafeTensors::deserialize(&bytes).map_err(|e| {
-        crate::GlinerCandleError::Backend(format!(
-            "lora_merge: deserialize {}: {e}",
-            base_safetensors.display()
-        ))
+        crate::GlinerCandleError::Backend(format!("lora_merge: deserialize {}: {e}", base_safetensors.display()))
     })?;
 
     let scale = adapter.config.lora_alpha / (adapter.config.r as f64);
@@ -252,9 +225,7 @@ pub(crate) fn merge_into_base(
                     adapter.config.fan_in_fan_out,
                 )
                 .map_err(|e| {
-                    crate::GlinerCandleError::Backend(format!(
-                        "lora_merge: apply delta to {mod_path}: {e}"
-                    ))
+                    crate::GlinerCandleError::Backend(format!("lora_merge: apply delta to {mod_path}: {e}"))
                 })?;
                 applied.insert(mod_path.to_string());
             }
@@ -354,15 +325,13 @@ mod tests {
 
     #[test]
     fn parse_lora_key_strict() {
-        let (path, slot) =
-            parse_lora_key("base_model.model.encoder.layer.0.attention.self.query.lora_A.weight")
-                .expect("valid PEFT key should parse");
+        let (path, slot) = parse_lora_key("base_model.model.encoder.layer.0.attention.self.query.lora_A.weight")
+            .expect("valid PEFT key should parse");
         assert_eq!(path, "encoder.layer.0.attention.self.query");
         assert!(matches!(slot, LoraSlot::A));
 
-        let (path_b, slot_b) =
-            parse_lora_key("base_model.model.encoder.layer.0.attention.self.query.lora_B.weight")
-                .expect("valid PEFT key (B) should parse");
+        let (path_b, slot_b) = parse_lora_key("base_model.model.encoder.layer.0.attention.self.query.lora_B.weight")
+            .expect("valid PEFT key (B) should parse");
         assert_eq!(path_b, "encoder.layer.0.attention.self.query");
         assert!(matches!(slot_b, LoraSlot::B));
 

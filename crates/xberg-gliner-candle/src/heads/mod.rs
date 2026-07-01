@@ -35,9 +35,8 @@ impl AllHeads {
     pub fn from_safetensors(weights_path: &Path, device: &Device) -> crate::Result<Self> {
         // SAFETY: mmap-reads the weights file; safe as long as it isn't
         // mutated under us — matches `encoder::Encoder`'s pattern.
-        let vb =
-            unsafe { VarBuilder::from_mmaped_safetensors(&[weights_path], DType::F32, device) }
-                .map_err(|e| crate::GlinerCandleError::Backend(format!("heads safetensors: {e}")))?;
+        let vb = unsafe { VarBuilder::from_mmaped_safetensors(&[weights_path], DType::F32, device) }
+            .map_err(|e| crate::GlinerCandleError::Backend(format!("heads safetensors: {e}")))?;
         Self::load(vb, device)
     }
 
