@@ -365,6 +365,77 @@ enum Commands {
         format: WireFormat,
     },
 
+    /// Run the extract → NER → redact pipeline on a document
+    ///
+    /// Extracts text, optionally detects named entities (persons, orgs, locations, emails, …),
+    /// and optionally redacts PII — all in one pass without starting the HTTP server.
+    ///
+    /// NER requires the `ner-onnx` or `ner-llm` feature.
+    /// Redaction requires the `redaction` feature.
+    #[cfg(any(feature = "ner-onnx", feature = "ner-llm"))]
+    Process {
+        /// URI or local path to process.
+        #[arg(value_name = "URI", required_unless_present = "stdin")]
+        uri: Option<String>,
+
+        /// Read document bytes from stdin instead of a file.
+        #[arg(long, conflicts_with = "uri")]
+        stdin: bool,
+
+        /// Path to config file (TOML, YAML, or JSON).
+        #[arg(short, long)]
+        config: Option<PathBuf>,
+
+        /// Inline JSON configuration.
+        #[arg(long)]
+        config_json: Option<String>,
+
+        /// Base64-encoded inline JSON configuration.
+        #[arg(long)]
+        config_json_base64: Option<String>,
+
+        // --- NER flags ---
+
+        /// Enable NER with default settings (ONNX backend, standard categories).
+        #[arg(long)]
+        ner: bool,
+
+        /// NER backend: onnx (default) or llm.
+        #[arg(long, default_value = "onnx", requires = "ner")]
+        ner_backend: String,
+
+        /// Entity categories to detect, comma-separated.
+        /// Values: person, organization, location, email, phone, ssn, credit_card,
+        ///         postal_code, ip_address, iban, swift_bic, date_of_birth.
+        /// Default when --ner is set: person, organization, location, email.
+        #[arg(long, value_delimiter = ',', requires = "ner")]
+        ner_categories: Vec<String>,
+
+        /// Override the GLiNER model alias (ONNX backend only).
+        #[arg(long, requires = "ner")]
+        ner_model: Option<String>,
+
+        // --- Redaction flags ---
+
+        /// Enable redaction. At least one of --ner or --redact must be set for
+        /// the process command to do anything beyond plain extraction.
+        #[arg(long)]
+        redact: bool,
+
+        /// Redaction strategy: mask (default), hash, token_replace, or drop.
+        #[arg(long, default_value = "mask", requires = "redact")]
+        redact_strategy: String,
+
+        /// PII categories to redact, comma-separated (same values as --ner-categories).
+        /// Default when --redact is set: all detectable categories.
+        #[arg(long, value_delimiter = ',', requires = "redact")]
+        redact_categories: Vec<String>,
+
+        /// Output format: text (default), json, or toon.
+        #[arg(short, long, default_value = "text")]
+        format: WireFormat,
+    },
+
     /// Generate shell completions
     ///
     /// Outputs shell completion scripts for the specified shell.
@@ -863,6 +934,73 @@ fn main() -> Result<()> {
             }
 
             chunk_command(input, chunking_config, format)?;
+        }
+
+        #[cfg(any(feature = "ner-onnx", feature = "ner-llm"))]
+        Commands::Process {
+            uri,
+            stdin,
+            config: config_path,
+            config_json,
+            config_json_base64,
+            ner,
+            ner_backend,
+            ner_categories,
+            ner_model,
+            redact,
+            redact_strategy,
+            redact_categories,
+            format,
+        } => {
+            use commands::process_command;
+            use xberg::core::config::ner::{NerBackendKind, NerConfig};
+            use xberg::core::config::redaction::RedactionConfig;
+            use xberg::types::redaction::{PiiCategory, RedactionStrategy};
+
+            let input = if stdin {
+                commands::extract::ExtractInputSource::Stdin
+            } else {
+                commands::extract::ExtractInputSource::Uri(
+                    uri.expect("clap ensures uri is present when stdin is false"),
+                )
+            };
+
+            let mut config = load_config(config_path)?;
+            apply_json_overrides(&mut config, config_json, config_json_base64)?;
+
+            // NER
+            if ner {
+                let backend = match ner_backend.as_str() {
+                    "llm" => NerBackendKind::Llm,
+                    _ => NerBackendKind::Onnx,
+                };
+                let categories: Vec<xberg::types::entity::EntityCategory> = ner_categories
+                    .iter()
+                    .map(|s| s.parse().unwrap())
+                    .collect();
+                config.ner = Some(NerConfig {
+                    backend,
+                    categories,
+                    model: ner_model,
+                    ..NerConfig::default()
+                });
+            }
+
+            // Redaction
+            if redact {
+                let strategy: RedactionStrategy = redact_strategy.parse().unwrap();
+                let categories: std::collections::HashSet<PiiCategory> = redact_categories
+                    .iter()
+                    .map(|s| s.parse().unwrap())
+                    .collect();
+                config.redaction = Some(RedactionConfig {
+                    strategy,
+                    categories,
+                    ..RedactionConfig::default()
+                });
+            }
+
+            process_command(input, config, format)?;
         }
 
         Commands::Completions { shell } => {

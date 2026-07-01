@@ -19,6 +19,7 @@ pub mod embed;
 pub mod extract;
 #[cfg(feature = "ner-onnx")]
 pub mod ner;
+pub mod process;
 pub mod overrides;
 #[cfg(any(feature = "api", feature = "mcp"))]
 pub mod server;
@@ -34,6 +35,8 @@ pub use extract::{
 };
 #[cfg(feature = "mcp")]
 pub use server::mcp_command;
+#[cfg(any(feature = "ner-onnx", feature = "ner-llm"))]
+pub use process::process_command;
 #[cfg(feature = "api")]
 pub use server::serve_command;
 
