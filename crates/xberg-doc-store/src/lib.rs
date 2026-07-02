@@ -23,3 +23,56 @@ pub use error::{StoreError, StoreResult};
 pub use rehydration::RehydrationStore;
 pub use tenant::{ActorId, TenantCtx, TenantId};
 pub use xberg_rag::types::DocumentId;
+
+/// Build the process-wide [`RehydrationStore`] from environment configuration.
+///
+/// If `XBERG_REHYDRATION_DB_PATH` is set and the `sqlite` feature is
+/// compiled in, opens a durable [`backends::sqlite::SqliteRehydrationStore`]
+/// at that path. Otherwise falls back to the ephemeral
+/// [`backends::memory::InMemoryRehydrationStore`] (24h TTL, lost on restart).
+///
+/// # Errors
+///
+/// Returns [`StoreError::Backend`] if `XBERG_REHYDRATION_DB_PATH` is set but
+/// the database cannot be opened (bad path, permissions, corrupt file).
+#[cfg(feature = "in-memory")]
+pub fn rehydration_store_from_env() -> StoreResult<std::sync::Arc<dyn RehydrationStore>> {
+    #[cfg(feature = "sqlite")]
+    if let Ok(path) = std::env::var("XBERG_REHYDRATION_DB_PATH") {
+        let store = backends::sqlite::SqliteRehydrationStore::open(&path)?;
+        tracing::info!(path = %path, "rehydration store: durable SQLite backend");
+        return Ok(std::sync::Arc::new(store));
+    }
+    tracing::warn!(
+        "rehydration store: ephemeral in-memory backend (24h TTL, lost on restart); \
+         set XBERG_REHYDRATION_DB_PATH for durability"
+    );
+    Ok(std::sync::Arc::new(backends::memory::InMemoryRehydrationStore::new()))
+}
+
+#[cfg(all(test, feature = "sqlite"))]
+mod factory_tests {
+    use super::*;
+
+    #[test]
+    fn env_var_unset_selects_in_memory_backend() {
+        // No other test in this crate's test binary sets XBERG_REHYDRATION_DB_PATH
+        // (the only test that does — crates/xberg's rehydration_durability.rs —
+        // lives in a different crate and compiles to a separate test process),
+        // so the var is unconditionally absent here: this assertion always runs.
+        assert!(
+            std::env::var("XBERG_REHYDRATION_DB_PATH").is_err(),
+            "no test in this crate sets XBERG_REHYDRATION_DB_PATH; if this fails, \
+             a new test introduced env pollution and must be fixed, not worked around"
+        );
+        let store = rehydration_store_from_env().expect("factory must succeed");
+        // Type-erased behind Arc<dyn RehydrationStore>; a round trip proves
+        // *a* working backend was selected without needing downcasting.
+        let ctx = TenantCtx::default_tenant();
+        let handle = tokio::runtime::Runtime::new().expect("rt");
+        handle.block_on(async {
+            let id = store.put_map(&ctx, vec![1]).await.expect("put");
+            assert_eq!(store.get_map(&ctx, &id).await.expect("get"), Some(vec![1]));
+        });
+    }
+}
