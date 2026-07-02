@@ -1177,15 +1177,22 @@ pub(crate) async fn rehydrate_handler(
     axum::extract::Path(rehydration_key): axum::extract::Path<String>,
     Json(request): Json<super::types::RehydrateRequest>,
 ) -> Result<Json<super::types::RehydrateResponse>, ApiError> {
-    let encrypted = state.rehydration_store.get(&rehydration_key).ok_or_else(|| ApiError {
-        status: axum::http::StatusCode::NOT_FOUND,
-        body: super::types::ErrorResponse {
-            error_type: "NotFoundError".to_string(),
-            message: format!("Rehydration key '{rehydration_key}' not found or expired"),
-            traceback: None,
-            status_code: axum::http::StatusCode::NOT_FOUND.as_u16(),
-        },
-    })?;
+    let ctx = xberg_doc_store::TenantCtx::default_tenant();
+    let doc_id = xberg_doc_store::DocumentId(rehydration_key.clone());
+    let encrypted = state
+        .rehydration_store
+        .get_map(&ctx, &doc_id)
+        .await
+        .map_err(|e| ApiError::internal(crate::error::XbergError::Other(e.to_string())))?
+        .ok_or_else(|| ApiError {
+            status: axum::http::StatusCode::NOT_FOUND,
+            body: super::types::ErrorResponse {
+                error_type: "NotFoundError".to_string(),
+                message: format!("Rehydration key '{rehydration_key}' not found or expired"),
+                traceback: None,
+                status_code: axum::http::StatusCode::NOT_FOUND.as_u16(),
+            },
+        })?;
 
     #[cfg(feature = "redaction-rehydrate")]
     let restored = crate::text::redaction::rehydration::decrypt_map(&encrypted, &request.passphrase)
