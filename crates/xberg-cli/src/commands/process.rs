@@ -94,7 +94,7 @@ mod tests {
         match input {
             ExtractInputSource::Uri(uri) => {
                 let ext_input = ExtractInput::from_uri(uri);
-                let mut out = rt.block_on(extract(ext_input, config.clone()))?;
+                let mut out = rt.block_on(extract(ext_input, config))?;
                 out.results
                     .pop()
                     .ok_or_else(|| xberg::error::XbergError::Other("no document produced".into()))
