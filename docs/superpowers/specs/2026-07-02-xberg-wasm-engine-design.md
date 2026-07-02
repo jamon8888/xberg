@@ -32,6 +32,7 @@ This spec covers **A + B only**. C, D, E get their own spec → plan → build c
 3. **ML inference** = **hybrid** — embeddings + NER run via injected ORT-Web/transformers.js (WebGPU) as default; in-binary Candle-NER is the offline/no-GPU fallback.
 4. **API shape** = **stateful `XbergEngine` handle** holding injected `Embedder` + `VectorStore` + config.
 5. **Anonymization** = **full**, including reversible `token_replace` with AES-256-GCM encrypted rehydration maps, ported to pure Rust so it runs in-wasm.
+6. **OCR** = **hybrid** — injected PaddleOCR fast-path ([`ppu-paddle-ocr`](https://github.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr), ONNX Runtime + WebGPU, 50+ languages, MIT) as default; in-binary Tesseract (`ocr-wasm`) as the offline/no-injection fallback. Symmetric with the NER hybrid.
 
 ## Architecture
 
@@ -48,6 +49,8 @@ Rationale for the current WASM ecosystem baseline (2025–2026), which de-risks 
 - `crates/xberg-wasm/src/engine.rs` — `XbergEngine` handle; the stateful API surface.
 - `crates/xberg-wasm/src/bridge/embedder.rs` — wasm-bindgen JSPI bridge implementing the core `xberg_rag::Embedder` trait by calling the injected JS `embed()`.
 - `crates/xberg-wasm/src/bridge/store.rs` — JSPI bridge implementing `xberg_rag::VectorStore` over the injected JS store (`upsert`/`query`/`delete`/`list_collections`/`drop_collection`).
+- `crates/xberg-wasm/src/bridge/ner.rs` — JSPI bridge for the optional injected NER fast-path; falls through to in-binary Candle when absent.
+- `crates/xberg-wasm/src/bridge/ocr.rs` — JSPI bridge for the optional injected OCR fast-path (`ppu-paddle-ocr`); falls through to in-binary Tesseract when absent.
 - `crates/xberg-wasm/src/anon.rs` — wrapper over core `redaction` + **new pure-Rust encrypted-map crypto** (ported from `mcp-server/src/redaction/rehydration.ts`).
 - `crates/xberg-gliner-candle` — **(A)** add a sync-inference path and drop the `tokio-runtime` requirement so the crate compiles to `wasm32`.
 - Core `crates/xberg/Cargo.toml` — new feature `ner-candle-wasm` (Candle NER without `tokio-runtime`); added to the `wasm-target` aggregate. `xberg-rag` `vector-store` + `pipeline` features (already documented WASM-safe, ORT-free) are enabled for the wasm build.
@@ -60,7 +63,7 @@ The single most important artifact of this spec — the contract C/D/E consume.
 new XbergEngine(config, { embedder, store })    // inject JS impls once
 
   .extract(input, config)              -> ExtractionResult   // in-binary
-  .ocr(bytes, opts)                    -> OcrResult           // in-binary Tesseract
+  .ocr(bytes, opts)                    -> OcrResult           // injected PaddleOCR / Tesseract fallback
   .detectPii(text)                     -> Detection[]         // read-only, in-binary
   .redact(text, strategy)              -> RedactedDoc         // mask | hash | token_replace
   .rehydrate(doc, mapBytes, passphrase)-> text                // in-wasm AES-256-GCM
@@ -71,6 +74,7 @@ new XbergEngine(config, { embedder, store })    // inject JS impls once
 
 - `config` mirrors the existing `Wasm*Config` serde types where they already exist; new types only where required (engine construction, injection descriptors).
 - Every method returns `Result<T, JsValue>`.
+- Injection descriptor supplied at construction: `{ embedder, store, ner?, ocr? }`. `embedder` + `store` are required; `ner` and `ocr` are optional injected fast-paths that trigger the in-binary fallbacks when absent.
 
 ## Injection seam (JSPI)
 
@@ -78,13 +82,15 @@ new XbergEngine(config, { embedder, store })    // inject JS impls once
 
 **NER hybrid dispatch:** `.ner()` calls the injected JS `ner()` first (ORT-Web/WebGPU); if no injected NER is present (or a no-GPU/offline flag is set), it falls back to the in-binary Candle backend (`ner-candle-wasm`).
 
+**OCR hybrid dispatch:** `.ocr()` calls the injected JS `ocr()` first (`ppu-paddle-ocr` over ONNX Runtime, WebGPU-accelerated); if no injected OCR is present (or offline flag set), it falls back to the in-binary Tesseract backend (`ocr-wasm`). Same shape as NER: the engine never links PaddleOCR (it's ORT, wasm-incompatible in Rust) — the host supplies it.
+
 ## Capability placement
 
 | Capability | Placement |
 |---|---|
 | Extract (91 formats), chunk, keywords | in-binary |
 | PII detection, redaction strategies (mask/hash/token_replace) | in-binary (core `redaction` feature) |
-| Tesseract OCR | in-binary (`ocr-wasm`) |
+| OCR | injected PaddleOCR/`ppu-paddle-ocr` (default) → Tesseract `ocr-wasm` fallback (in-binary) |
 | AES-256-GCM rehydration | in-binary (new pure-Rust crypto) |
 | GLiNER2 NER | injected ORT-Web/WebGPU (default) → Candle-wasm fallback (in-binary) |
 | Embeddings | injected (ORT-Web / transformers.js) via JSPI |
