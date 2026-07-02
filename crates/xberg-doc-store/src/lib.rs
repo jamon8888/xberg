@@ -15,7 +15,10 @@
 //!   `rusqlite`, tenant + id primary key).
 
 pub mod error;
+pub mod rehydration;
 pub mod tenant;
 
 pub use error::{StoreError, StoreResult};
+pub use rehydration::RehydrationStore;
 pub use tenant::{ActorId, TenantCtx, TenantId};
+pub use xberg_rag::types::DocumentId;
