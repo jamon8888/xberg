@@ -1,10 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import {
-  extract,
-  extractInputFromUri,
-  type ExtractionConfig,
-} from "@xberg-io/xberg";
+import type { ExtractionConfig } from "@xberg-io/xberg";
 
 export function registerWebTools(server: McpServer): void {
   server.tool(
@@ -32,6 +28,7 @@ export function registerWebTools(server: McpServer): void {
     },
     async ({ url, mode, max_pages, max_depth, js_rendering, allow_subdomains }) => {
       try {
+        const { extract, extractInputFromUri } = await import("@xberg-io/xberg");
         const extractInput = extractInputFromUri(url);
 
         const config: ExtractionConfig = {

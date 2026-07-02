@@ -1,13 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import {
-  extract,
-  extractInputFromBytes,
-  extractInputFromUri,
-  GlinerArchitecture,
-  type ExtractionConfig,
-  type NerConfig,
-} from "@xberg-io/xberg";
+import type { ExtractionConfig, NerConfig } from "@xberg-io/xberg";
 
 const InputSchema = z.object({
   uri: z.string().optional().describe("File path or HTTPS URL"),
@@ -16,7 +9,8 @@ const InputSchema = z.object({
   filename: z.string().optional(),
 });
 
-function buildExtractInput(input: z.infer<typeof InputSchema>) {
+async function buildExtractInput(input: z.infer<typeof InputSchema>) {
+  const { extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
   if (input.bytes) {
     return extractInputFromBytes(
       Buffer.from(input.bytes),
@@ -70,7 +64,8 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, backend, categories, model, hf_repo, hf_model_file, hf_tokenizer_file, hf_architecture, llm_model, disable_ocr }) => {
       try {
-        const extractInput = buildExtractInput(input);
+        const { extract, GlinerArchitecture } = await import("@xberg-io/xberg");
+        const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }
@@ -126,7 +121,8 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
-        const extractInput = buildExtractInput(input);
+        const { extract } = await import("@xberg-io/xberg");
+        const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }

@@ -1,11 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import {
-  extract,
-  extractInputFromBytes,
-  extractInputFromUri,
-  type ExtractionConfig,
-} from "@xberg-io/xberg";
+import type { ExtractionConfig } from "@xberg-io/xberg";
 
 export function registerMediaTools(server: McpServer): void {
   server.tool(
@@ -27,6 +22,8 @@ export function registerMediaTools(server: McpServer): void {
     },
     async ({ uri, bytes, mime_type, filename, model, language }) => {
       try {
+        const { extract, extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
+
         let extractInput;
         if (bytes) {
           extractInput = extractInputFromBytes(
