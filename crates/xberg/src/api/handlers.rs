@@ -1297,12 +1297,26 @@ pub(crate) async fn process_handler(
             (document, Some(doc_id.0))
         };
         #[cfg(not(feature = "redaction-rehydrate"))]
-        let rehydration_key: Option<String> = None;
+        {
+            let _ = document;
+            return Err(ApiError {
+                status: axum::http::StatusCode::NOT_IMPLEMENTED,
+                body: super::types::ErrorResponse {
+                    error_type: "NotImplementedError".to_string(),
+                    message: "Rehydration requires the `redaction-rehydrate` feature".to_string(),
+                    traceback: None,
+                    status_code: axum::http::StatusCode::NOT_IMPLEMENTED.as_u16(),
+                },
+            });
+        }
 
-        Ok(Json(super::types::ProcessResponse {
-            document,
-            rehydration_key,
-        }))
+        #[cfg(feature = "redaction-rehydrate")]
+        {
+            Ok(Json(super::types::ProcessResponse {
+                document,
+                rehydration_key,
+            }))
+        }
     } else {
         let mut config = (*state.default_config).clone();
         config.ner = request.operations.ner.clone();
