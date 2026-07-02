@@ -1282,7 +1282,12 @@ pub(crate) async fn process_handler(
                 .await
                 .map_err(ApiError::from)?;
             let encrypted = crate::text::redaction::encrypt_map(&map, passphrase).map_err(ApiError::from)?;
-            (document, Some(state.rehydration_store.store(encrypted)))
+            let doc_id = state
+                .rehydration_store
+                .put_map(&xberg_doc_store::TenantCtx::default_tenant(), encrypted)
+                .await
+                .map_err(|e| ApiError::internal(crate::error::XbergError::Other(e.to_string())))?;
+            (document, Some(doc_id.0))
         };
         #[cfg(not(feature = "redaction-rehydrate"))]
         let rehydration_key: Option<String> = None;
