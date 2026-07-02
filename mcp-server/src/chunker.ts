@@ -10,6 +10,9 @@ const DEFAULTS: Required<ChunkOptions> = {
 
 export function chunkText(text: string, opts: ChunkOptions = {}): string[] {
   const { maxChars, overlap } = { ...DEFAULTS, ...opts };
+  if (overlap >= maxChars) {
+    throw new Error("overlap must be smaller than maxChars");
+  }
   if (!text.trim()) return [];
 
   const paragraphs = text
