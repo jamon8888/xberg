@@ -972,7 +972,7 @@ public static class OcrBackendRegistry
 {
 
     private static readonly ConcurrentDictionary<string, OcrBackendBridge> _bridges =
-    new ConcurrentDictionary<string, OcrBackendBridge>();
+        new ConcurrentDictionary<string, OcrBackendBridge>();
 
     /// <summary>Register a OcrBackend implementation and return its native handle</summary>
     public static IntPtr RegisterOcrBackend(IOcrBackend impl)
@@ -1706,7 +1706,7 @@ public static class PostProcessorRegistry
 {
 
     private static readonly ConcurrentDictionary<string, PostProcessorBridge> _bridges =
-    new ConcurrentDictionary<string, PostProcessorBridge>();
+        new ConcurrentDictionary<string, PostProcessorBridge>();
 
     /// <summary>Register a PostProcessor implementation and return its native handle</summary>
     public static IntPtr RegisterPostProcessor(IPostProcessor impl)
@@ -2310,7 +2310,7 @@ public static class ValidatorRegistry
 {
 
     private static readonly ConcurrentDictionary<string, ValidatorBridge> _bridges =
-    new ConcurrentDictionary<string, ValidatorBridge>();
+        new ConcurrentDictionary<string, ValidatorBridge>();
 
     /// <summary>Register a Validator implementation and return its native handle</summary>
     public static IntPtr RegisterValidator(IValidator impl)
@@ -3031,7 +3031,7 @@ public static class DocumentExtractorRegistry
 {
 
     private static readonly ConcurrentDictionary<string, DocumentExtractorBridge> _bridges =
-    new ConcurrentDictionary<string, DocumentExtractorBridge>();
+        new ConcurrentDictionary<string, DocumentExtractorBridge>();
 
     /// <summary>Register a DocumentExtractor implementation and return its native handle</summary>
     public static IntPtr RegisterDocumentExtractor(IDocumentExtractor impl)
@@ -3619,7 +3619,7 @@ public static class EmbeddingBackendRegistry
 {
 
     private static readonly ConcurrentDictionary<string, EmbeddingBackendBridge> _bridges =
-    new ConcurrentDictionary<string, EmbeddingBackendBridge>();
+        new ConcurrentDictionary<string, EmbeddingBackendBridge>();
 
     /// <summary>Register a EmbeddingBackend implementation and return its native handle</summary>
     public static IntPtr RegisterEmbeddingBackend(IEmbeddingBackend impl)
@@ -4161,7 +4161,7 @@ public static class RendererRegistry
 {
 
     private static readonly ConcurrentDictionary<string, RendererBridge> _bridges =
-    new ConcurrentDictionary<string, RendererBridge>();
+        new ConcurrentDictionary<string, RendererBridge>();
 
     /// <summary>Register a Renderer implementation and return its native handle</summary>
     public static IntPtr RegisterRenderer(IRenderer impl)
@@ -4704,7 +4704,7 @@ public static class RerankerBackendRegistry
 {
 
     private static readonly ConcurrentDictionary<string, RerankerBackendBridge> _bridges =
-    new ConcurrentDictionary<string, RerankerBackendBridge>();
+        new ConcurrentDictionary<string, RerankerBackendBridge>();
 
     /// <summary>Register a RerankerBackend implementation and return its native handle</summary>
     public static IntPtr RegisterRerankerBackend(IRerankerBackend impl)
