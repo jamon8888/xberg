@@ -28,7 +28,9 @@ This spec covers **A + B only**. C, D, E get their own spec → plan → build c
 ### Approved decisions (from brainstorming)
 
 1. **First spec** = engine (B) + `ner-candle-wasm` (A) as prerequisite.
-2. **Browser target** = Chrome/Edge only → rely on **JSPI** for the async injection seam. Safari/Firefox out of scope (no JSPI).
+2. **Browser target** = Chrome/Edge (product target, driven by WebGPU + OPFS SQLite + COOP/COEP maturity — **not** by the async mechanism). See the Mechanism Correction note below.
+
+> **Mechanism Correction (2026-07-02 review):** Throughout this spec and its plans, wherever the async injection seam is described as **"JSPI"**, read it as **standard async `wasm-bindgen` (`JsFuture` over the injected JS Promises)**. The implementation uses ordinary `async fn` exports bridged with `wasm-bindgen-futures` — this works in **all** modern browsers and Node, and does **not** depend on JavaScript Promise Integration. True JSPI (`WebAssembly.Suspending`/`promising`) is only needed to call async JS from *synchronous* Rust, which this design never does. JSPI remains an **optional future optimization**, not a requirement. Consequently the Chrome/Edge target is a *product* choice (WebGPU/OPFS/COEP), not an async-mechanism limitation — the engine's async layer is browser-portable.
 3. **ML inference** = **hybrid** — embeddings + NER run via injected ORT-Web/transformers.js (WebGPU) as default; in-binary Candle-NER is the offline/no-GPU fallback.
 4. **API shape** = **stateful `XbergEngine` handle** holding injected `Embedder` + `VectorStore` + config.
 5. **Anonymization** = **full**, including reversible `token_replace` with AES-256-GCM encrypted rehydration maps, ported to pure Rust so it runs in-wasm.
@@ -36,7 +38,7 @@ This spec covers **A + B only**. C, D, E get their own spec → plan → build c
 
 ## Architecture
 
-One `wasm32` binary (`xberg-wasm`, extended). Contains all pure-Rust capability in-binary; reaches ML/storage through host-injected interfaces bridged via **JSPI** (JavaScript Promise Integration — Chrome/Edge). Identical `.wasm` for both hosts; hosts differ only in the injected JS impls (sub-project C) and the frontend (D/E).
+One `wasm32` binary (`xberg-wasm`, extended). Contains all pure-Rust capability in-binary; reaches ML/storage through host-injected interfaces bridged via **async `wasm-bindgen`** (`JsFuture` over injected JS Promises; see the Mechanism Correction note above — "JSPI" elsewhere in this doc means this). Identical `.wasm` for both hosts; hosts differ only in the injected JS impls (sub-project C) and the frontend (D/E).
 
 Rationale for the current WASM ecosystem baseline (2025–2026), which de-risks this design:
 

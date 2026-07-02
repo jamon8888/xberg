@@ -63,6 +63,6 @@ Identical to C's flow; the UI is a thin driver. Example — RAG ingest:
 ## Non-goals
 
 - Server-side rendering, accounts, collaboration.
-- Safari/Firefox support (JSPI).
+- Safari/Firefox support — deferred due to **WebGPU + OPFS SQLite maturity**, not the async mechanism (the engine's async layer is portable; see the engine spec's Mechanism Correction).
 - Mobile layout beyond responsive basics.
 - Packaging as a browser extension (possible later reuse of C, out of scope).

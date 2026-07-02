@@ -46,9 +46,11 @@ Tool names must not change — renaming is a breaking change for connected agent
 - PII detection/redaction output must match the pre-migration native/TS output (parity test).
 - OCR default becomes injected PaddleOCR (`ppu-paddle-ocr`) with Tesseract fallback — a capability upgrade (50+ languages) vs the old path; document in CHANGELOG.
 
-## Async / JSPI
+## Async binding
 
-Node V8 supports JSPI, so the engine's injected bridges work the same as in the browser. C's single-flight rule per engine instance applies; the server uses one engine instance (or a small pool) and serializes JSPI-suspending calls per instance.
+> **Mechanism Correction (2026-07-02 review):** The bridges use standard async `wasm-bindgen` (`JsFuture`), not JavaScript Promise Integration — see the engine spec's Mechanism Correction. No JSPI dependency in Node either.
+
+The engine's injected bridges work in Node exactly as in the browser (both are V8-based; the async-`wasm-bindgen` path is host-agnostic). C's single-flight rule per engine instance applies: the engine holds `&self` across `await`, so the server uses one engine instance (or a small pool) and serializes overlapping calls per instance.
 
 ## Error handling
 

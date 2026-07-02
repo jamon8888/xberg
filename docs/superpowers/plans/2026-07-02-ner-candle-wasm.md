@@ -102,7 +102,16 @@ pub use v2_splitter::V2Splitter;
 pub use v2_tokenizer::{PretokenizedEncoding, PretokenizingTokenizer, V2Tokenizer};
 ```
 
-Then chase compile errors: any ungated module (`config`, `input`, `v2_preprocess`, `v2_decode`, `decode`, `splitter`, `v2_splitter`, `v2_tokenizer`) that imports a gated one or `ort` must have that specific import gated too. `preprocess::EncodedInput` and `decode::EntityContext` `pub(crate) use` lines at lib.rs:37-38 — gate `preprocess` re-export behind `ort-backend`.
+**Gate the `ort` error variant** — this is the first error you will hit. `error.rs:20` has `Ort(#[from] ort::Error)`; without ORT the `ort::Error` type is gone. Gate it:
+
+```rust
+// crates/xberg-gliner/src/error.rs
+#[cfg(feature = "ort-backend")]
+#[error(transparent)]
+Ort(#[from] ort::Error),
+```
+
+Then chase remaining compile errors: any ungated module (`config`, `input`, `v2_preprocess`, `v2_decode`, `decode`, `splitter`, `v2_splitter`, `v2_tokenizer`) that imports a gated one or `ort` must have that specific import gated too. `preprocess::EncodedInput` and `decode::EntityContext` `pub(crate) use` lines at lib.rs:37-38 — gate the `preprocess` re-export behind `ort-backend`. Any `From<ort::…>` or error-conversion helper outside `error.rs` gets the same `#[cfg(feature = "ort-backend")]`.
 
 - [ ] **Step 3: Verify native still builds (ORT path intact)**
 
@@ -181,9 +190,14 @@ In `encoder.rs`, add beside `from_safetensors` (which currently loads from a pat
 
 ```rust
 /// Load encoder weights from in-memory safetensors bytes (wasm/no-fs path).
+/// NOTE: `CFG` below is the ACTUAL config type — do not assume `EncoderConfig`.
+/// Grep `encoder.rs` for the type of the `config` field on `Encoder`
+/// (`pub(crate) config: <TYPE>` — likely `candle_transformers::models::…::Config`
+/// for the DeBERTa/BERT backbone, given `encoder.config.max_position_embeddings`
+/// at pipeline.rs:32). Use that exact type here.
 pub fn from_buffered_safetensors(
     bytes: &[u8],
-    config: &EncoderConfig,
+    config: &CFG,                 // ← replace CFG with the real type from encoder.rs
     device: &candle_core::Device,
 ) -> crate::Result<Self> {
     let tensors = candle_core::safetensors::load_buffer(bytes, device)?;
@@ -192,7 +206,7 @@ pub fn from_buffered_safetensors(
 }
 ```
 
-(`from_var_builder` already exists — used at model.rs:71. `EncoderConfig` is the type `self.encoder.config` holds; confirm its name/parse fn in `encoder.rs`.)
+(`from_var_builder` already exists — used at model.rs:71.) **First substep — identify the config type:** run `grep -nE "config:|struct .*Config|fn from_safetensors" crates/xberg-gliner-candle/src/encoder.rs` and note both the field type `CFG` and how the existing `from_safetensors` parses the config JSON from a path. Reuse that same parse against bytes in Task 2 Step 4's `from_bytes` (e.g. if it does `serde_json::from_reader(File::open(path))`, do `serde_json::from_slice(config_json)` into the same `CFG`).
 
 In `heads/mod.rs`, add the mirror on `AllHeads`:
 
@@ -218,7 +232,11 @@ pub fn from_bytes(
     let device = Device::Cpu;
     let tokenizer = xberg_gliner::V2Tokenizer::from_bytes(tokenizer_json)?;
     let splitter = xberg_gliner::V2Splitter::new()?;
-    let config = encoder::EncoderConfig::from_json_slice(encoder_config_json)?;
+    // Parse `config.json` into the SAME config type `Encoder::config` holds
+    // (the CFG type identified in the from_buffered_safetensors substep — do
+    // NOT invent `EncoderConfig`). Mirror how `from_safetensors` parses it.
+    let config: CFG = serde_json::from_slice(encoder_config_json)
+        .map_err(|e| GlinerCandleError::Backend(format!("config.json parse: {e}")))?;
     let encoder = encoder::Encoder::from_buffered_safetensors(safetensors, &config, &device)?;
     let heads = heads::AllHeads::from_buffered_safetensors(safetensors, &device)?;
     Ok(Self {
@@ -387,35 +405,26 @@ Prove a real (tiny) model runs end-to-end on wasm. Uses a small fixture; `#[igno
 **Interfaces:**
 - Consumes: `Gliner2Candle::from_bytes`, `extract_ner`.
 
-- [ ] **Step 1: Write the wasm test (ignored-by-default when no fixture)**
+- [ ] **Step 1: Write the wasm smoke test**
+
+The canonical shippable test asserts the wasm code path **links and runs in a real browser** via the error path (no multi-MB model artifact in CI). This is the always-green smoke test:
 
 ```rust
 #![cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 wasm_bindgen_test_configure!(run_in_browser);
 
-// Fixture weights are large; only run when explicitly provided via a build that
-// includes them. Guard so CI without the artifact still passes.
-#[wasm_bindgen_test]
-async fn extracts_entities_in_browser() {
-    let st = include_bytes!("fixtures/tiny_gliner.safetensors");
-    let tk = include_bytes!("fixtures/tokenizer.json");
-    let cfg = include_bytes!("fixtures/config.json");
-    let model = xberg_gliner_candle::Gliner2Candle::from_bytes(st, tk, cfg).unwrap();
-    let spans = model.extract_ner("Barack Obama visited Paris.", &["person", "location"], 0.3).unwrap();
-    assert!(spans.iter().any(|s| s.text.eq_ignore_ascii_case("Barack Obama")));
-}
-```
-
-If no tiny fixture exists, replace `include_bytes!` with a documented skip: assert `from_bytes(&[],..)` errors cleanly in-browser (proves the wasm code path links and runs), and leave a `// TODO(fixture)` — actually, per no-placeholder rule, instead assert the empty-input error path in-browser as the shippable smoke test:
-
-```rust
 #[wasm_bindgen_test]
 fn from_bytes_errors_cleanly_in_browser() {
+    // Proves Gliner2Candle::from_bytes compiles, links, and runs on wasm32 in
+    // Chrome — the whole A stack (ort-free xberg-gliner + candle + tokenizers)
+    // executes. Empty weights must yield a clean error, never a panic/trap.
     let err = xberg_gliner_candle::Gliner2Candle::from_bytes(&[], b"{}", b"{}").unwrap_err();
     assert!(!err.to_string().is_empty());
 }
 ```
+
+**Optional full-inference test (only when a tiny fixture is committed):** if a small quantized GLiNER2 safetensors + tokenizer.json + config.json fixture is available under `crates/xberg-gliner-candle/tests/fixtures/`, add a second `#[wasm_bindgen_test]` that loads it via `include_bytes!` and asserts `extract_ner("Barack Obama visited Paris.", &["person","location"], 0.3)` finds `"Barack Obama"`. Do NOT commit this test until the fixture exists — it must not reference missing files.
 
 - [ ] **Step 2: Run**
 
@@ -438,3 +447,8 @@ git commit -m "test(gliner-candle): wasm NER smoke test"
 - **Risk gate:** Task 1 Step 4 (`tokenizers` on wasm) and Task 2 Step 6 (candle on wasm) are the two genuine feasibility gates. Either failing means in-binary NER defers and the injected ORT-Web NER path in B carries NER alone — recorded, not hidden.
 - **Type consistency:** `from_bytes`, `from_buffered_safetensors`, `WasmCandleNer`, `map_spans_to_entities`, `extract_ner` used consistently. Inline notes flag the three names the implementer must confirm against source: `EncoderConfig` (encoder.rs), `Entity` (xberg types), `XbergError` variant.
 - **Sequencing:** A is fully independent of B, C, D, E — it can start immediately and is the true prerequisite for B's in-binary NER fallback.
+
+- **Review corrections applied (2026-07-02):**
+  - **M2** Task 1 now names the first blocker explicitly: gate `GlinerError::Ort(#[from] ort::Error)` (error.rs:20) behind `#[cfg(feature = "ort-backend")]`.
+  - **M3** Task 2 no longer invents `EncoderConfig::from_json_slice`; it instructs the implementer to grep `encoder.rs` for the real config type (`CFG`, likely a `candle_transformers` `Config`) and parse `config.json` into it with `serde_json::from_slice`, mirroring the existing `from_safetensors`.
+  - **L2** Task 4 canonical test is the fixture-free in-browser error-path smoke test; the full-inference test is optional and only added once a fixture exists (no missing-file references).

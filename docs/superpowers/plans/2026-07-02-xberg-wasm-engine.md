@@ -10,6 +10,8 @@
 
 **Spec:** [2026-07-02-xberg-wasm-engine-design.md](../specs/2026-07-02-xberg-wasm-engine-design.md)
 
+> **Mechanism note:** Task titles say "JSPI bridge" — the implementation is **standard async `wasm-bindgen`** (`async fn` exports + `JsFuture` over the injected JS Promises), NOT `WebAssembly.Suspending`/`promising`. It is browser-portable (works beyond Chrome/Edge); JSPI is an optional future optimization. Read every "JSPI" in this plan as "async wasm-bindgen bridge".
+
 ## Global Constraints
 
 - Rust 2024 edition; `cargo clippy -D warnings`; zero warnings.
@@ -166,8 +168,13 @@ impl std::fmt::Display for AnonError {
 impl std::error::Error for AnonError {}
 
 fn derive_key(passphrase: &str, salt: &[u8]) -> [u8; KEY_LEN] {
-    // scrypt N=2^15, r=8, p=1 → matches Node scryptSync defaults used by rehydration.ts.
-    let params = Params::new(15, 8, 1, KEY_LEN).expect("valid scrypt params");
+    // scrypt N=2^14 (16384), r=8, p=1 → matches Node `scryptSync(pw, salt, 32)`
+    // DEFAULTS as used by rehydration.ts (no options passed). NOT 2^15: the
+    // XPII container does not store cost params, so this MUST equal Node's
+    // default cost or existing map files fail to decrypt. (The CLAUDE.md
+    // `pii-pipeline` note says N=32768, but the shipped TS code uses the
+    // default 16384 — the code is authoritative for on-disk compatibility.)
+    let params = Params::new(14, 8, 1, KEY_LEN).expect("valid scrypt params");
     let mut key = [0u8; KEY_LEN];
     scrypt(passphrase.as_bytes(), salt, &params, &mut key).expect("scrypt into 32 bytes");
     key
@@ -259,7 +266,7 @@ fn decrypts_map_produced_by_typescript() {
 }
 ```
 
-Generate the fixture: `cd mcp-server && node -e 'import("./dist/redaction/rehydration.js").then(m=>{const fs=require("fs");m.encryptMapFile("/tmp/x.xpii",{"[EMAIL_1]":"a@b.com"},"pw");console.log(fs.readFileSync("/tmp/x.xpii").toString("hex"))})'` → save stdout to `crates/xberg/src/text/testdata/ts_map_email.hex`. Add a tiny `hex_decode` test helper.
+Generate the fixture (build the TS server first — `dist/` may not exist): `cd mcp-server && npm run build && node -e 'import("./dist/redaction/rehydration.js").then(m=>{const fs=require("fs");m.encryptMapFile("/tmp/x.xpii",{"[EMAIL_1]":"a@b.com"},"pw");console.log(fs.readFileSync("/tmp/x.xpii").toString("hex"))})'` → save stdout to `crates/xberg/src/text/testdata/ts_map_email.hex`. Add a tiny `hex_decode` test helper.
 
 Run: `cargo test -p xberg --features redaction anon_crypto`
 Expected: PASS (4 tests). If the cross-check fails, the scrypt cost params differ — reconcile `Params` with the Node `scryptSync` cost actually used, then re-run.
@@ -354,7 +361,25 @@ pub async fn ingest_document_local(
 
 (If `DocumentRecord::from(&IngestRequest)` does not exist, build the `DocumentRecord` inline from `request` fields — check `types.rs` for the constructor and match it exactly.)
 
-Off-wasm, make the existing `ingest_document` delegate to `ingest_document_local` inside `spawn_blocking` only for the chunking call, or leave it as-is; the new fn is the wasm path.
+**Gate the `spawn_blocking` path off wasm.** The existing `ingest_document` calls `tokio::task::spawn_blocking` (pipeline.rs:125), which does not exist on `wasm32` and would break the wasm build even though the engine never calls it. Annotate it:
+
+```rust
+#[cfg(not(target_arch = "wasm32"))]
+pub async fn ingest_document(/* ...unchanged signature... */) -> RagResult<DocumentId> {
+    // ...existing body unchanged...
+}
+```
+
+Then make `tokio` a non-wasm dependency of `xberg-rag`. In `crates/xberg-rag/Cargo.toml`, move `tokio` out of `[dependencies]` for the `pipeline` feature into a target block, OR make the `pipeline` feature not pull `tokio` on wasm. Concretely, change the `pipeline` feature to drop `dep:tokio` and add tokio only where the gated code needs it:
+
+```toml
+pipeline = ["vector-store", "dep:xberg", "xberg/chunking", "dep:futures"]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, optional = true }
+```
+
+and gate any other `tokio::` use in the pipeline module behind `#[cfg(not(target_arch = "wasm32"))]`.
 
 - [ ] **Step 5: Run to verify pass (native) and wasm compiles**
 
@@ -385,6 +410,27 @@ Implement `xberg_rag::Embedder` over an injected JS object, suspending on its as
 **Interfaces:**
 - Consumes: injected JS `{ embed(texts: string[]): Promise<Float32Array[]> }`.
 - Produces: `pub struct JsEmbedder` implementing `xberg_rag::Embedder`; `JsEmbedder::new(js_obj: js_sys::Object) -> JsEmbedder`.
+
+- [ ] **Step 0a: Add `rlib` to `xberg-wasm` crate-type (required for integration tests)**
+
+`xberg-wasm` is currently `crate-type = ["cdylib"]` only (Cargo.toml:29). Integration tests under `tests/` link against the crate as an `rlib` and will FAIL to link without it (the `wasm-constraints` doc mandates `["cdylib", "rlib"]`). This manifest is Alef-generated — edit `alef.toml` so the generated `[lib]` emits both, then `task alef:generate`:
+
+```toml
+[lib]
+crate-type = ["cdylib", "rlib"]
+```
+
+Verify: `grep -A1 '\[lib\]' crates/xberg-wasm/Cargo.toml` shows `["cdylib", "rlib"]`.
+
+- [ ] **Step 0b: Add the `xberg-rag` dependency to `xberg-wasm`**
+
+The bridges use `xberg_rag::{Embedder, VectorStore, RagError, ...}`; `xberg-wasm` has no `xberg-rag` dependency yet. Add it via `alef.toml` (generated manifest), ORT-free features only:
+
+```toml
+xberg-rag = { path = "../xberg-rag", default-features = false, features = ["vector-store", "pipeline"] }
+```
+
+Run `task alef:generate`; verify `xberg-rag` appears under `[dependencies]` in `crates/xberg-wasm/Cargo.toml`. Also add `async-trait` and `serde-wasm-bindgen` if not already present (serde-wasm-bindgen is already a dep; async-trait is already a dep).
 
 - [ ] **Step 1: Write the failing wasm test**
 
@@ -618,4 +664,11 @@ git commit -m "test(wasm): PII/redaction parity guardrail"
 
 - **Spec coverage:** §2 crate structure → Tasks 1,4,5,6,7. §3 API contract → Task 7. §4 injection seam/JSPI → Tasks 4,5,6. §5 capability placement → Tasks 6,7. §6 anon crypto → Task 2. §7 data flow → Task 7. §9 testing → Tasks 2–8. §A ner-candle-wasm → Task 1.
 - **Open risk carried from spec:** Task 1 is a genuine build-validation gate; if Candle-wasm cannot compile, in-binary NER defers and Task 6's fallback tests become `#[ignore]` with the injected path remaining primary. This is explicit, not a placeholder.
-- **Type consistency:** `JsEmbedder`/`JsVectorStore`/`resolve_ner`/`resolve_ocr`/`ingest_document_local`/`encrypt_map`/`decrypt_map` used consistently across tasks. Bridge error mapping targets `RagError::Backend` — the implementer must confirm its exact constructor in `error.rs` (noted inline).
+- **Type consistency:** `JsEmbedder`/`JsVectorStore`/`resolve_ner`/`resolve_ocr`/`ingest_document_local`/`encrypt_map`/`decrypt_map` used consistently across tasks. Bridge error mapping targets `RagError::Backend(Box<dyn Error + Send + Sync>)` (verified error.rs:113) — `String.into()` works.
+
+- **Review corrections applied (2026-07-02):**
+  - **H1** scrypt cost fixed to `Params::new(14, ...)` (N=16384) to match Node `scryptSync` defaults used by `rehydration.ts` — the earlier N=32768 (2^15) would never decrypt existing maps. (Project `pii-pipeline` rule says 32768; the shipped TS uses the default 16384 — code is authoritative for on-disk compat. If the team wants 32768, that's a separate re-encryption migration + TS change.)
+  - **H2** Task 4 Step 0a adds `crate-type = ["cdylib", "rlib"]` via `alef.toml` — integration tests need the `rlib`.
+  - **H3** Task 4 Step 0b adds the `xberg-rag` dependency to `xberg-wasm` (was missing).
+  - **M1** Task 3 now gates `ingest_document` (spawn_blocking) and `tokio` off wasm.
+  - **M4** async mechanism is standard `wasm-bindgen` (`JsFuture`), not JSPI — see the Mechanism note at the top; browser-portable, Chrome/Edge is a product (WebGPU/OPFS/COEP) choice only.

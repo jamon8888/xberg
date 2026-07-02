@@ -45,9 +45,10 @@ Package: `packages/xberg-wasm-runtime/` (TypeScript, ESM). It exports factory fu
 - Exposes `warm(models[])` and `status()` — mirrors the existing MCP `WarmupManager` responsibilities.
 - Sets `ort.env.wasm.wasmPaths` to self-hosted ORT binaries so no CDN dependency at runtime.
 
-### 6. JSPI shim (`jspi.ts`)
-- Wraps each async factory so the engine's JSPI-suspending Rust calls resolve correctly (`WebAssembly.Suspending` on imports, `WebAssembly.promising` on the engine's exported entrypoints).
-- Enforces **single-flight per engine instance** (JSPI has no re-entrancy) — serializes calls on one handle, documented and asserted.
+### 6. Async binding shim (`async_shim.ts`)
+> **Mechanism Correction (2026-07-02 review):** The engine bridges use **standard async `wasm-bindgen`** (`JsFuture` over the injected JS Promises), not JavaScript Promise Integration. So this component does **not** need `WebAssembly.Suspending`/`promising` — the injected factories just return objects with `async` methods returning Promises, and `wasm-bindgen-futures` awaits them. This works in all modern browsers and Node.
+- Provides the thin adapter that shapes each factory's `async` methods to the exact names/signatures the engine expects (`embed`, `upsertDocument`, `query`, `ner`, `ocr`, …).
+- Enforces **single-flight per engine instance** — the engine holds `&self` across an `await`, so overlapping calls on one handle must be serialized by the caller. Documented and asserted here. (If a future revision adopts true JSPI for a sync-Rust path, re-entrancy limits would apply then; not now.)
 
 ## Architecture / data flow
 
@@ -83,4 +84,4 @@ frontend (D or E)
 
 - **COOP/COEP headers** required by the browser host (D) for SharedArrayBuffer / multithreaded ORT-Web and OPFS SQLite — without them ORT silently runs single-threaded and wa-sqlite OPFS is unavailable.
 - All inference + store operations run **off the main thread** (Worker).
-- Chrome/Edge target (JSPI); no Safari/Firefox.
+- Chrome/Edge is the **product** target (WebGPU + OPFS SQLite + COOP/COEP), not an async-mechanism limit — see the Mechanism Correction in §6. The async engine layer is browser-portable; broadening to Safari/Firefox is gated only by WebGPU/OPFS maturity, not by the bridge design.
