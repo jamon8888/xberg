@@ -57,14 +57,14 @@ kotlin {
 dependencies {
 
     // Jackson for JSON assertion helpers
-    testImplementation("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
-    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.2")
+    testImplementation("com.fasterxml.jackson.core:jackson-annotations:2.22.0")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.22.0")
+    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.22.0")
 
     // jackson-module-kotlin registers constructors/properties for Kotlin data
     // classes, which have no default constructor and cannot be deserialized by
     // plain Jackson without this module.
-    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
+    testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.0")
 
     // jspecify for null-safety annotations on wrapped types
     testImplementation("org.jspecify:jspecify:1.0.0")
@@ -142,7 +142,6 @@ tasks.withType<Test> {
 
     // Resolve the native library location (e.g., ../../target/release)
     val libPath = System.getProperty("kb.lib.path") ?: "${rootDir}/../../target/release"
-    systemProperty("java.library.path", libPath)
     systemProperty("jna.library.path", libPath)
 
     // Resolve fixture paths (e.g. "docx/fake.docx") against test_documents/
@@ -156,11 +155,11 @@ tasks.withType<Test> {
         } else {
             "linux"
         }
-        systemProperty(
-            "java.library.path",
-            project.layout.projectDirectory.dir("src/test/resources/host-jni/$hostPlatform").asFile.absolutePath
-        )
+        val hostedPath = project.layout.projectDirectory.dir("src/test/resources/host-jni/$hostPlatform").asFile.absolutePath
+        systemProperty("java.library.path", "$hostedPath:$libPath")
         dependsOn("copyHostJni")
+    } else {
+        systemProperty("java.library.path", libPath)
     }
 }
 
