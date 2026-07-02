@@ -76,7 +76,7 @@ impl RehydrationStore for SqliteRehydrationStore {
         let row_id = id.clone();
         let created_at = now_unix();
         tokio::task::spawn_blocking(move || -> StoreResult<()> {
-            let conn = conn.lock().expect("rehydration db mutex poisoned");
+            let conn = conn.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             conn.execute(
                 "INSERT INTO rehydration_maps (tenant, id, blob, created_at) VALUES (?1, ?2, ?3, ?4)
                  ON CONFLICT(tenant, id) DO UPDATE SET blob = excluded.blob, created_at = excluded.created_at",
@@ -95,7 +95,7 @@ impl RehydrationStore for SqliteRehydrationStore {
         let tenant = ctx.tenant.0.clone();
         let row_id = id.0.clone();
         tokio::task::spawn_blocking(move || -> StoreResult<Option<Vec<u8>>> {
-            let conn = conn.lock().expect("rehydration db mutex poisoned");
+            let conn = conn.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             let mut stmt = conn
                 .prepare("SELECT blob FROM rehydration_maps WHERE tenant = ?1 AND id = ?2")
                 .map_err(backend_err)?;
@@ -114,7 +114,7 @@ impl RehydrationStore for SqliteRehydrationStore {
         let tenant = ctx.tenant.0.clone();
         let row_id = id.0.clone();
         tokio::task::spawn_blocking(move || -> StoreResult<bool> {
-            let conn = conn.lock().expect("rehydration db mutex poisoned");
+            let conn = conn.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             let changed = conn
                 .execute(
                     "DELETE FROM rehydration_maps WHERE tenant = ?1 AND id = ?2",
