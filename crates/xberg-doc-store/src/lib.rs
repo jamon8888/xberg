@@ -14,6 +14,7 @@
 //! - `sqlite`: durable [`backends::sqlite::SqliteRehydrationStore`] (WAL-mode
 //!   `rusqlite`, tenant + id primary key).
 
+pub mod backends;
 pub mod error;
 pub mod rehydration;
 pub mod tenant;
