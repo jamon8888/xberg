@@ -1,8 +1,15 @@
 //! Encrypted rehydration map: token → original PII text.
 //!
 //! Wire format: `XPII\x01` magic + 16-byte salt + 12-byte nonce + 16-byte GCM
-//! tag + ciphertext. Key derivation is scrypt(passphrase, salt, N=2^15,
+//! tag + ciphertext. Key derivation is scrypt(passphrase, salt, N=2^14,
 //! r=8, p=1) → 32 bytes.
+//!
+//! N=2^14 (16384) matches Node's `scryptSync(passphrase, salt, 32)`
+//! **default** cost parameter, which is what `mcp-server/src/redaction/
+//! rehydration.ts` calls (no options passed). The container format has
+//! no room to record the cost parameter, so this value must match the
+//! TypeScript side exactly or existing rehydration maps become
+//! undecryptable. See `decrypts_map_produced_by_node_scrypt_sync_default`.
 
 use std::collections::HashMap;
 
@@ -21,7 +28,7 @@ const SALT_LEN: usize = 16;
 const NONCE_LEN: usize = 12;
 const TAG_LEN: usize = 16;
 const KEY_LEN: usize = 32;
-const SCRYPT_LOG_N: u8 = 15;
+const SCRYPT_LOG_N: u8 = 14;
 const SCRYPT_R: u32 = 8;
 const SCRYPT_P: u32 = 1;
 
@@ -132,5 +139,24 @@ mod tests {
         let map = HashMap::new();
         let encrypted = encrypt_map(&map, "x").expect("encrypt empty map");
         assert_eq!(&encrypted[..5], b"XPII\x01");
+    }
+
+    /// Cross-language format compatibility: `mcp-server/src/redaction/rehydration.ts`
+    /// calls Node's `scryptSync(passphrase, salt, 32)` with no options, which uses
+    /// Node's default cost parameter N=2^14 (16384). This blob was generated with
+    /// that exact primitive (Node `node:crypto`, not this crate) to prove the two
+    /// implementations agree on wire format — including scrypt cost — without
+    /// vendoring a Node dependency into the Rust test suite.
+    #[test]
+    fn decrypts_map_produced_by_node_scrypt_sync_default() {
+        let hex = "58504949019aea89fea7314e70ed3283d52011dd0046fd69d99f5438f6d82396f9ecbf3dcc6b0898b0dfe5e5165496187f6e76cdcd1e61cf3c50424bf8682f77aee2b8a93e5b72e6072cbdfdd29e95a1ffc8b94afc864220ed429b26a335e93592553f2bec6d9d401b431b8535";
+        let blob: Vec<u8> = (0..hex.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).expect("valid hex"))
+            .collect();
+        let map = decrypt_map(&blob, "correct horse battery staple")
+            .expect("must decrypt a blob produced by Node's scryptSync default (N=16384)");
+        assert_eq!(map.get("[EMAIL_1]").map(String::as_str), Some("alice@example.com"));
+        assert_eq!(map.get("[PERSON_1]").map(String::as_str), Some("Alice Smith"));
     }
 }
