@@ -59,226 +59,120 @@ git commit -m "chore(wasm): confirm ner-candle-wasm in engine target set"
 
 ---
 
-### Task 2: Port rehydration crypto to Rust (`anon` module)
+### Task 2: Wire rehydration crypto into `xberg-wasm` (`anon` module)
+
+> **Correction (2026-07-03, discovered during execution):** The AES-256-GCM
+> encrypted-map crypto this task originally asked to write from scratch
+> **already exists** — `crates/xberg/src/text/redaction/rehydration.rs`
+> (`encrypt_map`/`decrypt_map`, `XPII\x01 | salt(16) | nonce(12) | tag(16) |
+> ciphertext` format, feature `redaction-rehydrate` with `aes-gcm`+`scrypt`
+> already wired), shipped by a separate, already-completed plan
+> (`lora-privacy-api`, Task 11). Do **NOT** create a new `anon_crypto.rs`
+> module — it would duplicate this exactly. While verifying reuse, a real
+> cross-language bug was found and fixed: the existing module used
+> `SCRYPT_LOG_N=15` (32768), but `mcp-server/src/redaction/rehydration.ts`
+> calls Node's `scryptSync(passphrase, salt, 32)` with no options → Node's
+> default N=2^14 (16384) — the two shipped implementations were NOT
+> byte-compatible. Fixed to N=14 (commit `1e905c9`), confirmed via a new
+> cross-language fixture test decrypting a real Node-produced blob. This
+> task's remaining scope is now: (1) enable `redaction-rehydrate` for wasm
+> (verified wasm32-compatible: `aes-gcm`/`scrypt`/`OsRng` all compile clean,
+> 23 crates, 0 errors), (2) add a thin `xberg-wasm/src/anon.rs` wrapper
+> around the existing `xberg::text::redaction::rehydration::{encrypt_map,
+> decrypt_map}` for wasm-bindgen consumption — not a reimplementation.
 
 Move the AES-256-GCM encrypted-map crypto from TypeScript (`mcp-server/src/redaction/rehydration.ts`) into pure Rust so it runs in-wasm and in Node identically. This is the most self-contained task; do it early.
 
 **Files:**
-- Create: `crates/xberg/src/text/anon_crypto.rs`
-- Modify: `crates/xberg/src/text/mod.rs` (add `pub mod anon_crypto;` under the `redaction` feature)
-- Modify: `crates/xberg/Cargo.toml` (add `aes-gcm`, `scrypt` under the `redaction` feature — via `alef.toml`/workspace deps as appropriate)
-- Test: `crates/xberg/src/text/anon_crypto.rs` (`#[cfg(test)]` module)
+- Modify: `crates/xberg/Cargo.toml` (or `alef.toml`): add `redaction-rehydrate` to the `wasm-target` aggregate.
+- Create: `crates/xberg-wasm/src/anon.rs` — thin wasm-bindgen wrapper over the existing `xberg::text::redaction::rehydration` module.
+- Modify: `crates/xberg-wasm/src/lib.rs` (add `mod anon;`).
+- Test: `crates/xberg-wasm/tests/anon_bridge.rs` or `wasm-bindgen-test` module in `anon.rs`.
 
 **Interfaces:**
-- Produces:
+- Consumes: `xberg::text::redaction::rehydration::{encrypt_map, decrypt_map, RehydrationMap}` (already exists, already tested, already byte-compatible with the TS format as of commit `1e905c9`).
+- Produces (wasm-bindgen-friendly wrapper, exact shape decided during implementation — e.g. `Vec<u8>` in/out, JSON string in/out for the map, or a `js_sys::Map` — pick whichever integrates most naturally with the `XbergEngine.rehydrate()` signature from the spec: `rehydrate(doc, mapBytes, passphrase) -> text`).
+
+**Original from-scratch spec (kept for reference — do NOT implement, the module above already satisfies this contract):**
   - `pub fn encrypt_map(map: &BTreeMap<String, String>, passphrase: &str) -> Result<Vec<u8>, AnonError>`
   - `pub fn decrypt_map(bytes: &[u8], passphrase: &str) -> Result<BTreeMap<String, String>, AnonError>`
   - `pub enum AnonError { BadMagic, Truncated, Decrypt, Serde(String) }` (impl `std::error::Error`)
 
-- [ ] **Step 1: Add crypto dependencies**
+- [ ] **Step 1: Add `redaction-rehydrate` to the wasm-target aggregate**
 
-In `crates/xberg/Cargo.toml` `[dependencies]` (or `alef.toml` source + `[workspace.dependencies]`):
+`redaction-rehydrate` (`crates/xberg/Cargo.toml`) already declares `["redaction", "dep:aes-gcm", "dep:scrypt"]`. It is verified wasm32-compatible (`cargo build -p xberg --no-default-features --features redaction-rehydrate --target wasm32-unknown-unknown` succeeds, 23 crates, 0 errors). Add it to the `wasm-target` aggregate (via `alef.toml` if `xberg`'s Cargo.toml is generated — check first) so the wasm engine build picks it up by default.
 
-```toml
-aes-gcm = { version = "0.10", optional = true }
-scrypt = { version = "0.11", default-features = false, optional = true }
-```
+Run: `grep -A5 "^wasm-target = \[" crates/xberg/Cargo.toml` and add `"redaction-rehydrate"` to the list.
 
-Add both to the `redaction` feature list: `redaction = [..., "dep:aes-gcm", "dep:scrypt"]`.
+- [ ] **Step 2: Write the failing wasm-bindgen wrapper test**
 
-- [ ] **Step 2: Write the failing round-trip test**
-
-Create `crates/xberg/src/text/anon_crypto.rs` with only the test first:
+Create `crates/xberg-wasm/src/anon.rs`. Write only the test module first:
 
 ```rust
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeMap;
 
     #[test]
-    fn encrypt_then_decrypt_roundtrips() {
-        let mut map = BTreeMap::new();
+    fn round_trips_through_wrapper() {
+        let mut map = std::collections::HashMap::new();
         map.insert("[EMAIL_1]".to_string(), "jane@doe.com".to_string());
-        map.insert("[PHONE_1]".to_string(), "+15551234567".to_string());
-
-        let blob = encrypt_map(&map, "correct horse battery staple").unwrap();
-        assert_eq!(&blob[0..5], b"XPII\x01");
-
-        let back = decrypt_map(&blob, "correct horse battery staple").unwrap();
+        let blob = encrypt_map_wasm(&map, "correct horse battery staple").expect("encrypt");
+        let back = decrypt_map_wasm(&blob, "correct horse battery staple").expect("decrypt");
         assert_eq!(back, map);
-    }
-
-    #[test]
-    fn wrong_passphrase_fails_auth() {
-        let mut map = BTreeMap::new();
-        map.insert("[EMAIL_1]".to_string(), "jane@doe.com".to_string());
-        let blob = encrypt_map(&map, "right").unwrap();
-        assert!(matches!(decrypt_map(&blob, "wrong"), Err(AnonError::Decrypt)));
-    }
-
-    #[test]
-    fn rejects_bad_magic() {
-        assert!(matches!(decrypt_map(b"NOPE............", "x"), Err(AnonError::BadMagic)));
     }
 }
 ```
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `cargo test -p xberg --features redaction anon_crypto 2>&1 | tail -20`
-Expected: FAIL — `encrypt_map`/`decrypt_map`/`AnonError` not found.
+Run: `cargo test -p xberg-wasm --features redaction anon 2>&1 | tail -20`
+Expected: FAIL — `encrypt_map_wasm`/`decrypt_map_wasm` not found.
 
-- [ ] **Step 4: Implement the module**
-
-Prepend to `crates/xberg/src/text/anon_crypto.rs` (mirrors `rehydration.ts` byte layout exactly):
+- [ ] **Step 4: Implement the thin wrapper**
 
 ```rust
-//! AES-256-GCM encrypted rehydration maps. Byte-compatible with the historic
-//! TypeScript `XPII\x01 | salt(16) | iv(12) | tag(16) | ciphertext` container.
+//! Thin wasm-bindgen wrapper over `xberg::text::redaction::rehydration`.
+//! The crypto itself (AES-256-GCM, scrypt key derivation, XPII\x01 wire
+//! format) lives in xberg core — this module only adapts types for the
+//! wasm boundary. Do not reimplement the crypto here.
 
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
-use aes_gcm::aead::{Aead, KeyInit, Payload};
-use aes_gcm::{Aes256Gcm, Key, Nonce};
-use scrypt::{scrypt, Params};
+use xberg::text::redaction::rehydration::{decrypt_map, encrypt_map, RehydrationMap};
 
-const MAGIC: &[u8; 5] = b"XPII\x01";
-const SALT_LEN: usize = 16;
-const IV_LEN: usize = 12;
-const TAG_LEN: usize = 16;
-const KEY_LEN: usize = 32;
-
-#[derive(Debug)]
-pub enum AnonError {
-    BadMagic,
-    Truncated,
-    Decrypt,
-    Serde(String),
+pub fn encrypt_map_wasm(map: &HashMap<String, String>, passphrase: &str) -> Result<Vec<u8>, String> {
+    let map: RehydrationMap = map.clone();
+    encrypt_map(&map, passphrase).map_err(|e| e.to_string())
 }
 
-impl std::fmt::Display for AnonError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            AnonError::BadMagic => write!(f, "not an XPII map file"),
-            AnonError::Truncated => write!(f, "map file truncated"),
-            AnonError::Decrypt => write!(f, "decryption failed (wrong passphrase or corrupt data)"),
-            AnonError::Serde(e) => write!(f, "map (de)serialization failed: {e}"),
-        }
-    }
-}
-impl std::error::Error for AnonError {}
-
-fn derive_key(passphrase: &str, salt: &[u8]) -> [u8; KEY_LEN] {
-    // scrypt N=2^14 (16384), r=8, p=1 → matches Node `scryptSync(pw, salt, 32)`
-    // DEFAULTS as used by rehydration.ts (no options passed). NOT 2^15: the
-    // XPII container does not store cost params, so this MUST equal Node's
-    // default cost or existing map files fail to decrypt. (The CLAUDE.md
-    // `pii-pipeline` note says N=32768, but the shipped TS code uses the
-    // default 16384 — the code is authoritative for on-disk compatibility.)
-    let params = Params::new(14, 8, 1, KEY_LEN).expect("valid scrypt params");
-    let mut key = [0u8; KEY_LEN];
-    scrypt(passphrase.as_bytes(), salt, &params, &mut key).expect("scrypt into 32 bytes");
-    key
-}
-
-fn random_bytes<const N: usize>() -> [u8; N] {
-    let mut buf = [0u8; N];
-    getrandom::fill(&mut buf).expect("getrandom");
-    buf
-}
-
-pub fn encrypt_map(map: &BTreeMap<String, String>, passphrase: &str) -> Result<Vec<u8>, AnonError> {
-    let plain = serde_json::to_vec(map).map_err(|e| AnonError::Serde(e.to_string()))?;
-    let salt = random_bytes::<SALT_LEN>();
-    let iv = random_bytes::<IV_LEN>();
-    let key = derive_key(passphrase, &salt);
-    let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
-    // aes-gcm appends the 16-byte tag to the ciphertext; the TS layout stores tag
-    // BEFORE ciphertext, so split it back out.
-    let mut ct_and_tag = cipher
-        .encrypt(Nonce::from_slice(&iv), Payload { msg: &plain, aad: &[] })
-        .map_err(|_| AnonError::Decrypt)?;
-    let tag = ct_and_tag.split_off(ct_and_tag.len() - TAG_LEN);
-
-    let mut out = Vec::with_capacity(MAGIC.len() + SALT_LEN + IV_LEN + TAG_LEN + ct_and_tag.len());
-    out.extend_from_slice(MAGIC);
-    out.extend_from_slice(&salt);
-    out.extend_from_slice(&iv);
-    out.extend_from_slice(&tag);
-    out.extend_from_slice(&ct_and_tag);
-    Ok(out)
-}
-
-pub fn decrypt_map(bytes: &[u8], passphrase: &str) -> Result<BTreeMap<String, String>, AnonError> {
-    let header = MAGIC.len() + SALT_LEN + IV_LEN + TAG_LEN;
-    if bytes.len() < header {
-        return if bytes.len() >= MAGIC.len() && &bytes[..MAGIC.len()] != MAGIC {
-            Err(AnonError::BadMagic)
-        } else {
-            Err(AnonError::Truncated)
-        };
-    }
-    if &bytes[..MAGIC.len()] != MAGIC {
-        return Err(AnonError::BadMagic);
-    }
-    let mut off = MAGIC.len();
-    let salt = &bytes[off..off + SALT_LEN];
-    off += SALT_LEN;
-    let iv = &bytes[off..off + IV_LEN];
-    off += IV_LEN;
-    let tag = &bytes[off..off + TAG_LEN];
-    off += TAG_LEN;
-    let ct = &bytes[off..];
-
-    let key = derive_key(passphrase, salt);
-    let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(&key));
-    // Re-append tag to match aes-gcm's expected [ciphertext || tag] layout.
-    let mut ct_and_tag = Vec::with_capacity(ct.len() + TAG_LEN);
-    ct_and_tag.extend_from_slice(ct);
-    ct_and_tag.extend_from_slice(tag);
-    let plain = cipher
-        .decrypt(Nonce::from_slice(iv), Payload { msg: &ct_and_tag, aad: &[] })
-        .map_err(|_| AnonError::Decrypt)?;
-    serde_json::from_slice(&plain).map_err(|e| AnonError::Serde(e.to_string()))
+pub fn decrypt_map_wasm(bytes: &[u8], passphrase: &str) -> Result<HashMap<String, String>, String> {
+    decrypt_map(bytes, passphrase).map_err(|e| e.to_string())
 }
 ```
 
-Add `pub mod anon_crypto;` to `crates/xberg/src/text/mod.rs` gated with `#[cfg(feature = "redaction")]`. Ensure `getrandom` is a dependency of `xberg` (it is transitively; add an explicit `getrandom = "0.3"` with `features=["wasm_js"]` under the wasm target if the build complains).
+(`RehydrationMap` is already `HashMap<String, String>` per `rehydration.rs:17` — the `map.clone()` above is likely removable once you check whether `RehydrationMap` and `HashMap<String, String>` are literally the same type alias; if so, drop the wrapper struct entirely and re-export `encrypt_map`/`decrypt_map` directly with `String` error mapping. Keep whichever is less code.)
+
+Add `mod anon;` to `crates/xberg-wasm/src/lib.rs` (verify against `alef.toml` whether `lib.rs` is hand-owned or generated before editing — same check as prior tasks).
+
+Add `xberg-wasm`'s `xberg` dependency features to include `redaction-rehydrate` if not already covered by `wasm-target` (`crates/xberg-wasm/Cargo.toml`, likely via `alef.toml`).
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `cargo test -p xberg --features redaction anon_crypto 2>&1 | tail -20`
-Expected: PASS (3 tests).
+Run: `cargo test -p xberg-wasm --features redaction anon 2>&1 | tail -20`
+Expected: PASS.
 
-- [ ] **Step 6: Add the TS-compatibility cross-check fixture**
+- [ ] **Step 6: Verify wasm32 build**
 
-Generate a map file with the existing TS code and assert Rust decrypts it. Add:
-
-```rust
-#[test]
-fn decrypts_map_produced_by_typescript() {
-    // Fixture bytes produced by mcp-server encryptMapFile(map, "pw") with
-    // map = {"[EMAIL_1]":"a@b.com"}. Committed as a hex constant to prove
-    // cross-language format compatibility.
-    let hex = include_str!("testdata/ts_map_email.hex");
-    let bytes = hex_decode(hex.trim());
-    let back = decrypt_map(&bytes, "pw").unwrap();
-    assert_eq!(back.get("[EMAIL_1]").map(String::as_str), Some("a@b.com"));
-}
-```
-
-Generate the fixture (build the TS server first — `dist/` may not exist): `cd mcp-server && npm run build && node -e 'import("./dist/redaction/rehydration.js").then(m=>{const fs=require("fs");m.encryptMapFile("/tmp/x.xpii",{"[EMAIL_1]":"a@b.com"},"pw");console.log(fs.readFileSync("/tmp/x.xpii").toString("hex"))})'` → save stdout to `crates/xberg/src/text/testdata/ts_map_email.hex`. Add a tiny `hex_decode` test helper.
-
-Run: `cargo test -p xberg --features redaction anon_crypto`
-Expected: PASS (4 tests). If the cross-check fails, the scrypt cost params differ — reconcile `Params` with the Node `scryptSync` cost actually used, then re-run.
+Run: `cargo build -p xberg-wasm --target wasm32-unknown-unknown 2>&1 | tail -40`
+Expected: SUCCESS (or, if it hits the pre-existing unrelated `ocr-wasm`/tree-sitter-wasm build issues tracked separately — `task_c3cde226` and the zsh grammar issue — confirm the failure is confined to those, not `anon.rs`, by checking the error is not in `anon.rs`/`redaction`/`rehydration` output).
 
 - [ ] **Step 7: Commit**
 
 ```bash
 prek run --all-files
-git add crates/xberg/src/text/anon_crypto.rs crates/xberg/src/text/mod.rs crates/xberg/src/text/testdata/ crates/xberg/Cargo.toml alef.toml
-git commit -m "feat(redaction): pure-Rust AES-GCM rehydration map crypto"
+git add crates/xberg-wasm/src/anon.rs crates/xberg-wasm/src/lib.rs crates/xberg-wasm/Cargo.toml alef.toml crates/xberg/Cargo.toml
+git commit -m "feat(wasm): wire rehydration crypto into xberg-wasm engine"
 ```
 
 ---
