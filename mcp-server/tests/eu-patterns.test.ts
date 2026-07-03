@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { scanEuStructured, scanArt9Keywords, scanEuPatterns } from "../src/redaction/eu-patterns.js";
+import {
+  scanEuStructured,
+  scanArt9Keywords,
+  scanEuPatterns,
+  overlapsExisting,
+} from "../src/redaction/eu-patterns.js";
 
 describe("scanEuStructured", () => {
   it("detects a French INSEE number", () => {
@@ -109,5 +114,26 @@ describe("scanEuPatterns", () => {
 
   it("returns an empty array for text with no EU PII", () => {
     expect(scanEuPatterns("The weather is nice today.")).toHaveLength(0);
+  });
+});
+
+describe("overlapsExisting", () => {
+  it("returns true when spans overlap", () => {
+    const existing = [{ category: "A", original: "x", start: 5, end: 10, confidence: 0.9 }];
+    expect(overlapsExisting(existing, 7, 12)).toBe(true);
+  });
+
+  it("returns false when spans are adjacent but not overlapping", () => {
+    const existing = [{ category: "A", original: "x", start: 5, end: 10, confidence: 0.9 }];
+    expect(overlapsExisting(existing, 10, 15)).toBe(false);
+  });
+
+  it("returns true when a span is fully contained within another", () => {
+    const existing = [{ category: "A", original: "x", start: 0, end: 20, confidence: 0.9 }];
+    expect(overlapsExisting(existing, 5, 10)).toBe(true);
+  });
+
+  it("returns false for an empty existing list", () => {
+    expect(overlapsExisting([], 0, 5)).toBe(false);
   });
 });
