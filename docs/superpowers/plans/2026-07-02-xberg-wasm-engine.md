@@ -28,14 +28,16 @@
 
 ### Task 1: Consume `ner-candle-wasm` (delivered by plan A)
 
-**Prerequisite:** [plan A — ner-candle-wasm](2026-07-02-ner-candle-wasm.md) must be complete. Plan A makes `xberg-gliner`'s tokenizer surface ORT-free, adds `Gliner2Candle::from_bytes`, and ships the `ner-candle-wasm` feature on `xberg` (in `wasm-target`) plus the `WasmCandleNer` adapter. This task only confirms the engine build picks it up. (Do NOT "gate xberg-gliner out" — plan A keeps its tokenizer/encoder; that earlier instruction was wrong.)
+**Prerequisite:** [plan A — ner-candle-wasm](2026-07-02-ner-candle-wasm.md) must be complete. Plan A makes `xberg-gliner`'s tokenizer surface ORT-free, adds `Gliner2Candle::from_bytes`, and ships the `ner-candle-wasm` feature on `xberg` (in `wasm-target`). This task only confirms the engine build picks it up. (Do NOT "gate xberg-gliner out" — plan A keeps its tokenizer/encoder; that earlier instruction was wrong.)
+
+> **Correction (post-A review):** plan A did NOT create a new `WasmCandleNer` type in a `ner_candle_wasm` module — that would have duplicated existing logic. Instead A extended the existing `CandleBackend` (`crates/xberg/src/text/ner/candle.rs`, implements the `NerBackend` trait) with a `from_bytes` constructor and a `#[cfg(target_arch = "wasm32")]` branch in `detect()` that calls `Gliner2Candle::extract_ner` directly (no `tokio::task::block_in_place`, which is native-only). The `ner-candle-wasm` Cargo feature gates this in without pulling `tokio-runtime`. Wherever this plan says `WasmCandleNer`/`ner_candle_wasm::`, read it as `xberg::text::ner::candle::CandleBackend`.
 
 **Files:**
 - Verify only: `crates/xberg-wasm/Cargo.toml` lists `ner-candle-wasm` via `wasm-target`.
 - Test: build command (compile-validation).
 
 **Interfaces:**
-- Consumes: `xberg::text::ner_candle_wasm::WasmCandleNer` (from plan A Task 3), used later by Task 6's in-binary NER fallback.
+- Consumes: `xberg::text::ner::candle::CandleBackend` (from plan A Task 3 — implements `NerBackend`, has a `from_bytes` constructor and a wasm32-safe synchronous `detect()` path), used later by Task 6's in-binary NER fallback.
 
 - [ ] **Step 1: Confirm the feature is wired**
 
@@ -582,7 +584,7 @@ Optional injected `ner()`/`ocr()`; fall back to in-binary Candle / Tesseract whe
 
 - [ ] **Step 2: Run to verify they fail** — `wasm-pack test --headless --chrome crates/xberg-wasm -- --test hybrid_dispatch`; Expected: FAIL.
 
-- [ ] **Step 3: Implement `resolve_ner`/`resolve_ocr`** — `match injected { Some(obj) => call JS via JSFuture, None => call in-binary path }`. In-binary NER calls `xberg`'s Candle NER entrypoint under `#[cfg(feature = "ner-candle-wasm")]`, else returns `Err(JsValue::from_str("NER unavailable: no injected backend and ner-candle-wasm disabled"))`. In-binary OCR calls the existing `ocr-wasm` Tesseract path already reachable from `xberg`.
+- [ ] **Step 3: Implement `resolve_ner`/`resolve_ocr`** — `match injected { Some(obj) => call JS via JSFuture, None => call in-binary path }`. In-binary NER, under `#[cfg(feature = "ner-candle-wasm")]`, constructs `xberg::text::ner::candle::CandleBackend::from_bytes(safetensors, tokenizer_json, encoder_config_json)` (model bytes supplied by the engine's config/injection descriptor — define where they come from as part of this step) and calls `NerBackend::detect(text, categories)` on it (async trait method; on wasm32 this internally runs the synchronous `extract_ner` directly, no `block_in_place`). Without the feature, or with no model bytes supplied, return `Err(JsValue::from_str("NER unavailable: no injected backend and ner-candle-wasm disabled"))`. In-binary OCR calls the existing `ocr-wasm` Tesseract path already reachable from `xberg`.
 
 - [ ] **Step 4: Run to verify they pass** — same command; Expected: PASS (fallback tests may be `#[ignore]` per Task 1 outcome).
 
