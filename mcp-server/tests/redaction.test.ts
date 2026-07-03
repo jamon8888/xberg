@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectPii, groupByCategory, detectPiiEu, dedupOverlapping } from "../src/redaction/detect.js";
+import { detectPii, groupByCategory, detectPiiEu, dedupOverlapping, buildPiiReport } from "../src/redaction/detect.js";
 import { applyRedaction } from "../src/redaction/redact.js";
 
 describe("detectPii", () => {
@@ -143,6 +143,55 @@ describe("detectPiiEu", () => {
     const result = detectPiiEu("Email: bob@example.com. He was diagnosed with cancer.", ["EMAIL"]);
     expect(result.some((f) => f.category === "EMAIL")).toBe(true);
     expect(result.some((f) => f.category === "SPECIAL_CATEGORY_HEALTH")).toBe(false);
+  });
+});
+
+describe("buildPiiReport", () => {
+  it("counts findings by pii-report category", () => {
+    const findings = [
+      { token: "[NAME_1]", category: "NAME", original: "John", start: 0, end: 4, confidence: 0.6 },
+      {
+        token: "[ID_NUMBER_1]",
+        category: "SSN",
+        original: "123-45-6789",
+        start: 10,
+        end: 21,
+        confidence: 0.9,
+      },
+    ];
+    const report = buildPiiReport(findings);
+    expect(report.personCount).toBe(1);
+    expect(report.idNumberCount).toBe(1);
+    expect(report.kAnonymityRisk).toBe("CRITICAL (direct identifiers present)");
+  });
+
+  it("reports LOW risk when nothing sensitive is present", () => {
+    const report = buildPiiReport([]);
+    expect(report.kAnonymityRisk).toBe("LOW");
+  });
+
+  it("reports HIGH risk for a quasi-identifier combination", () => {
+    const makeName = (i: number) => ({
+      token: `[NAME_${i}]`,
+      category: "NAME",
+      original: `Person${i}`,
+      start: i * 10,
+      end: i * 10 + 8,
+      confidence: 0.6,
+    });
+    const findings = [
+      ...[1, 2, 3, 4, 5, 6].map(makeName),
+      { token: "[DATE_1]", category: "DATE", original: "1990-01-01", start: 100, end: 110, confidence: 0.7 },
+      {
+        token: "[LOCATION_1]",
+        category: "LOCATION",
+        original: "Springfield",
+        start: 120,
+        end: 131,
+        confidence: 0.7,
+      },
+    ];
+    expect(buildPiiReport(findings).kAnonymityRisk).toBe("HIGH (quasi-identifier combination)");
   });
 });
 

@@ -9,6 +9,16 @@ export interface PiiFinding {
   confidence: number;
 }
 
+export interface PiiReport {
+  personCount: number;
+  dateCount: number;
+  locationCount: number;
+  contactCount: number;
+  idNumberCount: number;
+  entities: PiiFinding[];
+  kAnonymityRisk: string;
+}
+
 const PATTERNS: Array<{ category: string; pattern: RegExp; confidence: number }> = [
   { category: "EMAIL", pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, confidence: 0.95 },
   { category: "PHONE", pattern: /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, confidence: 0.85 },
@@ -145,4 +155,62 @@ export function detectPiiEu(text: string, filterCategories?: string[]): PiiFindi
   const generic = detectPii(text, filterCategories);
   const eu = scanEuPatterns(text).filter((f) => !filterCategories || filterCategories.includes(f.category));
   return dedupOverlapping([...generic, ...eu].sort((a, b) => a.start - b.start));
+}
+
+const ID_NUMBER_CATEGORIES = new Set([
+  "SSN",
+  "CREDIT_CARD",
+  "IBAN",
+  "NATIONAL_ID_FR",
+  "NATIONAL_ID_ES",
+  "NATIONAL_ID_IT",
+  "NATIONAL_ID_PL",
+  "NATIONAL_ID_NL",
+  "NATIONAL_ID_BE",
+  "TAX_ID_SIRET",
+  "TAX_ID_SIREN",
+  "TAX_ID_VAT",
+  "LICENSE_PLATE_EU",
+]);
+
+/**
+ * Summarize detected PII, including a k-anonymity risk assessment based on
+ * the presence and combination of direct/quasi identifiers. Mirrors anno's
+ * `pii::report()`.
+ */
+export function buildPiiReport(findings: PiiFinding[]): PiiReport {
+  let personCount = 0;
+  let dateCount = 0;
+  let locationCount = 0;
+  let contactCount = 0;
+  let idNumberCount = 0;
+  const uniqueNames = new Set<string>();
+
+  for (const finding of findings) {
+    if (finding.category === "NAME") {
+      personCount += 1;
+      uniqueNames.add(finding.original.toLowerCase());
+    } else if (finding.category === "DATE" || finding.category === "DATE_ISO" || finding.category === "DATE_MDY") {
+      dateCount += 1;
+    } else if (finding.category === "LOCATION") {
+      locationCount += 1;
+    } else if (finding.category === "EMAIL" || finding.category === "PHONE") {
+      contactCount += 1;
+    } else if (ID_NUMBER_CATEGORIES.has(finding.category)) {
+      idNumberCount += 1;
+    }
+  }
+
+  let kAnonymityRisk: string;
+  if (idNumberCount > 0) {
+    kAnonymityRisk = "CRITICAL (direct identifiers present)";
+  } else if (uniqueNames.size > 5 && dateCount > 0 && locationCount > 0) {
+    kAnonymityRisk = "HIGH (quasi-identifier combination)";
+  } else if (uniqueNames.size > 3) {
+    kAnonymityRisk = "MEDIUM (multiple names)";
+  } else {
+    kAnonymityRisk = "LOW";
+  }
+
+  return { personCount, dateCount, locationCount, contactCount, idNumberCount, entities: findings, kAnonymityRisk };
 }
