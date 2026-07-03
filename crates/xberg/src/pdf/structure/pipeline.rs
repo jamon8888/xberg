@@ -410,6 +410,84 @@ fn process_single_page(
     }
 }
 
+/// Multiple of the median line height a whitespace band must exceed to count
+/// as a paragraph break. Normal line pitch leaves well under one line height of
+/// whitespace; a blank line leaves more than one.
+const PARAGRAPH_GAP_HEIGHT_FACTOR: f32 = 1.5;
+
+/// Detect paragraph-break y-positions from horizontal whitespace bands.
+///
+/// Segments are clustered into visual lines after sorting by y — stream order
+/// is not positional (multi-column PDFs interleave columns, which a pairwise
+/// scan misreads as phantom gaps). A break is recorded only where the band
+/// between two consecutive lines is taller than
+/// [`PARAGRAPH_GAP_HEIGHT_FACTOR`] × the median line height: pure blank-line
+/// spacing. Bands between two monospace lines are skipped, because code
+/// listings legitimately contain blank lines inside one logical block.
+///
+/// Without this, the heuristic path only breaks paragraphs on font/bold/list
+/// changes, fusing visually separated blocks (standalone headings, display
+/// formulas) into surrounding prose.
+fn compute_paragraph_gap_ys(segments: &[SegmentData]) -> Vec<f32> {
+    if segments.len() < 2 {
+        return Vec::new();
+    }
+
+    let mut order: Vec<usize> = (0..segments.len()).collect();
+    order.sort_by(|&a, &b| {
+        segments[b]
+            .y
+            .partial_cmp(&segments[a].y)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    // One vertical band per visual line; a segment joins the current line when
+    // its y sits within half its own height of the line's anchor.
+    struct LineBand {
+        top: f32,
+        bottom: f32,
+        height: f32,
+        monospace: bool,
+        anchor_y: f32,
+    }
+    let mut lines: Vec<LineBand> = Vec::new();
+    for &i in &order {
+        let seg = &segments[i];
+        let tolerance = (seg.height * 0.5).max(1.0);
+        match lines.last_mut() {
+            Some(line) if (seg.y - line.anchor_y).abs() <= tolerance => {
+                line.top = line.top.max(seg.y + seg.height);
+                line.bottom = line.bottom.min(seg.y);
+                line.height = line.height.max(seg.height);
+                line.monospace &= seg.is_monospace;
+            }
+            _ => lines.push(LineBand {
+                top: seg.y + seg.height,
+                bottom: seg.y,
+                height: seg.height,
+                monospace: seg.is_monospace,
+                anchor_y: seg.y,
+            }),
+        }
+    }
+    if lines.len() < 2 {
+        return Vec::new();
+    }
+
+    let mut heights: Vec<f32> = lines.iter().map(|l| l.height).collect();
+    heights.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let gap_threshold = heights[heights.len() / 2] * PARAGRAPH_GAP_HEIGHT_FACTOR;
+
+    let mut gap_ys = Vec::new();
+    for pair in lines.windows(2) {
+        let gap = pair[0].bottom - pair[1].top;
+        if gap > gap_threshold && !(pair[0].monospace && pair[1].monospace) {
+            gap_ys.push((pair[0].bottom + pair[1].top) / 2.0);
+        }
+    }
+    gap_ys
+}
+
 /// Convert a flat list of text segments into grouped paragraphs.
 ///
 /// Groups consecutive segments by font changes, bold changes, list markers, and
@@ -1440,17 +1518,21 @@ pub(crate) fn extract_document_structure_from_segments(
     // heading roles are still respected via assigned_role on segments.
     let effective_layout_hints = layout_hints;
     let page_inputs: Vec<PageInput> = (0..page_count)
-        .map(|i| PageInput {
-            page_index: i,
-            struct_paragraphs: None,
-            heuristic_segments: std::mem::take(&mut all_page_segments[i]),
-            page_hints: effective_layout_hints.and_then(|h| h.get(i)).cloned(),
-            table_bboxes: extracted_table_bboxes_by_page.get(&i).cloned().unwrap_or_default(),
-            hint_validations: validations_by_page.get(&i).cloned().unwrap_or_default(),
-            needs_classify: false,
-            paragraph_gap_ys: Vec::new(),
-            include_headers,
-            include_footers,
+        .map(|i| {
+            let heuristic_segments = std::mem::take(&mut all_page_segments[i]);
+            let paragraph_gap_ys = compute_paragraph_gap_ys(&heuristic_segments);
+            PageInput {
+                page_index: i,
+                struct_paragraphs: None,
+                heuristic_segments,
+                page_hints: effective_layout_hints.and_then(|h| h.get(i)).cloned(),
+                table_bboxes: extracted_table_bboxes_by_page.get(&i).cloned().unwrap_or_default(),
+                hint_validations: validations_by_page.get(&i).cloned().unwrap_or_default(),
+                needs_classify: false,
+                paragraph_gap_ys,
+                include_headers,
+                include_footers,
+            }
         })
         .collect();
 
@@ -2592,6 +2674,77 @@ mod tests {
             baseline_y: 700.0,
             assigned_role: None,
         }
+    }
+
+    fn seg_at(text: &str, x: f32, y: f32, height: f32, monospace: bool) -> SegmentData {
+        SegmentData {
+            text: text.to_string(),
+            x,
+            y,
+            width: 200.0,
+            height,
+            font_size: height,
+            is_bold: false,
+            is_italic: false,
+            is_monospace: monospace,
+            baseline_y: y,
+            assigned_role: None,
+        }
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_detects_blank_line_gap() {
+        // Two 12pt lines with normal pitch (whitespace 4pt), then a blank-line
+        // jump (whitespace 28pt > 1.5×12): exactly one gap, between lines 2 and 3.
+        let segments = vec![
+            seg_at("line one", 10.0, 700.0, 12.0, false),
+            seg_at("line two", 10.0, 684.0, 12.0, false),
+            seg_at("new paragraph", 10.0, 644.0, 12.0, false),
+        ];
+        let gaps = compute_paragraph_gap_ys(&segments);
+        assert_eq!(gaps.len(), 1, "only the blank-line jump is a paragraph gap");
+        assert!(gaps[0] > 656.0 && gaps[0] < 684.0, "gap midpoint between the paragraphs, got {}", gaps[0]);
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_ignores_same_line_runs_and_tight_lines() {
+        let segments = vec![
+            seg_at("run a", 10.0, 700.0, 12.0, false),
+            seg_at("run b", 80.0, 700.0, 12.0, false),
+            seg_at("next line", 10.0, 685.0, 12.0, false),
+        ];
+        assert_eq!(compute_paragraph_gap_ys(&segments), Vec::<f32>::new());
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_immune_to_column_major_stream_order() {
+        // Two columns emitted column-major (all of column A, then all of column
+        // B). Every visual line has tight pitch, so no gaps exist — a pairwise
+        // stream-order scan would misread the A→B jump as a page-sized gap.
+        let segments = vec![
+            seg_at("A top", 10.0, 700.0, 12.0, false),
+            seg_at("A mid", 10.0, 685.0, 12.0, false),
+            seg_at("A bot", 10.0, 670.0, 12.0, false),
+            seg_at("B top", 300.0, 700.0, 12.0, false),
+            seg_at("B mid", 300.0, 685.0, 12.0, false),
+            seg_at("B bot", 300.0, 670.0, 12.0, false),
+        ];
+        assert_eq!(compute_paragraph_gap_ys(&segments), Vec::<f32>::new());
+    }
+
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_skips_blank_lines_inside_code_blocks() {
+        // A blank line between two monospace lines stays inside one code block;
+        // the same-size gap between monospace and prose is a real break.
+        let segments = vec![
+            seg_at("let x = 1;", 10.0, 700.0, 12.0, true),
+            seg_at("let y = 2;", 10.0, 660.0, 12.0, true),
+            seg_at("Prose resumes here.", 10.0, 620.0, 12.0, false),
+        ];
+        let gaps = compute_paragraph_gap_ys(&segments);
+        assert_eq!(gaps.len(), 1, "only the code→prose boundary is a gap");
+        assert!(gaps[0] > 632.0 && gaps[0] < 660.0, "gap sits between code and prose, got {}", gaps[0]);
     }
 
     /// 5-paragraph doc (1 title at 14pt + 4 body at 11pt) with k_clusters=4.
