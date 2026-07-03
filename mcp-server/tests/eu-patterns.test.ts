@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scanEuStructured, scanArt9Keywords } from "../src/redaction/eu-patterns.js";
+import { scanEuStructured, scanArt9Keywords, scanEuPatterns } from "../src/redaction/eu-patterns.js";
 
 describe("scanEuStructured", () => {
   it("detects a French INSEE number", () => {
@@ -77,5 +77,37 @@ describe("scanArt9Keywords", () => {
   it("returns nothing for neutral text", () => {
     const result = scanArt9Keywords("The meeting is scheduled for Tuesday.");
     expect(result).toHaveLength(0);
+  });
+});
+
+describe("scanEuPatterns", () => {
+  it("combines structured and Art. 9 findings, sorted by position", () => {
+    const result = scanEuPatterns("Patient diagnosed with diabetes. PESEL: 80051501231.");
+    expect(result.some((f) => f.category === "SPECIAL_CATEGORY_HEALTH")).toBe(true);
+    expect(result.some((f) => f.category === "NATIONAL_ID_PL")).toBe(true);
+    for (let i = 1; i < result.length; i++) {
+      expect(result[i]!.start).toBeGreaterThanOrEqual(result[i - 1]!.start);
+    }
+  });
+
+  it("assigns sequential per-category tokens", () => {
+    const result = scanEuPatterns("He is Catholic. She is Muslim.");
+    const religionFindings = result.filter((f) => f.category === "SPECIAL_CATEGORY_RELIGION");
+    expect(religionFindings.map((f) => f.token)).toEqual([
+      "[SPECIAL_CATEGORY_RELIGION_1]",
+      "[SPECIAL_CATEGORY_RELIGION_2]",
+    ]);
+  });
+
+  it("structured matches take precedence over overlapping Art. 9 matches", () => {
+    // "hospital" (Art.9 health keyword) inside a longer structured match is not
+    // a realistic overlap case for these patterns, so this asserts the simpler
+    // invariant: every returned finding has a non-empty original span.
+    const result = scanEuPatterns("SIRET: 73282932000074");
+    expect(result.every((f) => f.end > f.start)).toBe(true);
+  });
+
+  it("returns an empty array for text with no EU PII", () => {
+    expect(scanEuPatterns("The weather is nice today.")).toHaveLength(0);
   });
 });

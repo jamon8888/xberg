@@ -1,4 +1,5 @@
 import { isValidBelgianRegistre, isValidBsn, isValidPesel } from "./eu-checksums.js";
+import type { PiiFinding } from "./detect.js";
 
 interface RawMatch {
   category: string;
@@ -197,4 +198,31 @@ export function scanArt9Keywords(text: string): RawMatch[] {
   }
 
   return results;
+}
+
+/**
+ * Combined EU structured + Art. 9 keyword scan, producing xberg's standard
+ * `PiiFinding` shape with sequential per-category tokens.
+ *
+ * Structured patterns (national IDs, tax IDs, license plates) claim their
+ * spans first; Art. 9 keyword matches that overlap a structured span are
+ * dropped, matching anno's `scan_eu_patterns` ordering.
+ */
+export function scanEuPatterns(text: string): PiiFinding[] {
+  const structured = scanEuStructured(text);
+  const art9 = scanArt9Keywords(text).filter((m) => !overlapsExisting(structured, m.start, m.end));
+  const combined = [...structured, ...art9].sort((a, b) => a.start - b.start);
+
+  const counters: Record<string, number> = {};
+  return combined.map((m) => {
+    counters[m.category] = (counters[m.category] ?? 0) + 1;
+    return {
+      token: `[${m.category}_${counters[m.category]}]`,
+      category: m.category,
+      original: m.original,
+      start: m.start,
+      end: m.end,
+      confidence: m.confidence,
+    };
+  });
 }
