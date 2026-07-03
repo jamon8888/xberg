@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectPii, groupByCategory } from "../src/redaction/detect.js";
+import { detectPii, groupByCategory, detectPiiEu, dedupOverlapping } from "../src/redaction/detect.js";
 import { applyRedaction } from "../src/redaction/redact.js";
 
 describe("detectPii", () => {
@@ -103,6 +103,46 @@ describe("applyRedaction", () => {
     const { redacted } = applyRedaction(t, findings, "token_replace");
     expect(redacted).not.toContain("a@b.com");
     expect(redacted).not.toContain("192.168.1.1");
+  });
+});
+
+describe("dedupOverlapping", () => {
+  it("keeps the longest span when two findings overlap", () => {
+    const findings = [
+      { token: "[A_1]", category: "A", original: "John", start: 0, end: 4, confidence: 0.5 },
+      { token: "[B_1]", category: "B", original: "John Smith", start: 0, end: 10, confidence: 0.6 },
+    ];
+    const result = dedupOverlapping(findings);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.category).toBe("B");
+  });
+
+  it("keeps non-overlapping findings", () => {
+    const findings = [
+      { token: "[A_1]", category: "A", original: "foo", start: 0, end: 3, confidence: 0.5 },
+      { token: "[B_1]", category: "B", original: "bar", start: 5, end: 8, confidence: 0.5 },
+    ];
+    expect(dedupOverlapping(findings)).toHaveLength(2);
+  });
+});
+
+describe("detectPiiEu", () => {
+  it("includes both generic and EU findings", () => {
+    const result = detectPiiEu("Email: bob@example.com. He was diagnosed with cancer.");
+    expect(result.some((f) => f.category === "EMAIL")).toBe(true);
+    expect(result.some((f) => f.category === "SPECIAL_CATEGORY_HEALTH")).toBe(true);
+  });
+
+  it("does not change detectPii's own output", () => {
+    // detectPii() itself must remain unaffected by this addition.
+    const before = detectPiiEu("bob@example.com").filter((f) => f.category === "EMAIL");
+    expect(before).toHaveLength(1);
+  });
+
+  it("respects filterCategories across both scans", () => {
+    const result = detectPiiEu("Email: bob@example.com. He was diagnosed with cancer.", ["EMAIL"]);
+    expect(result.some((f) => f.category === "EMAIL")).toBe(true);
+    expect(result.some((f) => f.category === "SPECIAL_CATEGORY_HEALTH")).toBe(false);
   });
 });
 

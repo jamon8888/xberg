@@ -1,3 +1,5 @@
+import { scanEuPatterns } from "./eu-patterns.js";
+
 export interface PiiFinding {
   token: string;
   category: string;
@@ -115,4 +117,32 @@ export function groupByCategory(findings: PiiFinding[]): Record<string, number> 
     grouped[f.category] = (grouped[f.category] ?? 0) + 1;
   }
   return grouped;
+}
+
+/**
+ * Remove duplicate and overlapping findings, keeping the longest span at
+ * each start position. Used to merge `detectPii()` and `scanEuPatterns()`
+ * output, which can both match overlapping spans (e.g. a digit-heavy string
+ * matched by both a generic pattern and an EU-specific one).
+ */
+export function dedupOverlapping(findings: PiiFinding[]): PiiFinding[] {
+  const sorted = [...findings].sort((a, b) => a.start - b.start || b.end - a.end);
+  const deduped: PiiFinding[] = [];
+  let maxEnd = 0;
+  for (const finding of sorted) {
+    if (finding.start < maxEnd) continue;
+    maxEnd = finding.end;
+    deduped.push(finding);
+  }
+  return deduped;
+}
+
+/**
+ * `detectPii()` plus EU-specific structured and Art. 9 detection, deduplicated.
+ * Opt-in entrypoint -- `detectPii()` itself is unchanged for existing callers.
+ */
+export function detectPiiEu(text: string, filterCategories?: string[]): PiiFinding[] {
+  const generic = detectPii(text, filterCategories);
+  const eu = scanEuPatterns(text).filter((f) => !filterCategories || filterCategories.includes(f.category));
+  return dedupOverlapping([...generic, ...eu].sort((a, b) => a.start - b.start));
 }
