@@ -2,7 +2,7 @@
 
 {% include 'partials/badges.html.jinja' %}
 
-One Rust engine — 96 file formats, 306 programming languages, **native bindings for 16 languages**, dual model runtimes, 6 output formats, OCR from any backend, embeddings, structured LLM extraction, token reduction, and more.
+One Rust engine — 96 file formats, 306 programming languages, **native bindings for 15 languages**, dual model runtimes, 6 output formats, OCR from any backend, embeddings, structured LLM extraction, token reduction, and more.
 
 > **Xberg is the next iteration of [Kreuzberg](https://github.com/kreuzberg-dev/kreuzberg-v4-lts).** Same document-intelligence engine, rebuilt and rebranded under a fresh v1 line.
 
