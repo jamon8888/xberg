@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   build:
-    name: "Build test binary"
+    name: "Build ORT test binary"
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -70,10 +70,10 @@ jobs:
           retention-days: 1
 
   gpu-tests:
-    name: "GPU Tests (CUDA)"
+    name: "GPU Tests: ONNX/ORT (paddle-ocr, layout, embeddings)"
     needs: build
     runs-on: runner-gpu-l4
-    timeout-minutes: 15
+    timeout-minutes: 360
 
     steps:
       - name: Checkout
@@ -113,7 +113,7 @@ jobs:
           chmod +x gpu-acceleration-test
           ./gpu-acceleration-test --ignored --nocapture
         env:
-          RUST_LOG: "xberg=debug"
+          RUST_LOG: "xberg=debug,xberg_paddle_ocr=debug"
           TEST_DOCUMENTS_DIR: ${{ github.workspace }}/test_documents
 
   build-candle:
@@ -213,13 +213,13 @@ jobs:
           retention-days: 1
 
   candle-gpu-tests:
-    name: "Candle GPU (${{ matrix.model.name }})"
+    name: "GPU Tests: Candle VLM-OCR (${{ matrix.model.name }})"
     needs: build-candle
     runs-on: runner-gpu-l4
     # Inference + weight download only (the CUDA compile is offloaded to the
     # build-candle fan-out on cheap runners). Generous ceiling: large VLM
     # weights (multi-GB) plus first-token latency on cold model loads.
-    timeout-minutes: 180
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -230,27 +230,32 @@ jobs:
             test: candle_trocr_e2e_extraction
             hf_repo: ""
             env_var: ""
+            debug_env: XBERG_TROCR_DEBUG
           - name: glm-ocr
             feature: candle-glm-ocr
             test: candle_glm_ocr_e2e_extraction
             hf_repo: ""
             env_var: ""
+            debug_env: XBERG_GLM_DEBUG
           # Local-weight models (staged by the download step, cached per model).
           - name: hunyuan-ocr
             feature: candle-hunyuan-ocr
             test: candle_hunyuan_ocr_e2e_extraction
             hf_repo: tencent/HunyuanOCR
             env_var: XBERG_HUNYUAN_OCR_MODEL_PATH
+            debug_env: XBERG_HUNYUAN_DEBUG
           - name: deepseek-ocr
             feature: candle-deepseek-ocr
             test: candle_deepseek_ocr_e2e_extraction
             hf_repo: deepseek-ai/DeepSeek-OCR
             env_var: XBERG_DEEPSEEK_OCR_MODEL_PATH
+            debug_env: XBERG_DEEPSEEK_DEBUG
           - name: paddleocr-vl
             feature: candle-paddleocr-vl
             test: candle_paddleocr_vl_e2e_extraction
             hf_repo: PaddlePaddle/PaddleOCR-VL
             env_var: XBERG_PADDLEOCR_VL_MODEL_PATH
+            debug_env: XBERG_PADDLEOCR_VL_DEBUG
 
     steps:
       - name: Checkout
@@ -351,9 +356,13 @@ jobs:
           XBERG_REQUIRE_MODELS: "1"
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           RUST_LOG: "xberg=debug,xberg_candle_ocr=debug"
-          # Per-stage tensor stats for GLM-OCR, to bisect the CUDA-only empty-output
-          # (NaN/garbage) divergence. No-op for other models.
+          # Per-model debug flags for tensor stats and empty-output detection.
+          # When set to "1", logs per-stage tensor shapes, NaN/Inf counts, min/max/mean stats.
+          XBERG_TROCR_DEBUG: "1"
           XBERG_GLM_DEBUG: "1"
+          XBERG_HUNYUAN_DEBUG: "1"
+          XBERG_DEEPSEEK_DEBUG: "1"
+          XBERG_PADDLEOCR_VL_DEBUG: "1"
         run: |
           set -euo pipefail
           if [ -n "${{ matrix.model.env_var }}" ]; then
