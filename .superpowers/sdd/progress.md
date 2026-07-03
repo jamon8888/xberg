@@ -116,3 +116,49 @@ Task 4: complete (commit 0a5959f72a, review clean — Approved. Controller
 # separate follow-ups (task_706665c3, task_71b413e1) — NEITHER blocks this
 # plan's own deliverables or was introduced by this plan's changes.
 # Next: final whole-branch review, then superpowers:finishing-a-development-branch.
+
+# ==========================================================================
+# xberg-wasm-engine Plan (B) — SDD Progress (NEW PLAN, separate from above)
+# Plan: docs/superpowers/plans/2026-07-02-xberg-wasm-engine.md
+# Spec: docs/superpowers/specs/2026-07-02-xberg-wasm-engine-design.md
+# Worktree: .worktrees/xberg-wasm-engine
+# Branch: feature/xberg-wasm-engine (from feature/gliner2-onnx-backend @ bcc79675c9)
+# Started: 2026-07-03
+# Prerequisites confirmed complete before starting:
+#   - Plan A (ner-candle-wasm) merged, all 4 tasks approved
+#   - Pre-existing blockers (extractor.rs Send-future, smoke.rs/tests.rs API
+#     mismatch) fixed in commit 98401005e2 (separate session)
+#   - Independently re-verified: `cargo build -p xberg --no-default-features
+#     --features "ner-candle-wasm,redaction,pdf,html,chunking" --target
+#     wasm32-unknown-unknown` succeeds (39 crates, 0 errors, 2m21s)
+#   - Plan B's stale `WasmCandleNer` reference corrected (commit bcc7967) to
+#     point at the real xberg::text::ner::candle::CandleBackend
+# ==========================================================================
+Task 1: complete, no commit needed (verification-only). Dispatched
+  implementer subagent got stuck in a tool-call loop (52 calls, 17 min, no
+  report, no commit) — root cause: attempted the full `wasm-target` build,
+  which hangs/loops in this environment because tree-sitter-wasm requires
+  clang and clang is not installed here (confirmed: `which clang` →
+  command not found). Controller took over directly: (1) static check —
+  `alef.toml:458` shows xberg-wasm's `xberg` dependency hardcodes
+  `features = ["wasm-target", "url-ingestion"]` unconditionally (not a
+  separate cargo feature on xberg-wasm itself — the plan's brief command
+  `--features wasm-target` on `-p xberg-wasm` is actually invalid, that
+  flag only applies to the `xberg` crate directly); since A already added
+  `ner-candle-wasm` to `xberg`'s `wasm-target` aggregate, the wiring is
+  confirmed correct with zero code change needed. (2) Attempted the
+  correct build command (`cargo build -p xberg-wasm --target
+  wasm32-unknown-unknown`, no extra --features flag) — blocked on the same
+  clang/tree-sitter-wasm environmental gap, confirmed via `which clang`.
+  CONCLUSION: Task 1's literal "gold gate" (full xberg-wasm wasm32 build
+  succeeding) cannot be verified in this dev environment due to a missing
+  system dependency (clang), pre-existing and unrelated to this plan or
+  any prior task. The feature wiring itself is verified correct by static
+  analysis. No task reviewer dispatched (zero-diff verification task,
+  nothing to review). Recommend: install clang (or LLVM) in this dev
+  environment before attempting any task that needs the full wasm-target
+  build (this affects ALL future plan B tasks that build xberg-wasm with
+  its default/only feature set, not just Task 1) — OR investigate
+  tree-sitter-language-pack's `tree-sitter-wasm-lite` idea noted in the
+  repo's `wasm-target` Cargo.toml comment (curated parser set) as a
+  longer-term fix to drop the clang requirement entirely.
