@@ -1,5 +1,4 @@
 import { isValidBelgianRegistre, isValidBsn, isValidPesel } from "./eu-checksums.js";
-import type { PiiFinding } from "./detect.js";
 
 interface RawMatch {
   category: string;
