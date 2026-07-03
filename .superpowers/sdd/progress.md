@@ -199,4 +199,46 @@ UPDATE (same session, later): user pointed out clang IS installed via
   the two remaining failures are both in unrelated feature paths
   (ocr-wasm/tesseract, tree-sitter-wasm) that this plan's Task 1 does
   not touch. Task 1 remains complete. Environment fix commit:
-  fix(wasm32): wasi-sdk clang path needs .exe suffix on Windows.
+  fix(wasm32): wasi-sdk clang path needs .exe suffix on Windows
+  (f12b845).
+
+  ALSO DISCOVERED (unrelated, worktree-hygiene): during this
+  investigation, ~1464 tracked files across the whole repo showed as
+  deleted-but-uncommitted (crates/xberg-ffi/src/lib.rs, all bindings,
+  e2e suites, etc.) — root cause: the earlier stuck implementer
+  subagent (52 tool calls, 17 min, no report) almost certainly ran
+  `alef all --clean` and got killed mid-regeneration, leaving the
+  --clean wipe applied but the regenerate step never run. Restored
+  via `git stash push -- <my one real edit>`, `git checkout HEAD -- .`,
+  `git stash pop` — verified zero remaining accidental deletions.
+  No data lost; not committed as a "fix" since nothing was actually
+  wrong in git history, only the uncommitted working tree.
+
+Task 2: IN PROGRESS. Plan brief said "port rehydration crypto to Rust
+  from scratch" in a NEW anon_crypto.rs module — but this ALREADY
+  EXISTS as crates/xberg/src/text/redaction/rehydration.rs
+  (encrypt_map/decrypt_map, XPII\x01 format, feature
+  `redaction-rehydrate` with aes-gcm+scrypt already wired), shipped by
+  a different, already-completed plan (lora-privacy-api, Task 11).
+  Caught before dispatching an implementer that would have duplicated
+  it — same class of mistake as the WasmCandleNer stale reference.
+
+  CRITICAL FINDING while verifying reuse: rehydration.rs used
+  SCRYPT_LOG_N=15 (32768), but mcp-server/src/redaction/rehydration.ts
+  calls Node's scryptSync(passphrase, salt, 32) with NO options →
+  Node's default N=2^14 (16384). The two already-shipped
+  implementations were NOT byte-compatible with each other — a real,
+  pre-existing cross-language format bug, confirmed via TDD: generated
+  a real Node-encrypted fixture (node:crypto scryptSync inline, no
+  need to build the TS project), wrote a failing test
+  (decrypts_map_produced_by_node_scrypt_sync_default), watched it fail
+  with N=32768 (RED, verified), asked the user which side should be
+  authoritative — user chose Node/TS as source of truth (existing
+  shipped maps must stay decryptable) — fixed SCRYPT_LOG_N to 14,
+  re-ran, GREEN (5/5 rehydration tests pass). Commit 1e905c9.
+
+  Redirected Task 2's actual remaining scope: wire xberg-wasm's
+  `anon.rs` as a thin wrapper calling the EXISTING
+  `xberg::text::redaction::rehydration::{encrypt_map, decrypt_map}` —
+  do NOT reimplement. Currently verifying `redaction-rehydrate`
+  compiles for wasm32 (aes-gcm/scrypt/OsRng compatibility).
