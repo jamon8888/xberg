@@ -162,3 +162,41 @@ Task 1: complete, no commit needed (verification-only). Dispatched
   tree-sitter-language-pack's `tree-sitter-wasm-lite` idea noted in the
   repo's `wasm-target` Cargo.toml comment (curated parser set) as a
   longer-term fix to drop the clang requirement entirely.
+
+UPDATE (same session, later): user pointed out clang IS installed via
+  WASI SDK at C:/wasi-sdk, just not on PATH. Wired WASI_SDK_PATH +
+  CC_wasm32_unknown_unknown + PATH and retried. Found + fixed a genuine
+  Windows portability bug in crates/xberg-tesseract/build.rs: two spots
+  (`build_leptonica_wasm`, `build_wasm`) constructed
+  `wasi_sdk_dir.join("bin/clang")` without the `.exe` suffix, which
+  CMake rejects as "not a full path to an existing compiler tool" on
+  Windows. Fixed both with `std::env::consts::EXE_SUFFIX` (portable,
+  no cfg! branching needed) — committed separately, see below.
+  After the fix, `cargo build -p xberg-wasm --target wasm32-unknown-unknown`
+  got MUCH further: 59 crates compiled (up from 36), including
+  tree-sitter-wasm's C grammar compilation actually running (confirms
+  clang wiring itself is now correct) and xberg-tesseract's CMake
+  configure succeeding fully (leptonica + tesseract both configure
+  clean, only the final compile step fails). Two REMAINING, unrelated
+  failures found, both OUT OF SCOPE for ner-candle-wasm/rehydration
+  work and filed as separate follow-ups:
+    - task_c3cde226: xberg-tesseract's WASM no-op-mutex source patch
+      (meant to strip std::mutex for the non-threaded wasm32-wasi
+      sysroot) isn't actually landing in ccutil/object_cache.h at
+      build time, despite the file being in the patch list and the
+      patch call happening unconditionally on the cached-source path.
+      Root cause not yet confirmed (possible stale C:/tess source
+      cache predating the patch list, or a second untraced
+      tesseract_dir resolution path). This blocks `ocr-wasm`'s
+      in-binary Tesseract fallback specifically — does NOT block
+      ner-candle-wasm or any RAG/crypto work.
+    - tree-sitter-language-pack's 'zsh' grammar fails a single-file C
+      compile via sccache (exit 1) — not yet investigated, lower
+      priority, noted in task_c3cde226's description for follow-up
+      visibility. Does not block ner-candle-wasm.
+  CONCLUSION: ner-candle-wasm's own wiring is now proven correct via
+  a REAL (not just static) build attempt that got past it entirely —
+  the two remaining failures are both in unrelated feature paths
+  (ocr-wasm/tesseract, tree-sitter-wasm) that this plan's Task 1 does
+  not touch. Task 1 remains complete. Environment fix commit:
+  fix(wasm32): wasi-sdk clang path needs .exe suffix on Windows.
