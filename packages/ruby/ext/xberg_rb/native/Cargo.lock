@@ -1230,9 +1230,9 @@ dependencies = [
 
 [[package]]
 name = "crawlberg"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b29d0b66d3886745ab12e56e17a9127dc91f30b7261a2080c9eed67074c34f6"
+checksum = "e361dcd0b6433eaa4cc3e269f2e983e7f8ddea09b597bc5257d9a356e3d8882c"
 dependencies = [
  "ahash 0.8.12",
  "aho-corasick",
@@ -1253,7 +1253,7 @@ dependencies = [
  "notify",
  "opentelemetry",
  "opentelemetry-semantic-conventions",
- "quick-xml 0.40.1",
+ "quick-xml 0.41.0",
  "regex",
  "reqwest",
  "serde",
@@ -2534,9 +2534,9 @@ dependencies = [
 
 [[package]]
 name = "html-to-markdown-rs"
-version = "3.8.0"
+version = "3.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da9935e81a6fee38ebbc5a2ca4e9590f99f650ffb8a08734c4115a3e06c3c5d3"
+checksum = "5b8defe72747832a90e54cd6b0daad64f89a970b9b3c977f40ba968d3f7f50c6"
 dependencies = [
  "ahash 0.8.12",
  "astral-tl",
@@ -3440,9 +3440,9 @@ checksum = "92daf443525c4cce67b150400bc2316076100ce0b3686209eb8cf3c31612e6f0"
 
 [[package]]
 name = "liter-llm"
-version = "1.9.0"
+version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "435606ba043ab4c21f226940ff0fa13a3c3787a35e7be351572504954bdfe8c8"
+checksum = "42b3c1f3725f552f5e954a3a991aa9be1373b621a7b2f090bb93272e67a7ab60"
 dependencies = [
  "ahash 0.8.12",
  "async-trait",
@@ -4283,6 +4283,7 @@ version = "2.0.0-rc.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7de3af33d24a745ffb8fab904b13478438d1cd52868e6f17735ef6e1f8bf133"
 dependencies = [
+ "libloading 0.9.0",
  "ndarray 0.17.2",
  "ort-sys",
  "smallvec",
@@ -4371,9 +4372,9 @@ dependencies = [
 
 [[package]]
 name = "pdf_oxide"
-version = "0.3.69"
+version = "0.3.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be6568c747aa463eaafd23459961a9f58ff6f71706f67369e270e2d18b7060f0"
+checksum = "3be9e4752f2319dec7c079ca96ec141e1be70faac82b21cb06a53bb6c2e0034e"
 dependencies = [
  "aes 0.9.1",
  "base64 0.22.1",
@@ -4401,7 +4402,7 @@ dependencies = [
  "nom 8.0.0",
  "office_oxide",
  "phf 0.14.0",
- "quick-xml 0.40.1",
+ "quick-xml 0.41.0",
  "regex",
  "rustybuzz",
  "serde",
@@ -5427,9 +5428,9 @@ dependencies = [
 
 [[package]]
 name = "rmcp"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d52d21e5b342699bc4de690e6104fc4e43255e4e8420ff0f2cbb963aac09da6f"
+checksum = "f00a32c3b81b7b254076a65abd5ab2551209146713ba38f73818657e865e9433"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5458,9 +5459,9 @@ dependencies = [
 
 [[package]]
 name = "rmcp-macros"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c68cec74c5b3ac73ff46375ae49e161637bda80bba70f0d5db641583bb308ee"
+checksum = "2ee70afb7956da9f30d5348a2539b5eb90d9038f834463657ab717076ac3b1ad"
 dependencies = [
  "darling 0.23.0",
  "proc-macro2",
@@ -8116,7 +8117,7 @@ dependencies = [
 
 [[package]]
 name = "xberg"
-version = "1.0.0-rc.3"
+version = "1.0.0-rc.5"
 dependencies = [
  "ahash 0.8.12",
  "async-trait",
@@ -8232,7 +8233,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-gliner"
-version = "1.0.0-rc.3"
+version = "1.0.0-rc.5"
 dependencies = [
  "ndarray 0.17.2",
  "ort",
@@ -8244,7 +8245,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-libheif"
-version = "1.0.0-rc.3"
+version = "1.0.0-rc.5"
 dependencies = [
  "cfg-if",
  "enumn",
@@ -8255,7 +8256,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-paddle-ocr"
-version = "1.0.0-rc.3"
+version = "1.0.0-rc.5"
 dependencies = [
  "geo-clipper",
  "geo-types",
@@ -8265,11 +8266,12 @@ dependencies = [
  "ort",
  "serde",
  "thiserror 2.0.18",
+ "tracing",
 ]
 
 [[package]]
 name = "xberg-rb"
-version = "1.0.0-rc.3"
+version = "1.0.0-rc.5"
 dependencies = [
  "async-trait",
  "crawlberg",
@@ -8283,7 +8285,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-tesseract"
-version = "1.0.0-rc.3"
+version = "1.0.0-rc.5"
 dependencies = [
  "cc",
  "cmake",

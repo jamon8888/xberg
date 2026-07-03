@@ -400,7 +400,7 @@ roots = ["crawlberg::CrawlConfig"]
 # (crawlberg) specified without providing a version"). Keep this in sync with
 # the root Cargo.toml [workspace.dependencies] entry.
 [crates.extra_dependencies]
-crawlberg = { version = "1.0.1", default-features = false }
+crawlberg = { version = "1.0.2", default-features = false }
 
 [crates.python]
 module_name = "_xberg"
