@@ -1,6 +1,6 @@
 [package]
 name = "xberg-rb"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.5"
 edition = "2024"
 license = "MIT"
 description = "High-performance document intelligence library"
@@ -17,7 +17,37 @@ path = "../src/lib.rs"
 crate-type = ["cdylib"]
 
 [features]
-default = ["api", "api-types", "auto-rotate-types", "chunking-tokenizers", "diff", "heic", "heuristics", "html", "keywords-rake", "keywords-yake", "layout-types", "liter-llm", "markdown-footnotes", "ocr", "ocr-wasm", "office", "paddle-ocr-types", "pdf", "presets", "quality", "redaction", "reranker", "reranker-presets", "svg", "transcription-types", "tree-sitter", "url-config-types", "url-ingestion", "xml"]
+default = [
+    "api",
+    "api-types",
+    "auto-rotate-types",
+    "chunking-tokenizers",
+    "diff",
+    "heic",
+    "heuristics",
+    "html",
+    "keywords-rake",
+    "keywords-yake",
+    "layout-types",
+    "liter-llm",
+    "markdown-footnotes",
+    "ocr",
+    "ocr-wasm",
+    "office",
+    "paddle-ocr-types",
+    "pdf",
+    "presets",
+    "quality",
+    "redaction",
+    "reranker",
+    "reranker-presets",
+    "svg",
+    "transcription-types",
+    "tree-sitter",
+    "url-config-types",
+    "url-ingestion",
+    "xml",
+]
 api = ["xberg/api"]
 api-types = ["xberg/api-types"]
 auto-rotate-types = ["xberg/auto-rotate-types"]
@@ -50,10 +80,62 @@ xml = ["xberg/xml"]
 
 [dependencies]
 async-trait = "0.1"
-crawlberg = { version = "1.0.0", default-features = false }
+crawlberg = { default-features = false, version = "1.0.2" }
 magnus = "0.8"
 rb-sys = ">=0.9, <0.9.128"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread"] }
-xberg = { version = "1.0.0-rc.1", path = "../../../../../crates/xberg", features = ["full", "pdf", "ocr", "paddle-ocr", "paddle-ocr-types", "layout-detection", "layout-types", "embeddings", "embedding-presets", "reranker", "reranker-presets", "chunking", "keywords-yake", "keywords-rake", "language-detection", "html", "tree-sitter", "office", "email", "archives", "stopwords", "auto-rotate", "auto-rotate-types", "tokio-runtime", "api", "api-types", "mcp", "liter-llm", "quality", "svg", "transcription", "transcription-types", "classification", "captioning", "ner-onnx", "ner-llm", "diff", "markdown-footnotes", "redaction", "enrichment", "heuristics", "presets", "structured", "url-ingestion"] }
+[target.'cfg(not(any(target_os = "windows", all(target_os = "macos", target_arch = "x86_64"))))'.dependencies]
+xberg = { version = "1.0.0-rc.5", path = "../../../../../crates/xberg", features = [
+    "full",
+    "pdf",
+    "ocr",
+    "paddle-ocr",
+    "paddle-ocr-types",
+    "layout-detection",
+    "layout-types",
+    "embeddings",
+    "embedding-presets",
+    "reranker",
+    "reranker-presets",
+    "chunking",
+    "keywords-yake",
+    "keywords-rake",
+    "language-detection",
+    "html",
+    "tree-sitter",
+    "office",
+    "email",
+    "archives",
+    "stopwords",
+    "auto-rotate",
+    "auto-rotate-types",
+    "tokio-runtime",
+    "api",
+    "api-types",
+    "mcp",
+    "liter-llm",
+    "quality",
+    "svg",
+    "transcription",
+    "transcription-types",
+    "classification",
+    "captioning",
+    "ner-onnx",
+    "ner-llm",
+    "diff",
+    "markdown-footnotes",
+    "redaction",
+    "enrichment",
+    "heuristics",
+    "presets",
+    "structured",
+    "url-ingestion",
+] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+xberg = { version = "1.0.0-rc.5", path = "../../../../../crates/xberg", features = ["windows-target"] }
+
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies]
+xberg = { version = "1.0.0-rc.5", path = "../../../../../crates/xberg", features = ["macos-intel-target"] }

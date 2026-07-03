@@ -81,12 +81,14 @@ static TOKENIZER_CACHE: LazyLock<RwLock<AHashMap<String, Arc<tokenizers::Tokeniz
 /// Load a tokenizer from `source` without consulting the cache.
 fn load_tokenizer(source: &TokenizerSource<'_>) -> crate::Result<tokenizers::Tokenizer> {
     match source {
+        // `from_pretrained` requires the tokenizers `http` feature (network fetch via hf-hub),
+        // which is unavailable on wasm32. File/Bytes sources remain supported.
         #[cfg(not(target_arch = "wasm32"))]
         TokenizerSource::Pretrained(model) => tokenizers::Tokenizer::from_pretrained(model, None)
             .map_err(|e| XbergError::validation(format!("Failed to load tokenizer '{model}': {e}"))),
         #[cfg(target_arch = "wasm32")]
         TokenizerSource::Pretrained(model) => Err(XbergError::validation(format!(
-            "Pretrained tokenizer loading is not supported on wasm32: {model}"
+            "pretrained tokenizer '{model}' requires network access, unavailable on this platform"
         ))),
         TokenizerSource::File(path) => tokenizers::Tokenizer::from_file(path)
             .map_err(|e| XbergError::validation(format!("Failed to load tokenizer from '{}': {e}", path.display()))),

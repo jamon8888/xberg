@@ -159,10 +159,14 @@ impl PaddleOcrVlEngine {
 
     /// Process an image and return the recognized text as markdown.
     pub fn process_image(&mut self, image_bytes: &[u8]) -> Result<CandleOcrOutput> {
+        tracing::debug!(image_size = image_bytes.len(), task = %self.task, "PaddleOCR-VL: starting inference");
         // Decode image
         let img = image::load_from_memory(image_bytes)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Decode image: {}", e)))?;
         let img = img.to_rgb8();
+
+        let (img_width, img_height) = (img.width(), img.height());
+        tracing::debug!(width = img_width, height = img_height, "PaddleOCR-VL: image dimensions");
 
         // Prepare mean/std tensors from processor config
         let img_mean = Tensor::new(
@@ -204,11 +208,14 @@ impl PaddleOcrVlEngine {
         let spatial_merge = self.config.vision_config.spatial_merge_size;
         let num_image_tokens = (h_patches / spatial_merge) * (w_patches / spatial_merge);
 
+        tracing::debug!(h_patches = h_patches, w_patches = w_patches, spatial_merge = spatial_merge, num_image_tokens = num_image_tokens, "PaddleOCR-VL: grid dimensions");
+
         let input_ids = self.build_input_tokens(num_image_tokens)?;
 
         let max_length = 4096;
 
         // Clear KV cache
+        tracing::debug!("PaddleOCR-VL: clearing cache and starting generation");
         self.model.clear_kv_cache();
 
         // Run generation
@@ -220,8 +227,15 @@ impl PaddleOcrVlEngine {
             .decode(&generated_tokens, true)
             .map_err(|e| CandleOcrError::Tokenizer(format!("Decode: {}", e)))?;
 
+        let output_trimmed = output_text.trim().to_string();
+        if output_trimmed.is_empty() {
+            tracing::warn!(num_tokens = generated_tokens.len(), "PaddleOCR-VL: output is empty");
+        } else {
+            tracing::debug!(text_len = output_trimmed.len(), num_tokens = generated_tokens.len(), "PaddleOCR-VL: decoding complete");
+        }
+
         Ok(CandleOcrOutput {
-            content: output_text.trim().to_string(),
+            content: output_trimmed,
             is_structured_markdown: true,
             confidence: None,
         })
@@ -279,7 +293,9 @@ impl PaddleOcrVlEngine {
             .next()
             .ok_or_else(|| CandleOcrError::InferenceFailed("Empty input".to_string()))?;
 
-        for _ in 0..max_length {
+        tracing::debug!(initial_tokens = generated_tokens.len(), max_length = max_length, eos_token = self.eos_token_id, "PaddleOCR-VL: starting greedy decoding");
+
+        for step in 0..max_length {
             if generated_tokens.len() >= max_length {
                 break;
             }
@@ -323,7 +339,12 @@ impl PaddleOcrVlEngine {
 
             generated_tokens.push(next_token);
 
+            if step < 5 {
+                tracing::trace!(step = step, token = next_token, num_tokens = generated_tokens.len(), "PaddleOCR-VL: decode iteration");
+            }
+
             if next_token == self.eos_token_id {
+                tracing::debug!(step = step, num_tokens = generated_tokens.len(), "PaddleOCR-VL: reached EOS token");
                 break;
             }
         }

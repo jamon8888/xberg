@@ -1,10 +1,7 @@
 {
 	"id": "api_extract_uri",
 	"description": "Tests URI extraction API",
-	"tags": [
-		"contract",
-		"api"
-	],
+	"tags": ["contract", "api"],
 	"input": {
 		"mock_responses": [
 			{
@@ -35,16 +32,11 @@
 		{
 			"type": "contains_any",
 			"field": "results[0].content",
-			"values": [
-				"May 5, 2023",
-				"Mallori"
-			]
+			"values": ["May 5, 2023", "Mallori"]
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"category": "contract",

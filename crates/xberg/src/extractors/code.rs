@@ -160,13 +160,15 @@ impl InternalDocumentExtractor for CodeExtractor {
         tracing::debug!(format = "code", size_bytes = content.len(), "extraction starting");
         let source = String::from_utf8_lossy(content);
 
-        let language = tslp::detect_language_from_content(&source).ok_or_else(|| {
-            crate::XbergError::UnsupportedFormat(
-                "Cannot detect programming language from content (no shebang line). \
-                 Use extract_file with a file path for extension-based detection."
-                    .to_string(),
-            )
-        })?;
+        let language = tslp::detect_language_from_content(&source)
+            .or_else(|| config.source_name.as_deref().and_then(tslp::detect_language_from_path))
+            .ok_or_else(|| {
+                crate::XbergError::UnsupportedFormat(
+                    "Cannot detect programming language from content (no shebang line). \
+                     Use extract_file with a file path for extension-based detection."
+                        .to_string(),
+                )
+            })?;
 
         let doc = Self::extract_with_language(&source, language, config)?;
         tracing::debug!(
@@ -195,9 +197,11 @@ impl SyncExtractor for CodeExtractor {
     fn extract_sync(&self, content: &[u8], _mime_type: &str, config: &ExtractionConfig) -> Result<InternalDocument> {
         let source = String::from_utf8_lossy(content);
 
-        let language = tslp::detect_language_from_content(&source).ok_or_else(|| {
-            crate::XbergError::UnsupportedFormat("Cannot detect programming language from content".to_string())
-        })?;
+        let language = tslp::detect_language_from_content(&source)
+            .or_else(|| config.source_name.as_deref().and_then(tslp::detect_language_from_path))
+            .ok_or_else(|| {
+                crate::XbergError::UnsupportedFormat("Cannot detect programming language from content".to_string())
+            })?;
 
         Self::extract_with_language(&source, language, config)
     }

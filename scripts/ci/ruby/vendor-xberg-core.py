@@ -352,9 +352,7 @@ def main() -> None:
 
             # Replace xberg workspace references with path dependency
             # Handle cases with path, version, or neither
-            content = re.sub(
-                r'(xberg = \{) (?:(?:path|version) = "[^"]*", )?', r'\1 path = "../xberg", ', content
-            )
+            content = re.sub(r'(xberg = \{) (?:(?:path|version) = "[^"]*", )?', r'\1 path = "../xberg", ', content)
 
             with open(ffi_toml, "w") as f:
                 f.write(content)
@@ -396,9 +394,7 @@ def main() -> None:
         # Replace path dependencies to point to vendored crates
         # From: path = "../../../../../crates/xberg"
         # To: path = "../../../vendor/xberg"
-        content = re.sub(
-            r'path = "\.\./\.\./\.\./\.\./\.\./crates/xberg"', 'path = "../../../vendor/xberg"', content
-        )
+        content = re.sub(r'path = "\.\./\.\./\.\./\.\./\.\./crates/xberg"', 'path = "../../../vendor/xberg"', content)
         content = re.sub(
             r'path = "\.\./\.\./\.\./\.\./\.\./crates/xberg-ffi"', 'path = "../../../vendor/xberg-ffi"', content
         )

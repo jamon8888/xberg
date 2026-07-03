@@ -383,6 +383,7 @@ mod engine {
         }
 
         fn process_image_inner(&self, image_bytes: &[u8], task: GlmOcrTask) -> Result<CandleOcrOutput> {
+            tracing::debug!(image_size = image_bytes.len(), task = %task, "GLM-OCR: starting inference");
             // Load and preprocess image
             let preprocess_config = preprocess::PreprocessConfig::default();
             let (pixel_values, grid_thw) =
@@ -535,6 +536,12 @@ mod engine {
 
             // Decode output tokens to text
             let output_text = tokenizer::decode_output(&self.tokenizer, &output_ids)?;
+
+            if output_text.trim().is_empty() {
+                tracing::warn!(num_output_tokens = output_ids.len(), "GLM-OCR: output is empty");
+            } else {
+                tracing::debug!(text_len = output_text.len(), num_output_tokens = output_ids.len(), is_markdown = Self::detect_structured_markdown(&output_text), "GLM-OCR: decoding complete");
+            }
 
             Ok(CandleOcrOutput {
                 content: output_text.clone(),

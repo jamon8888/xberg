@@ -370,12 +370,14 @@ pub(super) fn apply_hint_to_paragraph(para: &mut PdfParagraph, hint: &LayoutHint
     match hint.class_name {
         LayoutHintClass::Title
             if !is_sep
+                && !para.is_list_item
                 && (para.heading_level.is_none() || hint.confidence >= 0.7)
                     && word_count <= super::constants::MAX_HEADING_WORD_COUNT => {
                         para.heading_level = Some(1);
                     }
         LayoutHintClass::SectionHeader
             if !is_sep
+                && !para.is_list_item
                 && (para.heading_level.is_none() || hint.confidence >= 0.7) => {
                     let trimmed = para_text.trim();
                     let too_long = word_count > super::constants::MAX_HEADING_WORD_COUNT;
@@ -420,7 +422,11 @@ pub(super) fn apply_hint_to_paragraph(para: &mut PdfParagraph, hint: &LayoutHint
                 let syntax_ratio = if para_text.is_empty() { 0.0 } else { syntax_chars as f64 / para_text.len() as f64 };
                 sentence_endings >= 2 && syntax_ratio < 0.03 && word_count > 15
             };
-            if !is_prose {
+            // Guard: never reclassify a confident native list item as code.
+            // List-marker prefixes (·, •, 1., etc.) are strong text-level evidence that
+            // the paragraph is a list item, not a code block. The layout model cannot
+            // reliably distinguish these, so native classification wins (fixes #598).
+            if !is_prose && !para.is_list_item {
                 para.is_code_block = true;
                 para.heading_level = None;
             }
@@ -435,18 +441,30 @@ pub(super) fn apply_hint_to_paragraph(para: &mut PdfParagraph, hint: &LayoutHint
             if hint.confidence >= 0.8 => {
                 para.is_list_item = true;
             }
-        LayoutHintClass::PageHeader | LayoutHintClass::PageFooter => {
+        LayoutHintClass::PageHeader | LayoutHintClass::PageFooter
             // Only mark as furniture if confidence is high. On OCR-rendered pages,
             // furniture detection is unreliable and can drop valid body content
             // (fixes #936 category B/D: total output failure, PageHeader suppression).
-            para.is_page_furniture = hint.confidence >= 0.8;
-        }
-        LayoutHintClass::Picture => {
-            // Text classified as Picture by layout model is figure-internal text
-            // (diagram labels, axis text, etc.) — suppress from body output.
-            para.is_page_furniture = true;
-            para.heading_level = None;
-        }
+            //
+            // Guard: never suppress a paragraph that native classification already
+            // identified as a heading. The layout model sometimes misidentifies a
+            // document title (H1) as a PageHeader; the native heading classification
+            // is more reliable for short prominent text (fixes #905).
+            if para.heading_level.is_none() => {
+                para.is_page_furniture = hint.confidence >= 0.8;
+            }
+        LayoutHintClass::Picture
+            // Guard: never suppress a paragraph that native classification already
+            // identified as a heading. The layout model sometimes misidentifies a
+            // document title (H1) as a Picture region (e.g., large centered text
+            // that visually resembles a caption or diagram label). The native
+            // heading classification is more reliable for short prominent text
+            // (fixes #905).
+            if para.heading_level.is_none() => {
+                // Text classified as Picture by layout model is figure-internal
+                // text (diagram labels, axis text, etc.) — suppress from body output.
+                para.is_page_furniture = true;
+            }
         LayoutHintClass::Text | LayoutHintClass::Caption | LayoutHintClass::Footnote
             // Layout model says this is body text, not a heading.
             // Demote font-size-classified headings when layout has high confidence.
@@ -608,6 +626,54 @@ mod tests {
         )];
         apply_layout_overrides(&mut paragraphs, &hints, 0.5, 0.5, None);
         assert_eq!(paragraphs[0].heading_level, Some(2));
+    }
+
+    #[test]
+    fn test_title_hint_does_not_promote_list_item_to_heading() {
+        // A natively-classified list item must not be promoted to H1 by a Title hint.
+        // Agenda-style numbered lists ("1. Ouverture de la séance") are misidentified
+        // as Title by the layout model; native list classification wins.
+        // Assembly corruption otherwise: list opened (is_list_item=true), heading
+        // emitted inside it, producing "  # 1\. Item text" (fixes #2023-06-20-PV).
+        let mut para = make_para(50.0, 650.0, 300.0, 14.0);
+        para.is_list_item = true;
+        let mut paragraphs = vec![para];
+        let hints = vec![make_hint(LayoutHintClass::Title, 0.9, 40.0, 645.0, 360.0, 670.0)];
+        apply_layout_overrides(&mut paragraphs, &hints, 0.5, 0.5, None);
+        assert_eq!(
+            paragraphs[0].heading_level, None,
+            "Title hint must not promote a list item to H1"
+        );
+        assert!(
+            paragraphs[0].is_list_item,
+            "is_list_item must be preserved when Title hint is rejected"
+        );
+    }
+
+    #[test]
+    fn test_section_header_hint_does_not_promote_list_item_to_heading() {
+        // Same guard for SectionHeader: native list items must not be reclassified
+        // as headings by the layout model (symmetric with Title case).
+        let mut para = make_para(50.0, 600.0, 300.0, 14.0);
+        para.is_list_item = true;
+        let mut paragraphs = vec![para];
+        let hints = vec![make_hint(
+            LayoutHintClass::SectionHeader,
+            0.9,
+            40.0,
+            595.0,
+            360.0,
+            620.0,
+        )];
+        apply_layout_overrides(&mut paragraphs, &hints, 0.5, 0.5, None);
+        assert_eq!(
+            paragraphs[0].heading_level, None,
+            "SectionHeader hint must not promote a list item to a heading"
+        );
+        assert!(
+            paragraphs[0].is_list_item,
+            "is_list_item must be preserved when SectionHeader hint is rejected"
+        );
     }
 
     #[test]
@@ -1137,6 +1203,261 @@ mod tests {
             !para.is_page_furniture,
             "Low-confidence PageFooter (0.6) should NOT mark paragraph as furniture"
         );
+    }
+
+    // ── override-precedence tests: native classification wins over generic hints ──
+
+    #[test]
+    fn test_code_hint_does_not_override_native_list_item() {
+        // A native list item (·/• bullet marker) must not be reclassified as code
+        // when the layout model emits a Code hint. List markers are strong textual
+        // evidence; the layout model misidentifies bullet regions as code blocks
+        // (root cause of issue #598).
+        let mut para = PdfParagraph {
+            text: "· Explain the importance of asking questions.".to_string(),
+            lines: vec![],
+            dominant_font_size: 12.0,
+            heading_level: None,
+            is_bold: false,
+            is_list_item: true, // correctly set by native classifier
+            is_code_block: false,
+            is_formula: false,
+            is_page_furniture: false,
+            layout_class: None,
+            caption_for: None,
+            block_bbox: None,
+            word_count: 7,
+        };
+
+        let hint = LayoutHint {
+            class_name: LayoutHintClass::Code,
+            confidence: 0.9,
+            left: 0.0,
+            bottom: 0.0,
+            right: 100.0,
+            top: 50.0,
+        };
+        apply_hint_to_paragraph(&mut para, &hint, None);
+
+        assert!(
+            !para.is_code_block,
+            "Code hint must not override a natively classified list item"
+        );
+        assert!(
+            para.is_list_item,
+            "List item flag must be preserved when Code hint is rejected"
+        );
+        assert_eq!(
+            para.heading_level, None,
+            "heading_level must remain None (list items have no heading level)"
+        );
+    }
+
+    #[test]
+    fn test_code_hint_applies_to_non_list_item_paragraph() {
+        // Code hint must still work on regular paragraphs (no list-item flag).
+        let mut para = PdfParagraph {
+            text: "function add(a, b) { return a + b; }".to_string(),
+            lines: vec![],
+            dominant_font_size: 12.0,
+            heading_level: None,
+            is_bold: false,
+            is_list_item: false,
+            is_code_block: false,
+            is_formula: false,
+            is_page_furniture: false,
+            layout_class: None,
+            caption_for: None,
+            block_bbox: None,
+            word_count: 8,
+        };
+
+        let hint = LayoutHint {
+            class_name: LayoutHintClass::Code,
+            confidence: 0.9,
+            left: 0.0,
+            bottom: 0.0,
+            right: 100.0,
+            top: 50.0,
+        };
+        apply_hint_to_paragraph(&mut para, &hint, None);
+
+        assert!(para.is_code_block, "Code hint must apply to non-list-item paragraphs");
+        assert!(!para.is_list_item, "is_list_item must remain false");
+    }
+
+    #[test]
+    fn test_page_header_hint_does_not_suppress_native_heading() {
+        // A natively classified H1 must not be suppressed as page furniture when
+        // the layout model emits a PageHeader hint. Document titles at the top of
+        // a page are commonly misidentified as page headers by the model; the native
+        // heading classification is more reliable (root cause of issue #905).
+        let mut para = PdfParagraph {
+            text: "Sample PDF".to_string(),
+            lines: vec![],
+            dominant_font_size: 24.0,
+            heading_level: Some(1), // correctly identified as H1 by native classifier
+            is_bold: true,
+            is_list_item: false,
+            is_code_block: false,
+            is_formula: false,
+            is_page_furniture: false,
+            layout_class: None,
+            caption_for: None,
+            block_bbox: None,
+            word_count: 2,
+        };
+
+        let hint = LayoutHint {
+            class_name: LayoutHintClass::PageHeader,
+            confidence: 0.9, // high-confidence PageHeader hint
+            left: 0.0,
+            bottom: 0.0,
+            right: 100.0,
+            top: 50.0,
+        };
+        apply_hint_to_paragraph(&mut para, &hint, None);
+
+        assert!(
+            !para.is_page_furniture,
+            "High-confidence PageHeader hint must not suppress a natively classified H1"
+        );
+        assert_eq!(
+            para.heading_level,
+            Some(1),
+            "heading_level must be preserved when PageHeader hint is rejected for headings"
+        );
+    }
+
+    #[test]
+    fn test_page_header_hint_applies_to_non_heading_paragraph() {
+        // PageHeader hint must still work on paragraphs that are not headings.
+        let mut para = PdfParagraph {
+            text: "Page 5".to_string(),
+            lines: vec![],
+            dominant_font_size: 10.0,
+            heading_level: None,
+            is_bold: false,
+            is_list_item: false,
+            is_code_block: false,
+            is_formula: false,
+            is_page_furniture: false,
+            layout_class: None,
+            caption_for: None,
+            block_bbox: None,
+            word_count: 2,
+        };
+
+        let hint = LayoutHint {
+            class_name: LayoutHintClass::PageHeader,
+            confidence: 0.9,
+            left: 0.0,
+            bottom: 0.0,
+            right: 100.0,
+            top: 50.0,
+        };
+        apply_hint_to_paragraph(&mut para, &hint, None);
+
+        assert!(
+            para.is_page_furniture,
+            "High-confidence PageHeader hint must still mark non-heading paragraphs as furniture"
+        );
+    }
+
+    #[test]
+    fn test_page_footer_hint_does_not_suppress_native_heading() {
+        // Same guard applies to PageFooter hints (symmetric with PageHeader).
+        let mut para = PdfParagraph {
+            text: "Conclusions".to_string(),
+            lines: vec![],
+            dominant_font_size: 16.0,
+            heading_level: Some(2),
+            is_bold: true,
+            is_list_item: false,
+            is_code_block: false,
+            is_formula: false,
+            is_page_furniture: false,
+            layout_class: None,
+            caption_for: None,
+            block_bbox: None,
+            word_count: 1,
+        };
+
+        let hint = LayoutHint {
+            class_name: LayoutHintClass::PageFooter,
+            confidence: 0.95,
+            left: 0.0,
+            bottom: 0.0,
+            right: 100.0,
+            top: 50.0,
+        };
+        apply_hint_to_paragraph(&mut para, &hint, None);
+
+        assert!(
+            !para.is_page_furniture,
+            "PageFooter hint must not suppress a natively classified H2"
+        );
+        assert_eq!(para.heading_level, Some(2));
+    }
+
+    #[test]
+    fn test_native_paragraph_table_hint_passes_through() {
+        // Specific layout hints (Table) are not subject to these guards:
+        // they add structural information rather than demoting existing classification.
+        // Confirm that Table hints continue to work normally.
+        let mut paragraphs = vec![make_para(50.0, 600.0, 300.0, 16.0)];
+        let hints = vec![make_hint(LayoutHintClass::Table, 0.9, 40.0, 598.0, 400.0, 620.0)];
+        // Table hint falls through to `_ => {}` in apply_hint_to_paragraph, only
+        // setting layout_class. Verify layout_class is set and nothing else breaks.
+        apply_layout_overrides(&mut paragraphs, &hints, 0.5, 0.5, None);
+        assert_eq!(paragraphs[0].layout_class, Some(LayoutHintClass::Table));
+        assert_eq!(paragraphs[0].heading_level, None);
+        assert!(!paragraphs[0].is_list_item);
+        assert!(!paragraphs[0].is_code_block);
+        assert!(!paragraphs[0].is_page_furniture);
+    }
+
+    #[test]
+    fn test_picture_hint_does_not_suppress_native_heading() {
+        // A Picture hint must never suppress a paragraph already classified as a heading.
+        // The layout model sometimes misidentifies a large centered document title as a
+        // picture label. The native heading classification must win (fixes #905).
+        let lines = vec![make_line(vec![make_segment("Sample PDF", 0.0, 800.0, 200.0, 36.0)])];
+        let word_count = PdfParagraph::compute_word_count("Sample PDF", &lines);
+        let mut para = PdfParagraph {
+            text: "Sample PDF".to_string(),
+            lines,
+            dominant_font_size: 36.0,
+            heading_level: Some(1),
+            is_bold: false,
+            is_list_item: false,
+            is_code_block: false,
+            is_formula: false,
+            is_page_furniture: false,
+            layout_class: None,
+            caption_for: None,
+            block_bbox: None,
+            word_count,
+        };
+        let hint = make_hint(LayoutHintClass::Picture, 0.72, 0.0, 790.0, 250.0, 820.0);
+        apply_hint_to_paragraph(&mut para, &hint, None);
+        assert_eq!(para.heading_level, Some(1), "H1 must survive Picture hint");
+        assert!(
+            !para.is_page_furniture,
+            "furniture must not be set when heading is present"
+        );
+    }
+
+    #[test]
+    fn test_picture_hint_applies_to_non_heading_paragraph() {
+        // For non-heading paragraphs (figure labels, axis text), Picture hint should
+        // mark the paragraph as page furniture so it is suppressed from body output.
+        let mut para = make_para(12.0, 400.0, 100.0, 16.0);
+        para.text = "Figure 1: schematic".to_string();
+        let hint = make_hint(LayoutHintClass::Picture, 0.85, 0.0, 390.0, 200.0, 420.0);
+        apply_hint_to_paragraph(&mut para, &hint, None);
+        assert!(para.is_page_furniture, "figure label must become furniture");
+        assert_eq!(para.heading_level, None, "non-heading para must stay non-heading");
     }
 
     #[test]

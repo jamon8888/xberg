@@ -12,11 +12,10 @@ namespace Xberg;
  */
 interface Validator
 {
-
     /**
      * Validate an extraction result.
      *
-
+     *
      * @param ExtractedDocument $result
      * @param ExtractionConfig $config
      * @return mixed Return value from the plugin method
@@ -26,7 +25,7 @@ interface Validator
     /**
      * Optional: Check if this validator should run for a given result.
      *
-
+     *
      * @param ExtractedDocument $_result
      * @param ExtractionConfig $_config
      * @return bool Return value from the plugin method
@@ -36,9 +35,8 @@ interface Validator
     /**
      * Optional: Get the validation priority.
      *
-
+     *
      * @return int Return value from the plugin method
      */
     public function priority(): int;
-
 }

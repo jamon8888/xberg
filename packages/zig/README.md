@@ -35,9 +35,6 @@
   <a href="https://hex.pm/packages/xberg">
     <img src="https://img.shields.io/hexpm/v/xberg?label=Elixir&color=007ec6" alt="Elixir">
   </a>
-  <a href="https://xberg-io.r-universe.dev/xberg">
-    <img src="https://img.shields.io/badge/R-xberg-007ec6" alt="R">
-  </a>
   <a href="https://pub.dev/packages/xberg">
     <img src="https://img.shields.io/pub/v/xberg?label=Dart&color=007ec6" alt="Dart">
   </a>
@@ -87,7 +84,7 @@ Extract text, tables, images, metadata, and code intelligence from 96 file forma
 - **Document intelligence core** — extract text, tables, images, metadata, entities, keywords, code intelligence, and transcripts in builds that enable transcription.
 - **Format coverage** — PDF, Office, images, HTML/XML, email, archives, notebooks, citations, scientific formats, plain text, and audio/video formats in builds that enable transcription.
 - **OCR choices** — Tesseract, PaddleOCR, Candle where supported, VLM OCR through liter-llm, and plugin hooks for custom backends.
-- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, R, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
+- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
 - **Zig package** — wrapper over the C FFI with explicit memory ownership.
 
 ## Installation
@@ -97,7 +94,7 @@ Extract text, tables, images, metadata, and code intelligence from 96 file forma
 Fetch the package and pin it in `build.zig.zon`:
 
 ```bash
-zig fetch --save https://github.com/xberg-io/xberg/archive/refs/tags/v1.0.0-rc.1.tar.gz
+zig fetch --save https://github.com/xberg-io/xberg/archive/refs/tags/v1.0.0-rc.5.tar.gz
 ```
 
 Then wire it into `build.zig`:
@@ -111,6 +108,7 @@ exe.root_module.addImport("xberg", xberg_dep.module("xberg"));
 ```
 
 ### System Requirements
+
 - **Zig 0.16.0+** required (`minimum_zig_version` declared in `build.zig.zon`)
 - Links the C FFI surface from `xberg-ffi`; the build resolves the library via `linkSystemLibrary` against the consumer-provided search path
 - Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.24+ for ORT-dependent inference features

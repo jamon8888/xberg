@@ -1,11 +1,7 @@
 {
 	"id": "config_tree_sitter",
 	"description": "Tests tree-sitter configuration round-trip",
-	"tags": [
-		"contract",
-		"config",
-		"tree-sitter"
-	],
+	"tags": ["contract", "config", "tree-sitter"],
 	"call": "extract",
 	"input": {
 		"mock_responses": [
@@ -36,20 +32,13 @@
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"config": {
 		"tree_sitter": {
-			"languages": [
-				"python",
-				"rust"
-			],
-			"groups": [
-				"web"
-			],
+			"languages": ["python", "rust"],
+			"groups": ["web"],
 			"process": {
 				"structure": true,
 				"imports": true,

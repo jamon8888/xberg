@@ -35,9 +35,6 @@
   <a href="https://hex.pm/packages/xberg">
     <img src="https://img.shields.io/hexpm/v/xberg?label=Elixir&color=007ec6" alt="Elixir">
   </a>
-  <a href="https://xberg-io.r-universe.dev/xberg">
-    <img src="https://img.shields.io/badge/R-xberg-007ec6" alt="R">
-  </a>
   <a href="https://pub.dev/packages/xberg">
     <img src="https://img.shields.io/pub/v/xberg?label=Dart&color=007ec6" alt="Dart">
   </a>
@@ -87,7 +84,7 @@ Extract text, tables, images, metadata, and code intelligence from 96 file forma
 - **Document intelligence core** — extract text, tables, images, metadata, entities, keywords, code intelligence, and transcripts in builds that enable transcription.
 - **Format coverage** — PDF, Office, images, HTML/XML, email, archives, notebooks, citations, scientific formats, plain text, and audio/video formats in builds that enable transcription.
 - **OCR choices** — Tesseract, PaddleOCR, Candle where supported, VLM OCR through liter-llm, and plugin hooks for custom backends.
-- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, R, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
+- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
 - **Java package** — FFM binding for direct native document extraction.
 
 ## Installation
@@ -100,23 +97,24 @@ Add to your `pom.xml`:
 <dependency>
     <groupId>io.xberg</groupId>
     <artifactId>xberg</artifactId>
-    <version>1.0.0-rc.1</version>
+    <version>1.0.0-rc.5</version>
 </dependency>
 ```
 
 Kotlin DSL (`build.gradle.kts`):
 
 ```kotlin
-implementation("io.xberg:xberg:1.0.0-rc.1")
+implementation("io.xberg:xberg:1.0.0-rc.5")
 ```
 
 Groovy DSL (`build.gradle`):
 
 ```groovy
-implementation 'io.xberg:xberg:1.0.0-rc.1'
+implementation 'io.xberg:xberg:1.0.0-rc.5'
 ```
 
 ### System Requirements
+
 - **Java 25+** required (Foreign Function & Memory API; build run with `--enable-preview` and `--enable-native-access=ALL-UNNAMED`)
 - Native libraries bundled in the JAR for macOS (arm64, x64), Linux (x64, arm64), and Windows (x64)
 - Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.24+ for ORT-dependent inference features

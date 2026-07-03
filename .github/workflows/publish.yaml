@@ -5,7 +5,6 @@ name: Publish Release
 # Orchestrates 16 alef language targets:
 #   crates · python · node · wasm · ruby · php · cli · homebrew · go · c-ffi
 #   java · csharp · elixir · dart · swift · zig · kotlin
-# (R is excluded — distributed automatically by R-Universe from this repo's HEAD.)
 #
 # Mirrors html-to-markdown's publish.yaml composition: every registry
 # interaction, every multi-platform build, and every release-asset upload
@@ -380,7 +379,7 @@ jobs:
           tag: ${{ needs.prepare.outputs.tag }}
           asset-prefix: xberg-cli-
           assets: |
-            xberg-cli-aarch64-apple-darwin.tar.gz,xberg-cli-aarch64-unknown-linux-gnu.tar.gz,xberg-cli-aarch64-unknown-linux-musl.tar.gz,xberg-cli-x86_64-unknown-linux-gnu.tar.gz,xberg-cli-x86_64-unknown-linux-musl.tar.gz,xberg-cli-x86_64-pc-windows-msvc.zip
+            xberg-cli-aarch64-apple-darwin.tar.gz,xberg-cli-x86_64-apple-darwin.tar.gz,xberg-cli-aarch64-unknown-linux-gnu.tar.gz,xberg-cli-aarch64-unknown-linux-musl.tar.gz,xberg-cli-x86_64-unknown-linux-gnu.tar.gz,xberg-cli-x86_64-unknown-linux-musl.tar.gz,xberg-cli-x86_64-pc-windows-msvc.zip
 
   check-go:
     name: Check GitHub Release for Go FFI assets
@@ -446,15 +445,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Intel macOS dropped (rc.20+): Apple killed x86_64 Macs and GitHub is
-        # deprecating macos-13 runners. macОS is PINNED to macos-15 (Sequoia),
-        # NOT macos-latest: when macos-latest rolled forward to macOS 26 (Tahoe)
-        # its Homebrew HEIF/AV1 bottles became 26.0-min, which exceeds the wheel's
+        # macОS is PINNED to macos-15 (Sequoia), NOT macos-latest: when
+        # macos-latest rolled forward to macOS 26 (Tahoe) its Homebrew HEIF/AV1
+        # bottles became 26.0-min, which exceeds the wheel's
         # MACOSX_DEPLOYMENT_TARGET=15.0 (set below) and delocate refused to vendor
         # them ("Library dependencies do not satisfy target MacOS version 15.0").
         # Pinning the runner keeps the bottles' min-target aligned with the 15.0
         # wheel tag; bump both together when intentionally raising the floor.
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15]
+        #
+        # macos-15-intel (x86_64): re-added. ort has no static x86_64-apple-darwin
+        # prebuilt, so this leg builds once xberg-py's Cargo.toml carries the
+        # alef macos-intel-target override (pending alef target_dep_overrides
+        # support for the pyo3 scaffold, then `alef generate`). The wheel does
+        # not yet bundle libonnxruntime.dylib (delocate cannot see the runtime
+        # dlopen dependency), so ML features on the Intel wheel need
+        # ORT_DYLIB_PATH pointing at an installed ONNX Runtime until explicit
+        # vendoring lands.
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15, macos-15-intel]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -560,6 +567,7 @@ jobs:
       - uses: jamon8888/actions/build-python-sdist@v1
         with:
           output-dir: dist
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
 
       - uses: actions/upload-artifact@v7
         with:
@@ -579,6 +587,10 @@ jobs:
           - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, target: aarch64-apple-darwin }
+          # Intel macOS: native x86_64 build; ONNX Runtime staged by
+          # setup-onnx-runtime (Homebrew on x86_64) and linked dynamically,
+          # same as the macos-arm64 leg.
+          - { os: macos-15-intel, target: x86_64-apple-darwin }
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -738,6 +750,8 @@ jobs:
           - { os: ubuntu-latest, label: linux-x86_64 }
           - { os: ubuntu-24.04-arm, label: linux-aarch64 }
           - { os: macos-latest, label: macos-arm64 }
+          # Intel macOS: native x86_64 gem; dynamic ort (alef macos-intel-target).
+          - { os: macos-15-intel, label: macos-x86_64 }
           # Ruby on Windows is MinGW (rb-sys → x86_64-pc-windows-gnu) but ort-sys
           # only ships msvc prebuilts; the ABIs are incompatible. Skip until ORT
           # publishes mingw binaries or xberg moves to ort-tract on Ruby/Win.
@@ -761,6 +775,7 @@ jobs:
       - uses: jamon8888/actions/build-ruby-gem@v1
         with:
           package-dir: packages/ruby
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
 
       - name: Package platform gem
         # `rake compile` builds the native extension for this runner's platform;
@@ -785,7 +800,7 @@ jobs:
           for f in packages/ruby/pkg/*.gem; do
             base="$(basename "$f")"
             case "$base" in
-              *-x86_64-linux.gem|*-aarch64-linux.gem|*-arm64-darwin.gem) ;;
+              *-x86_64-linux.gem|*-aarch64-linux.gem|*-arm64-darwin.gem|*-x86_64-darwin.gem) ;;
               *) echo "Removing non-canonical source gem $base"; rm -f "$f" ;;
             esac
           done
@@ -807,12 +822,19 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false
+      # 4 PHP versions x 5 platforms = 20 jobs, 8 of them on the scarce macOS
+      # runner pool. Cap concurrency so this single matrix cannot monopolize the
+      # pool and starve the other languages' macOS legs (jobs queued 2h+ and
+      # never ran on rc.4). Coverage is unchanged — only the fan-out rate is.
+      max-parallel: 4
       matrix:
         php: ["8.2", "8.3", "8.4", "8.5"]
         platform:
           - { os: ubuntu-latest, label: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, label: linux-arm64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, label: macos-arm64, target: aarch64-apple-darwin }
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - { os: macos-15-intel, label: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, label: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -838,6 +860,7 @@ jobs:
           lib-name: xberg_php
           php-version: ${{ matrix.php }}
           php-ts: nts
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
 
       - uses: jamon8888/actions/install-alef@v1
 
@@ -871,14 +894,34 @@ jobs:
       matrix:
         include:
           # gnu CLI builds in manylinux_2_28 containers for glibc 2.28 floor.
-          # The executable statically links C++ deps (tesseract/leptonica/libheif)
+          # The executable statically links C++ deps (tesseract/leptonica)
           # that reference GNU libstdc++ `__cxx11` symbols. CFLAGS/CXXFLAGS prevent
           # GCC 14+ from emitting C23-versioned glibc symbols (__isoc23_strtoll etc.)
           # that require glibc ≥ 2.38, ensuring compatibility with Debian 12/Ubuntu 22.04/RHEL 8.
+          # HEIF/HEIC is built in (the CLI's xberg `formats` feature includes `heic`);
+          # libheif is provisioned from source in the system-deps step below.
           # Older/Alpine systems are served by the static musl CLI below.
-          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu, container: quay.io/pypa/manylinux_2_28_x86_64:latest }
-          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, container: quay.io/pypa/manylinux_2_28_aarch64:latest }
+          - {
+              os: ubuntu-latest,
+              target: x86_64-unknown-linux-gnu,
+              container: quay.io/pypa/manylinux_2_28_x86_64:latest,
+            }
+          - {
+              os: ubuntu-24.04-arm,
+              target: aarch64-unknown-linux-gnu,
+              container: quay.io/pypa/manylinux_2_28_aarch64:latest,
+            }
           - { os: macos-latest, target: aarch64-apple-darwin }
+          # Native Intel macOS. ort has no static x86_64-apple-darwin prebuilt
+          # (dropped rc.11; Microsoft dropped onnxruntime-osx-x86_64 after 1.23),
+          # so this target keeps the default features but swaps ort-bundled for
+          # ort-dynamic and ships a bundled libonnxruntime.dylib. Full parity
+          # with the aarch64 CLI.
+          - {
+              os: macos-15-intel,
+              target: x86_64-apple-darwin,
+              extra_cargo_args: "--features ort-dynamic,mcp,mcp-http,api",
+            }
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -887,7 +930,25 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: jamon8888/actions/setup-rust@v1
+      - name: Bootstrap manylinux container (protoc + rustup HOME)
+        if: contains(matrix.target, '-linux-gnu')
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # setup-rust installs protoc via `sudo apt-get` (Debian), but the
+          # manylinux_2_28 base is AlmaLinux 8 with no apt/sudo — its protoc step
+          # exits 127. Pre-install protoc from EPEL so setup-rust's
+          # `command -v protoc` short-circuits before reaching the apt branch.
+          yum install -y epel-release || dnf install -y epel-release || true
+          yum install -y protobuf-compiler || dnf install -y protobuf-compiler || true
+          # GitHub sets HOME=/github/home for container jobs, but the container
+          # runs as root (euid home /root); rustup aborts on the mismatch. Pin
+          # HOME=/root for later steps and seed its gitconfig so git ops under the
+          # new HOME don't trip "dubious ownership" on the checkout.
+          echo "HOME=/root" >> "$GITHUB_ENV"
+          HOME=/root git config --global --add safe.directory '*' || true
+
+      - uses: xberg-io/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
@@ -896,8 +957,11 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          # manylinux_2_28 is AlmaLinux 8. EPEL + CRB/PowerTools provide the HEIF
-          # codec -devel packages libheif needs (libde265/libaom/libdav1d/libx265).
+          # manylinux_2_28 is AlmaLinux 8. EPEL + CRB/PowerTools provide free codecs
+          # (libaom/libdav1d for AV1). HEVC codecs (libde265/x265) are not in EPEL
+          # (patent concerns), so they are installed best-effort below and libheif
+          # is built from source — the CLI enables `heic` via the xberg `formats`
+          # feature, so libheif-sys needs libheif.pc on PKG_CONFIG_PATH.
           yum install -y epel-release || dnf install -y epel-release || true
           yum install -y dnf-plugins-core yum-utils || true
           dnf config-manager --set-enabled powertools 2>/dev/null \
@@ -905,9 +969,31 @@ jobs:
             || yum-config-manager --enable powertools 2>/dev/null || true
           yum install -y \
             gcc gcc-c++ make cmake pkgconfig \
-            openssl-devel libmagic-devel libuv-devel \
-            libde265-devel libaom-devel libx265-devel libdav1d-devel libnuma-devel \
+            openssl-devel file-devel libuv-devel \
+            libaom-devel libdav1d-devel \
             tesseract-devel
+          # HEVC codecs (best-effort; libheif builds without them, dropping HEIC
+          # HEVC decode but keeping AVIF/AV1).
+          for codec in libde265-devel x265-devel; do
+            yum install -y "$codec" || dnf install -y "$codec" || true
+          done
+          # Build libheif 1.23.0 from source into /usr/local — mirrors the
+          # install-system-deps composite used by the non-manylinux legs. The
+          # non-manylinux CLI targets get libheif from that action; manylinux
+          # (AlmaLinux, no apt) provisions it here so both paths match.
+          curl -fsSL -o /tmp/libheif.tar.gz \
+            https://github.com/strukturag/libheif/releases/download/v1.23.0/libheif-1.23.0.tar.gz
+          tar -xzf /tmp/libheif.tar.gz -C /tmp
+          mkdir -p /tmp/libheif-1.23.0/build
+          cd /tmp/libheif-1.23.0/build
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DCMAKE_INSTALL_LIBDIR=lib -DWITH_EXAMPLES=OFF -DWITH_GDK_PIXBUF=OFF \
+            -DBUILD_TESTING=OFF
+          make -j"$(nproc)"
+          make install
+          ldconfig
+          cd -
+          rm -rf /tmp/libheif*
           # Apply the C23-symbol-prevention flags (#588) to THIS glibc-gnu build
           # only — written to GITHUB_ENV inside the linux-gnu-gated step so they
           # never reach the macOS (clang) or Windows (MSVC) matrix entries.
@@ -934,9 +1020,30 @@ jobs:
           # Ship the server surface in prebuilt binaries so `xberg mcp` /
           # `xberg mcp --transport http` / `xberg api` work from
           # install.sh + Homebrew (the CLI `default` features omit these). `heic`
-          # is deliberately excluded — it needs vcpkg libheif on the Windows
-          # release target. Docker images already build with `--features all`.
-          extra-cargo-args: --features mcp,mcp-http,api
+          # is already on via the CLI's xberg `formats` feature; libheif is
+          # provisioned by the system-deps steps (from source on Linux/macOS,
+          # vcpkg on Windows). Intel macOS overrides this (matrix.extra_cargo_args)
+          # to add ort-dynamic in place of the missing static prebuilt.
+          extra-cargo-args: ${{ matrix.extra_cargo_args || '--features mcp,mcp-http,api' }}
+
+      - name: Vendor ONNX Runtime dylib (Intel macOS)
+        if: matrix.target == 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          # This target loads ONNX Runtime at runtime (ort-dynamic) rather than
+          # static-linking a prebuilt, because none exists for x86_64-apple-darwin
+          # at onnxruntime >= 1.24 (the version ort rc.12 requires). Homebrew's
+          # onnxruntime (1.27, x86_64 "sonoma" bottle) satisfies the >=1.24 check.
+          # The sequoia runner has no matching x86_64 bottle, so pour the sonoma
+          # one explicitly. Vendored next to the binary + rewritten to
+          # @loader_path so it resolves without Homebrew on the user's machine.
+          export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+          brew install --bottle-tag=sonoma onnxruntime \
+            || brew install onnxruntime
+          ORT_LIB="$(brew --prefix onnxruntime)/lib/libonnxruntime.dylib"
+          test -f "$ORT_LIB"
+          echo "ORT_VENDOR_LIB=$ORT_LIB" >> "$GITHUB_ENV"
 
       - name: Package CLI artifact
         # Inline: archive layout (.tar.gz on Unix, .zip on Windows) varies per
@@ -953,6 +1060,47 @@ jobs:
             7z a "${STAGE}.zip" "$STAGE" >/dev/null
           else
             cp "$BINARY_PATH" "$STAGE/xberg"
+            # Intel macOS: bundle libonnxruntime.dylib next to the binary. ort
+            # resolves the default dylib name relative to the executable, so no
+            # ORT_DYLIB_PATH is needed. Vendor the dylib's FULL non-system
+            # dependency closure — Homebrew's onnxruntime links abseil, onnx,
+            # protobuf and re2, which in turn link each other — and repoint
+            # every install name at @loader_path so the bundle is
+            # self-contained (no Homebrew required at runtime). Each staged
+            # copy gets its @loader_path ID set immediately so its own
+            # LC_ID_DYLIB line (which otool -L prints first) drops out of the
+            # Homebrew-path grep instead of being re-vendored under its
+            # versioned name.
+            if [[ "$TARGET" == "x86_64-apple-darwin" && -n "${ORT_VENDOR_LIB:-}" ]]; then
+              cp "$ORT_VENDOR_LIB" "$STAGE/libonnxruntime.dylib"
+              chmod u+w "$STAGE/libonnxruntime.dylib"
+              install_name_tool -id "@loader_path/libonnxruntime.dylib" "$STAGE/libonnxruntime.dylib"
+              # Iterate to a fixpoint: each pass copies newly referenced
+              # dylibs and rewrites references in everything staged so far.
+              changed=1
+              while [[ "$changed" == 1 ]]; do
+                changed=0
+                for lib in "$STAGE"/*.dylib; do
+                  while IFS= read -r dep; do
+                    base="$(basename "$dep")"
+                    src="$dep"
+                    [[ "$dep" == @rpath/* ]] && src="$(brew --prefix onnxruntime)/lib/$base"
+                    if [[ ! -f "$STAGE/$base" ]]; then
+                      [[ -f "$src" ]] || continue
+                      cp "$src" "$STAGE/$base"
+                      chmod u+w "$STAGE/$base"
+                      install_name_tool -id "@loader_path/$base" "$STAGE/$base"
+                      changed=1
+                    fi
+                    install_name_tool -change "$dep" "@loader_path/$base" "$lib" || true
+                  done < <(otool -L "$lib" | tail -n +2 | awk '{print $1}' \
+                    | grep -E '^(/opt/homebrew|/usr/local|@rpath)/' || true)
+                done
+              done
+              for lib in "$STAGE"/*.dylib; do
+                codesign --force -s - "$lib" || true
+              done
+            fi
             tar -czf "${STAGE}.tar.gz" "$STAGE"
           fi
 
@@ -1024,6 +1172,8 @@ jobs:
           - { os: ubuntu-latest, platform: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, platform: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, platform: macos-arm64, target: aarch64-apple-darwin }
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - { os: macos-15-intel, platform: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, platform: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -1076,6 +1226,8 @@ jobs:
           - { os: ubuntu-latest, platform: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, platform: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, platform: macos-arm64, target: aarch64-apple-darwin }
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - { os: macos-15-intel, platform: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, platform: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -1143,6 +1295,8 @@ jobs:
           - { os: ubuntu-latest, classifier: linux-x86_64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, classifier: linux-aarch64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, classifier: macos-arm64, target: aarch64-apple-darwin }
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - { os: macos-15-intel, classifier: macos-x86_64, target: x86_64-apple-darwin }
           - { os: windows-latest, classifier: windows-x86_64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -1269,6 +1423,8 @@ jobs:
           - { os: ubuntu-latest, rid: linux-x64, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-24.04-arm, rid: linux-arm64, target: aarch64-unknown-linux-gnu }
           - { os: macos-latest, rid: osx-arm64, target: aarch64-apple-darwin }
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - { os: macos-15-intel, rid: osx-x64, target: x86_64-apple-darwin }
           - { os: windows-latest, rid: win-x64, target: x86_64-pc-windows-msvc }
     steps:
       - uses: actions/checkout@v6
@@ -1364,7 +1520,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest]
         nif: ["2.16", "2.17"]
         include:
           - os: ubuntu-latest
@@ -1373,6 +1529,10 @@ jobs:
           - os: ubuntu-24.04-arm
             label: linux-aarch64
             target: aarch64-unknown-linux-gnu
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - os: macos-15-intel
+            label: macos-x86_64
+            target: x86_64-apple-darwin
           - os: macos-latest
             label: macos-arm64
             target: aarch64-apple-darwin
@@ -1425,7 +1585,15 @@ jobs:
         shell: bash
         run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
 
-      - uses: jamon8888/actions/build-elixir-natives@v1
+      - name: Disable sccache wrapper on Windows
+        # cargo cannot exec the Alef-scaffolded `.cargo/rustc-wrapper.sh` on
+        # Windows ("%1 is not a valid Win32 application"). Empty RUSTC_WRAPPER
+        # disables the shim for this build only.
+        if: contains(matrix.target, 'windows')
+        shell: bash
+        run: echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+
+      - uses: xberg-io/actions/build-elixir-natives@v1
         with:
           target: ${{ matrix.target }}
           nif-crate-name: xberg_nif
@@ -1434,6 +1602,7 @@ jobs:
           nif-version: ${{ needs.prepare.outputs.version }}
           nif-api-version: ${{ matrix.nif }}
           glibc-version: ${{ contains(matrix.target, '-linux-gnu') && '2.28' || '' }}
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
 
       - uses: actions/upload-artifact@v7
         with:
@@ -1586,6 +1755,13 @@ jobs:
               blob: macos-arm64,
               lib: libxberg_dart.dylib,
             }
+          # Intel macOS: native x86_64; dynamic ort (alef macos-intel-target).
+          - {
+              os: macos-15-intel,
+              target: x86_64-apple-darwin,
+              blob: macos-x86_64,
+              lib: libxberg_dart.dylib,
+            }
           - {
               os: windows-latest,
               target: x86_64-pc-windows-msvc,
@@ -1702,6 +1878,11 @@ jobs:
         with:
           crate-name: xberg-swift
           artifact-name: XbergSwift
+          # Intel macOS slice deferred alongside the Homebrew bottle: the crate
+          # builds for x86_64-apple-darwin via the alef macos-intel-target
+          # override, but build-swift-artifactbundle does not yet vendor
+          # libonnxruntime.dylib into the slice, so it would ship unable to load
+          # ONNX Runtime at runtime. Flip to "true" once the action vendors it.
           include-macos-x86_64: "false"
           include-ios-x86_64: "false"
       - uses: actions/upload-artifact@v7
@@ -2416,7 +2597,7 @@ jobs:
         with:
           resources-dir: packages/java/src/main/resources/natives
           required-classifiers: >-
-            linux-x86_64 linux-aarch64 macos-arm64 windows-x86_64
+            linux-x86_64 linux-aarch64 macos-arm64 macos-x86_64 windows-x86_64
             linux-musl-x86_64 linux-musl-aarch64
           lib-name: xberg_ffi
 
@@ -2594,7 +2775,7 @@ jobs:
           # elixir-natives builds NIF API 2.16 AND 2.17; include both so the
           # checksum file covers every uploaded artifact.
           nif-versions: "2.16,2.17"
-          targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-musl,aarch64-apple-darwin,x86_64-pc-windows-msvc
+          targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-musl,aarch64-apple-darwin,x86_64-apple-darwin,x86_64-pc-windows-msvc
           output-path: packages/elixir/checksum-Elixir.Xberg.Native.exs
 
       - name: Build Elixir Hex tarball with dependency rewrite
@@ -2664,6 +2845,12 @@ jobs:
           name: dart-server-macos-arm64
           path: dart-server-artifacts/macos-arm64
 
+      - name: Download server natives (macos-x86_64)
+        uses: actions/download-artifact@v8
+        with:
+          name: dart-server-macos-x86_64
+          path: dart-server-artifacts/macos-x86_64
+
       - name: Download server natives (windows-x86_64)
         uses: actions/download-artifact@v8
         with:
@@ -2687,7 +2874,7 @@ jobs:
             [[ -d "$xcf" ]] && cp -r "$xcf" packages/dart/ios/Frameworks/
           done
           # Server blobs
-          for entry in "linux-x86_64:libxberg_dart.so" "linux-aarch64:libxberg_dart.so" "macos-arm64:libxberg_dart.dylib" "windows-x86_64:xberg_dart.dll"; do
+          for entry in "linux-x86_64:libxberg_dart.so" "linux-aarch64:libxberg_dart.so" "macos-arm64:libxberg_dart.dylib" "macos-x86_64:libxberg_dart.dylib" "windows-x86_64:xberg_dart.dll"; do
             blob="${entry%%:*}"
             lib="${entry##*:}"
             dest="packages/dart/blobs/${blob}"
@@ -2777,6 +2964,7 @@ jobs:
             ["linux-x86_64"]="linux-x64"
             ["linux-aarch64"]="linux-arm64"
             ["macos-arm64"]="osx-arm64"
+            ["macos-x86_64"]="osx-x64"
             ["windows-x86_64"]="win-x64"
           )
           out="ffi-artifacts"
@@ -2906,9 +3094,11 @@ jobs:
       matrix:
         include:
           - { os: macos-latest, bottle_tag: arm64_sonoma, install_brew: false }
-          # Intel macOS (sequoia, macos-15-intel) bottle dropped: ort-sys 2.0.0-rc.12 has no
-          # prebuilt for x86_64-apple-darwin. Re-add once upstream ships it or we switch to
-          # a no-ort feature set for Intel Macs.
+          # Intel macOS (sequoia): the tap formula builds x86_64 with ort-dynamic
+          # and depends on the `onnxruntime` formula for the runtime dylib (no
+          # static x86_64-apple-darwin prebuilt exists). Requires the paired tap
+          # change xberg-io/homebrew-tap#6 to be merged before this bottle builds.
+          - { os: macos-15-intel, bottle_tag: sequoia, install_brew: false }
           - { os: ubuntu-latest, bottle_tag: x86_64_linux, install_brew: true }
           - { os: ubuntu-24.04-arm, bottle_tag: arm64_linux, install_brew: true }
     steps:
@@ -3125,3 +3315,36 @@ jobs:
           package-dir: cli-proxy/npm
           access: public
           provenance: "true"
+
+  trigger-docker-publish:
+    name: Trigger Docker image publish
+    # publish-docker.yaml normally fires on `release: published`, but the release
+    # is created as a draft and only un-drafted by finalize-github-release, which
+    # needs every binding upload to succeed — so a single binding failure means
+    # the release never publishes and Docker never builds. Fire the docker
+    # pipeline explicitly via repository_dispatch, decoupled from the scripting
+    # bindings: images build from source and only need a sane core. GITHUB_TOKEN
+    # cannot trigger a workflow from a workflow, so use the BOT app token.
+    needs: [prepare, publish-crates]
+    if: ${{ needs.prepare.outputs.is_tag == 'true' && needs.prepare.outputs.dry_run != 'true' && needs.prepare.outputs.release_any == 'true' && !cancelled() && needs.publish-crates.result != 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          owner: xberg-io
+
+      - name: Dispatch publish-docker
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          REF: ${{ needs.prepare.outputs.checkout_ref }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/dispatches" \
+            -f event_type=publish-docker \
+            -f "client_payload[tag]=${TAG}" \
+            -f "client_payload[ref]=${REF}"
+          echo "Dispatched publish-docker for ${TAG}" >> "$GITHUB_STEP_SUMMARY"

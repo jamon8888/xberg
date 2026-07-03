@@ -379,7 +379,7 @@ fn reconstruct_region_table(
     allow_single_column: bool,
 ) -> Option<Table> {
     use crate::pdf::table_reconstruct::{
-        is_well_formed_table, post_process_table, reconstruct_table, table_to_markdown,
+        is_well_formed_table, looks_like_code_listing, post_process_table, reconstruct_table, table_to_markdown,
     };
 
     let region_left = region.iter().map(|w| w.left).min().unwrap_or(0);
@@ -400,6 +400,23 @@ fn reconstruct_region_table(
     if cleaned.len() <= 1 {
         return None;
     }
+
+    // Reject reconstructed grids that look like code listings rather than tables.
+    // Monospace code blocks (especially C-family syntax with curly braces) can
+    // pass the text-edge clustering step because their fixed-width character
+    // spacing creates column-like positions. Isolated `{` or `}` cells are an
+    // unambiguous signal: those characters never appear as standalone table cells
+    // in real tabular data.
+    if looks_like_code_listing(&cleaned) {
+        tracing::trace!(
+            page = page_number,
+            rows = cleaned.len(),
+            cols = cleaned.first().map_or(0, |r| r.len()),
+            "heuristic table region looks like a code listing — skipping false-positive"
+        );
+        return None;
+    }
+
     if !is_well_formed_table(&cleaned) {
         return None;
     }

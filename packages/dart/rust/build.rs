@@ -1,13 +1,9 @@
-use std::path::{Path, PathBuf};
-use std::{env, fs};
+use std::path::Path;
 
 fn main() {
-    // Re-run whenever any Rust source changes.
+    // Re-run whenever any Rust source changes or FRB config changes.
     println!("cargo:rerun-if-changed=src");
-
-    // Copy compiled library to the location where Dart FFI expects to find it
-    // for local development builds.
-    copy_compiled_library();
+    println!("cargo:rerun-if-changed=flutter_rust_bridge.yaml");
 
     // Optional FRB codegen: regenerate flutter_rust_bridge artifacts when the
     // tool is on PATH. Missing tool is not fatal — committed generated sources

@@ -16,8 +16,9 @@ use super::constants::{FULL_LINE_FRACTION, MIN_HEADING_FONT_GAP, MIN_HEADING_FON
 use super::lines::is_cjk_char;
 use super::paragraphs::{merge_continuation_paragraphs, split_embedded_list_items};
 use super::text_repair::{
-    apply_to_all_segments, clean_duplicate_punctuation, expand_ligatures_with_space_absorption,
-    normalize_text_encoding, normalize_unicode_text, repair_contextual_ligatures, repair_ligature_spaces,
+    apply_to_all_segments, clean_duplicate_punctuation, collapse_spaced_hyphens,
+    expand_ligatures_with_space_absorption, normalize_text_encoding, normalize_unicode_text,
+    repair_contextual_ligatures, repair_ligature_spaces,
 };
 use super::types::{LayoutHint, PdfParagraph};
 
@@ -191,6 +192,96 @@ fn build_heading_map_from_assigned_roles(all_page_segments: &[Vec<SegmentData>])
     heading_map
 }
 
+/// Promote an untagged document-title font tier above structure-tree headings.
+///
+/// Word processors tag the document title with a non-heading structure type
+/// (e.g. LibreOffice's "Title" style resolves to a non-`H*` element), so
+/// `build_heading_map_from_assigned_roles` classifies it as body text even
+/// though it is visually the top-level heading. When such a tier exists —
+/// strictly larger than every tagged heading font, bold, few segments, and
+/// present on the first page — assign it level 1 and demote all tagged
+/// heading levels by one (Title = h1, tagged H1 = h2, ...), matching the
+/// pandoc/HTML convention that the document title outranks section headings.
+///
+/// Returns `true` when a title tier was promoted. The caller must then also
+/// demote the per-segment `assigned_role` values (see
+/// `demote_assigned_roles`), because paragraph classification honours
+/// `assigned_role` directly, bypassing the heading map.
+fn promote_untagged_document_title(
+    heading_map: &mut [(f32, Option<u8>)],
+    all_page_segments: &[Vec<SegmentData>],
+) -> bool {
+    /// A title is a handful of segments at most; more means a body/pull-quote tier.
+    const MAX_TITLE_SEGMENTS: usize = 3;
+
+    let Some(max_heading_font) = heading_map
+        .iter()
+        .filter(|(_, level)| level.is_some())
+        .map(|(font, _)| *font)
+        .fold(None, |acc: Option<f32>, f| Some(acc.map_or(f, |a| a.max(f))))
+    else {
+        return false; // No tagged headings — nothing to demote against.
+    };
+
+    // Candidate tiers: body-classified fonts strictly above the largest tagged heading.
+    // heading_map is sorted descending, so the first match is the largest candidate.
+    let candidate = heading_map
+        .iter()
+        .position(|(font, level)| level.is_none() && *font > max_heading_font);
+    let Some(candidate_idx) = candidate else {
+        return false;
+    };
+    let candidate_font = heading_map[candidate_idx].0;
+
+    // Validate against actual segments: small tier, bold, first occurrence on page 0.
+    let mut tier_segments = 0usize;
+    let mut all_bold = true;
+    let mut on_first_page = false;
+    for (page_idx, page_segs) in all_page_segments.iter().enumerate() {
+        for seg in page_segs {
+            if seg.text.trim().is_empty() || (seg.font_size - candidate_font).abs() >= 0.05 {
+                continue;
+            }
+            tier_segments += 1;
+            all_bold &= seg.is_bold;
+            on_first_page |= page_idx == 0;
+        }
+    }
+    if tier_segments == 0 || tier_segments > MAX_TITLE_SEGMENTS || !all_bold || !on_first_page {
+        return false;
+    }
+
+    tracing::debug!(
+        title_font = candidate_font,
+        max_heading_font,
+        tier_segments,
+        "structure tree: promoting untagged document-title tier to h1, demoting tagged levels"
+    );
+    for (font, level) in heading_map.iter_mut() {
+        if let Some(l) = level {
+            *level = Some((*l + 1).min(6));
+        } else if (*font - candidate_font).abs() < 0.05 {
+            *level = Some(1);
+        }
+    }
+    true
+}
+
+/// Demote every structure-tree-assigned heading role by one level (capped at 6).
+///
+/// Companion to `promote_untagged_document_title`: paragraph classification
+/// (`bridge.rs`) uses `assigned_role` directly as "the author's stated intent",
+/// so the map-level demotion must be mirrored on the segments themselves.
+fn demote_assigned_roles(all_page_segments: &mut [Vec<SegmentData>]) {
+    for page_segs in all_page_segments.iter_mut() {
+        for seg in page_segs.iter_mut() {
+            if let Some(role) = seg.assigned_role {
+                seg.assigned_role = Some((role + 1).min(6));
+            }
+        }
+    }
+}
+
 /// Per-page input bundle for Stage 3 parallel processing.
 ///
 /// Each page's data is pre-extracted before `into_par_iter` so all threads
@@ -319,6 +410,84 @@ fn process_single_page(
     }
 }
 
+/// Multiple of the median line height a whitespace band must exceed to count
+/// as a paragraph break. Normal line pitch leaves well under one line height of
+/// whitespace; a blank line leaves more than one.
+const PARAGRAPH_GAP_HEIGHT_FACTOR: f32 = 1.5;
+
+/// Detect paragraph-break y-positions from horizontal whitespace bands.
+///
+/// Segments are clustered into visual lines after sorting by y — stream order
+/// is not positional (multi-column PDFs interleave columns, which a pairwise
+/// scan misreads as phantom gaps). A break is recorded only where the band
+/// between two consecutive lines is taller than
+/// [`PARAGRAPH_GAP_HEIGHT_FACTOR`] × the median line height: pure blank-line
+/// spacing. Bands between two monospace lines are skipped, because code
+/// listings legitimately contain blank lines inside one logical block.
+///
+/// Without this, the heuristic path only breaks paragraphs on font/bold/list
+/// changes, fusing visually separated blocks (standalone headings, display
+/// formulas) into surrounding prose.
+fn compute_paragraph_gap_ys(segments: &[SegmentData]) -> Vec<f32> {
+    if segments.len() < 2 {
+        return Vec::new();
+    }
+
+    let mut order: Vec<usize> = (0..segments.len()).collect();
+    order.sort_by(|&a, &b| {
+        segments[b]
+            .y
+            .partial_cmp(&segments[a].y)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    // One vertical band per visual line; a segment joins the current line when
+    // its y sits within half its own height of the line's anchor.
+    struct LineBand {
+        top: f32,
+        bottom: f32,
+        height: f32,
+        monospace: bool,
+        anchor_y: f32,
+    }
+    let mut lines: Vec<LineBand> = Vec::new();
+    for &i in &order {
+        let seg = &segments[i];
+        let tolerance = (seg.height * 0.5).max(1.0);
+        match lines.last_mut() {
+            Some(line) if (seg.y - line.anchor_y).abs() <= tolerance => {
+                line.top = line.top.max(seg.y + seg.height);
+                line.bottom = line.bottom.min(seg.y);
+                line.height = line.height.max(seg.height);
+                line.monospace &= seg.is_monospace;
+            }
+            _ => lines.push(LineBand {
+                top: seg.y + seg.height,
+                bottom: seg.y,
+                height: seg.height,
+                monospace: seg.is_monospace,
+                anchor_y: seg.y,
+            }),
+        }
+    }
+    if lines.len() < 2 {
+        return Vec::new();
+    }
+
+    let mut heights: Vec<f32> = lines.iter().map(|l| l.height).collect();
+    heights.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    let gap_threshold = heights[heights.len() / 2] * PARAGRAPH_GAP_HEIGHT_FACTOR;
+
+    let mut gap_ys = Vec::new();
+    for pair in lines.windows(2) {
+        let gap = pair[0].bottom - pair[1].top;
+        if gap > gap_threshold && !(pair[0].monospace && pair[1].monospace) {
+            gap_ys.push((pair[0].bottom + pair[1].top) / 2.0);
+        }
+    }
+    gap_ys
+}
+
 /// Convert a flat list of text segments into grouped paragraphs.
 ///
 /// Groups consecutive segments by font changes, bold changes, list markers, and
@@ -342,14 +511,25 @@ fn blocks_to_paragraphs(
     let mut paragraphs: Vec<PdfParagraph> = Vec::new();
     let mut current_lines: Vec<&SegmentData> = Vec::new();
 
-    for line in &lines {
+    for (line_idx, line) in lines.iter().enumerate() {
         let should_break = if current_lines.is_empty() {
             false
         } else {
             let prev = current_lines.last().unwrap();
             let font_change = (line.font_size - prev.font_size).abs() > 1.5;
             let bold_change = line.is_bold != prev.is_bold;
-            let is_list = looks_like_list_item(&line.text);
+            // A list item starts either with a full "marker + text" segment or with a
+            // bare marker segment ("1.", "a)", "•") whose item text is a separate span
+            // on the same line — common when word processors emit the numbering as its
+            // own text run. A bare marker only counts when it starts a NEW visual line
+            // (baseline change from prev) AND its item text follows on the same line,
+            // so mid-prose spans like a footnote "1." cannot split paragraphs.
+            let starts_new_line = (line.baseline_y - prev.baseline_y).abs() > 0.5;
+            let has_same_line_follower = lines
+                .get(line_idx + 1)
+                .is_some_and(|next| (next.baseline_y - line.baseline_y).abs() <= 0.5);
+            let is_list = looks_like_list_item(&line.text)
+                || (starts_new_line && has_same_line_follower && is_bare_list_marker(&line.text));
             // Segment gap: a paragraph break exists between prev and current
             // if a gap_y falls between their baselines.
             let crossed_gap = paragraph_gap_ys.iter().any(|&gap_y| {
@@ -519,10 +699,18 @@ fn finalize_paragraph(
         });
     }
 
+    // A bare page number can satisfy the heading heuristics (heading-sized
+    // font cluster in Pass 1, "1" reads as a section pattern in Pass 3); never
+    // promote it, so the page-furniture check below (gated on
+    // heading_level.is_none()) can claim it instead.
+    let page_number_like = word_count <= 10 && is_page_number_pattern(trimmed);
+
     // Conservative heading detection.
     // Pass 1: font-size-based — significantly larger font than body.
     let mut heading_level = super::classify::find_heading_level(first.font_size, heading_map, gap_info);
-    if heading_level.is_some() && (word_count > 20 || super::layout_classify::is_separator_text(trimmed)) {
+    if heading_level.is_some()
+        && (word_count > 20 || super::layout_classify::is_separator_text(trimmed) || page_number_like)
+    {
         heading_level = None;
     }
 
@@ -578,6 +766,7 @@ fn finalize_paragraph(
             && !super::layout_classify::is_separator_text(trimmed)
             && !super::regions::looks_like_figure_label(trimmed)
             && !looks_like_list_item(trimmed)
+            && !page_number_like
         {
             heading_level = Some(2);
         }
@@ -637,6 +826,33 @@ fn finalize_paragraph(
     })
 }
 
+/// Check if text is ENTIRELY a list marker with no item text after it.
+///
+/// Word processors often emit list numbering as its own text run, so the
+/// marker ("1.", "a)", "(2)", "•") and the item body arrive as separate
+/// spans on the same line. `looks_like_list_item` rejects those markers
+/// because it requires trailing text; this predicate accepts them.
+fn is_bare_list_marker(text: &str) -> bool {
+    let t = text.trim();
+    if t.is_empty() || t.chars().count() > 5 {
+        return false;
+    }
+    // Bare bullet characters.
+    if matches!(t, "•" | "·" | "◦" | "▪" | "–" | "—" | "-" | "*") {
+        return true;
+    }
+    // "(1)" / "(a)" parenthesized markers.
+    if let Some(inner) = t.strip_prefix('(').and_then(|r| r.strip_suffix(')')) {
+        return !inner.is_empty() && inner.chars().all(|c| c.is_alphanumeric());
+    }
+    // "1." / "12)" / "a." / "b)" — at most 2 alphanumerics + '.' or ')'.
+    // Longer bodies ("etc.", "Inc.") are prose abbreviations, not markers.
+    if let Some(body) = t.strip_suffix('.').or_else(|| t.strip_suffix(')')) {
+        return !body.is_empty() && body.chars().count() <= 2 && body.chars().all(|c| c.is_alphanumeric());
+    }
+    false
+}
+
 /// Check if text starts with a common list marker.
 fn looks_like_list_item(text: &str) -> bool {
     let t = text.trim_start();
@@ -671,8 +887,10 @@ fn looks_like_list_item(text: &str) -> bool {
             }
             if chars.peek() == Some(&')') {
                 chars.next();
-                // Must be followed by space then an alphabetic character
-                return chars.peek() == Some(&' ') && {
+                // Must be followed by whitespace then an alphabetic character.
+                // Newlines count: paragraph text joins same-line spans with '\n',
+                // so "(1)\nItem" is a marker + item-text pair.
+                return chars.peek().is_some_and(|c| c.is_whitespace()) && {
                     chars.next();
                     chars.peek().is_some_and(|c| c.is_alphabetic())
                 };
@@ -682,20 +900,36 @@ fn looks_like_list_item(text: &str) -> bool {
     }
 
     // "1." / "1)" / "a." / "a)" etc.
-    // Exclude section heading patterns: "I. INTRODUCTION", "II. BASICS" etc.
-    if super::classify::is_section_pattern(t) {
+    // Exclude numbered SECTION HEADINGS ("IV. RESULTS", "3.2 Methods",
+    // "1. INTRODUCTION") but keep genuine numbered list items
+    // ("1. First point") classifiable as lists.
+    if super::classify::is_numbered_section_heading(t) {
         return false;
     }
 
     if chars.peek().is_some_and(|c| c.is_alphanumeric()) {
         let mut num_len = 0;
-        while chars.peek().is_some_and(|c| c.is_alphanumeric()) {
+        let mut all_digits = true;
+        let mut all_roman = true;
+        while let Some(&c) = chars.peek() {
+            if !c.is_alphanumeric() {
+                break;
+            }
+            all_digits &= c.is_ascii_digit();
+            all_roman &= matches!(c.to_ascii_lowercase(), 'i' | 'v' | 'x' | 'l' | 'c' | 'd' | 'm');
             chars.next();
             num_len += 1;
         }
-        if num_len <= 4 && (chars.peek() == Some(&'.') || chars.peek() == Some(&')')) {
+        // A marker run is a number ("1.", "12)"), a single letter ("a.", "B)"),
+        // or a roman numeral ("iv.", "VIII)"). Longer plain words followed by a
+        // period are prose — hyphenation fragments ("tua.") and abbreviations —
+        // and must not start a list item.
+        let marker_like = all_digits || num_len == 1 || all_roman;
+        if num_len <= 4 && marker_like && (chars.peek() == Some(&'.') || chars.peek() == Some(&')')) {
             chars.next();
-            return chars.peek() == Some(&' ') && {
+            // Whitespace includes '\n': paragraph text joins same-line spans with
+            // '\n', so "1.\nÉnumération" is a marker + item-text pair.
+            return chars.peek().is_some_and(|c| c.is_whitespace()) && {
                 chars.next();
                 chars.peek().is_some_and(|c| c.is_alphabetic())
             };
@@ -845,7 +1079,12 @@ pub(crate) fn extract_document_structure_from_segments(
     let (heading_map, doc_body_font_size) = if used_structure_tree {
         // Build heading map from structure-tree-assigned roles.
         // Each unique (font_size, assigned_role) pair is honoured directly.
-        let heading_map = build_heading_map_from_assigned_roles(&all_page_segments);
+        let mut heading_map = build_heading_map_from_assigned_roles(&all_page_segments);
+        // An untagged document-title tier (e.g. LibreOffice "Title" style) outranks
+        // the tagged headings: promote it to h1 and shift the tagged hierarchy down.
+        if promote_untagged_document_title(&mut heading_map, &all_page_segments) {
+            demote_assigned_roles(&mut all_page_segments);
+        }
         let doc_body_font_size: Option<f32> = heading_map
             .iter()
             .find(|(_, level)| level.is_none())
@@ -904,6 +1143,15 @@ pub(crate) fn extract_document_structure_from_segments(
             {
                 continue;
             }
+            // Prefer the exact MediaBox page height recorded by the layout run over
+            // the max-segment-extent estimate (which carries a 792pt Letter floor that
+            // offsets the word y-flip on shorter landscape pages).
+            #[cfg(feature = "layout-detection")]
+            let page_height = layout_results
+                .and_then(|results| results.get(page_idx))
+                .map(|pr| pr.page_height_pts)
+                .unwrap_or(page_heights[page_idx]);
+            #[cfg(not(feature = "layout-detection"))]
             let page_height = page_heights[page_idx];
             let words = crate::pdf::table_reconstruct::segments_to_words(&all_page_segments[page_idx], page_height);
             if words.is_empty() {
@@ -1291,17 +1539,21 @@ pub(crate) fn extract_document_structure_from_segments(
     // heading roles are still respected via assigned_role on segments.
     let effective_layout_hints = layout_hints;
     let page_inputs: Vec<PageInput> = (0..page_count)
-        .map(|i| PageInput {
-            page_index: i,
-            struct_paragraphs: None,
-            heuristic_segments: std::mem::take(&mut all_page_segments[i]),
-            page_hints: effective_layout_hints.and_then(|h| h.get(i)).cloned(),
-            table_bboxes: extracted_table_bboxes_by_page.get(&i).cloned().unwrap_or_default(),
-            hint_validations: validations_by_page.get(&i).cloned().unwrap_or_default(),
-            needs_classify: false,
-            paragraph_gap_ys: Vec::new(),
-            include_headers,
-            include_footers,
+        .map(|i| {
+            let heuristic_segments = std::mem::take(&mut all_page_segments[i]);
+            let paragraph_gap_ys = compute_paragraph_gap_ys(&heuristic_segments);
+            PageInput {
+                page_index: i,
+                struct_paragraphs: None,
+                heuristic_segments,
+                page_hints: effective_layout_hints.and_then(|h| h.get(i)).cloned(),
+                table_bboxes: extracted_table_bboxes_by_page.get(&i).cloned().unwrap_or_default(),
+                hint_validations: validations_by_page.get(&i).cloned().unwrap_or_default(),
+                needs_classify: false,
+                paragraph_gap_ys,
+                include_headers,
+                include_footers,
+            }
         })
         .collect();
 
@@ -1418,12 +1670,21 @@ fn fused_text_repairs(text: &str) -> Cow<'_, str> {
     let t1 = normalize_text_encoding(text);
     let t2 = repair_ligature_spaces(&t1);
     let t3 = expand_ligatures_with_space_absorption(&t2);
-    let t4 = normalize_unicode_text(&t3);
+    // Spaced-hyphen collapse must precede normalize_unicode_text, which maps
+    // U+2010/U+2011 to ASCII '-' and would make the artifact indistinguishable
+    // from a legitimate spaced minus/range.
+    let t3b = collapse_spaced_hyphens(&t3);
+    let t4 = normalize_unicode_text(&t3b);
     let t5 = clean_duplicate_punctuation(&t4);
-    match (&t1, &t2, &t3, &t4, &t5) {
-        (Cow::Borrowed(_), Cow::Borrowed(_), Cow::Borrowed(_), Cow::Borrowed(_), Cow::Borrowed(_)) => {
-            Cow::Borrowed(text)
-        }
+    match (&t1, &t2, &t3, &t3b, &t4, &t5) {
+        (
+            Cow::Borrowed(_),
+            Cow::Borrowed(_),
+            Cow::Borrowed(_),
+            Cow::Borrowed(_),
+            Cow::Borrowed(_),
+            Cow::Borrowed(_),
+        ) => Cow::Borrowed(text),
         _ => Cow::Owned(t5.into_owned()),
     }
 }
@@ -1860,6 +2121,92 @@ mod tests {
     use super::*;
     use crate::pdf::hierarchy::SegmentData;
     use crate::pdf::structure::types::{PdfLine, PdfParagraph};
+
+    /// Helper: segment with font metadata for title-promotion tests.
+    fn role_seg(text: &str, font_size: f32, is_bold: bool, assigned_role: Option<u8>) -> SegmentData {
+        SegmentData {
+            text: text.to_string(),
+            x: 72.0,
+            y: 700.0,
+            width: 200.0,
+            height: font_size,
+            font_size,
+            is_bold,
+            is_italic: false,
+            is_monospace: false,
+            baseline_y: 700.0,
+            assigned_role,
+        }
+    }
+
+    /// A bold, first-page, larger-than-any-tagged-heading tier must be promoted
+    /// to h1 with the tagged hierarchy shifted down one level.
+    #[test]
+    fn promote_title_shifts_tagged_heading_levels_down() {
+        let pages = vec![vec![
+            role_seg("Titre du document", 28.0, true, None),
+            role_seg("Titre 1", 18.0, true, Some(1)),
+            role_seg("Titre 2", 16.0, true, Some(2)),
+            role_seg("body text", 12.0, false, None),
+        ]];
+        let mut map = build_heading_map_from_assigned_roles(&pages);
+        assert!(promote_untagged_document_title(&mut map, &pages));
+
+        let level_of = |font: f32| map.iter().find(|(f, _)| (*f - font).abs() < 0.05).and_then(|(_, l)| *l);
+        assert_eq!(level_of(28.0), Some(1), "title tier must become h1");
+        assert_eq!(level_of(18.0), Some(2), "tagged H1 must demote to h2");
+        assert_eq!(level_of(16.0), Some(3), "tagged H2 must demote to h3");
+        assert_eq!(level_of(12.0), None, "body must stay body");
+    }
+
+    /// No untagged tier above the largest tagged heading → no promotion.
+    #[test]
+    fn promote_title_no_candidate_leaves_map_unchanged() {
+        let pages = vec![vec![
+            role_seg("Heading", 18.0, true, Some(1)),
+            role_seg("body", 12.0, false, None),
+        ]];
+        let mut map = build_heading_map_from_assigned_roles(&pages);
+        let before = map.clone();
+        assert!(!promote_untagged_document_title(&mut map, &pages));
+        assert_eq!(map, before);
+    }
+
+    /// A non-bold large tier (e.g. a pull quote) must not be mistaken for a title.
+    #[test]
+    fn promote_title_requires_bold() {
+        let pages = vec![vec![
+            role_seg("large quote", 28.0, false, None),
+            role_seg("Heading", 18.0, true, Some(1)),
+        ]];
+        let mut map = build_heading_map_from_assigned_roles(&pages);
+        assert!(!promote_untagged_document_title(&mut map, &pages));
+    }
+
+    /// A large tier appearing only after page 0 is not a document title.
+    #[test]
+    fn promote_title_requires_first_page() {
+        let pages = vec![
+            vec![role_seg("Heading", 18.0, true, Some(1))],
+            vec![role_seg("Big banner later", 28.0, true, None)],
+        ];
+        let mut map = build_heading_map_from_assigned_roles(&pages);
+        assert!(!promote_untagged_document_title(&mut map, &pages));
+    }
+
+    /// Role demotion mirrors the map shift on segments (bridge.rs reads roles directly).
+    #[test]
+    fn demote_assigned_roles_shifts_and_caps() {
+        let mut pages = vec![vec![
+            role_seg("h1", 18.0, true, Some(1)),
+            role_seg("h6", 8.0, true, Some(6)),
+            role_seg("body", 12.0, false, None),
+        ]];
+        demote_assigned_roles(&mut pages);
+        assert_eq!(pages[0][0].assigned_role, Some(2));
+        assert_eq!(pages[0][1].assigned_role, Some(6), "level 6 must cap, not overflow");
+        assert_eq!(pages[0][2].assigned_role, None);
+    }
 
     /// Helper: create a segment with positional data.
     fn seg(text: &str, x: f32, width: f32) -> SegmentData {
@@ -2350,6 +2697,89 @@ mod tests {
         }
     }
 
+    fn seg_at(text: &str, x: f32, y: f32, height: f32, monospace: bool) -> SegmentData {
+        SegmentData {
+            text: text.to_string(),
+            x,
+            y,
+            width: 200.0,
+            height,
+            font_size: height,
+            is_bold: false,
+            is_italic: false,
+            is_monospace: monospace,
+            baseline_y: y,
+            assigned_role: None,
+        }
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_detects_blank_line_gap() {
+        // Two 12pt lines with normal pitch (whitespace 4pt), then a blank-line
+        // jump (whitespace 28pt > 1.5×12): exactly one gap, between lines 2 and 3.
+        let segments = vec![
+            seg_at("line one", 10.0, 700.0, 12.0, false),
+            seg_at("line two", 10.0, 684.0, 12.0, false),
+            seg_at("new paragraph", 10.0, 644.0, 12.0, false),
+        ];
+        let gaps = compute_paragraph_gap_ys(&segments);
+        assert_eq!(gaps.len(), 1, "only the blank-line jump is a paragraph gap");
+        assert!(gaps[0] > 656.0 && gaps[0] < 684.0, "gap midpoint between the paragraphs, got {}", gaps[0]);
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_ignores_same_line_runs_and_tight_lines() {
+        let segments = vec![
+            seg_at("run a", 10.0, 700.0, 12.0, false),
+            seg_at("run b", 80.0, 700.0, 12.0, false),
+            seg_at("next line", 10.0, 685.0, 12.0, false),
+        ];
+        assert_eq!(compute_paragraph_gap_ys(&segments), Vec::<f32>::new());
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_immune_to_column_major_stream_order() {
+        // Two columns emitted column-major (all of column A, then all of column
+        // B). Every visual line has tight pitch, so no gaps exist — a pairwise
+        // stream-order scan would misread the A→B jump as a page-sized gap.
+        let segments = vec![
+            seg_at("A top", 10.0, 700.0, 12.0, false),
+            seg_at("A mid", 10.0, 685.0, 12.0, false),
+            seg_at("A bot", 10.0, 670.0, 12.0, false),
+            seg_at("B top", 300.0, 700.0, 12.0, false),
+            seg_at("B mid", 300.0, 685.0, 12.0, false),
+            seg_at("B bot", 300.0, 670.0, 12.0, false),
+        ];
+        assert_eq!(compute_paragraph_gap_ys(&segments), Vec::<f32>::new());
+    }
+
+    #[test]
+    fn test_finalize_paragraph_page_number_is_furniture_not_heading() {
+        // When k-means clusters the body font size into a heading cluster, a
+        // gap-separated bare page number would inherit H2; the page-number veto
+        // must reroute it to page furniture.
+        let heading_map = vec![(12.0, Some(2)), (9.0, None)];
+        let gap_info = crate::pdf::structure::classify::precompute_gap_info(&heading_map);
+        let seg = seg_at("1", 300.0, 50.0, 12.0, false);
+        let para = finalize_paragraph(&[&seg], &heading_map, &gap_info).expect("paragraph");
+        assert_eq!(para.heading_level, None, "page number must not become a heading");
+        assert!(para.is_page_furniture, "page number must be marked furniture");
+    }
+
+    #[test]
+    fn test_compute_paragraph_gap_ys_skips_blank_lines_inside_code_blocks() {
+        // A blank line between two monospace lines stays inside one code block;
+        // the same-size gap between monospace and prose is a real break.
+        let segments = vec![
+            seg_at("let x = 1;", 10.0, 700.0, 12.0, true),
+            seg_at("let y = 2;", 10.0, 660.0, 12.0, true),
+            seg_at("Prose resumes here.", 10.0, 620.0, 12.0, false),
+        ];
+        let gaps = compute_paragraph_gap_ys(&segments);
+        assert_eq!(gaps.len(), 1, "only the code→prose boundary is a gap");
+        assert!(gaps[0] > 632.0 && gaps[0] < 660.0, "gap sits between code and prose, got {}", gaps[0]);
+    }
+
     /// 5-paragraph doc (1 title at 14pt + 4 body at 11pt) with k_clusters=4.
     /// The adaptive clamp should reduce clusters to max(2, 5/4)=max(2,1)=2,
     /// and then the font-size difference (14 vs 11, ratio≈1.27 ≥ 1.2) should
@@ -2590,5 +3020,55 @@ mod tests {
                 );
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod list_marker_tests {
+    use super::{is_bare_list_marker, looks_like_list_item};
+
+    #[test]
+    fn bare_markers_are_detected() {
+        assert!(is_bare_list_marker("1."));
+        assert!(is_bare_list_marker("12)"));
+        assert!(is_bare_list_marker("a)"));
+        assert!(is_bare_list_marker("(2)"));
+        assert!(is_bare_list_marker("•"));
+    }
+
+    #[test]
+    fn prose_fragments_are_not_bare_markers() {
+        assert!(!is_bare_list_marker("etc."));
+        assert!(!is_bare_list_marker("Inc."));
+        assert!(!is_bare_list_marker("Item"));
+        assert!(!is_bare_list_marker(""));
+    }
+
+    #[test]
+    fn newline_separated_marker_and_text_is_a_list_item() {
+        // Paragraph text joins same-line spans with '\n' — the marker + item
+        // pattern must still be recognisable.
+        assert!(looks_like_list_item("1.\nÉnumération 1"));
+        assert!(looks_like_list_item("1. First point"));
+        assert!(looks_like_list_item("(2)\nsecond item"));
+    }
+
+    #[test]
+    fn section_headings_are_not_list_items() {
+        assert!(!looks_like_list_item("3.2 Methods"));
+        assert!(!looks_like_list_item("IV. Results"));
+        assert!(!looks_like_list_item("1. INTRODUCTION"));
+    }
+
+    #[test]
+    fn prose_words_ending_with_period_are_not_list_markers() {
+        // Hyphenation fragments and abbreviations: "volup-" breaks to "tua. At
+        // vero…" at a line boundary; a short word + period must not read as a
+        // lettered marker.
+        assert!(!looks_like_list_item("tua. At vero eos et accusam"));
+        assert!(!looks_like_list_item("etc. and more prose"));
+        // Single letters and roman numerals remain valid lettered markers.
+        assert!(looks_like_list_item("a. first item"));
+        assert!(looks_like_list_item("iv. fourth item"));
     }
 }

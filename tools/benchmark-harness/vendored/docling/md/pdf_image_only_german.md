@@ -15,7 +15,7 @@ Geschäftsstelle Ludwigstraße 23 Rgb. 80539 München
 
 Telefon 089 / 286629-0 Telefax 089 / 286629-28
 
-info@heimat-bayern.de
+<info@heimat-bayern.de>
 
 München, 01. August 2025
 

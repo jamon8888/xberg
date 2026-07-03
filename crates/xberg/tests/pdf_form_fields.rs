@@ -260,3 +260,27 @@ fn test_flattened_form_value_not_duplicated() {
         "flattened Widget value 'Jane Doe' must appear exactly once, not duplicated; got: {content:?}"
     );
 }
+
+/// Regression: the real flattened-form fixture must extract its content-stream text.
+///
+/// `test_documents/pdf/flattened_form.pdf` produced 0 bytes in benchmark runs
+/// (benchmark-run-28447996063) despite its content stream containing plain
+/// `(Name: Jane Doe) Tj` text. Ground truth:
+/// `test_documents/ground_truth/pdf/flattened_form.fields.json` expects "Jane Doe".
+#[test]
+fn test_real_flattened_form_fixture_extracts_text() {
+    if !helpers::test_documents_available() {
+        return;
+    }
+    let path = helpers::get_test_file_path("pdf/flattened_form.pdf");
+    let bytes = std::fs::read(&path).expect("fixture must be readable");
+    let config = ExtractionConfig::default();
+    let result = extract_bytes_document_blocking(&bytes, "application/pdf", &config)
+        .expect("real flattened form PDF must extract without error");
+
+    assert!(
+        result.content.contains("Jane Doe"),
+        "content-stream text 'Jane Doe' missing; got {:?}",
+        result.content
+    );
+}

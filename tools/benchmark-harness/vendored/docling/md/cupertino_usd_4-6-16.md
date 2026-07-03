@@ -27,5 +27,5 @@ By law, closed sessions are not open to the public. Anyone wishing to address th
 
 4.                                                        REPORT FROM CLOSED SESSION
 5.                                                        DISCUSSION
-6.  5.1 Board Governance
+6. 5.1 Board Governance
 7.                                                        ADJOURNMENT

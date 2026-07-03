@@ -4,7 +4,7 @@ defmodule Xberg.MixProject do
   def project do
     [
       app: :xberg,
-      version: "1.0.0-rc.1",
+      version: "1.0.0-rc.5",
       elixir: "~> 1.14",
       elixirc_paths: ["lib", Path.expand("../../packages/elixir/native/xberg_nif/src", __DIR__)],
       rustler_crates: [
@@ -12,6 +12,7 @@ defmodule Xberg.MixProject do
           mode: :release,
           targets: [
             "aarch64-apple-darwin",
+            "x86_64-apple-darwin",
             "aarch64-unknown-linux-gnu",
             "x86_64-unknown-linux-gnu",
             "x86_64-pc-windows-gnu"

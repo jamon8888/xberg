@@ -3,9 +3,9 @@
 //! Handles loading ExtractionConfig from TOML/JSON/YAML files and discovery.
 
 use crate::helpers::set_last_error;
-use xberg::XbergError;
-use xberg::core::config::ExtractionConfig;
 use std::path::Path;
+use xberg::core::config::ExtractionConfig;
+use xberg::XbergError;
 
 /// Load an ExtractionConfig from a file (returns JSON string).
 ///

@@ -6,7 +6,7 @@
 // `cargo build -p xberg-swift` via swift_bridge_build.
 
 #include <stdint.h>
-#include <stdbool.h> 
+#include <stdbool.h>
 typedef struct RustStr { uint8_t* const start; uintptr_t len; } RustStr;
 typedef struct __private__FfiSlice { void* const start; uintptr_t len; } __private__FfiSlice;
 void* __swift_bridge__null_pointer(void);
@@ -3955,6 +3955,7 @@ void* __swift_bridge__$EmailAttachment$mime_type(void* self);
 struct __private__OptionUsize __swift_bridge__$EmailAttachment$size(void* self);
 bool __swift_bridge__$EmailAttachment$is_image(void* self);
 void* __swift_bridge__$EmailAttachment$data(void* self);
+void* __swift_bridge__$OcrExtractionResult$new(void* content, void* mime_type, void* metadata, void* tables, void* ocr_elements);
 void* __swift_bridge__$OcrExtractionResult$content(void* self);
 void* __swift_bridge__$OcrExtractionResult$mime_type(void* self);
 void* __swift_bridge__$OcrExtractionResult$metadata(void* self);
