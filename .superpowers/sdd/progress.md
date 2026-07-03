@@ -62,3 +62,28 @@ Task 2: complete (commits ba93c69..7282897, review clean — Approved.
   wasm break. Native: tests pass, clippy clean. wasm32 build 0 errors,
   clippy -D warnings clean — SECOND major risk gate (candle-on-wasm)
   PASSES. TDD evidence (RED/GREEN) verified genuine against diff.)
+Task 3: complete (commits 7282897..77656d3d42, review clean — Approved.
+  Plan brief was STALE (described creating a new ner_candle_wasm.rs /
+  WasmCandleNer duplicating logic) — controller discovered before dispatch
+  that CandleBackend already existed in ner/candle.rs (native ner-candle
+  feature, tokio-runtime-dependent via block_in_place). Corrected scope:
+  added ner-candle-wasm feature (no tokio-runtime) to Cargo.toml +
+  wasm-target aggregate, widened ner/mod.rs module gate to
+  any(ner-candle, ner-candle-wasm), gated from_local
+  #[cfg(not(wasm32))], added from_bytes constructor, branched detect()'s
+  block_in_place call by target_arch. Reused spans_to_entities/
+  category_to_label unmodified (zero duplication). Implementer reported
+  DONE_WITH_CONCERNS: crate-wide `cargo build -p xberg --features
+  ner-candle-wasm --target wasm32-unknown-unknown` still fails on 8
+  errors, but claimed pre-existing/unrelated (plugins/registry/
+  extractor.rs Send-future issues + a Url::to_file_path gap in
+  core/extract/mod.rs). CONTROLLER INDEPENDENTLY VERIFIED this via
+  git-level isolation: reverted Task 3's 3 files to pre-Task-3 state,
+  rebuilt wasm32 with only the OLD pre-existing `ner` (types-only)
+  feature — identical 8 errors reproduced, proving the bug predates and
+  is unrelated to this task. mod extractor; has no feature gate at all
+  (always compiled). Filed task_706665c3 as a tracked follow-up outside
+  this plan. THIRD major risk gate (full xberg-core integration) confirms
+  candle.rs itself is wasm32-clean; the crate-wide build remains blocked
+  by that pre-existing, out-of-scope infra bug — noted, not silently
+  dropped.)
