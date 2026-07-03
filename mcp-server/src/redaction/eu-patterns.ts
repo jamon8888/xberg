@@ -129,3 +129,72 @@ export function scanEuStructured(text: string): RawMatch[] {
 
   return results;
 }
+
+/**
+ * Scan for GDPR Art. 9 special category keywords: health, biometric, genetic,
+ * political, religion, union, criminal, sexual orientation, ethnic origin.
+ *
+ * This is a keyword/regex scan -- high recall, high false-positive rate by
+ * design. It does not use NER/zero-shot context, unlike anno's
+ * `scan_patterns_with_ner` (out of scope for this plan -- see Global
+ * Constraints).
+ */
+export function scanArt9Keywords(text: string): RawMatch[] {
+  const results: RawMatch[] = [];
+  const rules: Array<{ category: string; pattern: RegExp; confidence: number }> = [
+    {
+      category: "SPECIAL_CATEGORY_HEALTH",
+      pattern:
+        /\b(diagnosed\s+with|suffers?\s+from|allergic\s+to|medical\s+condition|hospital|surgery|treatment|disease|illness|cancer|diabetes|hypertension|asthma|depression|anxiety)\b/gi,
+      confidence: 0.97,
+    },
+    {
+      category: "SPECIAL_CATEGORY_BIOMETRIC",
+      pattern: /\b(fingerprint|iris\s+scan|facial\s+recognition|biometric|face\s+scan|voice\s+recognition)\b/gi,
+      confidence: 0.97,
+    },
+    {
+      category: "SPECIAL_CATEGORY_GENETIC",
+      pattern: /\b(genetic\s+data|dna\s+test|genome|inherited\s+condition|hereditary)\b/gi,
+      confidence: 0.97,
+    },
+    {
+      category: "SPECIAL_CATEGORY_POLITICAL",
+      pattern:
+        /\b(member\s+of\s+(?:the\s+)?(?:socialist|communist|conservative|liberal|democrat|republican)\s+party|party\s+affiliation|political\s+opinion)\b/gi,
+      confidence: 0.9,
+    },
+    {
+      category: "SPECIAL_CATEGORY_RELIGION",
+      pattern: /\b(catholic|protestant|muslim|jewish|buddhist|hindu|sikh|atheist|agnostic)\b/gi,
+      confidence: 0.9,
+    },
+    {
+      category: "SPECIAL_CATEGORY_UNION",
+      pattern: /\b(trade\s+union\s+member|union\s+membership|collective\s+bargaining)\b/gi,
+      confidence: 0.75,
+    },
+    {
+      category: "SPECIAL_CATEGORY_CRIMINAL",
+      pattern:
+        /\b(convicted\s+of|arrested\s+for|charged\s+with|criminal\s+record|incarcerated|felony\s+conviction)\b/gi,
+      confidence: 0.97,
+    },
+    {
+      category: "SPECIAL_CATEGORY_SEXUAL_ORIENTATION",
+      pattern: /\b(gay|lesbian|bisexual|transgender|lgbtq\+?|homosexual|queer)\b/gi,
+      confidence: 0.9,
+    },
+    {
+      category: "SPECIAL_CATEGORY_ETHNIC",
+      pattern: /\b(ethnic\s+origin|racial\s+origin|roma\s+community|indigenous\s+people)\b/gi,
+      confidence: 0.9,
+    },
+  ];
+
+  for (const { category, pattern, confidence } of rules) {
+    results.push(...findAllNonOverlapping(text, pattern, category, confidence, results));
+  }
+
+  return results;
+}

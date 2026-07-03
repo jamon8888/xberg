@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scanEuStructured } from "../src/redaction/eu-patterns.js";
+import { scanEuStructured, scanArt9Keywords } from "../src/redaction/eu-patterns.js";
 
 describe("scanEuStructured", () => {
   it("detects a French INSEE number", () => {
@@ -50,5 +50,32 @@ describe("scanEuStructured", () => {
     const pesel = result.find((m) => m.category === "NATIONAL_ID_PL");
     expect(pesel).toBeDefined();
     expect(text.slice(pesel!.start, pesel!.end)).toBe("80051501231");
+  });
+});
+
+describe("scanArt9Keywords", () => {
+  it("detects a health condition keyword", () => {
+    const result = scanArt9Keywords("Patient diagnosed with diabetes");
+    expect(result.some((m) => m.category === "SPECIAL_CATEGORY_HEALTH")).toBe(true);
+  });
+
+  it("detects a religion keyword", () => {
+    const result = scanArt9Keywords("He is Catholic");
+    expect(result.some((m) => m.category === "SPECIAL_CATEGORY_RELIGION")).toBe(true);
+  });
+
+  it("detects a criminal record keyword", () => {
+    const result = scanArt9Keywords("He was convicted of fraud");
+    expect(result.some((m) => m.category === "SPECIAL_CATEGORY_CRIMINAL")).toBe(true);
+  });
+
+  it("detects a biometric keyword", () => {
+    const result = scanArt9Keywords("Access requires facial recognition");
+    expect(result.some((m) => m.category === "SPECIAL_CATEGORY_BIOMETRIC")).toBe(true);
+  });
+
+  it("returns nothing for neutral text", () => {
+    const result = scanArt9Keywords("The meeting is scheduled for Tuesday.");
+    expect(result).toHaveLength(0);
   });
 });
