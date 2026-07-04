@@ -86,15 +86,15 @@ impl NerBackend for CandleBackend {
             .lock()
             .map_err(|_| crate::XbergError::Other("CandleBackend: model mutex poisoned".into()))?;
 
-        // extract_ner is CPU-bound (tensor inference). On native targets, block_in_place
-        // signals tokio to move other tasks off this thread for the duration without
-        // requiring Send. wasm32 has no multi-threaded tokio runtime (and is single-threaded
-        // regardless), so extract_ner is called directly — it is already synchronous.
-        #[cfg(not(target_arch = "wasm32"))]
+        // extract_ner is CPU-bound (tensor inference). On native targets with tokio-runtime,
+        // block_in_place signals tokio to move other tasks off this thread for the duration
+        // without requiring Send. On wasm32 or when tokio-runtime is absent (ner-candle-wasm),
+        // extract_ner is called directly — it is already synchronous.
+        #[cfg(all(not(target_arch = "wasm32"), feature = "tokio-runtime"))]
         let spans = tokio::task::block_in_place(|| model.extract_ner(text, &labels, DEFAULT_THRESHOLD))
             .map_err(|e| crate::XbergError::Other(format!("CandleBackend inference: {e}")))?;
 
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(target_arch = "wasm32", not(feature = "tokio-runtime")))]
         let spans = model
             .extract_ner(text, &labels, DEFAULT_THRESHOLD)
             .map_err(|e| crate::XbergError::Other(format!("CandleBackend inference: {e}")))?;

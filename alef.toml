@@ -463,6 +463,12 @@ exclude_types = [
   "OcrCacheStats",
   "TessdataManager",
   "PageLayoutResult",
+  # Candle NER backend (ner-candle, not in wasm-target)
+  "CandleBackend",
+  # GLiNER ONNX module (ner-onnx, not in wasm-target)
+  "CustomGlinerSource",
+  # Rehydration (redaction-rehydrate, not in wasm-target)
+  "RehydrationMap",
 ]
 exclude_functions = [
   # paddle-ocr / layout-detection / embeddings / auto-rotate
@@ -548,10 +554,16 @@ exclude_functions = [
   "batch_extract_bytes_sync",
   "batch_extract_files",
   "batch_extract_files_sync",
+  # Rehydration functions (redaction-rehydrate, not in wasm-target)
+  "encrypt_map",
+  "decrypt_map",
+  # Candle NER (ner-candle, not in wasm-target)
+  "manifest",
 ]
 
 [crates.wasm.extra_dependencies]
 async-trait = "0.1"
+xberg-rag = { path = "../xberg-rag", default-features = false, features = ["vector-store", "pipeline"] }
 
 [crates.ffi]
 prefix = "xberg"
