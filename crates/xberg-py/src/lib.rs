@@ -13455,6 +13455,8 @@ impl NerBackendKind {
     }
 }
 
+#[derive(Clone, PartialEq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 #[pyclass(eq, eq_int, from_py_object)]
 pub enum GlinerArchitecture {
     #[pyo3(name = "GLINER1")]

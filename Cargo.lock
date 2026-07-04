@@ -2668,7 +2668,7 @@ dependencies = [
  "bitflags 2.13.0",
  "cexpr",
  "clang-sys",
- "itertools 0.14.0",
+ "itertools 0.10.5",
  "log",
  "prettyplease",
  "proc-macro2",
@@ -11039,7 +11039,7 @@ dependencies = [
  "xberg-libheif",
  "xberg-paddle-ocr",
  "xberg-tesseract",
- "zip 8.6.0",
+ "zip 7.2.0",
 ]
 
 [[package]]
@@ -11096,7 +11096,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-doc-store"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.5"
 dependencies = [
  "async-trait",
  "moka",
@@ -11139,7 +11139,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-gliner-candle"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.5"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -11294,7 +11294,7 @@ dependencies = [
  "image 0.25.10",
  "reqwest",
  "thiserror 2.0.18",
- "zip 8.6.0",
+ "zip 7.2.0",
 ]
 
 [[package]]
