@@ -26056,3 +26056,7 @@ fn resolve_error_to_js_value(e: xberg::presets::resolve::ResolveError) -> wasm_b
 // ── Hand-owned bridge module (not Alef-generated) ────────────────────────────
 #[cfg(target_arch = "wasm32")]
 pub mod bridge;
+#[cfg(target_arch = "wasm32")]
+pub mod engine;
+#[cfg(all(target_arch = "wasm32", feature = "redaction-rehydrate"))]
+pub mod anon;
