@@ -6,6 +6,10 @@ fn main() {
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-changed=flutter_rust_bridge.yaml");
 
+    // Copy compiled library to the location where Dart FFI expects to find it
+    // for local development builds.
+    copy_compiled_library();
+
     // Optional FRB codegen: regenerate flutter_rust_bridge artifacts when the
     // tool is on PATH. Missing tool is not fatal — committed generated sources
     // are checked in, and CI environments without FRB still build cleanly.
