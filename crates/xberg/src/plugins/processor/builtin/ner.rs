@@ -128,7 +128,9 @@ fn make_backend(config: &NerConfig) -> Result<Arc<dyn NerBackend>> {
                     )
                 })?;
                 let lora_dir = config.lora_adapter_dir.as_deref();
-                Ok(crate::text::ner::candle::CandleBackend::get_or_init(model_dir, lora_dir)?)
+                Ok(crate::text::ner::candle::CandleBackend::get_or_init(
+                    model_dir, lora_dir,
+                )?)
             }
             #[cfg(not(feature = "ner-candle"))]
             {

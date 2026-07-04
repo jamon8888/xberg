@@ -33,7 +33,10 @@ static CANDLE_BACKEND_CACHE: LazyLock<RwLock<AHashMap<CandleBackendCacheKey, Arc
 
 /// Return the cached backend for `key`, or build and cache one via `build`.
 #[cfg(not(target_arch = "wasm32"))]
-fn get_or_insert_arc(key: CandleBackendCacheKey, build: impl FnOnce() -> crate::Result<CandleBackend>) -> crate::Result<Arc<CandleBackend>> {
+fn get_or_insert_arc(
+    key: CandleBackendCacheKey,
+    build: impl FnOnce() -> crate::Result<CandleBackend>,
+) -> crate::Result<Arc<CandleBackend>> {
     {
         let cache = CANDLE_BACKEND_CACHE.read();
         if let Some(value) = cache.get(&key) {
