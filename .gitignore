@@ -248,6 +248,7 @@ requirements.txt
 docker-compose.yaml
 /tmp/xberg-docker-test-results.json
 tools/benchmark-harness/datasets/
+tools/benchmark-harness/.fixtures-pdf-subset/
 tools/benchmark-harness/vendored/docling/md/iso_21111_10.md
 visualizations/
 

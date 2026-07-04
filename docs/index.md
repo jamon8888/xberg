@@ -1,10 +1,10 @@
 ---
-description: "Xberg – Full content intelligence engine: extract text, tables, entities, embeddings from 96+ formats with OCR, transcription, code intelligence, and LLM integration. Native bindings for 16 languages."
+description: "Xberg – Full content intelligence engine: extract text, tables, entities, embeddings from 96+ formats with OCR, transcription, code intelligence, and LLM integration. Native bindings for 15 languages."
 ---
 
 # Xberg
 
-Full content intelligence from one engine. Turn documents, URLs, code, and media into clean, structured output. Extract text, tables, entities, code structure, and embeddings—with automatic OCR, transcription, enrichment, and LLM-powered extraction. Available natively in 16 languages.
+Full content intelligence from one engine. Turn documents, URLs, code, and media into clean, structured output. Extract text, tables, entities, code structure, and embeddings—with automatic OCR, transcription, enrichment, and LLM-powered extraction. Available natively in 15 languages.
 
 <div class="hero-badges" markdown>
 

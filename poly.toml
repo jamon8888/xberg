@@ -21,17 +21,18 @@ exclude = [
     "templates/readme/**",
     "test_documents/**",
     "vendor/**",
+    "**/Cargo.toml",
+    "**/_generated/**",
+    "**/coverage/**",
+    "**/pkg/**",
+    "**/.next/**",
+    "**/*.min.js",
     "**/vendored/**",
     "**/stopwords/**",
     "**/testdata/**",
     "e2e/**",
     "**/*.diff",
     "**/*.patch",
-    "**/_generated/**",
-    "**/coverage/**",
-    "**/pkg/**",
-    "**/.next/**",
-    "**/*.min.js",
     "**/frb_generated.rs",
 ]
 
@@ -79,112 +80,84 @@ select = ["correctness", "security"]
 ignore = ["strict-assertions", "use-specific-assertions", "no-redundant-variable", "sensitive-parameter"]
 php_version = "8.2"
 
-
-# Spell-checker allowlist. Data/corpus trees (testdata tokenizer vocab, stopword
-# lists, vendored benchmark ground-truth) are handled by [discovery] exclude
-# above; these entries whitelist valid identifiers/terms in real source so autofix
-# never mangles them (the original bug: the `flate2` crate got "corrected" to `flat2`).
 [lint.typos.extend_words]
-# flate2 crate + PDF FlateDecode filter (THE ORIGINAL BUG: flate -> flat)
-flate = "flate"
-# macOS wheel-vendoring tool (publish.yaml)
+ake = "ake"
+algoritmos = "algoritmos"
+arange = "arange"
+bre = "bre"
+caf = "caf"
+charater = "charater"
+chlidren = "chlidren"
+cliper = "cliper"
+cursos = "cursos"
 delocate = "delocate"
-# candle-ocr ML tensor/API terms
-thw = "thw"       # image_grid_thw / grid_thw tensor dim
-arange = "arange" # candle Tensor::arange (covers "Arange")
-mmaped = "mmaped" # candle from_mmaped_safetensors
-# binding / keyword-algorithm split tokens
-ser = "ser"               # Jackson databind.ser.std (Java/Kotlin bindings)
-ake = "ake"               # yAKE keyword algorithm (go binding)
-algoritmos = "algoritmos" # Spanish test string (keywords_integration.rs)
-# Project / product / tool names
-kreuzberg = "kreuzberg"
-zensical = "zensical"
-tesseract = "tesseract"
-onnx = "onnx"
-surrealdb = "surrealdb"
 docling = "docling"
+edn = "edn"
+ein = "ein"
+excepcional = "excepcional"
+execpt = "execpt"
+extention = "extention"
+faiure = "faiure"
+fith = "fith"
+flate = "flate"
+formated = "formated"
+headerr = "headerr"
+helo = "helo"
+hocr = "hocr"
+hom = "hom"
+inh = "inh"
+internacional = "internacional"
+ist = "ist"
+kreuzberg = "kreuzberg"
+legt = "legt"
 markitdown = "markitdown"
-pymupdf = "pymupdf"
-openwebui = "openwebui"
-webui = "webui"
+ment = "ment"
+mis = "mis"
 mkdocs = "mkdocs"
 mkdocstrings = "mkdocstrings"
-rumdl = "rumdl"
-# Document-format domain terms
-opf = "opf"           # EPUB Open Packaging Format
-hocr = "hocr"
+mmaped = "mmaped"
+multline = "multline"
 odf = "odf"
-multline = "multline" # LaTeX environment
-headerr = "headerr"   # RTF control word
-pard = "pard"         # RTF control word
-edn = "edn"           # DOC field name
-siz = "siz"           # JPEG2000 SIZ marker
-# ISO-639 / OCR language codes
-inh = "inh"
-bre = "bre"
-yor = "yor"
-# Upstream (Tesseract / PDFium / PaddleOCR) API/constant spellings
-extention = "extention"
+onnx = "onnx"
+openwebui = "openwebui"
+opf = "opf"
+ove = "ove"
+pard = "pard"
 portait = "portait"
-fith = "fith"
-threed = "threed"
-chlidren = "chlidren"
-formated = "formated"
-specifing = "specifing"
-similarily = "similarily"
-execpt = "execpt"
-faiure = "faiure"
-substract = "substract"
-charater = "charater"
-cliper = "cliper"
-splitted = "splitted"
-unparseable = "unparseable"
-relatie = "relatie"         # Dutch "relatie-id" test placeholder
-traineddata = "traineddata"
-# Language codes / foreign-language test strings in real source
-tha = "tha"                     # Thai ISO-639 code (OCR language lists)
-ist = "ist"                     # German "ist" in language-detection samples
-internacional = "internacional" # es/pt language-detection sample
-utiliza = "utiliza"             # Spanish keyword-extraction test string
-# Short domain fragments flagged in real source
-caf = "caf"
-hom = "hom"   # LaTeX \hom operator
-ths = "ths"   # DOCX 240ths measurement unit
-ment = "ment" # semantic token-reduction fragment
-mis = "mis"
-helo = "helo"
-ove = "ove"   # OVE fragment in pdf_text_merging test
-tre = "tre"   # Tre fragment (pdfium-render)
-thr = "thr"   # thr fragment (benchmark-harness aggregate)
-# Foreign-language words in test strings / translation guide
 programa = "programa"
-cursos = "cursos"
-excepcional = "excepcional"
-ein = "ein"                 # German "ein"
-legt = "legt"               # German "legt" (translation.md)
+pymupdf = "pymupdf"
+relatie = "relatie"
+rumdl = "rumdl"
+ser = "ser"
+similarily = "similarily"
+siz = "siz"
+specifing = "specifing"
+splitted = "splitted"
+substract = "substract"
+surrealdb = "surrealdb"
+tesseract = "tesseract"
+tha = "tha"
+thr = "thr"
+threed = "threed"
+ths = "ths"
+thw = "thw"
+traineddata = "traineddata"
+tre = "tre"
+unparseable = "unparseable"
+utiliza = "utiliza"
+webui = "webui"
+yor = "yor"
+zensical = "zensical"
 
 [lint.typos.extend_identifiers]
-PyMuPDF = "PyMuPDF"
 MarkItDown = "MarkItDown"
-SurrealDB = "SurrealDB"
 PDFium = "PDFium"
+PyMuPDF = "PyMuPDF"
+SurrealDB = "SurrealDB"
 WebUI = "WebUI"
 traineddata = "traineddata"
 
 [per-file-ignores]
-# text_repair.rs contains intentionally broken/split words as test fixtures
-# (hyphenation-rejoin cases) — ignore typos there rather than globally
-# allowlisting real-typo-looking fragments.
-"**/text_repair.rs" = ["typo"]
-# alef/napi-generated JS loader + wrapper — unused-var nits are generator output,
-# not hand-editable here (fix belongs in alef's napi backend).
-"crates/xberg-node/index.js" = ["no-unused-vars"]
-"crates/xberg-node/format-metadata-wrapper.js" = ["no-unused-vars"]
-# Dockerfiles: DL3006 fires only on unpinnable `FROM scratch` (false positive);
-# DL3059 (consecutive RUN) is stylistic — multi-stage RUNs kept split on purpose.
-# (The dockerfile engine ignores [lint.*] config, so suppress by path here.)
-"docker/**" = ["DL3006", "DL3059"]
 "**/api.py" = ["F401", "I001", "TC006", "UP035"]
 "**/*.pyi" = ["A002", "F401", "I001", "PYI033", "TC006", "UP035"]
 "**/options.py" = ["F401", "I001", "RUF100"]
@@ -312,7 +285,11 @@ traineddata = "traineddata"
     "A001",
     "N801",
 ]
+"**/text_repair.rs" = ["typo"]
 "cli-proxy/pypi/**/*.py" = ["ANN001", "ANN202", "S310", "T201"]
+"crates/xberg-node/format-metadata-wrapper.js" = ["no-unused-vars"]
+"crates/xberg-node/index.js" = ["no-unused-vars"]
+"docker/**" = ["DL3006", "DL3059"]
 "e2e/**/*.py" = ["A001", "N801"]
 "packages/python/build.py" = ["INP001"]
 "packages/python/xberg/options.py" = ["I001"]
@@ -440,17 +417,18 @@ polylint = { exclude = [
     "templates/readme/**",
     "test_documents/**",
     "vendor/**",
+    "**/Cargo.toml",
+    "**/_generated/**",
+    "**/coverage/**",
+    "**/pkg/**",
+    "**/.next/**",
+    "**/*.min.js",
     "**/vendored/**",
     "**/stopwords/**",
     "**/testdata/**",
     "e2e/**",
     "**/*.diff",
     "**/*.patch",
-    "**/_generated/**",
-    "**/coverage/**",
-    "**/pkg/**",
-    "**/.next/**",
-    "**/*.min.js",
     "**/frb_generated.rs",
 ] }
 polyfmt = { exclude = [
@@ -475,17 +453,18 @@ polyfmt = { exclude = [
     "templates/readme/**",
     "test_documents/**",
     "vendor/**",
+    "**/Cargo.toml",
+    "**/_generated/**",
+    "**/coverage/**",
+    "**/pkg/**",
+    "**/.next/**",
+    "**/*.min.js",
     "**/vendored/**",
     "**/stopwords/**",
     "**/testdata/**",
     "e2e/**",
     "**/*.diff",
     "**/*.patch",
-    "**/_generated/**",
-    "**/coverage/**",
-    "**/pkg/**",
-    "**/.next/**",
-    "**/*.min.js",
     "**/frb_generated.rs",
 ] }
 file_safety = { exclude = [
@@ -510,17 +489,18 @@ file_safety = { exclude = [
     "templates/readme/**",
     "test_documents/**",
     "vendor/**",
+    "**/Cargo.toml",
+    "**/_generated/**",
+    "**/coverage/**",
+    "**/pkg/**",
+    "**/.next/**",
+    "**/*.min.js",
     "**/vendored/**",
     "**/stopwords/**",
     "**/testdata/**",
     "e2e/**",
     "**/*.diff",
     "**/*.patch",
-    "**/_generated/**",
-    "**/coverage/**",
-    "**/pkg/**",
-    "**/.next/**",
-    "**/*.min.js",
     "**/frb_generated.rs",
 ] }
 cargo = true
