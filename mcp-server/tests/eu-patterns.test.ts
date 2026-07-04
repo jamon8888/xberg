@@ -8,8 +8,14 @@ import {
 
 describe("scanEuStructured", () => {
   it("detects a French INSEE number", () => {
-    const result = scanEuStructured("INSEE: 185057511602324");
+    // base 1850575116023 % 97 = 60, key = 97 - 60 = 37
+    const result = scanEuStructured("INSEE: 185057511602337");
     expect(result.some((m) => m.category === "NATIONAL_ID_FR")).toBe(true);
+  });
+
+  it("rejects an INSEE-shaped number with a bad checksum key", () => {
+    const result = scanEuStructured("185057511602324");
+    expect(result.some((m) => m.category === "NATIONAL_ID_FR")).toBe(false);
   });
 
   it("detects a Spanish DNI", () => {
@@ -17,9 +23,19 @@ describe("scanEuStructured", () => {
     expect(result.some((m) => m.category === "NATIONAL_ID_ES")).toBe(true);
   });
 
+  it("rejects a DNI-shaped number with a bad checksum letter", () => {
+    const result = scanEuStructured("12345678A");
+    expect(result.some((m) => m.category === "NATIONAL_ID_ES")).toBe(false);
+  });
+
   it("detects an Italian Codice Fiscale", () => {
     const result = scanEuStructured("Codice Fiscale: RSSMRA85T10A562S");
     expect(result.some((m) => m.category === "NATIONAL_ID_IT")).toBe(true);
+  });
+
+  it("rejects a Codice-Fiscale-shaped string with a bad control letter", () => {
+    const result = scanEuStructured("RSSMRA85T10A562A");
+    expect(result.some((m) => m.category === "NATIONAL_ID_IT")).toBe(false);
   });
 
   it("detects a valid Polish PESEL", () => {
@@ -55,6 +71,18 @@ describe("scanEuStructured", () => {
     const pesel = result.find((m) => m.category === "NATIONAL_ID_PL");
     expect(pesel).toBeDefined();
     expect(text.slice(pesel!.start, pesel!.end)).toBe("80051501231");
+  });
+
+  it("detects a plate-like alphanumeric block behind a mandatory separator", () => {
+    const result = scanEuStructured("Vehicle FR-AB123CD was parked outside");
+    expect(result.some((m) => m.category === "LICENSE_PLATE_EU")).toBe(true);
+  });
+
+  it("does not flag a bare year or reference number after a country code", () => {
+    // No separator at all -- the old regex's optional `\s?-?` let this through.
+    expect(scanEuStructured("Report AT2024 filed").some((m) => m.category === "LICENSE_PLATE_EU")).toBe(false);
+    // Separator present, but the block is all digits (no letters) -- rejected by the mixed-alnum validator.
+    expect(scanEuStructured("Invoice ref SE-300 due").some((m) => m.category === "LICENSE_PLATE_EU")).toBe(false);
   });
 });
 
@@ -104,12 +132,24 @@ describe("scanEuPatterns", () => {
     ]);
   });
 
-  it("structured matches take precedence over overlapping Art. 9 matches", () => {
-    // "hospital" (Art.9 health keyword) inside a longer structured match is not
-    // a realistic overlap case for these patterns, so this asserts the simpler
-    // invariant: every returned finding has a non-empty original span.
-    const result = scanEuPatterns("SIRET: 73282932000074");
-    expect(result.every((f) => f.end > f.start)).toBe(true);
+  it("the overlap filter excludes an Art.9-shaped span that overlaps a structured match", () => {
+    // Both scanEuStructured and scanArt9Keywords are \b-bounded over
+    // contiguous \w runs, so a structured ID and a keyword can never
+    // genuinely overlap through the public scan functions themselves --
+    // exercise the exact filter scanEuPatterns applies (overlapsExisting
+    // against the structured matches) directly instead.
+    const structured = scanEuStructured("SIRET: 73282932000074");
+    const siret = structured.find((m) => m.category === "TAX_ID_SIRET");
+    expect(siret).toBeDefined();
+
+    expect(overlapsExisting(structured, siret!.start, siret!.end)).toBe(true);
+    expect(overlapsExisting(structured, siret!.end + 5, siret!.end + 10)).toBe(false);
+  });
+
+  it("retains both a structured match and a genuinely non-overlapping Art.9 match", () => {
+    const result = scanEuPatterns("Patient diagnosed with diabetes. SIRET: 73282932000074.");
+    expect(result.some((f) => f.category === "SPECIAL_CATEGORY_HEALTH")).toBe(true);
+    expect(result.some((f) => f.category === "TAX_ID_SIRET")).toBe(true);
   });
 
   it("returns an empty array for text with no EU PII", () => {

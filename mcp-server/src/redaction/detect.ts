@@ -15,6 +15,7 @@ export interface PiiReport {
   locationCount: number;
   contactCount: number;
   idNumberCount: number;
+  specialCategoryCount: number;
   entities: PiiFinding[];
   kAnonymityRisk: string;
 }
@@ -157,6 +158,16 @@ export function detectPiiEu(text: string, filterCategories?: string[]): PiiFindi
   return dedupOverlapping([...generic, ...eu].sort((a, b) => a.start - b.start));
 }
 
+/**
+ * Route a document through `detectPiiEu` or `detectPii` based on the caller's
+ * `eu_patterns` opt-in flag. Used by `ingest_folder` -- pulled out as its own
+ * function so the routing decision is unit-testable without the native
+ * extraction/embedding bindings `ingest.ts` otherwise pulls in.
+ */
+export function selectPiiScan(rawText: string, euPatterns: boolean, filterCategories?: string[]): PiiFinding[] {
+  return euPatterns ? detectPiiEu(rawText, filterCategories) : detectPii(rawText, filterCategories);
+}
+
 const ID_NUMBER_CATEGORIES = new Set([
   "SSN",
   "CREDIT_CARD",
@@ -173,6 +184,9 @@ const ID_NUMBER_CATEGORIES = new Set([
   "LICENSE_PLATE_EU",
 ]);
 
+/** GDPR Art. 9 special-category keyword categories emitted by `scanArt9Keywords`. */
+const SPECIAL_CATEGORY_PREFIX = "SPECIAL_CATEGORY_";
+
 /**
  * Summarize detected PII, including a k-anonymity risk assessment based on
  * the presence and combination of direct/quasi identifiers. Mirrors anno's
@@ -184,6 +198,7 @@ export function buildPiiReport(findings: PiiFinding[]): PiiReport {
   let locationCount = 0;
   let contactCount = 0;
   let idNumberCount = 0;
+  let specialCategoryCount = 0;
   const uniqueNames = new Set<string>();
 
   for (const finding of findings) {
@@ -198,12 +213,14 @@ export function buildPiiReport(findings: PiiFinding[]): PiiReport {
       contactCount += 1;
     } else if (ID_NUMBER_CATEGORIES.has(finding.category)) {
       idNumberCount += 1;
+    } else if (finding.category.startsWith(SPECIAL_CATEGORY_PREFIX)) {
+      specialCategoryCount += 1;
     }
   }
 
   let kAnonymityRisk: string;
-  if (idNumberCount > 0) {
-    kAnonymityRisk = "CRITICAL (direct identifiers present)";
+  if (idNumberCount > 0 || specialCategoryCount > 0) {
+    kAnonymityRisk = "CRITICAL (direct identifiers or special-category data present)";
   } else if (uniqueNames.size > 5 && dateCount > 0 && locationCount > 0) {
     kAnonymityRisk = "HIGH (quasi-identifier combination)";
   } else if (uniqueNames.size > 3) {
@@ -212,5 +229,14 @@ export function buildPiiReport(findings: PiiFinding[]): PiiReport {
     kAnonymityRisk = "LOW";
   }
 
-  return { personCount, dateCount, locationCount, contactCount, idNumberCount, entities: findings, kAnonymityRisk };
+  return {
+    personCount,
+    dateCount,
+    locationCount,
+    contactCount,
+    idNumberCount,
+    specialCategoryCount,
+    entities: findings,
+    kAnonymityRisk,
+  };
 }

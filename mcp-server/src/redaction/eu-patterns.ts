@@ -1,4 +1,12 @@
-import { isValidBelgianRegistre, isValidBsn, isValidPesel } from "./eu-checksums.js";
+import {
+  isValidBelgianRegistre,
+  isValidBsn,
+  isValidEsDni,
+  isValidFrInsee,
+  isValidItCodiceFiscale,
+  isValidLuhn,
+  isValidPesel,
+} from "./eu-checksums.js";
 import type { PiiFinding } from "./detect.js";
 
 interface RawMatch {
@@ -57,10 +65,18 @@ export function scanEuStructured(text: string): RawMatch[] {
       "NATIONAL_ID_FR",
       0.97,
       results,
+      isValidFrInsee,
     ),
   );
   results.push(
-    ...findAllNonOverlapping(text, /\b(?:[XYZ]\d{7}|\d{8})[A-Z]\b/g, "NATIONAL_ID_ES", 0.97, results),
+    ...findAllNonOverlapping(
+      text,
+      /\b(?:[XYZ]\d{7}|\d{8})[A-Z]\b/g,
+      "NATIONAL_ID_ES",
+      0.97,
+      results,
+      isValidEsDni,
+    ),
   );
   results.push(
     ...findAllNonOverlapping(
@@ -69,6 +85,7 @@ export function scanEuStructured(text: string): RawMatch[] {
       "NATIONAL_ID_IT",
       0.97,
       results,
+      isValidItCodiceFiscale,
     ),
   );
   results.push(
@@ -96,7 +113,7 @@ export function scanEuStructured(text: string): RawMatch[] {
       "TAX_ID_SIRET",
       0.9,
       results,
-      (m) => m.replace(/\D/g, "").length === 14,
+      (m) => isValidLuhn(m.replace(/\D/g, "")),
     ),
   );
   results.push(
@@ -106,7 +123,7 @@ export function scanEuStructured(text: string): RawMatch[] {
       "TAX_ID_SIREN",
       0.9,
       results,
-      (m) => m.replace(/\D/g, "").length === 9,
+      (m) => isValidLuhn(m.replace(/\D/g, "")),
     ),
   );
   results.push(
@@ -121,10 +138,18 @@ export function scanEuStructured(text: string): RawMatch[] {
   results.push(
     ...findAllNonOverlapping(
       text,
-      /\b(?:DE|FR|IT|ES|PL|NL|BE|PT|CZ|HU|SE|AT|CH|RO|BG|DK|FI|GR|IE|SK|SI|HR|LT|LV|EE|LU|MT|CY)\s?-?\d[\w-]{2,6}\b/g,
+      /\b(?:DE|FR|IT|ES|PL|NL|BE|PT|CZ|HU|SE|AT|CH|RO|BG|DK|FI|GR|IE|SK|SI|HR|LT|LV|EE|LU|MT|CY)[\s-][A-Z\d-]{3,7}\b/g,
       "LICENSE_PLATE_EU",
       0.75,
       results,
+      // Require a mandatory separator (already enforced by the regex) plus a
+      // mix of letters and digits in the plate block -- rejects bare years
+      // ("AT2024"), reference numbers, and other alphanumeric false positives
+      // that a country-code prefix alone would over-match.
+      (m) => {
+        const block = m.slice(3);
+        return /\d/.test(block) && /[A-Z]/.test(block);
+      },
     ),
   );
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { extract, extractInputFromUri, type ExtractionConfig } from "@xberg-io/xberg";
-import { detectPii, detectPiiEu, mergeNerEntities, type NerEntity } from "../redaction/detect.js";
+import { buildPiiReport, mergeNerEntities, selectPiiScan, type NerEntity } from "../redaction/detect.js";
 import { applyRedaction } from "../redaction/redact.js";
 import { writeRedactedDocx } from "../redaction/output/docx.js";
 import { writeRedactedPdf } from "../redaction/output/pdf.js";
@@ -144,7 +144,16 @@ export function registerIngestTools(server: McpServer): void {
           };
         }
 
-        const results: Array<{ original: string; redacted: string; report: string; pii_count: number; doc_id: string | null; chunks: number }> = [];
+        const results: Array<{
+          original: string;
+          redacted: string;
+          report: string;
+          pii_count: number;
+          doc_id: string | null;
+          chunks: number;
+          k_anonymity_risk: string | null;
+          special_category_count: number;
+        }> = [];
         let totalPii = 0;
 
         for (const filename of supportedFiles) {
@@ -173,11 +182,12 @@ export function registerIngestTools(server: McpServer): void {
             if (!doc) continue;
 
             const rawText = doc.content ?? "";
-            const regexFindings = eu_patterns ? detectPiiEu(rawText) : detectPii(rawText);
+            const regexFindings = selectPiiScan(rawText, eu_patterns);
             const findings = use_ner
               ? mergeNerEntities(regexFindings, (doc.entities ?? []) as NerEntity[], rawText)
               : regexFindings;
             totalPii += findings.length;
+            const piiReport = buildPiiReport(findings);
 
             const { redacted: redactedText, token_map } = applyRedaction(rawText, findings, redaction_strategy);
             const redactedPath = path.join(redacted_folder, `${baseName}_REDACTED${ext}`);
@@ -250,9 +260,27 @@ export function registerIngestTools(server: McpServer): void {
               docId = await store.upsertDocument(collection, JSON.stringify(document), JSON.stringify(chunks));
             }
 
-            results.push({ original: filename, redacted: redactedPath, report: reportPath, pii_count: findings.length, doc_id: docId, chunks: textChunks.length });
+            results.push({
+              original: filename,
+              redacted: redactedPath,
+              report: reportPath,
+              pii_count: findings.length,
+              doc_id: docId,
+              chunks: textChunks.length,
+              k_anonymity_risk: piiReport.kAnonymityRisk,
+              special_category_count: piiReport.specialCategoryCount,
+            });
           } catch {
-            results.push({ original: filename, redacted: "", report: "", pii_count: 0, doc_id: null, chunks: 0 });
+            results.push({
+              original: filename,
+              redacted: "",
+              report: "",
+              pii_count: 0,
+              doc_id: null,
+              chunks: 0,
+              k_anonymity_risk: null,
+              special_category_count: 0,
+            });
           }
         }
 

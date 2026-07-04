@@ -135,7 +135,7 @@ describe("detectPiiEu", () => {
 
   it("does not change detectPii's own output", () => {
     // detectPii() itself must remain unaffected by this addition.
-    const before = detectPiiEu("bob@example.com").filter((f) => f.category === "EMAIL");
+    const before = detectPii("bob@example.com").filter((f) => f.category === "EMAIL");
     expect(before).toHaveLength(1);
   });
 
@@ -162,12 +162,32 @@ describe("buildPiiReport", () => {
     const report = buildPiiReport(findings);
     expect(report.personCount).toBe(1);
     expect(report.idNumberCount).toBe(1);
-    expect(report.kAnonymityRisk).toBe("CRITICAL (direct identifiers present)");
+    expect(report.specialCategoryCount).toBe(0);
+    expect(report.kAnonymityRisk).toBe("CRITICAL (direct identifiers or special-category data present)");
   });
 
   it("reports LOW risk when nothing sensitive is present", () => {
     const report = buildPiiReport([]);
+    expect(report.specialCategoryCount).toBe(0);
     expect(report.kAnonymityRisk).toBe("LOW");
+  });
+
+  it("counts GDPR Art. 9 special-category findings and escalates risk to CRITICAL", () => {
+    const findings = [
+      {
+        token: "[SPECIAL_CATEGORY_HEALTH_1]",
+        category: "SPECIAL_CATEGORY_HEALTH",
+        original: "diagnosed with",
+        start: 0,
+        end: 14,
+        confidence: 0.97,
+      },
+      { token: "[NAME_1]", category: "NAME", original: "Alice", start: 20, end: 25, confidence: 0.6 },
+    ];
+    const report = buildPiiReport(findings);
+    expect(report.specialCategoryCount).toBe(1);
+    expect(report.idNumberCount).toBe(0);
+    expect(report.kAnonymityRisk).toBe("CRITICAL (direct identifiers or special-category data present)");
   });
 
   it("reports HIGH risk for a quasi-identifier combination", () => {
