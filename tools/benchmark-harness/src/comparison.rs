@@ -37,6 +37,20 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::time::Instant;
 
+/// Base timeout for extraction in seconds.
+///
+/// This is the minimum timeout applied to all documents, regardless of size.
+const EXTRACTION_TIMEOUT_BASE_SECS: u64 = 60;
+
+/// Per-page timeout for PDF documents in milliseconds.
+///
+/// For layout-heavy PDFs (which require layout detection with ONNX inference),
+/// allocate additional time proportional to page count. This prevents timeouts
+/// on legitimately large documents like 214-page standards sheets.
+///
+/// Example: 214-page PDF = 60s base + (214 * 400ms) = 60s + 85.6s = 145.6s total
+const EXTRACTION_TIMEOUT_PER_PAGE_MS: u64 = 400;
+
 /// Extraction pipeline identifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -259,6 +273,44 @@ pub struct DocResult {
     pub results: Vec<PipelineResult>,
 }
 
+/// Estimate PDF page count from file size (~12KB/page heuristic).
+///
+/// Fallback for when the PDF cannot be opened for a real page count.
+fn estimate_pdf_page_count_from_size(file_size: u64) -> u64 {
+    (file_size / 12_000).max(1)
+}
+
+/// Compute extraction timeout scaled by document page count.
+///
+/// Returns timeout in seconds. For PDFs, applies per-page scaling to accommodate
+/// layout detection inference on large documents. Uses the real page count when
+/// the document parses; falls back to a size-based estimate otherwise.
+fn compute_extraction_timeout_secs(path: &Path, file_type: &str) -> u64 {
+    if file_type.to_lowercase() != "pdf" {
+        return EXTRACTION_TIMEOUT_BASE_SECS;
+    }
+
+    let page_count = std::fs::read(path)
+        .ok()
+        .and_then(|bytes| xberg::pdf_page_count(&bytes, None).ok())
+        .map(|count| count as u64)
+        .or_else(|| {
+            std::fs::metadata(path)
+                .ok()
+                .map(|m| estimate_pdf_page_count_from_size(m.len()))
+        });
+
+    let Some(page_count) = page_count else {
+        tracing::warn!("Could not size PDF file, using base timeout: {}", path.display());
+        return EXTRACTION_TIMEOUT_BASE_SECS;
+    };
+
+    let per_page_secs = EXTRACTION_TIMEOUT_PER_PAGE_MS as f64 / 1000.0;
+    let scaled_timeout = EXTRACTION_TIMEOUT_BASE_SECS as f64 + (page_count as f64 * per_page_secs);
+
+    scaled_timeout.ceil() as u64
+}
+
 /// Build a xberg ExtractionConfig for the given pipeline.
 pub fn build_extraction_config(pipeline: Pipeline) -> xberg::ExtractionConfig {
     use xberg::core::config::{OutputFormat, layout::LayoutDetectionConfig};
@@ -272,9 +324,9 @@ pub fn build_extraction_config(pipeline: Pipeline) -> xberg::ExtractionConfig {
         Pipeline::Baseline => base,
         Pipeline::Layout => xberg::ExtractionConfig {
             layout: Some(LayoutDetectionConfig::default()),
-            // Drive the new layout-for-markdown path: layout regions inform
+            // Drive the layout-for-markdown path: layout regions inform
             // heading / table / list / figure detection in the structure
-            // pipeline, which dramatically improves SF1 on PDFs.
+            // pipeline.
             use_layout_for_markdown: true,
             // Enable OCR fallback for pages with no native text (image-only pages).
             // With force_ocr=false (default), xberg auto-detects empty pages
@@ -282,6 +334,11 @@ pub fn build_extraction_config(pipeline: Pipeline) -> xberg::ExtractionConfig {
             ocr: Some(xberg::core::config::OcrConfig {
                 backend: "tesseract".to_string(),
                 language: vec!["eng".to_string()],
+                // Content-based orientation rescue (ONNX PP-LCNet classifier) for
+                // pages that are still rotated after /Rotate metadata correction.
+                // Tesseract OSD is NOT used: it corrupts engine memory in the
+                // vendored build (uncatchable SIGABRT/SIGSEGV).
+                auto_rotate: true,
                 ..Default::default()
             }),
             ..base
@@ -590,16 +647,27 @@ pub async fn extract_pipeline(
         }
         _ => {
             let t = Instant::now();
-            let config = build_extraction_config(pipeline);
+            let mut config = build_extraction_config(pipeline);
             let doc_path = doc.document_path.clone();
             let doc_name = doc.name.clone();
             let pipeline_name = pipeline.name().to_string();
 
+            // Apply per-page-scaled timeout for PDFs (layout detection can be expensive).
+            // The extraction_timeout_secs is set on the config and also scales the outer
+            // tokio timeout to ensure large documents get sufficient processing time.
+            let extraction_timeout_secs = compute_extraction_timeout_secs(&doc_path, &doc.file_type);
+            config.extraction_timeout_secs = Some(extraction_timeout_secs);
+
             // Use AssertUnwindSafe + catch_unwind to handle panics in comrak or
             // other extraction code without crashing the entire benchmark run.
+            // Also apply an outer timeout as a safety net (scaled 1.5x the extraction timeout).
+            // This outer timeout acts as a fallback in case the config timeout isn't fully respected.
+            // Never drop below the previous fixed 180s outer cap: non-PDF documents
+            // keep their old safety margin, PDFs scale up beyond it as needed.
+            let outer_timeout_secs = ((extraction_timeout_secs as f64 * 1.5).ceil() as u64).max(180);
             let extraction_future = async {
                 tokio::time::timeout(
-                    std::time::Duration::from_secs(180),
+                    std::time::Duration::from_secs(outer_timeout_secs),
                     crate::extract_xberg_file(&doc_path, &config),
                 )
                 .await
@@ -612,7 +680,10 @@ pub async fn extract_pipeline(
                     None
                 }
                 Ok(Err(_)) => {
-                    eprintln!("  TIMEOUT {}/{}: exceeded 180s", doc_name, pipeline_name);
+                    eprintln!(
+                        "  TIMEOUT {}/{}: exceeded {}s (outer safety timeout)",
+                        doc_name, pipeline_name, outer_timeout_secs
+                    );
                     None
                 }
                 Err(panic_info) => {

@@ -33,9 +33,9 @@ tasks:
       - lychee --offline --root-dir "$PWD/docs" --exclude-path "docs/overrides" docs/ README.md
 
   lint:prose:
-    desc: Lint prose with textlint (via prek hook)
+    desc: Lint prose with textlint
     cmds:
-      - prek run textlint --all-files
+      - npx textlint 'docs/**/*.md'
 
   snippets:install:
     desc: Install alef CLI (which now includes the snippets subcommand) if missing

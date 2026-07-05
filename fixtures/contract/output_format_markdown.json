@@ -1,10 +1,7 @@
 {
 	"id": "output_format_markdown",
 	"description": "Tests Markdown output format",
-	"tags": [
-		"contract",
-		"output_format"
-	],
+	"tags": ["contract", "output_format"],
 	"call": "extract",
 	"input": {
 		"mock_responses": [
@@ -40,9 +37,7 @@
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"config": {

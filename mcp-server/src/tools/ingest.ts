@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { extract, extractInputFromUri, type ExtractionConfig } from "@xberg-io/xberg";
+import { extract, NerBackendKind, GlinerArchitecture, type ExtractionConfig, type NerConfig, type ExtractInput, type ExtractInputKind } from "@xberg-io/xberg";
 import { buildPiiReport, mergeNerEntities, selectPiiScan, type NerEntity } from "../redaction/detect.js";
 import { applyRedaction } from "../redaction/redact.js";
 import { writeRedactedDocx } from "../redaction/output/docx.js";
@@ -162,21 +162,26 @@ export function registerIngestTools(server: McpServer): void {
           const baseName = path.basename(filename, ext);
 
           try {
-            const input = extractInputFromUri(filePath);
-            const extractConfig: ExtractionConfig | null = use_ner
+            const input: ExtractInput = {
+              kind: "uri" as ExtractInputKind,
+              uri: filePath,
+            };
+            const hfArchEnum = ner_backend === "onnx" && ner_hf_architecture
+              ? ner_hf_architecture === "gliner2" ? GlinerArchitecture.Gliner2 : GlinerArchitecture.Gliner1
+              : undefined;
+            const nerConfig: NerConfig | undefined = use_ner
               ? {
-                  ner: {
-                    backend: ner_backend as ExtractionConfig["ner"]["backend"],
-                    categories: ner_categories as ExtractionConfig["ner"]["categories"],
-                    model: ner_backend === "onnx" ? ner_model : undefined,
-                    hfRepo: ner_backend === "onnx" ? ner_hf_repo : undefined,
-                    hfModelFile: ner_backend === "onnx" ? ner_hf_model_file : undefined,
-                    hfTokenizerFile: ner_backend === "onnx" ? ner_hf_tokenizer_file : undefined,
-                    hfArchitecture: ner_backend === "onnx" ? ner_hf_architecture : undefined,
-                    llm: ner_backend === "llm" ? { model: ner_llm_model } : undefined,
-                  },
+                  backend: ner_backend === "onnx" ? NerBackendKind.Onnx : NerBackendKind.Llm,
+                  categories: ner_categories as NerConfig["categories"],
+                  model: ner_backend === "onnx" ? ner_model : undefined,
+                  hfRepo: ner_backend === "onnx" ? ner_hf_repo : undefined,
+                  hfModelFile: ner_backend === "onnx" ? ner_hf_model_file : undefined,
+                  hfTokenizerFile: ner_backend === "onnx" ? ner_hf_tokenizer_file : undefined,
+                  hfArchitecture: hfArchEnum,
+                  llm: ner_backend === "llm" ? { model: ner_llm_model } : undefined,
                 }
-              : null;
+              : undefined;
+            const extractConfig: ExtractionConfig | null = nerConfig ? { ner: nerConfig } : null;
             const result = await extract(input, extractConfig);
             const doc = (result.results ?? [])[0];
             if (!doc) continue;

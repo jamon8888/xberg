@@ -4,14 +4,14 @@
 //! It serves as the baseline for comparing language bindings.
 
 use crate::adapter::FrameworkAdapter;
-use crate::{extract_xberg_file, extract_xberg_files};
 use crate::monitoring::ResourceMonitor;
 use crate::types::{BenchmarkResult, ErrorKind, FrameworkCapabilities, OcrStatus, PerformanceMetrics};
 use crate::{Error, Result};
+use crate::{extract_xberg_file, extract_xberg_files};
 use async_trait::async_trait;
 use std::path::Path;
 use std::time::{Duration, Instant};
-use xberg::{ExtractionConfig, ExtractedDocument, FormatMetadata};
+use xberg::{ExtractedDocument, ExtractionConfig, FormatMetadata};
 
 /// Determine OCR status by inspecting the actual extraction result metadata.
 ///

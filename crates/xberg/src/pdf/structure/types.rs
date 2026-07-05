@@ -99,8 +99,9 @@ pub(crate) struct LayoutHint {
 
 /// Layout detection results for a single page.
 ///
-/// Carries the page dimensions from layout detection (in PDF coordinate space).
-/// Used by region validation to map pixel predictions back to PDF coordinates.
+/// Carries the raw (unrotated MediaBox) page dimensions — the space text
+/// segments live in. Used by region validation and table recognition to map
+/// pixel predictions back to PDF coordinates.
 #[cfg(feature = "layout-detection")]
 #[derive(Debug, Clone)]
 pub struct PageLayoutResult {

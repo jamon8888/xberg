@@ -12,11 +12,10 @@ namespace Xberg;
  */
 interface DocumentExtractor
 {
-
     /**
      * Binding-safe extraction entry point for foreign-language plugin bridges.
      *
-
+     *
      * @param ExtractInput $input
      * @param ExtractionConfig $config
      * @return ExtractedDocument Return value from the plugin method
@@ -26,7 +25,7 @@ interface DocumentExtractor
     /**
      * Get the list of MIME types supported by this extractor.
      *
-
+     *
      * @return mixed Return value from the plugin method
      */
     public function supported_mime_types(): mixed;
@@ -34,7 +33,7 @@ interface DocumentExtractor
     /**
      * Get the priority of this extractor.
      *
-
+     *
      * @return int Return value from the plugin method
      */
     public function priority(): int;
@@ -42,11 +41,10 @@ interface DocumentExtractor
     /**
      * Optional: Check if this extractor can handle a specific file.
      *
-
+     *
      * @param mixed $_path
      * @param string $_mime_type
      * @return bool Return value from the plugin method
      */
     public function can_handle(mixed $_path, string $_mime_type): bool;
-
 }

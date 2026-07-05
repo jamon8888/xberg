@@ -3554,6 +3554,13 @@ XBERGCaptioningConfig *xberg_extraction_config_captioning(const XBERGExtractionC
 int32_t xberg_extraction_config_qr_codes(const XBERGExtractionConfig *ptr);
 
 /**
+ * Get the `source_name` field from a `ExtractionConfig`.
+ * # Safety
+ * Pointer must be a valid handle returned by this library.
+ */
+char *xberg_extraction_config_source_name(const XBERGExtractionConfig *ptr);
+
+/**
  * \note SAFETY: Caller must ensure all pointer arguments are valid or null. Returned pointers must be
  * freed with the appropriate free function.
  */

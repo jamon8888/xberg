@@ -1,10 +1,7 @@
 {
 	"id": "config_pages",
 	"description": "Tests page extraction and page marker configuration",
-	"tags": [
-		"contract",
-		"config"
-	],
+	"tags": ["contract", "config"],
 	"call": "extract",
 	"input": {
 		"mock_responses": [
@@ -36,15 +33,11 @@
 		{
 			"type": "contains_any",
 			"field": "results[0].content",
-			"values": [
-				"PAGE"
-			]
+			"values": ["PAGE"]
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"config": {

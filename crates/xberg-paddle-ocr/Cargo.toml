@@ -39,3 +39,4 @@ ort = { workspace = true, features = ["ndarray"] }
 # Workspace dependencies
 serde = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }

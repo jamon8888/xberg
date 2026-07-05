@@ -125,7 +125,7 @@ impl XbergMcp {
 
         let output = crate::extract(input, &config).await.map_err(map_xberg_error_to_mcp)?;
         let response = format_extraction_result_for_wire(&output, use_toon);
-        let mut tool_result = CallToolResult::success(vec![Content::text(response)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(response)]);
         tool_result.structured_content = serde_json::to_value(&output).ok();
         Ok(tool_result)
     }
@@ -161,7 +161,7 @@ impl XbergMcp {
             .await
             .map_err(map_xberg_error_to_mcp)?;
         let response = format_extraction_result_for_wire(&output, use_toon);
-        let mut tool_result = CallToolResult::success(vec![Content::text(response)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(response)]);
         tool_result.structured_content = serde_json::to_value(&output).ok();
         Ok(tool_result)
     }
@@ -187,7 +187,7 @@ impl XbergMcp {
         let dto = super::schema::DetectMimeTypeOutput {
             mime_type: mime_type.clone(),
         };
-        let mut tool_result = CallToolResult::success(vec![Content::text(mime_type)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(mime_type)]);
         tool_result.structured_content = serde_json::to_value(&dto).ok();
         Ok(tool_result)
     }
@@ -235,7 +235,7 @@ impl XbergMcp {
             total_size_mb: stats.total_size_mb,
             available_space_mb: stats.available_space_mb,
         };
-        let mut tool_result = CallToolResult::success(vec![Content::text(response)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(response)]);
         tool_result.structured_content = serde_json::to_value(&dto).ok();
         Ok(tool_result)
     }
@@ -261,7 +261,7 @@ impl XbergMcp {
                 .map(|f| serde_json::to_value(f).unwrap_or_default())
                 .collect(),
         };
-        let mut tool_result = CallToolResult::success(vec![Content::text(response)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(response)]);
         tool_result.structured_content = serde_json::to_value(&dto).ok();
         Ok(tool_result)
     }
@@ -295,7 +295,7 @@ impl XbergMcp {
             freed_mb
         );
 
-        Ok(CallToolResult::success(vec![Content::text(response)]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(response)]))
     }
 
     /// Get Xberg version information.
@@ -316,7 +316,7 @@ impl XbergMcp {
             version: version.to_string(),
         };
         let response = serde_json::to_string_pretty(&dto).unwrap_or_default();
-        let mut tool_result = CallToolResult::success(vec![Content::text(response)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(response)]);
         tool_result.structured_content = serde_json::to_value(&dto).ok();
         Ok(tool_result)
     }
@@ -375,7 +375,7 @@ impl XbergMcp {
             models: entries,
         };
         let response = serde_json::to_string_pretty(&dto).unwrap_or_default();
-        let mut tool_result = CallToolResult::success(vec![Content::text(response)]);
+        let mut tool_result = CallToolResult::success(vec![ContentBlock::text(response)]);
         tool_result.structured_content = serde_json::to_value(&dto).ok();
         Ok(tool_result)
     }
@@ -538,7 +538,7 @@ impl XbergMcp {
             "already_cached": already_cached,
         });
 
-        Ok(CallToolResult::success(vec![Content::text(
+        Ok(CallToolResult::success(vec![ContentBlock::text(
             serde_json::to_string_pretty(&response).unwrap_or_default(),
         )]))
     }
@@ -617,13 +617,10 @@ fn complete_impl(request: CompleteRequestParams) -> Result<CompleteResult, rmcp:
             }
         }
         Reference::Resource(_) => vec![],
+        _ => vec![],
     };
 
-    let completion = CompletionInfo::with_all_values(candidates).unwrap_or_else(|_| CompletionInfo {
-        values: vec![],
-        total: Some(0),
-        has_more: Some(false),
-    });
+    let completion = CompletionInfo::with_all_values(candidates).unwrap_or_default();
     Ok(CompleteResult::new(completion))
 }
 
@@ -1296,8 +1293,8 @@ mod tests {
         assert!(result.is_ok());
         let call_result = result.unwrap();
         if let Some(content) = call_result.content.first() {
-            match &content.raw {
-                RawContent::Text(text) => {
+            match content {
+                ContentBlock::Text(text) => {
                     let parsed: serde_json::Value = serde_json::from_str(&text.text).expect("Should be valid JSON");
                     assert_eq!(parsed["version"], env!("CARGO_PKG_VERSION"));
                 }
@@ -1326,8 +1323,8 @@ mod tests {
         assert!(result.is_ok());
         let call_result = result.unwrap();
         if let Some(content) = call_result.content.first() {
-            match &content.raw {
-                RawContent::Text(text) => {
+            match content {
+                ContentBlock::Text(text) => {
                     let parsed: serde_json::Value = serde_json::from_str(&text.text).expect("Should be valid JSON");
                     assert!(parsed.get("xberg_version").is_some());
                     assert!(parsed.get("model_count").is_some());

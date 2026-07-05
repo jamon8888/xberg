@@ -3,12 +3,12 @@
 //! Utilities for converting ExtractionConfig to JSON and extracting specific fields.
 
 use crate::helpers::set_last_error;
-use xberg::core::config::ExtractionConfig;
 #[cfg(feature = "embeddings")]
 use serde::Serialize;
 use std::ffi::CString;
 use std::os::raw::c_char;
 use std::ptr;
+use xberg::core::config::ExtractionConfig;
 
 /// SerializableEmbeddingPreset for FFI serialization.
 #[cfg(feature = "embeddings")]

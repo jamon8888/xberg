@@ -76,7 +76,7 @@ let config = ExtractionConfig {
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Send a report to **security@xberg.io** with:
+Send a report to **<security@xberg.io>** with:
 
 1. A description of the vulnerability and affected versions.
 2. A minimal reproducer (if possible, a file that triggers the issue).

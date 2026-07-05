@@ -214,4 +214,3 @@ describe("buildPiiReport", () => {
     expect(buildPiiReport(findings).kAnonymityRisk).toBe("HIGH (quasi-identifier combination)");
   });
 });
-

@@ -35,9 +35,6 @@
   <a href="https://hex.pm/packages/xberg">
     <img src="https://img.shields.io/hexpm/v/xberg?label=Elixir&color=007ec6" alt="Elixir">
   </a>
-  <a href="https://xberg-io.r-universe.dev/xberg">
-    <img src="https://img.shields.io/badge/R-xberg-007ec6" alt="R">
-  </a>
   <a href="https://pub.dev/packages/xberg">
     <img src="https://img.shields.io/pub/v/xberg?label=Dart&color=007ec6" alt="Dart">
   </a>
@@ -87,7 +84,7 @@ Extract text, tables, images, metadata, and code intelligence from 96 file forma
 - **Document intelligence core** — extract text, tables, images, metadata, entities, keywords, code intelligence, and transcripts in builds that enable transcription.
 - **Format coverage** — PDF, Office, images, HTML/XML, email, archives, notebooks, citations, scientific formats, plain text, and audio/video formats in builds that enable transcription.
 - **OCR choices** — Tesseract, PaddleOCR, Candle where supported, VLM OCR through liter-llm, and plugin hooks for custom backends.
-- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, R, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
+- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
 - **BEAM package** — Rustler NIF binding for OTP pipelines.
 
 ## Installation
@@ -99,7 +96,7 @@ Add to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:xberg, "~> 1.0.0-rc.1"}
+    {:xberg, "~> 1.0.0-rc.5"}
   ]
 end
 ```
@@ -111,6 +108,7 @@ mix deps.get
 ```
 
 ### System Requirements
+
 - **Elixir 1.14+** and **Erlang/OTP 26+** required
 - Pre-compiled NIFs bundled via `rustler_precompiled` for macOS (arm64, x64), Linux (x64, arm64), and Windows (x64)
 - Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.24+ for ORT-dependent inference features
@@ -137,7 +135,8 @@ IO.puts("\nMetadata:")
 IO.puts("Format: #{inspect(result.metadata.format)}")
 IO.puts("Tables found: #{length(result.tables)}")
 ```
-```
+
+```text
 
 ### Common Use Cases
 
@@ -163,7 +162,8 @@ IO.puts("OCR Extracted content:")
 IO.puts(content)
 IO.puts("Metadata: #{inspect(result.metadata)}")
 ```
-```
+
+```text
 
 #### Table Extraction
 
@@ -189,7 +189,8 @@ Enum.each(output.results, fn result ->
   IO.puts(result.content)
 end)
 ```
-```
+
+```text
 
 #### Async Processing
 
@@ -321,7 +322,8 @@ IO.puts("OCR Extracted content:")
 IO.puts(content)
 IO.puts("Metadata: #{inspect(result.metadata)}")
 ```
-```
+
+```text
 
 ## Async Support
 
@@ -415,7 +417,8 @@ end
 {:ok, processors} = Plugin.list_post_processors()
 IO.inspect(processors, label: "Registered Post-Processors")
 ```
-```
+
+```text
 
 ## Embeddings Support
 
@@ -445,7 +448,8 @@ Enum.each(output.results, fn result ->
   IO.puts(result.content)
 end)
 ```
-```
+
+```text
 
 ## Configuration
 

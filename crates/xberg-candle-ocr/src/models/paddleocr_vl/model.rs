@@ -12,6 +12,7 @@ use crate::CandleOcrError;
 use crate::error::Result;
 use crate::vendor::aha::{
     InferenceModel, MultiModalData,
+    image::interpolate_bilinear,
     modules::{NaiveAttnGateUpDownMLPBlock, NaiveAttnTwoLinearMLPBlock, get_conv2d, get_layer_norm},
     rope::{Qwen2_5VLTextRotaryEmbedding, Qwen2_5VisionRotaryEmbedding},
 };
@@ -226,6 +227,23 @@ impl SiglipVisionEmbeddings {
                 .map_err(|e| CandleOcrError::InferenceFailed(format!("Get img_num: {}", e)))?;
             let mut start = 0usize;
 
+            // Compute base grid size from num_positions: base = sqrt(num_positions)
+            let base = (self.num_positions as f64).sqrt() as usize;
+            if base * base != self.num_positions {
+                return Err(CandleOcrError::InferenceFailed(format!(
+                    "num_positions {} is not a perfect square",
+                    self.num_positions
+                )));
+            }
+
+            // Get all base position embeddings: indices 0..num_positions
+            let base_pos_indices = Tensor::arange(0u32, self.num_positions as u32, embeddings.device())
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Arange indices: {}", e)))?;
+            let base_pos_embeds = self
+                .position_embedding
+                .forward(&base_pos_indices)
+                .map_err(|e| CandleOcrError::InferenceFailed(format!("Base position embedding: {}", e)))?;
+
             for i in 0..img_num {
                 let grid_row = image_grid_thw
                     .i(i)
@@ -238,18 +256,43 @@ impl SiglipVisionEmbeddings {
                 }
 
                 let [t, h, w] = [grid_row[0], grid_row[1], grid_row[2]];
-                let end = start + (t * h * w) as usize;
+                let h = h as usize;
+                let w = w as usize;
+                let end = start + (t as usize * h * w);
                 let image_embeddings = embeddings
                     .i(start..end)
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Index embeds: {}", e)))?;
 
-                // NOTE: interpolate_pos_encoding not implemented; using static position embeddings
-                let position_embedding = self
-                    .position_embedding
-                    .forward(position_ids)
-                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Position embedding: {}", e)))?;
+                // Interpolate position embeddings from base grid to actual grid size
+                // base_pos_embeds shape: (num_positions, embed_dim)
+                // Reshape to (1, base, base, embed_dim)
+                let pos_embed_reshaped = base_pos_embeds
+                    .reshape((1, base, base, self.embed_dim))
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Reshape pos embed: {}", e)))?;
+
+                // Permute to (1, embed_dim, base, base) for interpolation
+                let pos_embed_chw = pos_embed_reshaped
+                    .permute(vec![0, 3, 1, 2])
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Permute for interp: {}", e)))?;
+
+                // Interpolate to (1, embed_dim, h, w) using bilinear
+                let pos_embed_interp = interpolate_bilinear(&pos_embed_chw, (h, w), Some(false), None)
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Interpolate pos: {}", e)))?;
+
+                // Permute back to (1, h, w, embed_dim)
+                let pos_embed_hwc = pos_embed_interp
+                    .permute(vec![0, 2, 3, 1])
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Permute back: {}", e)))?;
+
+                // Reshape to (h*w, embed_dim) and add to patch embeddings
+                let pos_embed_flat = pos_embed_hwc
+                    .squeeze(0)
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Squeeze: {}", e)))?
+                    .reshape((h * w, self.embed_dim))
+                    .map_err(|e| CandleOcrError::InferenceFailed(format!("Reshape pos flat: {}", e)))?;
+
                 let image_embeddings = image_embeddings
-                    .add(&position_embedding)
+                    .add(&pos_embed_flat)
                     .map_err(|e| CandleOcrError::InferenceFailed(format!("Add embeddings: {}", e)))?;
                 tmp_embeddings.push(image_embeddings);
                 start = end;
@@ -1090,6 +1133,64 @@ mod tests {
             &[1, num_patches, cfg.hidden_size],
             "SigLIP encoder output should preserve (1, num_patches, hidden_size) shape"
         );
+        Ok(())
+    }
+
+    /// Test position encoding interpolation with a large grid significantly larger than base num_positions.
+    ///
+    /// Base grid: 28×28 image with 14×14 patches → 2×2 = 4 base positions.
+    /// This test verifies that position embedding interpolation can handle grids much larger than
+    /// the base num_positions without OOB indexing (the bug this fix addresses).
+    ///
+    /// The key insight: the bug was that the old code tried to index the position embedding table
+    /// (size 4) with values 0..1024, causing an out-of-bounds on CUDA and silent corruption on CPU.
+    /// The fix interpolates the position embeddings instead, allowing any grid size.
+    #[test]
+    fn siglip_vision_embeddings_interpolate_pos_encoding_large_grid() -> crate::error::Result<()> {
+        use candle_core::Device;
+
+        let dev = Device::Cpu;
+        let cfg = tiny_vision_config();
+        let vb = VarBuilder::zeros(DType::F32, &dev);
+
+        let embeddings = SiglipVisionEmbeddings::new(vb, &cfg)?;
+
+        // Verify base num_positions: (28/14)^2 = 4
+        assert_eq!(embeddings.num_positions, 4, "tiny config should have 4 base positions");
+
+        let base = (embeddings.num_positions as f64).sqrt() as usize; // base = 2
+        let h = 32usize; // target grid height, much larger than base
+        let w = 32usize; // target grid width, much larger than base
+
+        // Get base position embeddings: (num_positions, embed_dim) = (4, 16)
+        let base_pos_indices = Tensor::arange(0u32, embeddings.num_positions as u32, &dev)?;
+        let base_pos_embeds = embeddings.position_embedding.forward(&base_pos_indices)?;
+
+        assert_eq!(base_pos_embeds.dims(), &[embeddings.num_positions, cfg.hidden_size]);
+
+        // Reshape to (1, base, base, embed_dim) = (1, 2, 2, 16)
+        let pos_embed_reshaped = base_pos_embeds.reshape((1, base, base, cfg.hidden_size))?;
+        assert_eq!(pos_embed_reshaped.dims(), &[1, 2, 2, 16]);
+
+        // Permute to (1, embed_dim, base, base) = (1, 16, 2, 2)
+        let pos_embed_chw = pos_embed_reshaped.permute(vec![0, 3, 1, 2])?;
+        assert_eq!(pos_embed_chw.dims(), &[1, 16, 2, 2]);
+
+        // Interpolate to (1, embed_dim, h, w) = (1, 16, 32, 32)
+        let pos_embed_interp = interpolate_bilinear(&pos_embed_chw, (h, w), Some(false), None)?;
+        assert_eq!(pos_embed_interp.dims(), &[1, 16, 32, 32]);
+
+        // Permute back to (1, h, w, embed_dim) = (1, 32, 32, 16)
+        let pos_embed_hwc = pos_embed_interp.permute(vec![0, 2, 3, 1])?;
+        assert_eq!(pos_embed_hwc.dims(), &[1, 32, 32, 16]);
+
+        // Reshape to (h*w, embed_dim) = (1024, 16)
+        let pos_embed_flat = pos_embed_hwc.squeeze(0)?.reshape((h * w, cfg.hidden_size))?;
+        assert_eq!(pos_embed_flat.dims(), &[1024, 16]);
+
+        // SUCCESS: interpolation completed without panic and produces correct shape.
+        // On CUDA, the old code would have failed with "Grid vec1: device-side assert triggered"
+        // because it tried to index position_embedding (size 4) with indices 0..1024.
         Ok(())
     }
 

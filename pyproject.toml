@@ -1,40 +1,37 @@
 [build-system]
 build-backend = "maturin"
-requires = [ "maturin>=1.13.1,<2" ]
+requires = ["maturin>=1.13.1,<2"]
 
 [dependency-groups]
 dev = [
-  "covdefaults>=2.3.0",
-  "httpx>=0.28.1",
-  "maturin>=1.13.1",
-  "mypy>=2.1.0",
-  "prek>=0.3.13",
-  "pyproject-fmt>=2.21.2",
-  "pytest>=9.0.3",
-  "pytest-asyncio>=1.3.0",
-  "pytest-cov>=7.1.0",
-  "pytest-mock>=3.15.1",
-  "pytest-rerunfailures>=16.2",
-  "pytest-timeout>=2.4.0",
-  "ruff>=0.15.13",
-  "types-pillow>=10.2",
-  "types-psutil>=7.2.2.20260508",
-  "validate-pyproject>=0.24.1",
+    "covdefaults>=2.3.0",
+    "httpx>=0.28.1",
+    "maturin>=1.13.1",
+    "pyrefly>=1.1.1",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.1.0",
+    "pytest-mock>=3.15.1",
+    "pytest-rerunfailures>=16.2",
+    "pytest-timeout>=2.4.0",
+    "types-pillow>=10.2",
+    "types-psutil>=7.2.2.20260508",
+    "validate-pyproject>=0.24.1",
 ]
-bench-docling = [ "docling>=2.64.1" ]
-bench-markitdown = [ "markitdown[all]>=0.1.4" ]
+bench-docling = ["docling>=2.64.1"]
+bench-markitdown = ["markitdown[all]>=0.1.4"]
 # `six` is an undeclared runtime import in mineru's pytorch_paddle OCR module
 # (mineru.model.utils.pytorchocr) — without it every extraction dies with
 # `ModuleNotFoundError: No module named 'six'`. Pin it in until mineru fixes
 # its own metadata.
-bench-mineru = [ "mineru[pipeline]>=2.6.7", "onnxruntime", "six" ]
-bench-pymupdf4llm = [ "pillow>=10.0.0", "pymupdf-layout>=0.0.1", "pymupdf4llm>=0.0.17" ]
+bench-mineru = ["mineru[pipeline]>=2.6.7", "onnxruntime", "six"]
+bench-pymupdf4llm = ["pillow>=10.0.0", "pymupdf-layout>=0.0.1", "pymupdf4llm>=0.0.17"]
 # Format-specific extras for the `fast` (no-OCR) partition strategy the
 # benchmark uses (pdfminer/python-docx/python-pptx/openpyxl). Avoids the
 # `[all-docs]` `unstructured-inference`/`pypdfium2>=5` stack that pulled the
 # Python-3.11-incompatible llvmlite 0.36 and conflicted with mineru's pypdfium2.
-bench-unstructured = [ "unstructured[pdf,docx,pptx,xlsx]==0.18.32" ]
-doc = [ "mkdocstrings>=1.0.4", "mkdocstrings-python>=2.0.3", "zensical" ]
+bench-unstructured = ["unstructured[docx,pdf,pptx,xlsx,md,odt,rtf,epub,org,rst]==0.18.32"]
+doc = ["mkdocstrings>=1.0.4", "mkdocstrings-python>=2.0.3", "zensical"]
 
 [tool.uv]
 # Restrict the resolution universe to the Python versions our CI and dev
@@ -46,280 +43,57 @@ doc = [ "mkdocstrings>=1.0.4", "mkdocstrings-python>=2.0.3", "zensical" ]
 # uv's environment universe to 3.11+ collapses each transitive dep to a
 # single version while leaving the published abi3-py310 wheel untouched (that
 # distribution is driven by maturin, not uv).
-environments = [ "python_version >= '3.11'" ]
-workspace.members = [ "packages/python" ]
+environments = ["python_version >= '3.11'"]
+workspace.members = ["packages/python"]
 conflicts = [
-  [
-    { package = "xberg", group = "bench-docling" },
-    { package = "xberg", group = "bench-markitdown" },
-    { package = "xberg", group = "bench-mineru" },
-    { package = "xberg", group = "bench-pymupdf4llm" },
-    { package = "xberg", group = "bench-unstructured" },
-  ],
+    [
+        { package = "xberg", group = "bench-docling" },
+        { package = "xberg", group = "bench-markitdown" },
+        { package = "xberg", group = "bench-mineru" },
+        { package = "xberg", group = "bench-pymupdf4llm" },
+        { package = "xberg", group = "bench-unstructured" },
+    ],
 ]
 cache-keys = [
-  { file = "pyproject.toml" },
-  { file = "Cargo.toml" },
-  { file = "Cargo.lock" },
-  { file = "crates/**/*.rs" },
-  { file = "crates/**/Cargo.toml" },
+    { file = "pyproject.toml" },
+    { file = "Cargo.toml" },
+    { file = "Cargo.lock" },
+    { file = "crates/**/*.rs" },
+    { file = "crates/**/Cargo.toml" },
 ]
-
-[tool.ruff]
-target-version = "py310"
-line-length = 120
-src = [ "packages/python/*" ]
-extend-exclude = [ "benchmarks", "crates", "docs/snippets", "scripts", "test_documents" ]
-format.docstring-code-line-length = 120
-format.docstring-code-format = true
-lint.select = [ "ALL" ]
-lint.ignore = [
-  "ANN401",
-  "ASYNC109",
-  "ASYNC110",
-  "BLE001",
-  "COM812",
-  "D100",
-  "D104",
-  "D107",
-  "D205",
-  "E501",
-  "EM",
-  "FBT",
-  "FIX",      # We allow todo and fixme comments
-  "ISC001",
-  "PD011",
-  "PGH003",
-  "PLR2004",
-  "PLW0603",
-  "S104",
-  "S110",
-  "S603",
-  "TD",       # We allow todo and fixme comments
-  "TRY",
-]
-lint.per-file-ignores."**/*.pyi" = [ "PYI021" ]
-lint.per-file-ignores."**/benchmarks/**/*.*" = [
-  "BLE001",
-  "C901",
-  "D101",
-  "D102",
-  "D103",
-  "D105",
-  "PERF203",
-  "PLC0415",
-  "PLR0912",
-  "PLR0913",
-  "PLR0915",
-  "S101",
-  "S110",
-  "SLF001",
-]
-lint.per-file-ignores."**/tests/**/*.*" = [
-  "A005",
-  "ANN",
-  "ARG001",
-  "ARG002",
-  "ASYNC230",
-  "BLE001",
-  "D",
-  "N806",
-  "N815",
-  "PD",
-  "PGH003",
-  "PLC",
-  "PLR0915",
-  "PLR2004",
-  "PT006",
-  "PT007",
-  "PT013",
-  "PT017",
-  "PT031",
-  "RUF012",
-  "S",
-  "SIM117",
-  "SLF001",
-]
-lint.per-file-ignores."cli-proxy/pypi/**/*.py" = [ "ANN001", "ANN202", "S310", "T201" ]
-lint.per-file-ignores."e2e/python/**/*.py" = [ "A001", "B017", "PT011" ]
-lint.per-file-ignores."e2e/python/conftest.py" = [ "ANN001", "ANN201", "ARG001" ]
-lint.per-file-ignores."packages/python/build.py" = [ "INP001" ]
-lint.per-file-ignores."packages/python/tests/e2e/*_test.py" = [ "T201" ]
-lint.per-file-ignores."scripts/**/*.py" = [
-  "B023",
-  "C901",
-  "D101",
-  "D102",
-  "D103",
-  "D415",
-  "E702",
-  "ERA001",
-  "PERF203",
-  "PERF401",
-  "PLC0415",
-  "PLR0912",
-  "PLR0915",
-  "PLW2901",
-  "PT018",
-  "PTH108",
-  "PTH123",
-  "S101",
-  "S108",
-  "S311",
-  "S607",
-  "SIM105",
-  "SIM115",
-  "T201",
-]
-lint.per-file-ignores."tools/benchmark-harness/python_baselines/*.py" = [
-  "ANN001",
-  "ANN201",
-  "ANN202",
-  "ARG001",
-  "BLE001",
-  "C901",
-  "D103",
-  "G004",
-  "INP001",
-  "PERF401",
-  "PLC0415",
-  "PLR0911",
-  "PLR0912",
-  "PLR0915",
-  "PLW2901",
-  "PTH123",
-  "S607",
-  "T201",
-]
-lint.per-file-ignores."tools/benchmark-harness/scripts/*.py" = [
-  "ANN001",
-  "ANN201",
-  "ANN202",
-  "ARG001",
-  "BLE001",
-  "C901",
-  "D103",
-  "E741",
-  "EXE001",
-  "EXE002",
-  "F841",
-  "INP001",
-  "N818",
-  "PERF203",
-  "PERF401",
-  "PIE810",
-  "PLC0206",
-  "PLC0415",
-  "PLR0911",
-  "PLR0912",
-  "PLR0915",
-  "PLR1714",
-  "PLW1510",
-  "PLW2901",
-  "PTH110",
-  "PTH112",
-  "PTH118",
-  "PTH119",
-  "PTH122",
-  "PTH123",
-  "RET504",
-  "S314",
-  "S607",
-  "SIM108",
-  "SIM115",
-  "T201",
-]
-lint.per-file-ignores."tools/perf/*.py" = [ "D103", "T201" ]
-lint.isort.known-first-party = [ "xberg" ]
-lint.mccabe.max-complexity = 15
-lint.pydocstyle.convention = "google"
-lint.pylint.max-args = 10
-lint.pylint.max-branches = 15
-lint.pylint.max-returns = 10
-
-[tool.pyproject-fmt]
-keep_full_version = true
-max_supported_python = "3.14"
-
-[tool.mypy]
-packages = [ "xberg" ]
-exclude = [ "examples", "benchmarks", "crates", "e2e/smoke", "test_apps" ]
-python_version = "3.10"
-disable_error_code = [ "import-untyped", "untyped-decorator" ]
-implicit_reexport = false
-show_error_codes = true
-strict = true
-namespace_packages = true
-
-[[tool.mypy.overrides]]
-module = [
-  "keybert",
-  "torch",
-  "xberg._internal_bindings",
-  "docling.*",
-  "markitdown",
-  "unstructured.*",
-  "httpx",
-]
-ignore_missing_imports = true
-ignore_errors = true
-follow_imports = "skip"
-
-[[tool.mypy.overrides]]
-module = [
-  "numpy",
-  "numpy.*",
-  "PIL",
-  "PIL.*",
-  "transformers",
-  "transformers.*",
-  "paddlex",
-  "paddleocr",
-]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [ "tests.test_apps.python.*" ]
-ignore_errors = true
-follow_imports = "skip"
-
-[[tool.mypy.overrides]]
-module = [ "examples.python.*" ]
-ignore_errors = true
-follow_imports = "skip"
 
 [tool.pytest]
 ini_options.timeout = 300
-ini_options.testpaths = [ "packages/python/tests" ]
-ini_options.norecursedirs = [ "dist", "build", "*.egg" ]
+ini_options.testpaths = ["packages/python/tests"]
+ini_options.norecursedirs = ["dist", "build", "*.egg"]
 ini_options.markers = [
-  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-  "integration: marks tests as integration tests (requires running services)",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests (requires running services)",
 ]
 ini_options.asyncio_mode = "auto"
 ini_options.asyncio_default_fixture_loop_scope = "function"
 ini_options.filterwarnings = [
-  "ignore:Exception ignored in:pytest.PytestUnraisableExceptionWarning",
-  "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
-  "ignore:ast.Num is deprecated and will be removed in Python 3.14:DeprecationWarning",
-  "ignore:datetime.datetime.utcfromtimestamp() is deprecated:DeprecationWarning",
-  "ignore:Deprecated call to `pkg_resources.declare_namespace('google')`:DeprecationWarning",
+    "ignore:Exception ignored in:pytest.PytestUnraisableExceptionWarning",
+    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore:ast.Num is deprecated and will be removed in Python 3.14:DeprecationWarning",
+    "ignore:datetime.datetime.utcfromtimestamp() is deprecated:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources.declare_namespace('google')`:DeprecationWarning",
 ]
 
 [tool.coverage]
 run.branch = true
-run.omit = [ "benchmarks/*", "packages/python/tests/*", "scripts/*" ]
-run.plugins = [ "covdefaults" ]
-run.source = [ "packages/python/xberg" ]
+run.omit = ["benchmarks/*", "packages/python/tests/*", "scripts/*"]
+run.plugins = ["covdefaults"]
+run.source = ["packages/python/xberg"]
 report.exclude_lines = [
-  "@(abc\\.)?abstractmethod",
-  "class .*\\bProtocol\\):",
-  "def __repr__",
-  "except ImportError:",
-  "if __name__ == .__main__.:",
-  "if sys.version_info",
-  "if TYPE_CHECKING:",
-  "pragma: no cover",
-  "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+    "class .*\\bProtocol\\):",
+    "def __repr__",
+    "except ImportError:",
+    "if __name__ == .__main__.:",
+    "if sys.version_info",
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+    "raise NotImplementedError",
 ]
 report.fail_under = 90

@@ -12,7 +12,7 @@ Telefon089/286629-0
 
 Telefax089/286629-28
 
-info@heimat-bayern.de
+<info@heimat-bayern.de>
 
 Bayerisches Staatsministerium fur Wissenschaft und Kunst
 

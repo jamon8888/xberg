@@ -28,11 +28,11 @@ use crate::ffi_panic_guard;
 #[cfg(feature = "embeddings")]
 use crate::helpers::string_to_c_string;
 use crate::helpers::{clear_last_error, set_last_error};
-use xberg::core::config::ExtractionConfig;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::path::Path;
 use std::ptr;
+use xberg::core::config::ExtractionConfig;
 
 /// Parse an ExtractionConfig from a JSON string.
 ///

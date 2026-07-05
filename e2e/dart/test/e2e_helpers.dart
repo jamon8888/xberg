@@ -66,28 +66,28 @@ Future<MockServerHandle> startMockServer() async {
   var collectedFixtureUrls = <String, String>{};
 
   subscription = process.stdout
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .listen((line) {
-        final trimmed = line.trim();
-        if (trimmed.startsWith('MOCK_SERVER_URL=')) {
-          collectedUrl = trimmed.substring('MOCK_SERVER_URL='.length);
-          return;
-        }
-        if (trimmed.startsWith('MOCK_SERVERS=')) {
-          final rawJson = trimmed.substring('MOCK_SERVERS='.length);
-          final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
-          collectedFixtureUrls = decoded.map(
-            (key, value) => MapEntry(key, value as String),
-          );
-          if (collectedUrl.isNotEmpty && !completer.isCompleted) {
-            completer.complete(
-              _MockServerStartup(collectedUrl, collectedFixtureUrls),
-            );
-            subscription?.cancel();
-          }
-        }
-      }, onError: completer.completeError);
+  .transform(utf8.decoder)
+  .transform(const LineSplitter())
+  .listen((line) {
+    final trimmed = line.trim();
+    if (trimmed.startsWith('MOCK_SERVER_URL=')) {
+      collectedUrl = trimmed.substring('MOCK_SERVER_URL='.length);
+      return;
+    }
+    if (trimmed.startsWith('MOCK_SERVERS=')) {
+      final rawJson = trimmed.substring('MOCK_SERVERS='.length);
+      final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
+      collectedFixtureUrls = decoded.map(
+        (key, value) => MapEntry(key, value as String),
+      );
+      if (collectedUrl.isNotEmpty && !completer.isCompleted) {
+        completer.complete(
+          _MockServerStartup(collectedUrl, collectedFixtureUrls),
+        );
+        subscription?.cancel();
+      }
+    }
+  }, onError: completer.completeError);
 
   try {
     final startup = await completer.future.timeout(const Duration(seconds: 30));
@@ -102,7 +102,7 @@ Directory _findRepoRoot() {
   var current = Directory.current.absolute;
   for (var i = 0; i < 16; i++) {
     if (File('${current.path}/Cargo.toml').existsSync() &&
-        Directory('${current.path}/test_documents').existsSync()) {
+      Directory('${current.path}/test_documents').existsSync()) {
       return current;
     }
 
@@ -136,9 +136,9 @@ Map<String, String> _fixtureUrlsFromEnvironment() {
   final result = <String, String>{};
   for (final entry in Platform.environment.entries) {
     if (!entry.key.startsWith('MOCK_SERVER_') || entry.key == 'MOCK_SERVER_URL')
-      continue;
+    continue;
     result[entry.key.substring('MOCK_SERVER_'.length).toLowerCase()] =
-        entry.value;
+    entry.value;
   }
   return result;
 }
