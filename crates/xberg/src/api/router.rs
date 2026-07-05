@@ -23,7 +23,7 @@ use super::{
     handlers::{
         cache_clear_handler, cache_manifest_handler, cache_stats_handler, cache_warm_handler, detect_handler,
         extract_async_handler, extract_handler, formats_handler, health_handler, info_handler, job_status_handler,
-        not_found_handler, version_handler,
+        not_found_handler, process_handler, rehydrate_handler, version_handler,
     },
     openweb::{openweb_docling_handler, openweb_external_handler},
     types::{ApiSizeLimits, ApiState},
@@ -134,6 +134,9 @@ pub(crate) fn create_router_with_limits_and_server_config(
         extraction_service: Arc::new(std::sync::Mutex::new(extraction_service)),
         #[cfg(feature = "api")]
         job_store: Arc::new(super::jobs::JobStore::new()),
+        #[cfg(feature = "api")]
+        rehydration_store: xberg_doc_store::rehydration_store_from_env()
+            .expect("rehydration store must initialize (check XBERG_REHYDRATION_DB_PATH)"),
     };
 
     // CORS configuration based on ServerConfig
@@ -179,6 +182,10 @@ pub(crate) fn create_router_with_limits_and_server_config(
         .route("/cache/clear", delete(cache_clear_handler))
         .route("/cache/manifest", get(cache_manifest_handler))
         .route("/cache/warm", post(cache_warm_handler))
+        // Process pipeline endpoint (extract → NER → redact)
+        .route("/v1/process", post(process_handler))
+        // Rehydration: decrypt and return token→original map for a prior /v1/process call
+        .route("/v1/documents/{rehydration_key}/rehydrate", post(rehydrate_handler))
         // OpenWebUI compatibility endpoints
         .route("/process", put(openweb_external_handler))
         .route("/v1/convert/file", post(openweb_docling_handler))

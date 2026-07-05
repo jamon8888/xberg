@@ -14,7 +14,7 @@ use std::sync::{Arc, LazyLock};
 use ahash::AHashMap;
 use async_trait::async_trait;
 use parking_lot::RwLock;
-use xberg_gliner::{Gliner, Parameters, RuntimeConfig, TextInput};
+use xberg_gliner::{Gliner, Gliner2, Parameters, RuntimeConfig, TextInput};
 
 use crate::Result;
 use crate::types::entity::{Entity, EntityCategory};
@@ -89,9 +89,53 @@ const GLINER_MODELS: &[GlinerModelDefinition] = &[
 
 #[derive(Debug, Clone)]
 struct GlinerModelFiles {
-    definition: GlinerModelDefinition,
+    id: String,
     model_path: PathBuf,
     tokenizer_path: PathBuf,
+}
+
+/// Caller-supplied override pointing GLiNER at an arbitrary Hugging Face repo
+/// instead of the pinned `xberg-io/gliner-models` catalog.
+///
+/// Files downloaded from a custom repo are **not** checksum-verified — the
+/// catalog's `checksums.sha256` only covers the pinned models xberg publishes.
+/// Callers choosing a custom repo are trusting that source directly.
+#[derive(Debug, Clone)]
+pub struct CustomGlinerSource {
+    /// Hugging Face repo id, e.g. `"gliner-community/gliner_small-v2.5"`.
+    pub repo: String,
+    /// Path to the ONNX model file within `repo`.
+    pub model_file: String,
+    /// Path to the tokenizer file within `repo`.
+    pub tokenizer_file: String,
+    /// Which GLiNER tensor I/O contract `model_file` uses.
+    pub architecture: crate::core::config::ner::GlinerArchitecture,
+}
+
+/// Build a [`CustomGlinerSource`] from optional config fields.
+///
+/// Returns `Ok(None)` when `repo`/`model_file`/`tokenizer_file` are all unset
+/// (use the pinned catalog), `Ok(Some(_))` when all three are set, and `Err`
+/// when only some are set. `architecture` is independent of that all-or-nothing
+/// rule — `None` defaults to [`crate::core::config::ner::GlinerArchitecture::Gliner1`].
+pub fn custom_source_from_parts(
+    repo: Option<&str>,
+    model_file: Option<&str>,
+    tokenizer_file: Option<&str>,
+    architecture: Option<crate::core::config::ner::GlinerArchitecture>,
+) -> Result<Option<CustomGlinerSource>> {
+    match (repo, model_file, tokenizer_file) {
+        (None, None, None) => Ok(None),
+        (Some(repo), Some(model_file), Some(tokenizer_file)) => Ok(Some(CustomGlinerSource {
+            repo: repo.to_string(),
+            model_file: model_file.to_string(),
+            tokenizer_file: tokenizer_file.to_string(),
+            architecture: architecture.unwrap_or_default(),
+        })),
+        _ => Err(crate::XbergError::validation(
+            "NerConfig.hf_repo, hf_model_file, and hf_tokenizer_file must all be set together, or all left unset",
+        )),
+    }
 }
 
 #[cfg_attr(alef, alef(skip))]
@@ -144,7 +188,7 @@ fn ensure_model(name: &str, cache_dir: Option<PathBuf>) -> Result<GlinerModelFil
         if model_verified && tokenizer_verified {
             tracing::debug!(model = definition.id, "GLiNER model found in cache");
             return Ok(GlinerModelFiles {
-                definition,
+                id: definition.id.to_string(),
                 model_path,
                 tokenizer_path,
             });
@@ -213,10 +257,125 @@ fn ensure_model(name: &str, cache_dir: Option<PathBuf>) -> Result<GlinerModelFil
     );
 
     Ok(GlinerModelFiles {
-        definition,
+        id: definition.id.to_string(),
         model_path,
         tokenizer_path,
     })
+}
+
+/// Download a GLiNER model (ONNX + tokenizer) from an arbitrary Hugging Face
+/// repo, bypassing the pinned `xberg-io/gliner-models` catalog.
+///
+/// Unlike [`ensure_model`], downloaded files are **not** checksum-verified —
+/// there is no pinned manifest for caller-chosen repos. Cached under a
+/// content-derived directory so distinct `(repo, model_file, tokenizer_file)`
+/// triples never collide.
+fn ensure_custom_model(source: &CustomGlinerSource, cache_dir: Option<PathBuf>) -> Result<GlinerModelFiles> {
+    let repo = source.repo.trim();
+    let model_file = source.model_file.trim();
+    let tokenizer_file = source.tokenizer_file.trim();
+    if repo.is_empty() || model_file.is_empty() || tokenizer_file.is_empty() {
+        return Err(crate::XbergError::validation(
+            "Custom GLiNER source requires hf_repo, hf_model_file, and hf_tokenizer_file to all be non-empty",
+        ));
+    }
+
+    let base_dir = cache_dir.unwrap_or_else(|| crate::cache_dir::resolve_cache_dir("ner"));
+    let cache_key = custom_cache_key(repo, model_file, tokenizer_file, source.architecture);
+    let model_dir = base_dir.join("gliner").join("custom").join(&cache_key);
+    let model_path = model_dir.join("model.onnx");
+    let tokenizer_path = model_dir.join("tokenizer.json");
+    let id = format!("custom:{repo}/{model_file}");
+
+    if model_path.exists() && tokenizer_path.exists() {
+        tracing::debug!(repo, model_file, "custom GLiNER model found in cache");
+        return Ok(GlinerModelFiles {
+            id,
+            model_path,
+            tokenizer_path,
+        });
+    }
+
+    std::fs::create_dir_all(&model_dir).map_err(|error| crate::XbergError::Plugin {
+        message: format!(
+            "Failed to create custom GLiNER cache dir '{}': {error}",
+            model_dir.display()
+        ),
+        plugin_name: "ner-gliner".to_string(),
+    })?;
+
+    let cached_model =
+        crate::model_download::hf_download(repo, model_file).map_err(|error| crate::XbergError::Plugin {
+            message: format!("Failed to download custom GLiNER model '{model_file}' from {repo}: {error}"),
+            plugin_name: "ner-gliner".to_string(),
+        })?;
+    atomic_publish(&cached_model, &model_path, &model_dir, "", "ner-gliner-custom-model").map_err(|error| {
+        crate::XbergError::Plugin {
+            message: error,
+            plugin_name: "ner-gliner".to_string(),
+        }
+    })?;
+
+    let cached_tokenizer =
+        crate::model_download::hf_download(repo, tokenizer_file).map_err(|error| crate::XbergError::Plugin {
+            message: format!("Failed to download custom GLiNER tokenizer '{tokenizer_file}' from {repo}: {error}"),
+            plugin_name: "ner-gliner".to_string(),
+        })?;
+    atomic_publish(
+        &cached_tokenizer,
+        &tokenizer_path,
+        &model_dir,
+        "",
+        "ner-gliner-custom-tokenizer",
+    )
+    .map_err(|error| crate::XbergError::Plugin {
+        message: error,
+        plugin_name: "ner-gliner".to_string(),
+    })?;
+
+    tracing::info!(
+        repo,
+        model_file,
+        tokenizer_file,
+        model_path = %model_path.display(),
+        tokenizer_path = %tokenizer_path.display(),
+        "xberg-gliner custom model downloaded (unverified — no checksum pinning for caller-supplied repos)"
+    );
+
+    Ok(GlinerModelFiles {
+        id,
+        model_path,
+        tokenizer_path,
+    })
+}
+
+/// Content-derived cache directory name for a custom GLiNER source, so
+/// distinct `(repo, model_file, tokenizer_file, architecture)` tuples never
+/// collide and arbitrary caller-supplied strings never escape the cache directory.
+fn custom_cache_key(
+    repo: &str,
+    model_file: &str,
+    tokenizer_file: &str,
+    architecture: crate::core::config::ner::GlinerArchitecture,
+) -> String {
+    use sha2::{Digest, Sha256};
+    let mut hasher = Sha256::new();
+    hasher.update(repo.as_bytes());
+    hasher.update(b"\0");
+    hasher.update(model_file.as_bytes());
+    hasher.update(b"\0");
+    hasher.update(tokenizer_file.as_bytes());
+    hasher.update(b"\0");
+    hasher.update(architecture_tag(architecture).as_bytes());
+    hex::encode(hasher.finalize())
+}
+
+fn architecture_tag(architecture: crate::core::config::ner::GlinerArchitecture) -> &'static str {
+    use crate::core::config::ner::GlinerArchitecture;
+    match architecture {
+        GlinerArchitecture::Gliner1 => "gliner1",
+        GlinerArchitecture::Gliner2 => "gliner2",
+    }
 }
 
 /// Returns the GLiNER files expected by `xberg cache manifest`.
@@ -353,11 +512,28 @@ fn requested_model_name(model_name: Option<&str>) -> Result<String> {
     Ok(requested.to_string())
 }
 
-fn backend_cache_key(model_name: Option<&str>, thread_budget: usize) -> Result<GlineBackendCacheKey> {
-    let requested = requested_model_name(model_name)?;
-    let definition = resolve_model(&requested)?;
+fn backend_cache_key(
+    model_name: Option<&str>,
+    custom_source: Option<&CustomGlinerSource>,
+    thread_budget: usize,
+) -> Result<GlineBackendCacheKey> {
+    let model_id = match custom_source {
+        Some(source) => format!(
+            "custom:{}",
+            custom_cache_key(
+                source.repo.trim(),
+                source.model_file.trim(),
+                source.tokenizer_file.trim(),
+                source.architecture,
+            )
+        ),
+        None => {
+            let requested = requested_model_name(model_name)?;
+            resolve_model(&requested)?.id.to_string()
+        }
+    };
     Ok(GlineBackendCacheKey {
-        model_id: definition.id.to_string(),
+        model_id,
         thread_budget,
     })
 }
@@ -511,10 +687,34 @@ where
     Ok(value)
 }
 
+enum GlinerEngine {
+    V1(Gliner),
+    V2(Gliner2),
+}
+
+impl std::fmt::Debug for GlinerEngine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::V1(_) => f.write_str("GlinerEngine::V1"),
+            Self::V2(_) => f.write_str("GlinerEngine::V2"),
+        }
+    }
+}
+
+impl GlinerEngine {
+    fn inference(&self, input: TextInput) -> xberg_gliner::Result<xberg_gliner::SpanOutput> {
+        match self {
+            Self::V1(engine) => engine.inference(input),
+            Self::V2(engine) => engine.inference(input),
+        }
+    }
+}
+
 /// `xberg-gliner` ONNX backend wrapper.
 ///
-/// Holds an initialised GLiNER span-mode model. Inference is synchronous and
-/// internally serialized around the underlying ONNX Runtime session.
+/// Holds an initialised GLiNER (v1 span-mode or v2 schema-prompt) model.
+/// Inference is synchronous and internally serialized around the underlying
+/// ONNX Runtime session.
 pub struct GlineBackend {
     /// xberg GLiNER model alias or catalog id used to load this model.
     pub repo_id: String,
@@ -522,7 +722,7 @@ pub struct GlineBackend {
     pub model_path: PathBuf,
     /// Local path to the cached tokenizer file.
     pub tokenizer_path: PathBuf,
-    model: Arc<Gliner>,
+    model: Arc<GlinerEngine>,
 }
 
 impl GlineBackend {
@@ -533,38 +733,73 @@ impl GlineBackend {
     /// further network I/O.
     pub fn new(model_name: Option<&str>) -> Result<Self> {
         let thread_budget = crate::core::config::concurrency::resolve_thread_budget(None);
-        Self::new_with_thread_budget(model_name, thread_budget)
+        Self::new_with_thread_budget(model_name, None, thread_budget)
     }
 
-    fn new_with_thread_budget(model_name: Option<&str>, thread_budget: usize) -> Result<Self> {
-        let requested = requested_model_name(model_name)?;
-        let files = ensure_model(&requested, None)?;
-        let gliner = Gliner::with_runtime(
-            Parameters::default(),
-            RuntimeConfig::default().with_intra_threads(thread_budget),
-            &files.tokenizer_path,
-            &files.model_path,
-        )
-        .map_err(|error| crate::XbergError::Plugin {
-            message: format!("Failed to initialise GLiNER model '{}': {error}", files.definition.id),
-            plugin_name: "ner-gliner".to_string(),
-        })?;
+    /// Build a backend from a caller-supplied Hugging Face repo, bypassing the
+    /// pinned catalog. See [`CustomGlinerSource`] for the checksum caveat.
+    pub fn new_with_custom_source(source: &CustomGlinerSource) -> Result<Self> {
+        let thread_budget = crate::core::config::concurrency::resolve_thread_budget(None);
+        Self::new_with_thread_budget(None, Some(source), thread_budget)
+    }
+
+    fn new_with_thread_budget(
+        model_name: Option<&str>,
+        custom_source: Option<&CustomGlinerSource>,
+        thread_budget: usize,
+    ) -> Result<Self> {
+        let files = match custom_source {
+            Some(source) => ensure_custom_model(source, None)?,
+            None => {
+                let requested = requested_model_name(model_name)?;
+                ensure_model(&requested, None)?
+            }
+        };
+        let architecture = custom_source.map(|source| source.architecture).unwrap_or_default();
+        let engine = match architecture {
+            crate::core::config::ner::GlinerArchitecture::Gliner1 => GlinerEngine::V1(
+                Gliner::with_runtime(
+                    Parameters::default(),
+                    RuntimeConfig::default().with_intra_threads(thread_budget),
+                    &files.tokenizer_path,
+                    &files.model_path,
+                )
+                .map_err(|error| crate::XbergError::Plugin {
+                    message: format!("Failed to initialise GLiNER model '{}': {error}", files.id),
+                    plugin_name: "ner-gliner".to_string(),
+                })?,
+            ),
+            crate::core::config::ner::GlinerArchitecture::Gliner2 => GlinerEngine::V2(
+                Gliner2::with_runtime(
+                    Parameters::default(),
+                    RuntimeConfig::default().with_intra_threads(thread_budget),
+                    &files.tokenizer_path,
+                    &files.model_path,
+                )
+                .map_err(|error| crate::XbergError::Plugin {
+                    message: format!("Failed to initialise GLiNER2 model '{}': {error}", files.id),
+                    plugin_name: "ner-gliner".to_string(),
+                })?,
+            ),
+        };
         Ok(Self {
-            repo_id: files.definition.id.to_string(),
+            repo_id: files.id,
             model_path: files.model_path,
             tokenizer_path: files.tokenizer_path,
-            model: Arc::new(gliner),
+            model: Arc::new(engine),
         })
     }
 }
 
-pub(crate) fn get_or_init_backend(model_name: Option<&str>) -> Result<Arc<GlineBackend>> {
+pub(crate) fn get_or_init_backend(
+    model_name: Option<&str>,
+    custom_source: Option<&CustomGlinerSource>,
+) -> Result<Arc<GlineBackend>> {
     let thread_budget = crate::core::config::concurrency::resolve_thread_budget(None);
-    let key = backend_cache_key(model_name, thread_budget)?;
-    let model_id = key.model_id.clone();
+    let key = backend_cache_key(model_name, custom_source, thread_budget)?;
 
     get_or_insert_arc(&BACKEND_CACHE, key, || {
-        GlineBackend::new_with_thread_budget(Some(&model_id), thread_budget)
+        GlineBackend::new_with_thread_budget(model_name, custom_source, thread_budget)
     })
 }
 
@@ -798,10 +1033,10 @@ mod tests {
 
     #[test]
     fn backend_cache_key_uses_canonical_model_and_runtime_config() {
-        let default_key = backend_cache_key(None, 4).expect("default key");
-        let alias_key = backend_cache_key(Some("balanced"), 4).expect("alias key");
-        let id_key = backend_cache_key(Some("gliner_medium-v2.5"), 4).expect("id key");
-        let different_runtime_key = backend_cache_key(Some("balanced"), 2).expect("runtime key");
+        let default_key = backend_cache_key(None, None, 4).expect("default key");
+        let alias_key = backend_cache_key(Some("balanced"), None, 4).expect("alias key");
+        let id_key = backend_cache_key(Some("gliner_medium-v2.5"), None, 4).expect("id key");
+        let different_runtime_key = backend_cache_key(Some("balanced"), None, 2).expect("runtime key");
 
         assert_eq!(default_key, alias_key);
         assert_eq!(alias_key, id_key);
@@ -810,7 +1045,28 @@ mod tests {
 
     #[test]
     fn backend_cache_key_rejects_empty_model_name_without_downloading() {
-        assert!(backend_cache_key(Some("   "), 4).is_err());
+        assert!(backend_cache_key(Some("   "), None, 4).is_err());
+    }
+
+    #[test]
+    fn backend_cache_key_isolates_architecture() {
+        use crate::core::config::ner::GlinerArchitecture;
+        let v1 = CustomGlinerSource {
+            repo: "lion-ai/gliner2-base-v1-onnx".to_string(),
+            model_file: "model.onnx".to_string(),
+            tokenizer_file: "tokenizer.json".to_string(),
+            architecture: GlinerArchitecture::Gliner1,
+        };
+        let v2 = CustomGlinerSource {
+            architecture: GlinerArchitecture::Gliner2,
+            ..v1.clone()
+        };
+        let k1 = backend_cache_key(None, Some(&v1), 4).expect("v1 key");
+        let k2 = backend_cache_key(None, Some(&v2), 4).expect("v2 key");
+        assert_ne!(
+            k1, k2,
+            "Gliner1 and Gliner2 must produce different cache keys for the same model files"
+        );
     }
 
     #[test]
@@ -841,7 +1097,7 @@ mod tests {
         use std::sync::atomic::{AtomicUsize, Ordering};
 
         let cache = RwLock::new(AHashMap::default());
-        let key = backend_cache_key(Some("balanced"), 4).expect("key");
+        let key = backend_cache_key(Some("balanced"), None, 4).expect("key");
         let build_count = AtomicUsize::new(0);
 
         let first = get_or_insert_arc(&cache, key.clone(), || {
@@ -929,6 +1185,39 @@ mod tests {
         let texts: Vec<&str> = entities.iter().map(|entity| entity.text.as_str()).collect();
         assert!(
             texts.contains(&"Elon Musk") || texts.contains(&"SpaceX"),
+            "expected at least one known entity, got: {texts:?}"
+        );
+    }
+
+    /// Smoke test — downloads a real GLiNER2 ONNX export and runs one inference.
+    /// `lion-ai/gliner2-base-v1-onnx` is the only publicly available monolithic
+    /// single-file GLiNER2 ONNX export found (most GLiNER2 model cards ship
+    /// safetensors only). Excluded from normal CI; run with:
+    ///   cargo test -p xberg --features ner-onnx,ner --lib ner::gline -- --ignored gliner2
+    #[ignore]
+    #[tokio::test]
+    async fn smoke_test_gliner2_real_inference() {
+        let source = CustomGlinerSource {
+            repo: "lion-ai/gliner2-base-v1-onnx".to_string(),
+            model_file: "model.onnx".to_string(),
+            tokenizer_file: "tokenizer.json".to_string(),
+            architecture: crate::core::config::ner::GlinerArchitecture::Gliner2,
+        };
+        let backend =
+            GlineBackend::new_with_custom_source(&source).expect("GlineBackend::new_with_custom_source failed");
+        let entities = backend
+            .detect(
+                "Steve Jobs founded Apple Inc. in Cupertino, California on April 1, 1976.",
+                &[],
+            )
+            .await
+            .expect("detect failed");
+        assert!(!entities.is_empty(), "expected at least one entity");
+        let texts: Vec<&str> = entities.iter().map(|entity| entity.text.as_str()).collect();
+        assert!(
+            texts
+                .iter()
+                .any(|text| text.eq_ignore_ascii_case("steve jobs") || text.eq_ignore_ascii_case("apple inc")),
             "expected at least one known entity, got: {texts:?}"
         );
     }

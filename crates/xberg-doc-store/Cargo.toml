@@ -1,0 +1,32 @@
+[package]
+name = "xberg-doc-store"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Tenant-scoped sidecar persistence for the Xberg HTTP API: encrypted rehydration maps today, durable jobs and an audit log in future phases. Never vectors or full text — that stays in xberg-rag."
+
+[features]
+default = ["in-memory"]
+in-memory = ["dep:moka"]
+sqlite = ["dep:rusqlite", "dep:tokio"]
+
+[dependencies]
+async-trait = { workspace = true }
+moka = { version = "0.12", features = ["sync"], optional = true }
+rusqlite = { workspace = true, optional = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, optional = true }
+tracing = { workspace = true }
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros"] }
+
+[lints]
+workspace = true

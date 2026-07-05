@@ -2,7 +2,7 @@
 
 Extract text, metadata, and structure from 96 file formats — PDFs, Office documents, images, email, HTML, archives, and more. Single files or batches, from local paths or in-memory bytes, with per-document configuration overrides and built-in content filtering.
 
-See the [Configuration Reference](../reference/configuration.md) for all extraction settings and the [Supported Formats](../reference/configuration.md#supported-formats) reference for format-specific options.
+See the [Configuration Reference](../reference/configuration.md) for all extraction settings and the [Supported Formats](#supported-formats) reference for format-specific options.
 
 ## Entry Points
 

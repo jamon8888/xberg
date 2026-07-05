@@ -8,7 +8,7 @@ name: Publish Release
 #
 # Mirrors html-to-markdown's publish.yaml composition: every registry
 # interaction, every multi-platform build, and every release-asset upload
-# routes through a shared xberg-io/actions composite. Repo-quirky inline
+# routes through a shared jamon8888/actions composite. Repo-quirky inline
 # bash is reserved for matrix expansion / artifact path stitching only.
 
 on:
@@ -113,18 +113,18 @@ jobs:
 
       - name: Retag for republish
         if: ${{ inputs.republish == true || github.event.client_payload.republish == true }}
-        uses: xberg-io/actions/retag-for-republish@v1
+        uses: jamon8888/actions/retag-for-republish@v1
         with:
           tag: ${{ inputs.tag || github.event.client_payload.tag }}
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Resolve release metadata
         id: meta
-        uses: xberg-io/actions/prepare-release-metadata@v1
+        uses: jamon8888/actions/prepare-release-metadata@v1
 
       - name: Ensure GitHub Release exists for tag
         if: ${{ steps.meta.outputs.is_tag == 'true' && steps.meta.outputs.dry_run != 'true' }}
-        uses: xberg-io/actions/publish-github-release@v1
+        uses: jamon8888/actions/publish-github-release@v1
         with:
           tag: ${{ steps.meta.outputs.tag }}
           target: ${{ steps.meta.outputs.target_sha }}
@@ -146,7 +146,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate versions
-        uses: xberg-io/actions/validate-versions@v1
+        uses: jamon8888/actions/validate-versions@v1
         with:
           version: ${{ needs.prepare.outputs.version }}
 
@@ -161,7 +161,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: pypi
           package: xberg
@@ -177,7 +177,7 @@ jobs:
       wasm_exists: ${{ steps.check.outputs.wasm_exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: npm
           package: "@xberg-io/xberg"
@@ -194,7 +194,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: rubygems
           package: xberg
@@ -210,7 +210,7 @@ jobs:
       kotlin_exists: ${{ steps.check.outputs.kotlin_exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: maven
           package: "io.xberg:xberg"
@@ -227,7 +227,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: nuget
           package: Xberg
@@ -242,7 +242,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: packagist
           package: xberg/xberg
@@ -264,7 +264,7 @@ jobs:
       all_exist: ${{ steps.derive.outputs.all_exist }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: cratesio
           package: xberg
@@ -302,7 +302,7 @@ jobs:
       elixir_exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: hex
           package: xberg
@@ -317,7 +317,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: pub
           package: xberg
@@ -337,7 +337,7 @@ jobs:
         # always true, so it short-circuits `publish-zig` to skipped (regression:
         # v4.x shipped without the zig tarball asset because of this). Verify
         # the actual asset is present instead.
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: github-release
           package: xberg-zig-v${{ needs.prepare.outputs.version }}.tar.gz
@@ -354,7 +354,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: homebrew
           package: xberg
@@ -370,7 +370,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: github-release
           package: xberg
@@ -390,7 +390,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: github-release
           package: xberg
@@ -408,7 +408,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: github-release
           package: xberg
@@ -426,7 +426,7 @@ jobs:
       exists: ${{ steps.check.outputs.exists }}
     steps:
       - id: check
-        uses: xberg-io/actions/check-registry@v1
+        uses: jamon8888/actions/check-registry@v1
         with:
           registry: github-release
           package: xberg
@@ -476,7 +476,7 @@ jobs:
         # Pinned to v1 (currently → v1.8.66, includes the PKG=$(...) command
         # substitution fix so the libheif source-build runs in the main shell
         # scope, not a subshell where PKG silently expands to empty).
-        uses: xberg-io/actions/build-python-wheels@v1
+        uses: jamon8888/actions/build-python-wheels@v1
         with:
           python-version: "3.13"
           package-dir: packages/python
@@ -549,7 +549,7 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -564,7 +564,7 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-python-sdist@v1
+      - uses: jamon8888/actions/build-python-sdist@v1
         with:
           output-dir: dist
           dry-run: ${{ needs.prepare.outputs.dry_run }}
@@ -599,11 +599,11 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
-      - uses: xberg-io/actions/setup-node-workspace@v1
+      - uses: jamon8888/actions/setup-node-workspace@v1
         with:
           node-version: "24"
 
@@ -617,7 +617,7 @@ jobs:
 
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
 
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
@@ -625,7 +625,7 @@ jobs:
         run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
 
       - name: Build NAPI binding
-        uses: xberg-io/actions/build-node-napi@v1
+        uses: jamon8888/actions/build-node-napi@v1
         with:
           crate-dir: crates/xberg-node
           build-command: pnpm exec napi build --release --target ${{ matrix.target }} --platform
@@ -697,21 +697,21 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: wasm32-unknown-unknown
           cache-key-prefix: wasm-bindings
 
-      - uses: xberg-io/actions/install-wasi-sdk@v1
+      - uses: jamon8888/actions/install-wasi-sdk@v1
 
-      - uses: xberg-io/actions/setup-node-workspace@v1
+      - uses: jamon8888/actions/setup-node-workspace@v1
         with:
           node-version: "24"
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-wasm-package@v1
+      - uses: jamon8888/actions/build-wasm-package@v1
         with:
           crate-dir: crates/xberg-wasm
           pack-tarball: "true"
@@ -762,7 +762,7 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -772,7 +772,7 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-ruby-gem@v1
+      - uses: jamon8888/actions/build-ruby-gem@v1
         with:
           package-dir: packages/ruby
           dry-run: ${{ needs.prepare.outputs.dry_run }}
@@ -843,18 +843,18 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-php@v1
+      - uses: jamon8888/actions/setup-php@v1
         with:
           php-version: ${{ matrix.php }}
 
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.platform.target }}
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-php-extension@v1
+      - uses: jamon8888/actions/build-php-extension@v1
         with:
           crate-name: xberg-php
           lib-name: xberg_php
@@ -862,9 +862,9 @@ jobs:
           php-ts: nts
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
-      - uses: xberg-io/actions/install-alef@v1
+      - uses: jamon8888/actions/install-alef@v1
 
-      - uses: xberg-io/actions/package-php-pie@v1
+      - uses: jamon8888/actions/package-php-pie@v1
         with:
           php-version: ${{ matrix.php }}
           php-ts: nts
@@ -930,7 +930,6 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-
       - name: Bootstrap manylinux container (protoc + rustup HOME)
         if: contains(matrix.target, '-linux-gnu')
         shell: bash
@@ -1012,7 +1011,7 @@ jobs:
         if: "!contains(matrix.target, '-linux-gnu')"
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-rust-cli@v1
+      - uses: jamon8888/actions/build-rust-cli@v1
         id: build
         with:
           package-name: xberg-cli
@@ -1183,7 +1182,7 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
@@ -1192,14 +1191,14 @@ jobs:
 
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
 
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
         shell: bash
         run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
 
-      - uses: xberg-io/actions/build-go-ffi@v1
+      - uses: jamon8888/actions/build-go-ffi@v1
         with:
           target: ${{ matrix.target }}
           crate-name: xberg-ffi
@@ -1237,7 +1236,7 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
@@ -1246,14 +1245,14 @@ jobs:
 
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
 
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
         shell: bash
         run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
 
-      - uses: xberg-io/actions/build-rust-ffi@v1
+      - uses: jamon8888/actions/build-rust-ffi@v1
         with:
           crate-name: xberg-ffi
           target: ${{ matrix.target }}
@@ -1306,7 +1305,7 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
@@ -1315,14 +1314,14 @@ jobs:
 
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
 
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
         shell: bash
         run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
 
-      - uses: xberg-io/actions/build-java-natives@v1
+      - uses: jamon8888/actions/build-java-natives@v1
         with:
           target: ${{ matrix.target }}
           crate-name: xberg-ffi
@@ -1392,11 +1391,11 @@ jobs:
           ref: ${{ needs.prepare.outputs.checkout_ref }}
           fetch-depth: 0
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-android-natives@v1
+      - uses: jamon8888/actions/build-android-natives@v1
         with:
           crate-name: xberg-ffi
           abis: ${{ matrix.abi }}
@@ -1434,7 +1433,7 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
@@ -1448,14 +1447,14 @@ jobs:
 
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
 
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
         shell: bash
         run: command -v cargo-zigbuild || cargo install --locked cargo-zigbuild
 
-      - uses: xberg-io/actions/build-csharp-natives@v1
+      - uses: jamon8888/actions/build-csharp-natives@v1
         with:
           target: ${{ matrix.target }}
           crate-name: xberg-ffi
@@ -1570,7 +1569,7 @@ jobs:
           elixir-version: "1.17"
           otp-version: "27"
 
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
 
@@ -1579,7 +1578,7 @@ jobs:
 
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
 
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
@@ -1684,11 +1683,11 @@ jobs:
           ref: ${{ needs.prepare.outputs.checkout_ref }}
           fetch-depth: 0
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-android-natives@v1
+      - uses: jamon8888/actions/build-android-natives@v1
         with:
           crate-name: xberg-dart
           abis: ${{ matrix.abi }}
@@ -1715,11 +1714,11 @@ jobs:
           ref: ${{ needs.prepare.outputs.checkout_ref }}
           fetch-depth: 0
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-ios-xcframework@v1
+      - uses: jamon8888/actions/build-ios-xcframework@v1
         with:
           crate-name: xberg-dart
       - uses: actions/upload-artifact@v7
@@ -1775,7 +1774,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.checkout_ref }}
           fetch-depth: 0
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
         with:
           target: ${{ matrix.target }}
       - name: Install system dependencies
@@ -1786,7 +1785,7 @@ jobs:
           ort-version: "1.24.2"
       - name: Setup Zig for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
-        uses: xberg-io/actions/setup-zig@v1
+        uses: jamon8888/actions/setup-zig@v1
       - name: Install cargo-zigbuild for glibc 2.28 floor
         if: contains(matrix.target, '-linux-gnu')
         shell: bash
@@ -1842,12 +1841,12 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-dart-package@v1
+      - uses: jamon8888/actions/build-dart-package@v1
         with:
           # flutter_rust_bridge.yaml lives in packages/dart/rust/, where rust_root: .
           package-dir: packages/dart/rust
@@ -1870,11 +1869,11 @@ jobs:
           ref: ${{ needs.prepare.outputs.checkout_ref }}
           fetch-depth: 0
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-swift-artifactbundle@v1
+      - uses: jamon8888/actions/build-swift-artifactbundle@v1
         id: bundle
         with:
           crate-name: xberg-swift
@@ -1911,12 +1910,12 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-swift-package@v1
+      - uses: jamon8888/actions/build-swift-package@v1
         with:
           package-dir: packages/swift
           crate-name: xberg-swift
@@ -1992,12 +1991,12 @@ jobs:
           fetch-depth: 0
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/build-zig-package@v1
+      - uses: jamon8888/actions/build-zig-package@v1
         with:
           ffi-crate: xberg-ffi
           package-dir: packages/zig
@@ -2097,7 +2096,7 @@ jobs:
           path: dist/cli
           merge-multiple: true
 
-      - uses: xberg-io/actions/upload-release-assets@v1
+      - uses: jamon8888/actions/upload-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           working-directory: dist/cli
@@ -2126,7 +2125,7 @@ jobs:
           path: dist/go-ffi
           merge-multiple: true
 
-      - uses: xberg-io/actions/upload-release-assets@v1
+      - uses: jamon8888/actions/upload-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           working-directory: dist/go-ffi
@@ -2153,7 +2152,7 @@ jobs:
           path: dist/c-ffi
           merge-multiple: true
 
-      - uses: xberg-io/actions/upload-release-assets@v1
+      - uses: jamon8888/actions/upload-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           working-directory: dist/c-ffi
@@ -2180,7 +2179,7 @@ jobs:
           path: dist/elixir
           merge-multiple: true
 
-      - uses: xberg-io/actions/upload-release-assets@v1
+      - uses: jamon8888/actions/upload-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           working-directory: dist/elixir
@@ -2207,7 +2206,7 @@ jobs:
           path: dist/php-package
           merge-multiple: true
 
-      - uses: xberg-io/actions/upload-release-assets@v1
+      - uses: jamon8888/actions/upload-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           working-directory: dist/php-package
@@ -2237,7 +2236,7 @@ jobs:
           name: swift-artifactbundle
           path: dist/swift-bundle
 
-      - uses: xberg-io/actions/upload-release-assets@v1
+      - uses: jamon8888/actions/upload-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           working-directory: dist/swift-bundle
@@ -2259,7 +2258,7 @@ jobs:
     if: ${{ always() && needs.prepare.outputs.is_tag == 'true' && needs.prepare.outputs.dry_run != 'true' && !contains(needs.*.result, 'failure') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: xberg-io/actions/verify-release-assets@v1
+      - uses: jamon8888/actions/verify-release-assets@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           expected-assets: |
@@ -2289,12 +2288,12 @@ jobs:
           ref: ${{ needs.prepare.outputs.ref }}
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
 
       - name: Install system dependencies
         uses: ./.github/actions/install-system-deps
 
-      - uses: xberg-io/actions/publish-crates@v1
+      - uses: jamon8888/actions/publish-crates@v1
         with:
           crates: xberg-libheif xberg-tesseract xberg-paddle-ocr xberg-candle-ocr xberg-gliner xberg xberg-cli
           version: ${{ needs.prepare.outputs.version }}
@@ -2321,7 +2320,7 @@ jobs:
           path: dist
 
       - name: Verify Python wheel package contents
-        uses: xberg-io/actions/verify-package-contents@v1
+        uses: jamon8888/actions/verify-package-contents@v1
         with:
           language: python
           artifact-path: dist
@@ -2332,7 +2331,7 @@ jobs:
           # only matches wheels. strict=false reports diffs without blocking.
           strict: "false"
 
-      - uses: xberg-io/actions/publish-pypi@v1
+      - uses: jamon8888/actions/publish-pypi@v1
         with:
           packages-dir: dist
           dry-run: ${{ needs.prepare.outputs.dry_run }}
@@ -2371,14 +2370,14 @@ jobs:
           cp dist/*.tar.gz ../../dist/
 
       - name: Verify CLI proxy package contents
-        uses: xberg-io/actions/verify-package-contents@v1
+        uses: jamon8888/actions/verify-package-contents@v1
         with:
           language: python
           artifact-path: dist
           package-name: xberg-cli
           strict: "false"
 
-      - uses: xberg-io/actions/publish-pypi@v1
+      - uses: jamon8888/actions/publish-pypi@v1
         with:
           packages-dir: dist
           dry-run: ${{ needs.prepare.outputs.dry_run }}
@@ -2416,13 +2415,13 @@ jobs:
       - uses: rubygems/configure-rubygems-credentials@v2.0.0
 
       - name: Verify Ruby gem package contents
-        uses: xberg-io/actions/verify-package-contents@v1
+        uses: jamon8888/actions/verify-package-contents@v1
         with:
           language: ruby
           artifact-path: dist
           package-name: xberg
 
-      - uses: xberg-io/actions/publish-rubygems@v1
+      - uses: jamon8888/actions/publish-rubygems@v1
         with:
           gems-dir: dist
           dry-run: ${{ needs.prepare.outputs.dry_run }}
@@ -2447,7 +2446,7 @@ jobs:
           path: crates/xberg-node/artifacts
           merge-multiple: true
 
-      - uses: xberg-io/actions/setup-node-workspace@v1
+      - uses: jamon8888/actions/setup-node-workspace@v1
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org/"
@@ -2474,7 +2473,7 @@ jobs:
           done
 
       - name: Verify Node platform sub-package contents
-        uses: xberg-io/actions/verify-package-contents@v1
+        uses: jamon8888/actions/verify-package-contents@v1
         with:
           language: node-platform
           artifact-path: crates/xberg-node/npm
@@ -2487,7 +2486,7 @@ jobs:
           strict: "false"
 
       - name: Publish platform sub-packages
-        uses: xberg-io/actions/publish-npm@v1
+        uses: jamon8888/actions/publish-npm@v1
         with:
           packages-dir: crates/xberg-node/npm
           npm-tag: ${{ needs.prepare.outputs.npm_tag }}
@@ -2502,7 +2501,7 @@ jobs:
       # leaving a window where `npm install @xberg-io/xberg` fails.
       - name: Wait for npm indexing (node-linux-x64-gnu)
         if: ${{ needs.prepare.outputs.dry_run != 'true' }}
-        uses: xberg-io/actions/wait-for-package@v1
+        uses: jamon8888/actions/wait-for-package@v1
         with:
           registry: npm
           package: "@xberg-io/xberg-linux-x64-gnu"
@@ -2511,7 +2510,7 @@ jobs:
 
       - name: Wait for npm indexing (node-linux-arm64-gnu)
         if: ${{ needs.prepare.outputs.dry_run != 'true' }}
-        uses: xberg-io/actions/wait-for-package@v1
+        uses: jamon8888/actions/wait-for-package@v1
         with:
           registry: npm
           package: "@xberg-io/xberg-linux-arm64-gnu"
@@ -2519,7 +2518,7 @@ jobs:
           max-attempts: "60"
 
       - name: Publish main @xberg-io/xberg package
-        uses: xberg-io/actions/publish-npm@v1
+        uses: jamon8888/actions/publish-npm@v1
         with:
           package-dir: crates/xberg-node
           npm-tag: ${{ needs.prepare.outputs.npm_tag }}
@@ -2547,12 +2546,12 @@ jobs:
           name: wasm-bundle
           path: crates/xberg-wasm
 
-      - uses: xberg-io/actions/setup-node-workspace@v1
+      - uses: jamon8888/actions/setup-node-workspace@v1
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org/"
 
-      - uses: xberg-io/actions/publish-npm@v1
+      - uses: jamon8888/actions/publish-npm@v1
         with:
           package-dir: crates/xberg-wasm
           npm-tag: ${{ needs.prepare.outputs.npm_tag }}
@@ -2567,7 +2566,7 @@ jobs:
     if: ${{ needs.prepare.outputs.release_php == 'true' && needs.prepare.outputs.is_tag == 'true' && (needs.check-packagist.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: xberg-io/actions/publish-packagist@v1
+      - uses: jamon8888/actions/publish-packagist@v1
         with:
           packagist-username: xberg-dev
           package-name: xberg/xberg
@@ -2594,7 +2593,7 @@ jobs:
           path: artifacts/java-natives
           merge-multiple: true
 
-      - uses: xberg-io/actions/stage-java-natives@v1
+      - uses: jamon8888/actions/stage-java-natives@v1
         with:
           resources-dir: packages/java/src/main/resources/natives
           required-classifiers: >-
@@ -2613,9 +2612,9 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - uses: xberg-io/actions/setup-maven@v1
+      - uses: jamon8888/actions/setup-maven@v1
 
-      - uses: xberg-io/actions/publish-maven@v1
+      - uses: jamon8888/actions/publish-maven@v1
         with:
           pom-file: packages/java/pom.xml
           maven-profile: publish
@@ -2659,7 +2658,7 @@ jobs:
         with:
           packages: "platforms;android-36 build-tools;36.0.0"
 
-      - uses: xberg-io/actions/publish-maven-gradle@v1
+      - uses: jamon8888/actions/publish-maven-gradle@v1
         with:
           working-directory: packages/kotlin-android
           gradle-task: publishAndReleaseToMavenCentral
@@ -2715,7 +2714,7 @@ jobs:
             -o dist/nuget
         shell: bash
 
-      - uses: xberg-io/actions/publish-nuget@v1
+      - uses: jamon8888/actions/publish-nuget@v1
         with:
           packages-dir: dist/nuget
           dry-run: ${{ needs.prepare.outputs.dry_run }}
@@ -2743,7 +2742,7 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: xberg-io
 
-      - uses: xberg-io/actions/finalize-release@v1
+      - uses: jamon8888/actions/finalize-release@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           is-prerelease: ${{ needs.prepare.outputs.is_prerelease }}
@@ -2760,14 +2759,14 @@ jobs:
           ref: ${{ needs.prepare.outputs.ref }}
 
           submodules: recursive
-      - uses: xberg-io/actions/setup-rust@v1
+      - uses: jamon8888/actions/setup-rust@v1
       - uses: erlef/setup-beam@v1.24.0
         with:
           elixir-version: "1.17"
           otp-version: "27"
 
       - name: Generate NIF checksum file
-        uses: xberg-io/actions/generate-elixir-checksums@v1
+        uses: jamon8888/actions/generate-elixir-checksums@v1
         with:
           github-repo: xberg-io/xberg
           tag: ${{ needs.prepare.outputs.tag }}
@@ -2781,14 +2780,14 @@ jobs:
 
       - name: Build Elixir Hex tarball with dependency rewrite
         id: build-hex
-        uses: xberg-io/actions/build-elixir-hex@v1
+        uses: jamon8888/actions/build-elixir-hex@v1
         with:
           package-dir: packages/elixir
           nif-crate-path: packages/elixir/native/xberg_nif
           rewrite-native-deps: "true"
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
-      - uses: xberg-io/actions/publish-hex@v1
+      - uses: jamon8888/actions/publish-hex@v1
         with:
           package-dir: packages/elixir
           tarball-path: ${{ steps.build-hex.outputs.archive-path }}
@@ -2990,7 +2989,7 @@ jobs:
           ls -la "$out"
           for d in "$out"/*/; do echo "--- $d ---"; ls -la "$d"; done
 
-      - uses: xberg-io/actions/publish-zig@v1
+      - uses: jamon8888/actions/publish-zig@v1
         with:
           working-directory: packages/zig
           tag: ${{ needs.prepare.outputs.tag }}
@@ -3117,10 +3116,10 @@ jobs:
           submodules: recursive
       - name: Install Homebrew (Linux)
         if: ${{ matrix.install_brew }}
-        uses: xberg-io/actions/install-homebrew-linux@v1
+        uses: jamon8888/actions/install-homebrew-linux@v1
 
       - name: Build bottles
-        uses: xberg-io/actions/homebrew-build-bottles@v1
+        uses: jamon8888/actions/homebrew-build-bottles@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           version: ${{ needs.prepare.outputs.version }}
@@ -3171,7 +3170,7 @@ jobs:
           pattern: homebrew-bottle-json-*
           merge-multiple: true
 
-      - uses: xberg-io/actions/homebrew-merge-bottles@v1
+      - uses: jamon8888/actions/homebrew-merge-bottles@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           version: ${{ needs.prepare.outputs.version }}
@@ -3237,7 +3236,7 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: xberg-io
 
-      - uses: xberg-io/actions/finalize-release@v1
+      - uses: jamon8888/actions/finalize-release@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           is-prerelease: ${{ needs.prepare.outputs.is_prerelease == 'true' && 'true' || 'false' }}
@@ -3290,7 +3289,7 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           owner: xberg-io
 
-      - uses: xberg-io/actions/announce-release-discord@v1
+      - uses: jamon8888/actions/announce-release-discord@v1
         with:
           tag: ${{ needs.prepare.outputs.tag }}
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -3311,7 +3310,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
-      - uses: xberg-io/actions/publish-npm@v1
+      - uses: jamon8888/actions/publish-npm@v1
         with:
           package-dir: cli-proxy/npm
           access: public

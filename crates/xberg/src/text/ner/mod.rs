@@ -10,15 +10,21 @@
 //! Backends implement the [`NerBackend`] trait. Two are bundled:
 //!
 //! - [`gline::GlineBackend`] under `#[cfg(feature = "ner-onnx")]` — local ONNX
-//!   inference via `xberg-gliner`. Models download lazily from the
+//!   inference via `xberg-gliner`. Models download lazily from the pinned
 //!   `xberg-io/gliner-models` Hugging Face repository via
-//!   `crate::model_download`.
+//!   `crate::model_download` by default. Callers without access to that
+//!   private repo can instead point `NerConfig::hf_repo` (+ `hf_model_file` /
+//!   `hf_tokenizer_file`) at any public or private GLiNER ONNX export of
+//!   their own — see [`gline::CustomGlinerSource`]. Custom-repo downloads
+//!   are not checksum-verified.
 //! - [`llm::LlmBackend`] under `#[cfg(feature = "ner-llm")]` — liter-llm with a
 //!   structured-output schema. Used when categories outstrip the ONNX taxonomy.
 
 #![cfg(feature = "ner")]
 
 pub mod backend;
+#[cfg(any(feature = "ner-candle", feature = "ner-candle-wasm"))]
+pub mod candle;
 #[cfg(feature = "ner-onnx")]
 pub mod gline;
 #[cfg(all(feature = "ner-llm", not(all(target_os = "android", target_arch = "x86_64"))))]

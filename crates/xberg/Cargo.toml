@@ -282,6 +282,13 @@ ner-onnx = [
     "ort-bundled",
     "tokio-runtime",
 ]
+# GLiNER2 Candle (CPU) backend — local safetensors, optional PEFT LoRA adapter.
+# No ORT dependency; pure-Rust transformer inference via candle.
+ner-candle = ["ner", "dep:xberg-gliner-candle", "tokio-runtime"]
+# GLiNER2 Candle (CPU) backend for wasm32: same in-binary inference as `ner-candle`,
+# minus `tokio-runtime` (block_in_place requires a multi-threaded tokio runtime, which
+# does not exist on wasm32). Loads models via `CandleBackend::from_bytes` (no filesystem).
+ner-candle-wasm = ["ner", "dep:xberg-gliner-candle"]
 
 presets = ["dep:include_dir", "dep:jsonschema", "dep:sha2"] # Preset format + registry + loader + resolver; pure-Rust.
 
@@ -289,7 +296,8 @@ presets = ["dep:include_dir", "dep:jsonschema", "dep:sha2"] # Preset format + re
 # `ExtractionConfig::structured_extraction`.
 structured = ["liter-llm", "tokio-runtime"]
 
-redaction = ["dep:sha2"]            # Pattern-based PII engine; pure-Rust.
+redaction = ["dep:sha2"] # Pattern-based PII engine; pure-Rust.
+redaction-rehydrate = ["redaction", "dep:aes-gcm", "dep:scrypt"] # Encrypted rehydration map capture.
 redaction-ml = ["redaction", "ner"] # Couple in NER for PERSON/ORG/LOC redaction.
 
 summarization = ["stopwords"]                      # TextRank extractive only; pure-Rust (uses stopword tables).
@@ -321,11 +329,16 @@ api = [
     "dep:tower-http",
     "dep:utoipa",
     "dep:uuid",
+    "dep:xberg-doc-store",
     "tokio-runtime",
     # SIGTERM/SIGINT graceful shutdown for the api + mcp-http servers (#1147).
     "tokio?/signal",
     "chunking",
 ]
+# Durable (SQLite) rehydration-map storage, selected at runtime via
+# XBERG_REHYDRATION_DB_PATH. Additive to `api` — without it the ephemeral
+# in-memory backend (24h TTL) is used.
+doc-store-sqlite = ["api", "xberg-doc-store/sqlite"]
 mcp = ["tower-service", "dep:rmcp", "tokio-runtime"]
 mcp-http = ["mcp", "api"]
 
@@ -379,7 +392,7 @@ no-ort-target = [
 # reduce memory spikes. Long-term fix: add tree-sitter-wasm-lite feature to tree-sitter-language-pack
 # with curated parser set (markdown, javascript, python, rust, json, yaml, html, css, sql, c, etc.)
 # and update this aggregate to use it instead of the full tree-sitter feature.
-wasm-target = ["no-ort-target", "excel-wasm", "tree-sitter-wasm", "ocr-wasm"]
+wasm-target = ["no-ort-target", "excel-wasm", "tree-sitter-wasm", "ocr-wasm", "ner-candle-wasm"]
 # android-target: no-ort-target plus native-Linux variants that work on Android ABI
 # (excel with tokio, native tree-sitter, Tesseract OCR, and API/MCP transport).
 # Excludes ORT-dependent features (paddle-ocr, layout-detection, embeddings, reranker,
@@ -584,6 +597,7 @@ memmap2 = { workspace = true }
 mime_guess = "2.0"
 minijinja = { workspace = true, optional = true }
 moka = { version = "0.12", features = ["sync"], optional = true }
+xberg-doc-store = { workspace = true, optional = true, features = ["in-memory"] }
 ndarray = { version = "0.17", optional = true }
 nom-exif = { workspace = true, optional = true }
 num_cpus = { workspace = true }
@@ -619,6 +633,8 @@ serde_json = { workspace = true }
 serde_toon_format = { workspace = true }
 serde_yaml_ng = "0.10.0"
 sevenz-rust2 = { version = "0.20.2", optional = true }
+aes-gcm = { version = "0.10", optional = true }
+scrypt = { version = "0.11", optional = true, default-features = false, features = ["std"] }
 sha2 = { version = "0.11", optional = true }
 simdutf8 = { version = "0.1", optional = true }
 similar = { workspace = true, optional = true }
@@ -665,6 +681,7 @@ uuid = { version = "1", features = ["v4"], optional = true }
 v_htmlescape = { version = "0.17", optional = true }
 whatlang = { version = "0.18.0", optional = true }
 xberg-gliner = { workspace = true, optional = true }
+xberg-gliner-candle = { workspace = true, optional = true }
 xberg-libheif = { path = "../xberg-libheif", version = "1.0.0-rc.5", optional = true }
 # No `version` on this path-dep: xberg-tesseract carries `links =
 # "xberg_tesseract"`, and a versioned path-dep makes the maturin sdist

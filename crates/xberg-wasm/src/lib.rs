@@ -2477,6 +2477,10 @@ pub struct WasmNerConfig {
     backend: WasmNerBackendKind,
     categories: Vec<WasmEntityCategory>,
     model: Option<String>,
+    hf_repo: Option<String>,
+    hf_model_file: Option<String>,
+    hf_tokenizer_file: Option<String>,
+    hf_architecture: Option<WasmGlinerArchitecture>,
     llm: Option<WasmLlmConfig>,
     custom_labels: Vec<String>,
 }
@@ -2496,13 +2500,21 @@ impl WasmNerConfig {
         categories: Option<Vec<WasmEntityCategory>>,
         customLabels: Option<Vec<String>>,
         model: Option<String>,
+        hfRepo: Option<String>,
+        hfModelFile: Option<String>,
+        hfTokenizerFile: Option<String>,
+        hfArchitecture: Option<WasmGlinerArchitecture>,
         llm: Option<WasmLlmConfig>,
     ) -> WasmNerConfig {
         WasmNerConfig {
             backend: backend.unwrap_or_default(),
             categories: categories.unwrap_or_default(),
-            model: model,
-            llm: llm,
+            model,
+            hf_repo: hfRepo,
+            hf_model_file: hfModelFile,
+            hf_tokenizer_file: hfTokenizerFile,
+            hf_architecture: hfArchitecture,
+            llm,
             custom_labels: customLabels.unwrap_or_default(),
         }
     }
@@ -2544,6 +2556,46 @@ impl WasmNerConfig {
     #[wasm_bindgen(setter)]
     pub fn set_model(&mut self, value: Option<String>) {
         self.model = value;
+    }
+
+    #[wasm_bindgen(getter, js_name = "hfRepo")]
+    pub fn hf_repo(&self) -> Option<String> {
+        self.hf_repo.clone()
+    }
+
+    #[wasm_bindgen(setter, js_name = "hfRepo")]
+    pub fn set_hf_repo(&mut self, value: Option<String>) {
+        self.hf_repo = value;
+    }
+
+    #[wasm_bindgen(getter, js_name = "hfModelFile")]
+    pub fn hf_model_file(&self) -> Option<String> {
+        self.hf_model_file.clone()
+    }
+
+    #[wasm_bindgen(setter, js_name = "hfModelFile")]
+    pub fn set_hf_model_file(&mut self, value: Option<String>) {
+        self.hf_model_file = value;
+    }
+
+    #[wasm_bindgen(getter, js_name = "hfTokenizerFile")]
+    pub fn hf_tokenizer_file(&self) -> Option<String> {
+        self.hf_tokenizer_file.clone()
+    }
+
+    #[wasm_bindgen(setter, js_name = "hfTokenizerFile")]
+    pub fn set_hf_tokenizer_file(&mut self, value: Option<String>) {
+        self.hf_tokenizer_file = value;
+    }
+
+    #[wasm_bindgen(getter, js_name = "hfArchitecture")]
+    pub fn hf_architecture(&self) -> Option<String> {
+        self.hf_architecture.map(|v| v.to_api_str().to_owned())
+    }
+
+    #[wasm_bindgen(setter, js_name = "hfArchitecture")]
+    pub fn set_hf_architecture(&mut self, value: Option<String>) {
+        self.hf_architecture = value.and_then(|s| WasmGlinerArchitecture::from_api_str(&s));
     }
 
     #[wasm_bindgen(getter)]
@@ -15210,6 +15262,37 @@ impl WasmNerBackendKind {
     }
 }
 
+pub enum WasmGlinerArchitecture {
+    Gliner1 = 0,
+    Gliner2 = 1,
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for WasmGlinerArchitecture {
+    fn default() -> Self {
+        Self::Gliner1
+    }
+}
+
+impl WasmGlinerArchitecture {
+    /// Returns the serde wire string for this variant (e.g. `"stop"`, `"tool_calls"`).
+    pub fn to_api_str(self) -> &'static str {
+        match self {
+            Self::Gliner1 => "gliner1",
+            Self::Gliner2 => "gliner2",
+        }
+    }
+
+    /// Parses a serde wire string and returns the corresponding variant, or None if unrecognized.
+    pub fn from_api_str(s: &str) -> Option<Self> {
+        match s {
+            "gliner1" => Some(Self::Gliner1),
+            "gliner2" => Some(Self::Gliner2),
+            _ => None,
+        }
+    }
+}
+
 /// Policy controlling when VLM (Vision Language Model) OCR is used as a fallback.
 ///
 /// This knob is syntactic sugar over the explicit `OcrPipelineConfig` stage
@@ -20303,6 +20386,10 @@ impl From<WasmNerConfig> for xberg::NerConfig {
             backend: val.backend.into(),
             categories: val.categories.into_iter().map(Into::into).collect(),
             model: val.model,
+            hf_repo: val.hf_repo,
+            hf_model_file: val.hf_model_file,
+            hf_tokenizer_file: val.hf_tokenizer_file,
+            hf_architecture: val.hf_architecture.map(Into::into),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
@@ -20316,6 +20403,10 @@ impl From<xberg::NerConfig> for WasmNerConfig {
             backend: val.backend.into(),
             categories: val.categories.into_iter().map(Into::into).collect(),
             model: val.model.map(|v| v.to_string()),
+            hf_repo: val.hf_repo.map(|v| v.to_string()),
+            hf_model_file: val.hf_model_file.map(|v| v.to_string()),
+            hf_tokenizer_file: val.hf_tokenizer_file.map(|v| v.to_string()),
+            hf_architecture: val.hf_architecture.map(Into::into),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
@@ -23694,6 +23785,24 @@ impl From<xberg::NerBackendKind> for WasmNerBackendKind {
         match val {
             xberg::NerBackendKind::Onnx => Self::Onnx,
             xberg::NerBackendKind::Llm => Self::Llm,
+        }
+    }
+}
+
+impl From<WasmGlinerArchitecture> for xberg::GlinerArchitecture {
+    fn from(val: WasmGlinerArchitecture) -> Self {
+        match val {
+            WasmGlinerArchitecture::Gliner1 => Self::Gliner1,
+            WasmGlinerArchitecture::Gliner2 => Self::Gliner2,
+        }
+    }
+}
+
+impl From<xberg::GlinerArchitecture> for WasmGlinerArchitecture {
+    fn from(val: xberg::GlinerArchitecture) -> Self {
+        match val {
+            xberg::GlinerArchitecture::Gliner1 => Self::Gliner1,
+            xberg::GlinerArchitecture::Gliner2 => Self::Gliner2,
         }
     }
 }

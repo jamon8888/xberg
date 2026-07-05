@@ -4050,6 +4050,14 @@ export declare enum NerBackendKind {
   Llm = "llm",
 }
 
+/** GLiNER ONNX architecture family. */
+export declare enum GlinerArchitecture {
+  /** Span-mode GLiNER (the pinned catalog and most GLiNER fine-tunes). */
+  Gliner1 = 'gliner1',
+  /** Schema-prompt GLiNER2 (`fastino/gliner2` lineage). */
+  Gliner2 = 'gliner2'
+}
+
 /** Configuration for the NER post-processor. */
 export interface NerConfig {
   /** Backend that runs the entity detection. */
@@ -4062,8 +4070,32 @@ export interface NerConfig {
   /**
    * Override the default model — only used by [`NerBackendKind::Onnx`].
    * `None` lets the backend pick its pinned default xberg GLiNER model alias.
+   * Ignored when `hfRepo` is set.
    */
   readonly model?: string;
+  /**
+   * Custom Hugging Face repository to load a GLiNER ONNX export from, bypassing
+   * the pinned `xberg-io/gliner-models` catalog — only used by `NerBackendKind.Onnx`.
+   * Must be set together with `hfModelFile` and `hfTokenizerFile`, or left unset.
+   * Files downloaded from a custom repo are **not** checksum-verified, unlike the
+   * pinned catalog models.
+   */
+  hfRepo?: string
+  /**
+   * Path to the ONNX model file within `hfRepo` (e.g. `"onnx/model.onnx"`).
+   * Required when `hfRepo` is set.
+   */
+  hfModelFile?: string
+  /**
+   * Path to the tokenizer file within `hfRepo` (e.g. `"tokenizer.json"`).
+   * Required when `hfRepo` is set.
+   */
+  hfTokenizerFile?: string
+  /**
+   * Which GLiNER tensor I/O contract `hfRepo` uses. Ignored when `hfRepo` is unset.
+   * Defaults to `gliner1` when `hfRepo` is set and this is omitted.
+   */
+  hfArchitecture?: GlinerArchitecture
   /**
    * Optional LLM configuration — only used by [`NerBackendKind::Llm`]. Token usage
    * for LLM backends is recorded in `ExtractedDocument::llm_usage`.

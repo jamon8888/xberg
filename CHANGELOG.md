@@ -13,6 +13,17 @@ The changelog starts fresh at `1.0.0-rc.1`. For the Kreuzberg v1–v4 history, s
 
 ## [Unreleased]
 
+### Added
+
+- **Durable rehydration-map storage.** `POST /v1/process` (with
+  `operations.redact.rehydrate=true`) and `POST
+  /v1/documents/{id}/rehydrate` now persist encrypted PII rehydration maps
+  through a new `xberg-doc-store` crate. The default backend is unchanged
+  (in-memory, 24h TTL, lost on restart); setting `XBERG_REHYDRATION_DB_PATH`
+  and building with the `doc-store-sqlite` feature switches to a durable,
+  WAL-mode SQLite backend that survives process restarts. No wire-format
+  change to either endpoint.
+
 ### Changed
 
 - **`OcrExtractionResult` now derives `Default`.** Downstream bindings and callers can
@@ -35,6 +46,8 @@ The changelog starts fresh at `1.0.0-rc.1`. For the Kreuzberg v1–v4 history, s
   string after it became a list, so the WebAssembly build stopped compiling. It now uses the
   primary language (the in-memory WASI Tesseract handles one language at a time, like the PaddleOCR
   and VLM backends) and warns when more than one is requested.
+
+---
 
 ## [1.0.0-rc.1] - 2026-06-26
 

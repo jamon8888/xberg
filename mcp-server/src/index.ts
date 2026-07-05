@@ -1,0 +1,53 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { registerExtractTools } from "./tools/extract.js";
+import { registerCollectionTools } from "./tools/collection.js";
+import { registerQueryTools } from "./tools/query.js";
+import { registerDocumentTools } from "./tools/document.js";
+import { registerIngestTools } from "./tools/ingest.js";
+import { registerRehydrateTools } from "./tools/rehydrate.js";
+import { registerPiiTools } from "./tools/pii.js";
+import { registerCacheTools } from "./tools/cache.js";
+import { registerReportTools } from "./tools/reports.js";
+import { registerStatsTools } from "./tools/stats.js";
+import { registerIntelligenceTools } from "./tools/intelligence.js";
+import { registerMediaTools } from "./tools/media.js";
+import { registerWebTools } from "./tools/web.js";
+import { WarmupManager } from "./warmup.js";
+
+const server = new McpServer({
+  name: "xberg-mcp",
+  version: "0.1.0",
+});
+
+registerExtractTools(server);
+registerCollectionTools(server);
+registerQueryTools(server);
+registerDocumentTools(server);
+registerIngestTools(server);
+registerRehydrateTools(server);
+registerPiiTools(server);
+registerCacheTools(server);
+registerReportTools(server);
+registerStatsTools(server);
+registerIntelligenceTools(server);
+registerMediaTools(server);
+registerWebTools(server);
+
+async function main() {
+  const cacheDir = process.env.XBERG_CACHE_DIR ?? `${process.env.HOME ?? process.env.USERPROFILE ?? "~"}/.cache/xberg`;
+  const warmup = new WarmupManager(cacheDir);
+  const missing = warmup.getMissingModels();
+  if (missing.length > 0) {
+    console.error(`[xberg-mcp] First-time setup: downloading ${missing.join(", ")}...`);
+  }
+
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("[xberg-mcp] started");
+}
+
+main().catch((err) => {
+  console.error("[xberg-mcp] fatal:", err);
+  process.exit(1);
+});

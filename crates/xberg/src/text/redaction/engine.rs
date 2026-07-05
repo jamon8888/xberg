@@ -14,9 +14,45 @@ use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport};
 use super::patterns::{PatternMatch, scan_text};
 use super::strategy::{TokenCounter, apply_strategy};
 
+#[cfg(feature = "redaction-rehydrate")]
+use super::rehydration::RehydrationMap;
+
 /// Run pattern redaction (and optional NER-driven redaction) over `result` and
 /// rewrite every textual field. Populates `result.redaction_report`.
 pub async fn redact(result: &mut ExtractedDocument, config: &RedactionConfig) -> Result<()> {
+    redact_inner(
+        result,
+        config,
+        #[cfg(feature = "redaction-rehydrate")]
+        None,
+    )
+    .await
+}
+
+/// Run redaction and capture the token → original text map for later rehydration.
+///
+/// Returns a [`RehydrationMap`] mapping each replacement token (e.g. `[EMAIL_1]`)
+/// to the original PII text it replaced. Only populated for `TokenReplace` strategy
+/// tokens; `Mask` and `Hash` replacements are not reversible and are not included.
+#[cfg(feature = "redaction-rehydrate")]
+pub async fn redact_capturing_rehydration_map(
+    result: &mut ExtractedDocument,
+    config: &RedactionConfig,
+) -> Result<RehydrationMap> {
+    let mut map = RehydrationMap::new();
+    redact_inner(result, config, Some(&mut map)).await?;
+    Ok(map)
+}
+
+// When redaction is off, redact_inner takes no rehydration_map arg.
+// The cfg-gated parameter approach is used above; this comment documents intent.
+
+/// Core redaction implementation shared by [`redact`] and [`redact_capturing_rehydration_map`].
+async fn redact_inner(
+    result: &mut ExtractedDocument,
+    config: &RedactionConfig,
+    #[cfg(feature = "redaction-rehydrate")] mut rehydration_map: Option<&mut RehydrationMap>,
+) -> Result<()> {
     // Validate user-supplied terms/patterns up front so the engine never tries to
     // compile a malformed regex mid-pipeline.
     config.validate()?;
@@ -60,6 +96,11 @@ pub async fn redact(result: &mut ExtractedDocument, config: &RedactionConfig) ->
     let mut findings: Vec<RedactionFinding> = Vec::with_capacity(matches.len());
     for m in &matches {
         let replacement = apply_strategy(config.strategy, &m.text, &m.category, &mut counter);
+        // Capture token → original mapping when the caller requests it.
+        #[cfg(feature = "redaction-rehydrate")]
+        if let Some(map) = rehydration_map.as_deref_mut() {
+            map.entry(replacement.clone()).or_insert_with(|| m.text.clone());
+        }
         findings.push(RedactionFinding {
             start: m.start as u32,
             end: m.end as u32,
@@ -83,6 +124,10 @@ pub async fn redact(result: &mut ExtractedDocument, config: &RedactionConfig) ->
             .iter()
             .map(|m| {
                 let replacement = apply_strategy(config.strategy, &m.text, &m.category, &mut counter);
+                #[cfg(feature = "redaction-rehydrate")]
+                if let Some(map) = rehydration_map.as_deref_mut() {
+                    map.entry(replacement.clone()).or_insert_with(|| m.text.clone());
+                }
                 RedactionFinding {
                     start: m.start as u32,
                     end: m.end as u32,
@@ -107,6 +152,10 @@ pub async fn redact(result: &mut ExtractedDocument, config: &RedactionConfig) ->
                 .iter()
                 .map(|m| {
                     let replacement = apply_strategy(config.strategy, &m.text, &m.category, &mut counter);
+                    #[cfg(feature = "redaction-rehydrate")]
+                    if let Some(map) = rehydration_map.as_deref_mut() {
+                        map.entry(replacement.clone()).or_insert_with(|| m.text.clone());
+                    }
                     RedactionFinding {
                         start: m.start as u32,
                         end: m.end as u32,
@@ -411,7 +460,16 @@ fn make_ner_backend(
         NerBackendKind::Onnx => {
             #[cfg(feature = "ner-onnx")]
             {
-                Ok(crate::text::ner::gline::get_or_init_backend(config.model.as_deref())?)
+                let custom_source = crate::text::ner::gline::custom_source_from_parts(
+                    config.hf_repo.as_deref(),
+                    config.hf_model_file.as_deref(),
+                    config.hf_tokenizer_file.as_deref(),
+                    config.hf_architecture,
+                )?;
+                Ok(crate::text::ner::gline::get_or_init_backend(
+                    config.model.as_deref(),
+                    custom_source.as_ref(),
+                )?)
             }
             #[cfg(not(feature = "ner-onnx"))]
             {
@@ -433,6 +491,27 @@ fn make_ner_backend(
             {
                 Err(crate::XbergError::MissingDependency(
                     "ner-llm feature is not enabled — rebuild xberg with --features ner-llm".to_string(),
+                ))
+            }
+        }
+        NerBackendKind::Candle => {
+            #[cfg(feature = "ner-candle")]
+            {
+                let model_dir = config.model_dir.as_deref().ok_or_else(|| {
+                    crate::XbergError::validation(
+                        "Candle NER backend requires NerConfig.model_dir set to a local \
+                         directory containing tokenizer.json and model.safetensors",
+                    )
+                })?;
+                let lora_dir = config.lora_adapter_dir.as_deref();
+                Ok(std::sync::Arc::new(
+                    crate::text::ner::candle::CandleBackend::from_local(model_dir, lora_dir)?,
+                ))
+            }
+            #[cfg(not(feature = "ner-candle"))]
+            {
+                Err(crate::XbergError::MissingDependency(
+                    "ner-candle feature is not enabled — rebuild xberg with --features ner-candle".to_string(),
                 ))
             }
         }

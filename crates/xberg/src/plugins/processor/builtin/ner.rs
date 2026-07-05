@@ -85,7 +85,16 @@ fn make_backend(config: &NerConfig) -> Result<Arc<dyn NerBackend>> {
         NerBackendKind::Onnx => {
             #[cfg(feature = "ner-onnx")]
             {
-                Ok(crate::text::ner::gline::get_or_init_backend(config.model.as_deref())?)
+                let custom_source = crate::text::ner::gline::custom_source_from_parts(
+                    config.hf_repo.as_deref(),
+                    config.hf_model_file.as_deref(),
+                    config.hf_tokenizer_file.as_deref(),
+                    config.hf_architecture,
+                )?;
+                Ok(crate::text::ner::gline::get_or_init_backend(
+                    config.model.as_deref(),
+                    custom_source.as_ref(),
+                )?)
             }
             #[cfg(not(feature = "ner-onnx"))]
             {
@@ -106,6 +115,27 @@ fn make_backend(config: &NerConfig) -> Result<Arc<dyn NerBackend>> {
             {
                 Err(crate::XbergError::MissingDependency(
                     "ner-llm feature is not enabled — rebuild xberg with --features ner-llm".to_string(),
+                ))
+            }
+        }
+        NerBackendKind::Candle => {
+            #[cfg(feature = "ner-candle")]
+            {
+                let model_dir = config.model_dir.as_deref().ok_or_else(|| {
+                    crate::XbergError::validation(
+                        "Candle NER backend requires NerConfig.model_dir set to a local \
+                         directory containing tokenizer.json and model.safetensors",
+                    )
+                })?;
+                let lora_dir = config.lora_adapter_dir.as_deref();
+                Ok(crate::text::ner::candle::CandleBackend::get_or_init(
+                    model_dir, lora_dir,
+                )?)
+            }
+            #[cfg(not(feature = "ner-candle"))]
+            {
+                Err(crate::XbergError::MissingDependency(
+                    "ner-candle feature is not enabled — rebuild xberg with --features ner-candle".to_string(),
                 ))
             }
         }

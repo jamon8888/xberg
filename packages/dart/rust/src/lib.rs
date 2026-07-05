@@ -855,6 +855,15 @@ pub struct StructuredExtractionConfig {
     pub llm: LlmConfig,
 }
 
+/// GLiNER architecture family.
+#[frb(mirror(GlinerArchitecture))]
+pub enum GlinerArchitecture {
+    /// Span-mode GLiNER (the pinned catalog and most GLiNER fine-tunes).
+    Gliner1,
+    /// Schema-prompt GLiNER2 (`fastino/gliner2` lineage).
+    Gliner2,
+}
+
 /// Configuration for the NER post-processor.
 #[frb(mirror(NerConfig))]
 pub struct NerConfig {
@@ -866,6 +875,21 @@ pub struct NerConfig {
     /// Override the default model — only used by [`NerBackendKind::Onnx`].
     /// `None` lets the backend pick its pinned default xberg GLiNER model alias.
     pub model: Option<String>,
+    /// Custom Hugging Face repository to load a GLiNER ONNX export from, bypassing
+    /// the pinned `xberg-io/gliner-models` catalog — only used by [`NerBackendKind::Onnx`].
+    /// Must be set together with `hf_model_file` and `hf_tokenizer_file`, or left unset.
+    /// Files downloaded from a custom repo are **not** checksum-verified, unlike the
+    /// pinned catalog models.
+    pub hf_repo: Option<String>,
+    /// Path to the ONNX model file within `hf_repo` (e.g. `"onnx/model.onnx"`).
+    /// Required when `hf_repo` is set.
+    pub hf_model_file: Option<String>,
+    /// Path to the tokenizer file within `hf_repo` (e.g. `"tokenizer.json"`).
+    /// Required when `hf_repo` is set.
+    pub hf_tokenizer_file: Option<String>,
+    /// GLiNER architecture family for `hf_repo`. Ignored when `hf_repo` is unset.
+    /// Defaults to [`GlinerArchitecture::Gliner1`] when `hf_repo` is set and this is `None`.
+    pub hf_architecture: Option<GlinerArchitecture>,
     /// Optional LLM configuration — only used by [`NerBackendKind::Llm`]. Token usage
     /// for LLM backends is recorded in `ExtractedDocument::llm_usage`.
     pub llm: Option<LlmConfig>,
@@ -7019,6 +7043,10 @@ impl From<xberg::NerConfig> for NerConfig {
             backend: NerBackendKind::from(v.backend),
             categories: v.categories.into_iter().map(EntityCategory::from).collect::<Vec<_>>(),
             model: v.model.map(|s| s.into()),
+            hf_repo: v.hf_repo.map(|s| s.into()),
+            hf_model_file: v.hf_model_file.map(|s| s.into()),
+            hf_tokenizer_file: v.hf_tokenizer_file.map(|s| s.into()),
+            hf_architecture: v.hf_architecture.map(GlinerArchitecture::from),
             llm: v.llm.map(LlmConfig::from),
             custom_labels: v.custom_labels.into_iter().map(|s| s.into()).collect::<Vec<_>>(),
         }
@@ -9423,6 +9451,15 @@ impl From<xberg::MergeMode> for MergeMode {
     }
 }
 
+impl From<xberg::GlinerArchitecture> for GlinerArchitecture {
+    fn from(v: xberg::GlinerArchitecture) -> Self {
+        match v {
+            xberg::GlinerArchitecture::Gliner1 => GlinerArchitecture::Gliner1,
+            xberg::GlinerArchitecture::Gliner2 => GlinerArchitecture::Gliner2,
+        }
+    }
+}
+
 impl From<xberg::NerBackendKind> for NerBackendKind {
     fn from(v: xberg::NerBackendKind) -> Self {
         match v {
@@ -10647,6 +10684,10 @@ impl From<NerConfig> for xberg::NerConfig {
             backend: v.backend.into(),
             categories: v.categories.into_iter().map(Into::into).collect(),
             model: v.model.map(Into::into),
+            hf_repo: v.hf_repo.map(Into::into),
+            hf_model_file: v.hf_model_file.map(Into::into),
+            hf_tokenizer_file: v.hf_tokenizer_file.map(Into::into),
+            hf_architecture: v.hf_architecture.map(Into::into),
             llm: v.llm.map(Into::into),
             custom_labels: v.custom_labels.into_iter().map(Into::into).collect(),
         }
@@ -12185,7 +12226,7 @@ impl From<CrawlConfig> for crawlberg::CrawlConfig {
             rate_limit_ms: v.rate_limit_ms.map(|x| x as _),
             max_redirects: v.max_redirects as _,
             retry_count: v.retry_count as _,
-            retry_codes: v.retry_codes.into_iter().map(|x| x as _).collect(),
+            retry_codes: v.retry_codes.into_iter().map(|x| x as u16).collect(),
             cookies_enabled: v.cookies_enabled as _,
             auth: v.auth.map(Into::into),
             max_body_size: v.max_body_size.map(|x| x as _),
@@ -12313,6 +12354,15 @@ impl From<TableModel> for xberg::TableModel {
             TableModel::SlanetPlus => xberg::TableModel::SlanetPlus,
             TableModel::SlanetAuto => xberg::TableModel::SlanetAuto,
             TableModel::Disabled => xberg::TableModel::Disabled,
+        }
+    }
+}
+
+impl From<GlinerArchitecture> for xberg::GlinerArchitecture {
+    fn from(v: GlinerArchitecture) -> Self {
+        match v {
+            GlinerArchitecture::Gliner1 => xberg::GlinerArchitecture::Gliner1,
+            GlinerArchitecture::Gliner2 => xberg::GlinerArchitecture::Gliner2,
         }
     }
 }

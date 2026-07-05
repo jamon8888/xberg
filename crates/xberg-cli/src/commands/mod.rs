@@ -20,6 +20,8 @@ pub mod extract;
 #[cfg(feature = "ner-onnx")]
 pub mod ner;
 pub mod overrides;
+#[cfg(any(feature = "ner-onnx", feature = "ner-llm", feature = "ner-candle"))]
+pub mod process;
 #[cfg(any(feature = "api", feature = "mcp"))]
 pub mod server;
 
@@ -32,6 +34,8 @@ pub use embed::embed_command;
 pub use extract::{
     BatchInputFormat, ExtractInputSource, batch_command, extract_command, load_batch_input_manifest, uri_to_local_path,
 };
+#[cfg(any(feature = "ner-onnx", feature = "ner-llm", feature = "ner-candle"))]
+pub use process::process_command;
 #[cfg(feature = "mcp")]
 pub use server::mcp_command;
 #[cfg(feature = "api")]

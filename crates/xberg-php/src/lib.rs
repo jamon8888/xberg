@@ -2531,6 +2531,18 @@ pub struct NerConfig {
     /// `None` lets the backend pick its pinned default xberg GLiNER model alias.
     #[php(prop, name = "model")]
     pub model: Option<String>,
+    /// Custom Hugging Face repository to load a GLiNER ONNX export from.
+    #[php(prop, name = "hfRepo")]
+    pub hf_repo: Option<String>,
+    /// Path to the ONNX model file within `hfRepo`.
+    #[php(prop, name = "hfModelFile")]
+    pub hf_model_file: Option<String>,
+    /// Path to the tokenizer file within `hfRepo`.
+    #[php(prop, name = "hfTokenizerFile")]
+    pub hf_tokenizer_file: Option<String>,
+    /// GLiNER architecture family for `hfRepo`.
+    #[php(prop, name = "hfArchitecture")]
+    pub hf_architecture: Option<String>,
     /// Optional LLM configuration — only used by `NerBackendKind.Llm`. Token usage
     /// for LLM backends is recorded in `ExtractedDocument.llm_usage`.
     pub llm: Option<LlmConfig>,
@@ -20905,6 +20917,14 @@ impl From<NerConfig> for xberg::NerConfig {
                 })
                 .collect(),
             model: val.model,
+            hf_repo: val.hf_repo,
+            hf_model_file: val.hf_model_file,
+            hf_tokenizer_file: val.hf_tokenizer_file,
+            hf_architecture: val.hf_architecture.and_then(|s| match s.as_str() {
+                "gliner1" => Some(xberg::GlinerArchitecture::Gliner1),
+                "gliner2" => Some(xberg::GlinerArchitecture::Gliner2),
+                _ => None,
+            }),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }
@@ -20930,6 +20950,14 @@ impl From<xberg::NerConfig> for NerConfig {
                 })
                 .collect(),
             model: val.model.map(|v| v.to_string()),
+            hf_repo: val.hf_repo.map(|v| v.to_string()),
+            hf_model_file: val.hf_model_file.map(|v| v.to_string()),
+            hf_tokenizer_file: val.hf_tokenizer_file.map(|v| v.to_string()),
+            hf_architecture: val.hf_architecture.and_then(|arch| {
+                serde_json::to_value(arch)
+                    .ok()
+                    .and_then(|s| s.as_str().map(String::from))
+            }),
             llm: val.llm.map(Into::into),
             custom_labels: val.custom_labels.into_iter().collect(),
         }

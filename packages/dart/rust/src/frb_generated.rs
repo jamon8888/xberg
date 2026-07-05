@@ -14578,6 +14578,10 @@ impl SseDecode for crate::NerConfig {
             backend: var_backend,
             categories: var_categories,
             model: var_model,
+            hf_repo: var_hfRepo,
+            hf_model_file: var_hfModelFile,
+            hf_tokenizer_file: var_hfTokenizerFile,
+            hf_architecture: var_hfArchitecture,
             llm: var_llm,
             custom_labels: var_customLabels,
         };
