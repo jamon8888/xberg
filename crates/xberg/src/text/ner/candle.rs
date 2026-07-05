@@ -1,15 +1,17 @@
 //! NER backend backed by `xberg-gliner-candle` (GLiNER2 safetensors + optional LoRA).
 
 #[cfg(not(target_arch = "wasm32"))]
-use std::path::{Path, PathBuf};
+use std::path::Path;
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+use std::path::PathBuf;
 use std::sync::Mutex;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
 use std::sync::{Arc, LazyLock};
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
 use ahash::AHashMap;
 use async_trait::async_trait;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
 use parking_lot::RwLock;
 use xberg_gliner_candle::Gliner2Candle;
 
@@ -24,15 +26,15 @@ const DEFAULT_THRESHOLD: f32 = 0.5;
 /// the independent `ner-onnx` feature, so a `ner-candle`-only build must not depend on
 /// it) so a given (model, adapter) pair is loaded and LoRA-merged at most once per
 /// process, instead of on every `process()` call.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
 type CandleBackendCacheKey = (PathBuf, Option<PathBuf>);
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
 static CANDLE_BACKEND_CACHE: LazyLock<RwLock<AHashMap<CandleBackendCacheKey, Arc<CandleBackend>>>> =
     LazyLock::new(|| RwLock::new(AHashMap::default()));
 
 /// Return the cached backend for `key`, or build and cache one via `build`.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
 fn get_or_insert_arc(
     key: CandleBackendCacheKey,
     build: impl FnOnce() -> crate::Result<CandleBackend>,
@@ -93,7 +95,7 @@ impl CandleBackend {
     /// is the entry point [`crate::plugins::processor::builtin::ner::make_backend`]
     /// should use so a document-processing pipeline pays the model-load + LoRA-merge
     /// cost once per (model, adapter) pair, not once per document.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
     pub(crate) fn get_or_init(model_dir: &Path, lora_adapter_dir: Option<&Path>) -> crate::Result<Arc<Self>> {
         let key: CandleBackendCacheKey = (model_dir.to_path_buf(), lora_adapter_dir.map(Path::to_path_buf));
         get_or_insert_arc(key, || Self::from_local(model_dir, lora_adapter_dir))
@@ -239,7 +241,7 @@ mod tests {
         }
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
     #[test]
     fn get_or_init_propagates_load_errors_without_panicking() {
         let missing_dir = std::path::Path::new("/nonexistent/xberg-candle-cache-test-model-dir");
