@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type { ExtractionConfig, NerConfig } from "@xberg-io/xberg";
+import type { ExtractionConfig, JsonValue, LlmConfig, NerConfig } from "@xberg-io/xberg";
 
 const InputSchema = z.object({
   uri: z.string().optional().describe("File path or HTTPS URL"),
@@ -10,7 +10,7 @@ const InputSchema = z.object({
 });
 
 async function buildExtractInput(input: z.infer<typeof InputSchema>) {
-  const { extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
+  const { extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg") as any;
   if (input.bytes) {
     return extractInputFromBytes(
       Buffer.from(input.bytes),
@@ -64,7 +64,7 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, backend, categories, model, hf_repo, hf_model_file, hf_tokenizer_file, hf_architecture, llm_model, disable_ocr }) => {
       try {
-        const { extract, GlinerArchitecture } = await import("@xberg-io/xberg");
+        const { extract, GlinerArchitecture } = await import("@xberg-io/xberg") as any;
         const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
@@ -121,18 +121,19 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
-        const { extract } = await import("@xberg-io/xberg");
+        const { extract } = await import("@xberg-io/xberg") as any;
         const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }
 
+        const llm: LlmConfig = { model: llm_model ?? process.env.XBERG_LLM_MODEL };
         const config: ExtractionConfig = {
           structuredExtraction: {
-            schema: json_schema,
+            schema: json_schema as JsonValue,
             schemaName: schema_name,
             strict,
-            llm: (llm_model ?? process.env.XBERG_LLM_MODEL) ? { model: (llm_model ?? process.env.XBERG_LLM_MODEL)! } : undefined,
+            llm,
           },
         };
 

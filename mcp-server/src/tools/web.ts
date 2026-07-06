@@ -28,7 +28,7 @@ export function registerWebTools(server: McpServer): void {
     },
     async ({ url, mode, max_pages, max_depth, js_rendering, allow_subdomains }) => {
       try {
-        const { extract, extractInputFromUri } = await import("@xberg-io/xberg");
+        const { extract, extractInputFromUri } = await import("@xberg-io/xberg") as any;
         const extractInput = extractInputFromUri(url);
 
         const urlMode = mode === "crawl" ? UrlExtractionMode.Crawl : UrlExtractionMode.Document;
@@ -56,7 +56,7 @@ export function registerWebTools(server: McpServer): void {
             type: "text" as const,
             text: JSON.stringify({
               pages_extracted: docs.length,
-              documents: docs.map((doc) => ({
+              documents: docs.map((doc: any) => ({
                 url: (doc.metadata as Record<string, unknown>)?.["sourceUrl"] ?? url,
                 title: doc.metadata?.title ?? null,
                 content: doc.content ?? "",
