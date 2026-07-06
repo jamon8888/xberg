@@ -481,7 +481,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn ingest_document_local_upserts_without_spawn_blocking() {
+    async fn ingest_document_local_delegates_to_ingest_document() {
         const DIM: u32 = 4;
         let store: Arc<dyn VectorStore> = make_store("test-local");
         store.ensure_collection(&make_collection("docs", DIM)).await.unwrap();

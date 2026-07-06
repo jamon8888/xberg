@@ -3,26 +3,40 @@ pub mod ner;
 pub mod ocr;
 pub mod store;
 
+use std::sync::OnceLock;
+
 use wasm_bindgen::prelude::*;
 
 const BRIDGE_TIMEOUT_MS: u32 = 30_000;
+
+fn get_timeout_racer() -> &'static js_sys::Function {
+    static RACER: OnceLock<js_sys::Function> = OnceLock::new();
+    RACER.get_or_init(|| {
+        js_sys::Function::new_with_args(
+            "p, ms",
+            "return (() => {\n\
+             let id;\n\
+             const timer = new Promise((_, reject) => {\n\
+                 id = setTimeout(() => reject(new Error('bridge call timed out')), ms);\n\
+             });\n\
+             p.finally(() => clearTimeout(id));\n\
+             return Promise.race([p, timer]);\n\
+             })()",
+        )
+    })
+}
 
 /// Wrap a JS `Promise` with a timeout.
 ///
 /// If the promise does not resolve within `ms` milliseconds, the returned
 /// promise rejects with an `Error("bridge call timed out")`.  Uses
 /// `Promise.race` under the hood so the original promise is still cancellable.
+/// The timer handle is cleared via `p.finally` so the timeout does not stay
+/// alive after the promise settles.
 pub fn with_timeout(promise: js_sys::Promise, ms: u32) -> js_sys::Promise {
-    let racer = js_sys::Function::new_with_args(
-        "p, ms",
-        "return Promise.race([
-            p,
-            new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('bridge call timed out')), ms)
-            )
-        ])",
-    );
-    match racer.call2(&promise, &JsValue::from(ms)) {
+    let racer = get_timeout_racer();
+    let p_val = JsValue::from(promise);
+    match racer.call2(&JsValue::NULL, &p_val, &JsValue::from(ms)) {
         Ok(val) => val.into(),
         Err(_) => promise,
     }

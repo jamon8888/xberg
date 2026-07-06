@@ -112,7 +112,7 @@ async fn ingest_missing_injection_errors() {
     let engine = make_engine();
 
     let doc = js_sys::eval("({ full_text: 'hello' })").unwrap();
-    let result = engine.ingest(doc, "coll".to_string()).await;
+    let result = engine.ingest(doc, "coll".to_string(), None).await;
     assert!(result.is_err());
     let msg = result.unwrap_err().as_string().unwrap();
     assert!(msg.contains("embedder"));

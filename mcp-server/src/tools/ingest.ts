@@ -3,7 +3,8 @@ import { z } from "zod";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { extract } from "@xberg-io/xberg";
-import type { ExtractionConfig } from "@xberg-io/xberg";
+import type { ExtractionConfig, NerConfig } from "@xberg-io/xberg";
+import { GlinerArchitecture } from "@xberg-io/xberg";
 import { detectPii, mergeNerEntities, type NerEntity } from "../redaction/detect.js";
 import { applyRedaction } from "../redaction/redact.js";
 import { writeRedactedDocx } from "../redaction/output/docx.js";
@@ -153,20 +154,23 @@ export function registerIngestTools(server: McpServer): void {
 
           try {
             const input = extractInputFromUri(filePath);
-            const extractConfig: ExtractionConfig | null = use_ner
-              ? ({
-                  ner: {
-                    backend: ner_backend,
-                    categories: ner_categories,
-                    model: ner_backend === "onnx" ? ner_model : undefined,
-                    hfRepo: ner_backend === "onnx" ? ner_hf_repo : undefined,
-                    hfModelFile: ner_backend === "onnx" ? ner_hf_model_file : undefined,
-                    hfTokenizerFile: ner_backend === "onnx" ? ner_hf_tokenizer_file : undefined,
-                    hfArchitecture: ner_backend === "onnx" ? ner_hf_architecture : undefined,
-                    llm: ner_backend === "llm" ? { model: ner_llm_model } : undefined,
-                  },
-                } as ExtractionConfig)
-              : null;
+            const nerConfig: NerConfig = use_ner
+              ? {
+                  backend: ner_backend as NerConfig["backend"],
+                  categories: ner_categories as NerConfig["categories"],
+                  model: ner_backend === "onnx" ? ner_model : undefined,
+                  hfRepo: ner_backend === "onnx" ? ner_hf_repo : undefined,
+                  hfModelFile: ner_backend === "onnx" ? ner_hf_model_file : undefined,
+                  hfTokenizerFile: ner_backend === "onnx" ? ner_hf_tokenizer_file : undefined,
+                  hfArchitecture: ner_backend === "onnx" && ner_hf_architecture
+                    ? GlinerArchitecture[
+                        ner_hf_architecture === "gliner2" ? "Gliner2" : "Gliner1"
+                      ]
+                    : undefined,
+                  llm: ner_backend === "llm" ? { model: ner_llm_model } : undefined,
+                }
+              : ({} as NerConfig);
+            const extractConfig: ExtractionConfig | null = use_ner ? { ner: nerConfig } : null;
             const result = await extract(input, extractConfig);
             const doc = (result.results ?? [])[0];
             if (!doc) continue;
@@ -251,7 +255,8 @@ export function registerIngestTools(server: McpServer): void {
 
             results.push({ original: filename, redacted: redactedPath, report: reportPath, pii_count: findings.length, doc_id: docId, chunks: textChunks.length });
           } catch (e) {
-            console.error(`Error processing ${filename}:`, e);
+            const msg = e instanceof Error ? e.message : String(e);
+            console.error(`Error processing ${filename}: ${msg}`);
             results.push({ original: filename, redacted: "", report: "", pii_count: 0, doc_id: null, chunks: 0 });
           }
         }

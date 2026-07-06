@@ -11296,7 +11296,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-wasm"
-version = "1.0.0-rc.5"
+version = "1.0.0-rc.1"
 dependencies = [
  "async-trait",
  "crawlberg",
@@ -11309,9 +11309,11 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
+ "sha2 0.10.9",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "xberg",
+ "xberg-rag",
 ]
 
 [[package]]

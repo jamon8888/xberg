@@ -132,13 +132,35 @@ impl XbergEngine {
             .as_ref()
             .ok_or_else(|| JsValue::from_str("store not injected"))?;
 
-        let pipeline_config = match config {
+        let chunking = match config {
             Some(c) if !c.is_undefined() && !c.is_null() => {
-                serde_wasm_bindgen::from_value::<xberg_rag::pipeline::RagPipelineConfig>(c)
-                    .map_err(|e| JsValue::from_str(&e.to_string()))?
+                let chunking_val = js_sys::Reflect::get(&c, &JsValue::from_str("chunking"))
+                    .unwrap_or(JsValue::UNDEFINED);
+                if chunking_val.is_undefined() || chunking_val.is_null() {
+                    xberg::ChunkingConfig::default()
+                } else {
+                    let mut cfg = xberg::ChunkingConfig::default();
+                    if let Ok(v) =
+                        js_sys::Reflect::get(&chunking_val, &JsValue::from_str("maxCharacters"))
+                    {
+                        if let Some(n) = v.as_f64() {
+                            cfg.max_characters = n as usize;
+                        }
+                    }
+                    if let Ok(v) = js_sys::Reflect::get(
+                        &chunking_val,
+                        &JsValue::from_str("overlap"),
+                    ) {
+                        if let Some(n) = v.as_f64() {
+                            cfg.overlap = n as usize;
+                        }
+                    }
+                    cfg
+                }
             }
-            _ => xberg_rag::pipeline::RagPipelineConfig::default(),
+            _ => xberg::ChunkingConfig::default(),
         };
+        let pipeline_config = xberg_rag::pipeline::RagPipelineConfig { chunking: &chunking };
         let result = xberg_rag::pipeline::ingest_document_local(
             store.clone(),
             &collection,
