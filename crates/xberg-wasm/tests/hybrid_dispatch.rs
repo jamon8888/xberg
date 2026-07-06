@@ -61,7 +61,7 @@ async fn resolve_ocr_with_injected_stub() {
 
 #[wasm_bindgen_test]
 async fn resolve_ocr_without_injected_returns_error() {
-    let result = xberg_wasm::bridge::ocr::resolve_ocr(None, &[], "eng").await;
+    let result = xberg_wasm::bridge::ocr::resolve_ocr(None, &[0xFF, 0xD8, 0xFF, 0xE0], "eng").await;
     assert!(result.is_err());
     let msg = format!("{:?}", result.unwrap_err());
     assert!(msg.contains("unavailable"), "expected 'unavailable' in error: {msg}");

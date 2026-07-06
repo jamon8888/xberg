@@ -164,8 +164,8 @@ pub async fn ingest_document(
     store.upsert_document(collection, &document, &chunk_records).await
 }
 
-/// Like [`ingest_document`] but chunks inline (no `tokio::task::spawn_blocking`),
-/// so it compiles and runs on `wasm32` where the multi-thread runtime is absent.
+/// Like [`ingest_document`] but alias for the same codepath on non-wasm32;
+/// delegates directly to [`ingest_document`] since both use `spawn_blocking`.
 #[cfg(not(target_arch = "wasm32"))]
 pub async fn ingest_document_local(
     store: Arc<dyn VectorStore>,
@@ -174,45 +174,7 @@ pub async fn ingest_document_local(
     config: &RagPipelineConfig<'_>,
     embedder: &dyn Embedder,
 ) -> RagResult<DocumentId> {
-    let text = request.full_text.clone();
-    let chunking_config = config.chunking.clone();
-
-    let chunks = tokio::task::spawn_blocking(move || xberg::chunking::chunk_for_rag(&text, &chunking_config))
-        .await
-        .map_err(|e| RagError::Backend(Box::new(e)))?
-        .map_err(RagError::Core)?
-        .chunks;
-
-    let texts: Vec<String> = chunks.iter().map(|c| c.content.clone()).collect();
-    let embeddings = embedder.embed(texts).await?;
-
-    if embeddings.len() != chunks.len() {
-        return Err(RagError::EmbeddingCountMismatch {
-            expected: chunks.len(),
-            got: embeddings.len(),
-        });
-    }
-
-    let chunk_records: Vec<ChunkRecord> = chunks
-        .into_iter()
-        .zip(embeddings)
-        .enumerate()
-        .map(|(i, (chunk, emb))| chunk_to_record(chunk, i as u32, emb))
-        .collect();
-
-    let document = DocumentRecord {
-        external_id: request.external_id,
-        title: request.title,
-        mime: request.mime,
-        source_uri: request.source_uri,
-        full_text: request.full_text,
-        keywords: request.keywords,
-        entities: request.entities,
-        labels: request.labels,
-        metadata: request.metadata,
-    };
-
-    store.upsert_document(collection, &document, &chunk_records).await
+    ingest_document(store, collection, request, config, embedder).await
 }
 
 /// Like [`ingest_document`] but chunks inline (no `tokio::task::spawn_blocking`),

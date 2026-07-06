@@ -4,9 +4,10 @@ use std::fmt;
 use async_trait::async_trait;
 use js_sys::{Array, Float32Array, Object, Reflect};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 use xberg_rag::error::{RagError, RagResult};
 use xberg_rag::pipeline::Embedder;
+
+use crate::bridge::timed_js_future;
 
 #[derive(Debug)]
 struct JsBridgeError(String);
@@ -45,7 +46,7 @@ impl Embedder for JsEmbedder {
                 )))
             })?;
         let promise = f.call1(&self.inner, &js_texts).map_err(js_to_rag)?;
-        let result = JsFuture::from(js_sys::Promise::from(promise))
+        let result = timed_js_future(js_sys::Promise::from(promise))
             .await
             .map_err(js_to_rag)?;
         let arr: Array = result.dyn_into().map_err(|_| {

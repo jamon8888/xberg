@@ -117,7 +117,7 @@ export function registerIntelligenceTools(server: McpServer): void {
       json_schema: z.record(z.unknown()).describe("JSON Schema defining the desired output structure"),
       schema_name: z.string().describe("Short identifier for the schema, e.g. 'invoice' or 'contract_parties'"),
       strict: z.boolean().optional().default(true),
-      llm_model: z.string().optional().describe("LLM model to use, e.g. 'openai/gpt-4o'. Falls back to XBERG_LLM_MODEL env var."),
+      llm_model: z.string().optional().describe("LLM model to use, e.g. 'openai/gpt-4o'. Falls back to XBERG_LLM_MODEL env var (default: 'anthropic/claude-sonnet-4-5')."),
     },
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
@@ -132,7 +132,7 @@ export function registerIntelligenceTools(server: McpServer): void {
             schema: json_schema,
             schemaName: schema_name,
             strict,
-            llm: llm_model ? { model: llm_model } : undefined,
+            llm: (llm_model ?? process.env.XBERG_LLM_MODEL) ? { model: (llm_model ?? process.env.XBERG_LLM_MODEL)! } : undefined,
           },
         };
 

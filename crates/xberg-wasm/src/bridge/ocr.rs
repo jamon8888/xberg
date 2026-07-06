@@ -9,8 +9,6 @@
 #[cfg(target_arch = "wasm32")]
 use js_sys::{Function, Object, Promise, Reflect};
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_futures::JsFuture;
 
 /// Resolve the best available OCR backend and return extracted text.
 ///
@@ -50,7 +48,7 @@ async fn call_injected_ocr(
     let args = js_sys::Array::of2(&js_bytes, &opts);
     let result = func.apply(&obj, &args)?;
     let promise = Promise::from(result);
-    let js_val = JsFuture::from(promise).await?;
+    let js_val = crate::bridge::timed_js_future(promise).await?;
 
     let text = Reflect::get(&js_val, &JsValue::from_str("text"))
         .map_err(|e| js_from_any(format!("ocr result missing 'text': {e:?}")))?
