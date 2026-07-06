@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type { ExtractionConfig, NerConfig, ExtractInput, ExtractInputKind, JsonValue, LlmConfig } from "@xberg-io/xberg";
+import type { ExtractionConfig, NerConfig } from "@xberg-io/xberg";
 
 const InputSchema = z.object({
   uri: z.string().optional().describe("File path or HTTPS URL"),
@@ -9,20 +9,17 @@ const InputSchema = z.object({
   filename: z.string().optional(),
 });
 
-function buildExtractInput(input: z.infer<typeof InputSchema>): ExtractInput | null {
+async function buildExtractInput(input: z.infer<typeof InputSchema>) {
+  const { extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
   if (input.bytes) {
-    return {
-      kind: "bytes" as ExtractInputKind,
-      bytes: new Uint8Array(input.bytes),
-      mimeType: input.mime_type ?? "application/octet-stream",
-      filename: input.filename ?? undefined,
-    };
+    return extractInputFromBytes(
+      Buffer.from(input.bytes),
+      input.mime_type ?? "application/octet-stream",
+      input.filename ?? null,
+    );
   }
   if (input.uri) {
-    return {
-      kind: "uri" as ExtractInputKind,
-      uri: input.uri,
-    };
+    return extractInputFromUri(input.uri);
   }
   return null;
 }
@@ -125,22 +122,17 @@ export function registerIntelligenceTools(server: McpServer): void {
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
         const { extract } = await import("@xberg-io/xberg");
-        const extractInput = buildExtractInput(input);
+        const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }
 
-        const llmModel = llm_model || process.env.XBERG_LLM_MODEL;
-        if (!llmModel) {
-          return { content: [{ type: "text" as const, text: "Error: llm_model required (provide as param or set XBERG_LLM_MODEL env var)" }], isError: true };
-        }
-
         const config: ExtractionConfig = {
           structuredExtraction: {
-            schema: json_schema as JsonValue,
+            schema: json_schema,
             schemaName: schema_name,
             strict,
-            llm: { model: llmModel },
+            llm: llm_model ? { model: llm_model } : undefined,
           },
         };
 

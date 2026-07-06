@@ -1,9 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type { Chunk, ExtractionConfig, ExtractInput, ExtractInputKind, ChunkingConfig, KeywordConfig, KeywordAlgorithm } from "@xberg-io/xberg";
+import type { Chunk, ExtractionConfig } from "@xberg-io/xberg";
 import {
   extract,
   extractBatch,
+  extractInputFromBytes,
+  extractInputFromUri,
   listSupportedFormats,
 } from "@xberg-io/xberg";
 
@@ -40,28 +42,16 @@ const ExtractionConfigSchema = z.object({
 
 function toNativeConfig(config: z.infer<typeof ExtractionConfigSchema> | undefined): ExtractionConfig | null {
   if (!config) return null;
-
-  const chunkingConfig: ChunkingConfig | undefined = config.chunking
-    ? {
-        maxCharacters: config.chunking.max_size,
-        overlap: config.chunking.overlap,
-      }
-    : undefined;
-
-  const keywordAlgo = config.keywords?.algorithm as KeywordAlgorithm | undefined;
-  const keywordConfig: KeywordConfig | undefined = config.keywords
-    ? {
-        algorithm: keywordAlgo,
-        maxKeywords: config.keywords.max_keywords,
-      }
-    : undefined;
-
   return {
     forceOcr: config.force_ocr,
     disableOcr: config.disable_ocr,
     useCache: config.use_cache,
-    chunking: chunkingConfig,
-    keywords: keywordConfig,
+    chunking: config.chunking
+      ? { max_chars: config.chunking.max_size, max_overlap: config.chunking.overlap }
+      : undefined,
+    keywords: config.keywords
+      ? { algorithm: config.keywords.algorithm, maxKeywords: config.keywords.max_keywords }
+      : undefined,
     ocr: config.ocr
       ? { backend: config.ocr.backend, language: config.ocr.languages }
       : undefined,
@@ -82,19 +72,16 @@ export function registerExtractTools(server: McpServer): void {
     },
     async ({ input, config }) => {
       try {
-        let extractInput: ExtractInput | undefined;
+        let extractInput;
         if (input?.bytes) {
-          extractInput = {
-            kind: "bytes" as ExtractInputKind,
-            bytes: new Uint8Array(input.bytes),
-            mimeType: input.mime_type ?? "application/octet-stream",
-            filename: input.filename ?? undefined,
-          };
+          const byteBuffer = Buffer.from(input.bytes);
+          extractInput = extractInputFromBytes(
+            byteBuffer,
+            input.mime_type ?? "application/octet-stream",
+            input.filename ?? null,
+          );
         } else if (input?.uri) {
-          extractInput = {
-            kind: "uri" as ExtractInputKind,
-            uri: input.uri,
-          };
+          extractInput = extractInputFromUri(input.uri);
         } else {
           return {
             content: [{ type: "text" as const, text: "Error: must provide either input.uri or input.bytes" }],
@@ -146,19 +133,15 @@ export function registerExtractTools(server: McpServer): void {
     },
     async ({ inputs, config }) => {
       try {
-        const nativeInputs: ExtractInput[] = inputs.map((inp) => {
+        const nativeInputs = inputs.map((inp) => {
           if (inp.bytes) {
-            return {
-              kind: "bytes" as ExtractInputKind,
-              bytes: new Uint8Array(inp.bytes),
-              mimeType: inp.mime_type ?? "application/octet-stream",
-              filename: inp.filename ?? undefined,
-            };
+            return extractInputFromBytes(
+              Buffer.from(inp.bytes),
+              inp.mime_type ?? "application/octet-stream",
+              inp.filename ?? null,
+            );
           }
-          return {
-            kind: "uri" as ExtractInputKind,
-            uri: inp.uri ?? "",
-          };
+          return extractInputFromUri(inp.uri ?? "");
         });
 
         const result = await extractBatch(nativeInputs, toNativeConfig(config));

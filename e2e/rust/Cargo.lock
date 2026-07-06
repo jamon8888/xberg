@@ -8011,11 +8011,24 @@ dependencies = [
  "uuid",
  "v_htmlescape",
  "whatlang",
+ "xberg-doc-store",
  "xberg-gliner",
  "xberg-libheif",
  "xberg-paddle-ocr",
  "xberg-tesseract",
  "zip 8.6.0",
+]
+
+[[package]]
+name = "xberg-doc-store"
+version = "1.0.0-rc.1"
+dependencies = [
+ "async-trait",
+ "moka",
+ "serde",
+ "thiserror 2.0.18",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -8037,6 +8050,8 @@ dependencies = [
 name = "xberg-gliner"
 version = "1.0.0-rc.5"
 dependencies = [
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
  "ndarray 0.17.2",
  "ort",
  "parking_lot",

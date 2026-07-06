@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { extract, WhisperModel, type ExtractionConfig, type ExtractInput, type ExtractInputKind } from "@xberg-io/xberg";
+import type { ExtractionConfig } from "@xberg-io/xberg";
 
 export function registerMediaTools(server: McpServer): void {
   server.tool(
@@ -22,31 +22,25 @@ export function registerMediaTools(server: McpServer): void {
     },
     async ({ uri, bytes, mime_type, filename, model, language }) => {
       try {
-        let extractInput: ExtractInput | undefined;
+        const { extract, extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
+
+        let extractInput;
         if (bytes) {
-          extractInput = {
-            kind: "bytes" as ExtractInputKind,
-            bytes: new Uint8Array(bytes),
-            mimeType: mime_type ?? "audio/mpeg",
-            filename: filename ?? undefined,
-          };
+          extractInput = extractInputFromBytes(
+            Buffer.from(bytes),
+            mime_type ?? "audio/mpeg",
+            filename ?? null,
+          );
         } else if (uri) {
-          extractInput = {
-            kind: "uri" as ExtractInputKind,
-            uri: uri,
-          };
+          extractInput = extractInputFromUri(uri);
         } else {
           return { content: [{ type: "text" as const, text: "Error: provide uri or bytes" }], isError: true };
         }
 
-        const modelEnum = model && model in WhisperModel
-          ? WhisperModel[model as keyof typeof WhisperModel]
-          : WhisperModel.Base;
-
         const config: ExtractionConfig = {
           transcription: {
             enabled: true,
-            model: modelEnum,
+            model,
             language,
           },
         };
@@ -54,17 +48,12 @@ export function registerMediaTools(server: McpServer): void {
         const result = await extract(extractInput, config);
         const doc = (result.results ?? [])[0];
 
-        let durationMs: number | null = null;
-        if (doc?.metadata?.format && doc.metadata.format.format_type === "audio") {
-          durationMs = (doc.metadata.format as { format_type: "audio"; 0: Record<string, unknown> })[0]?.["durationMs"] as number | null ?? null;
-        }
-
         return {
           content: [{
             type: "text" as const,
             text: JSON.stringify({
               transcript: doc?.content ?? "",
-              duration_ms: durationMs,
+              duration_ms: doc?.metadata?.["audio"]?.["durationMs"] ?? null,
               detected_language: (doc?.detectedLanguages ?? [])[0] ?? null,
               model,
             }, null, 2),
