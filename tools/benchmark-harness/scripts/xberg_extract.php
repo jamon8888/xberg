@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+
 /**
  * Xberg PHP extraction wrapper for benchmark harness.
  *
@@ -68,7 +69,7 @@ function parseRequest(string $line): array
  */
 function determine_ocr_used(array|object $metadata, bool $ocrEnabled): bool
 {
-    $meta = (array)$metadata;
+    $meta = (array) $metadata;
     $formatType = $meta['format_type'] ?? $meta['formatType'] ?? '';
     if ($formatType === 'ocr') {
         return true;
@@ -107,7 +108,7 @@ function create_config(bool $ocrEnabled, bool $forceOcr = false): ExtractionConf
         includeDocumentStructure: $defaults->includeDocumentStructure,
         url: $defaults->url,
         maxArchiveDepth: $defaults->maxArchiveDepth,
-        ocr: ($ocrEnabled || $forceOcr) ? OcrConfig::default() : null,
+        ocr: $ocrEnabled || $forceOcr ? OcrConfig::default() : null,
     );
 }
 
@@ -128,20 +129,23 @@ function first_result(object $output, string $source): object
  */
 function extract_sync(string $filePath, ?ExtractionConfig $config = null, bool $ocrEnabled = false): array
 {
-    debug_log("=== SYNC EXTRACTION START ===");
+    debug_log('=== SYNC EXTRACTION START ===');
     debug_log("Input: file_path={$filePath}");
-    debug_log("File exists: " . (file_exists($filePath) ? 'true' : 'false'));
+    debug_log('File exists: ' . (file_exists($filePath) ? 'true' : 'false'));
     if (file_exists($filePath)) {
-        debug_log("File size: " . filesize($filePath) . " bytes");
+        debug_log('File size: ' . filesize($filePath) . ' bytes');
     }
 
     $start = microtime(true);
     debug_log("Timing start: {$start}");
 
     try {
-        $result = first_result(Xberg::extract(ExtractInput::fromUri($filePath), $config ?? create_config($ocrEnabled)), $filePath);
+        $result = first_result(
+            Xberg::extract(ExtractInput::fromUri($filePath), $config ?? create_config($ocrEnabled)),
+            $filePath,
+        );
     } catch (XbergException $e) {
-        debug_log("ERROR during sync extraction: " . get_class($e) . " - " . $e->getMessage());
+        debug_log('ERROR during sync extraction: ' . get_class($e) . ' - ' . $e->getMessage());
         throw $e;
     }
 
@@ -149,11 +153,11 @@ function extract_sync(string $filePath, ?ExtractionConfig $config = null, bool $
     $durationMs = ($end - $start) * 1000.0;
 
     debug_log("Timing end: {$end}");
-    debug_log("Duration (seconds): " . ($end - $start));
+    debug_log('Duration (seconds): ' . ($end - $start));
     debug_log("Duration (milliseconds): {$durationMs}");
-    debug_log("Result has content: " . ($result->content !== null ? 'true' : 'false'));
-    debug_log("Content length: " . strlen($result->content) . " characters");
-    debug_log("Result has metadata: " . ($result->metadata !== null ? 'true' : 'false'));
+    debug_log('Result has content: ' . ($result->content !== null ? 'true' : 'false'));
+    debug_log('Content length: ' . strlen($result->content) . ' characters');
+    debug_log('Result has metadata: ' . ($result->metadata !== null ? 'true' : 'false'));
 
     $metadata = $result->metadata ?? [];
     $payload = [
@@ -164,8 +168,8 @@ function extract_sync(string $filePath, ?ExtractionConfig $config = null, bool $
         '_peak_memory_bytes' => get_peak_memory_bytes(),
     ];
 
-    debug_log("Output JSON size: " . strlen(json_encode($payload)) . " bytes");
-    debug_log("=== SYNC EXTRACTION END ===");
+    debug_log('Output JSON size: ' . strlen(json_encode($payload)) . ' bytes');
+    debug_log('=== SYNC EXTRACTION END ===');
 
     return $payload;
 }
@@ -175,8 +179,8 @@ function extract_sync(string $filePath, ?ExtractionConfig $config = null, bool $
  */
 function extract_batch(array $filePaths, ?ExtractionConfig $config = null, bool $ocrEnabled = false): array
 {
-    debug_log("=== BATCH EXTRACTION START ===");
-    debug_log("Input: " . count($filePaths) . " files");
+    debug_log('=== BATCH EXTRACTION START ===');
+    debug_log('Input: ' . count($filePaths) . ' files');
     foreach ($filePaths as $idx => $path) {
         $exists = file_exists($path);
         $size = $exists ? filesize($path) : 'N/A';
@@ -187,11 +191,11 @@ function extract_batch(array $filePaths, ?ExtractionConfig $config = null, bool 
     debug_log("Timing start: {$start}");
 
     try {
-        $inputs = array_map(fn (string $path): ExtractInput => ExtractInput::fromUri($path), $filePaths);
+        $inputs = array_map(fn(string $path): ExtractInput => ExtractInput::fromUri($path), $filePaths);
         $output = Xberg::extractBatch($inputs, $config ?? create_config($ocrEnabled));
         $results = $output->results;
     } catch (XbergException $e) {
-        debug_log("ERROR during batch extraction: " . get_class($e) . " - " . $e->getMessage());
+        debug_log('ERROR during batch extraction: ' . get_class($e) . ' - ' . $e->getMessage());
         throw $e;
     }
 
@@ -199,9 +203,9 @@ function extract_batch(array $filePaths, ?ExtractionConfig $config = null, bool 
     $totalDurationMs = ($end - $start) * 1000.0;
 
     debug_log("Timing end: {$end}");
-    debug_log("Total duration (seconds): " . ($end - $start));
+    debug_log('Total duration (seconds): ' . ($end - $start));
     debug_log("Total duration (milliseconds): {$totalDurationMs}");
-    debug_log("Results count: " . count($results));
+    debug_log('Results count: ' . count($results));
 
     $perFileDurationMs = count($filePaths) > 0 ? $totalDurationMs / count($filePaths) : 0;
     debug_log("Per-file average duration (milliseconds): {$perFileDurationMs}");
@@ -209,7 +213,12 @@ function extract_batch(array $filePaths, ?ExtractionConfig $config = null, bool 
     $peakMemory = get_peak_memory_bytes();
     $resultsWithTiming = [];
     foreach ($results as $idx => $result) {
-        debug_log("  Result[{$idx}] - content length: " . strlen($result->content) . ", has metadata: " . ($result->metadata !== null ? 'true' : 'false'));
+        debug_log(
+            "  Result[{$idx}] - content length: "
+            . strlen($result->content)
+            . ', has metadata: '
+            . ($result->metadata !== null ? 'true' : 'false'),
+        );
         $metadata = $result->metadata ?? [];
         $resultsWithTiming[] = [
             'content' => $result->content,
@@ -221,7 +230,7 @@ function extract_batch(array $filePaths, ?ExtractionConfig $config = null, bool 
         ];
     }
 
-    debug_log("=== BATCH EXTRACTION END ===");
+    debug_log('=== BATCH EXTRACTION END ===');
 
     return $resultsWithTiming;
 }
@@ -231,7 +240,7 @@ function extract_batch(array $filePaths, ?ExtractionConfig $config = null, bool 
  */
 function run_server(?ExtractionConfig $config = null, bool $ocrEnabled = false): void
 {
-    debug_log("=== SERVER MODE START ===");
+    debug_log('=== SERVER MODE START ===');
 
     // Signal readiness after PHP + extension initialization
     echo "READY\n";
@@ -250,7 +259,7 @@ function run_server(?ExtractionConfig $config = null, bool $ocrEnabled = false):
 
         debug_log("Processing file: {$filePath}");
         if ($forceOcr) {
-            debug_log("Force OCR enabled for this request");
+            debug_log('Force OCR enabled for this request');
         }
 
         try {
@@ -262,8 +271,11 @@ function run_server(?ExtractionConfig $config = null, bool $ocrEnabled = false):
             }
 
             $result = first_result(
-                Xberg::extract(ExtractInput::fromUri($filePath), $requestConfig ?? create_config($ocrEnabled, $forceOcr)),
-                $filePath
+                Xberg::extract(
+                    ExtractInput::fromUri($filePath),
+                    $requestConfig ?? create_config($ocrEnabled, $forceOcr),
+                ),
+                $filePath,
             );
             $durationMs = (microtime(true) - $start) * 1000.0;
 
@@ -290,7 +302,7 @@ function run_server(?ExtractionConfig $config = null, bool $ocrEnabled = false):
         }
     }
 
-    debug_log("=== SERVER MODE END ===");
+    debug_log('=== SERVER MODE END ===');
 }
 
 /**
@@ -300,9 +312,9 @@ function main(): void
 {
     global $argv;
 
-    debug_log("PHP script started");
-    debug_log("ARGV: " . json_encode($argv));
-    debug_log("ARGV length: " . count($argv));
+    debug_log('PHP script started');
+    debug_log('ARGV: ' . json_encode($argv));
+    debug_log('ARGV length: ' . count($argv));
 
     $ocrEnabled = false;
     $args = [];
@@ -330,13 +342,13 @@ function main(): void
     $config = create_config($ocrEnabled);
 
     debug_log("Mode: {$mode}");
-    debug_log("OCR enabled: " . ($ocrEnabled ? 'true' : 'false'));
-    debug_log("File paths (" . count($filePaths) . "): " . json_encode($filePaths));
+    debug_log('OCR enabled: ' . ($ocrEnabled ? 'true' : 'false'));
+    debug_log('File paths (' . count($filePaths) . '): ' . json_encode($filePaths));
 
     try {
         switch ($mode) {
             case 'server':
-                debug_log("Executing server mode");
+                debug_log('Executing server mode');
                 run_server($config, $ocrEnabled);
                 break;
 
@@ -357,7 +369,7 @@ function main(): void
                     fwrite(STDERR, "Error: batch mode requires at least one file\n");
                     exit(1);
                 }
-                debug_log("Executing batch mode with " . count($filePaths) . " files");
+                debug_log('Executing batch mode with ' . count($filePaths) . ' files');
 
                 $results = extract_batch($filePaths, $config, $ocrEnabled);
 
@@ -368,7 +380,7 @@ function main(): void
                 } else {
                     $output = json_encode($results, JSON_THROW_ON_ERROR);
                     if (strlen($output) > 200) {
-                        debug_log("Output JSON (multiple files): " . substr($output, 0, 200) . "...");
+                        debug_log('Output JSON (multiple files): ' . substr($output, 0, 200) . '...');
                     }
                     echo $output;
                 }
@@ -379,9 +391,9 @@ function main(): void
                 exit(1);
         }
 
-        debug_log("Script completed successfully");
+        debug_log('Script completed successfully');
     } catch (Throwable $e) {
-        debug_log("FATAL ERROR: " . get_class($e) . " - " . $e->getMessage());
+        debug_log('FATAL ERROR: ' . get_class($e) . ' - ' . $e->getMessage());
         debug_log("Backtrace:\n" . $e->getTraceAsString());
         fwrite(STDERR, "Error extracting with Xberg: {$e->getMessage()}\n");
         exit(1);

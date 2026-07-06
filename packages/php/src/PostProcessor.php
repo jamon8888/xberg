@@ -12,11 +12,10 @@ namespace Xberg;
  */
 interface PostProcessor
 {
-
     /**
      * Process an extraction result.
      *
-
+     *
      * @param ExtractedDocument $result
      * @param ExtractionConfig $config
      * @return mixed Return value from the plugin method
@@ -26,7 +25,7 @@ interface PostProcessor
     /**
      * Get the processing stage for this post-processor.
      *
-
+     *
      * @return mixed Return value from the plugin method
      */
     public function processing_stage(): mixed;
@@ -34,7 +33,7 @@ interface PostProcessor
     /**
      * Optional: Check if this processor should run for a given result.
      *
-
+     *
      * @param ExtractedDocument $_result
      * @param ExtractionConfig $_config
      * @return bool Return value from the plugin method
@@ -44,7 +43,7 @@ interface PostProcessor
     /**
      * Optional: Estimate processing time in milliseconds.
      *
-
+     *
      * @param ExtractedDocument $_result
      * @return int Return value from the plugin method
      */
@@ -53,9 +52,8 @@ interface PostProcessor
     /**
      * Execution priority within the processing stage.
      *
-
+     *
      * @return int Return value from the plugin method
      */
     public function priority(): int;
-
 }

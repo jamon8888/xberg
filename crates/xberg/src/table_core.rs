@@ -514,4 +514,112 @@ mod tests {
         let md = table_to_markdown(&table);
         assert!(md.contains("a\\|b"));
     }
+
+    /// Regression test for issue where intra-cell word spacing ("Chose 1")
+    /// was incorrectly split into separate columns.
+    /// The word "1" should stay in the same cell as "Chose" despite having
+    /// a different left position, because they're separated by a small gap.
+    #[test]
+    fn test_reconstruct_table_intra_cell_word_spacing() {
+        let words = vec![
+            // Row 1 (header)
+            HocrWord {
+                text: "Chose".to_string(),
+                left: 57,
+                top: 496,
+                width: 30,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "Truc".to_string(),
+                left: 306,
+                top: 496,
+                width: 23,
+                height: 12,
+                confidence: 95.0,
+            },
+            // Row 2: "Chose 1" and "Truc 1"
+            HocrWord {
+                text: "Chose".to_string(),
+                left: 57,
+                top: 510,
+                width: 28,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "1".to_string(),
+                left: 90, // 3px gap from "Chose" which ends at 85
+                top: 510,
+                width: 6,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "Truc".to_string(),
+                left: 306,
+                top: 510,
+                width: 21,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "1".to_string(),
+                left: 332, // 5px gap from "Truc" which ends at 327
+                top: 510,
+                width: 5,
+                height: 12,
+                confidence: 95.0,
+            },
+            // Row 3: "Chose 2" and "Truc 2"
+            HocrWord {
+                text: "Chose".to_string(),
+                left: 57,
+                top: 524,
+                width: 28,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "2".to_string(),
+                left: 90,
+                top: 524,
+                width: 6,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "Truc".to_string(),
+                left: 306,
+                top: 524,
+                width: 21,
+                height: 12,
+                confidence: 95.0,
+            },
+            HocrWord {
+                text: "2".to_string(),
+                left: 332,
+                top: 524,
+                width: 5,
+                height: 12,
+                confidence: 95.0,
+            },
+        ];
+
+        // Use a large column threshold (>33px) to avoid splitting "Chose" and "1"
+        let table = reconstruct_table(&words, 60, 0.5);
+
+        // Should produce a 3x2 table, not 3x4
+        assert_eq!(table.len(), 3, "Expected 3 rows, got {}", table.len());
+        assert_eq!(table[0].len(), 2, "Expected 2 columns in row 0, got {}", table[0].len());
+
+        // Verify cell contents are correctly merged
+        assert_eq!(table[0][0], "Chose", "Header row 1, col 1");
+        assert_eq!(table[0][1], "Truc", "Header row 1, col 2");
+        assert_eq!(table[1][0], "Chose 1", "Row 2, col 1 should contain merged text");
+        assert_eq!(table[1][1], "Truc 1", "Row 2, col 2 should contain merged text");
+        assert_eq!(table[2][0], "Chose 2", "Row 3, col 1 should contain merged text");
+        assert_eq!(table[2][1], "Truc 2", "Row 3, col 2 should contain merged text");
+    }
 }

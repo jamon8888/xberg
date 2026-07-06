@@ -44,6 +44,12 @@ pub fn create_xberg_adapter(
         "json".to_string(),
         "--content-format".to_string(),
         content_format.to_string(),
+        // Lift the CLI's 60s default extraction timeout to just under the
+        // harness timeout (1800s): slow-but-successful extractions (large
+        // layout docs run >100s) must be measured, not failed. CLI flags
+        // still override individual fields from this JSON.
+        "--config-json".to_string(),
+        r#"{"extraction_timeout_secs":1740}"#.to_string(),
     ];
 
     // Add pipeline-specific flags

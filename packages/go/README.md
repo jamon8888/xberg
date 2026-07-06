@@ -35,9 +35,6 @@
   <a href="https://hex.pm/packages/xberg">
     <img src="https://img.shields.io/hexpm/v/xberg?label=Elixir&color=007ec6" alt="Elixir">
   </a>
-  <a href="https://xberg-io.r-universe.dev/xberg">
-    <img src="https://img.shields.io/badge/R-xberg-007ec6" alt="R">
-  </a>
   <a href="https://pub.dev/packages/xberg">
     <img src="https://img.shields.io/pub/v/xberg?label=Dart&color=007ec6" alt="Dart">
   </a>
@@ -82,7 +79,7 @@
 
 High-performance document intelligence for Go backed by the Rust core that powers every Xberg binding.
 
-> **Version 1.0.0-rc.1**
+> **Version 1.0.0-rc.5**
 > Report issues at [github.com/xberg-io/xberg](https://github.com/xberg-io/xberg/issues).
 
 ## What This Package Provides
@@ -90,7 +87,7 @@ High-performance document intelligence for Go backed by the Rust core that power
 - **Go module over the Rust core** — context-aware extraction with Go structs and errors.
 - **Structured results** — text, tables, images, metadata, language detection, chunks, and warnings.
 - **Static-link workflow** — build against `xberg-ffi` and ship a self-contained Go binary.
-- **Cross-binding parity** — output matches the Python, Node.js, Ruby, Java, .NET, PHP, Elixir, R, Dart, Swift, Zig, WASM, and C FFI packages.
+- **Cross-binding parity** — output matches the Python, Node.js, Ruby, Java, .NET, PHP, Elixir, Dart, Swift, Zig, WASM, and C FFI packages.
 
 ## Install
 
@@ -124,7 +121,7 @@ To use this package via `go get`:
 go get github.com/xberg-io/xberg@latest
 
 # Or a specific version
-go get github.com/xberg-io/xberg@v1.0.0-rc.1
+go get github.com/xberg-io/xberg@v1.0.0-rc.5
 ```
 
 You'll need to provide the static library at build time. See [Building with Static Libraries](#building-with-static-libraries) below.
@@ -139,7 +136,7 @@ Download the static library for your platform from [GitHub Releases](https://git
 
 ```bash
 # Example: Linux x86_64
-curl -LO https://github.com/xberg-io/xberg/releases/download/v1.0.0-rc.1/go-ffi-linux-x86_64.tar.gz
+curl -LO https://github.com/xberg-io/xberg/releases/download/v1.0.0-rc.5/go-ffi-linux-x86_64.tar.gz
 tar -xzf go-ffi-linux-x86_64.tar.gz
 
 # Copy to a permanent location

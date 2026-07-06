@@ -1,8 +1,18 @@
 //! Heuristic table extraction from layout-detected Table regions.
 
+/// Upward margin (in PDF points) applied when tightening the table bbox top.
+///
+/// After identifying the first actual table content row (the topmost word row
+/// that has a horizontal column gap), this margin is subtracted from that row's
+/// image-y before converting to PDF coords, ensuring the first row's glyphs are
+/// fully inside the filter bbox.
+const TABLE_BBOX_TOP_TIGHTEN_MARGIN_PTS: u32 = 4;
+
 use crate::pdf::structure::text_repair::repair_broken_word_spacing;
 use crate::pdf::structure::types::{LayoutHint, LayoutHintClass};
-use crate::pdf::table_reconstruct::{is_well_formed_table, post_process_table, reconstruct_table, table_to_markdown};
+use crate::pdf::table_reconstruct::{
+    is_well_formed_table, looks_like_code_listing, post_process_table, reconstruct_table, table_to_markdown,
+};
 use crate::types::Table;
 
 use super::table_recognition::word_hint_iow;
@@ -93,12 +103,77 @@ pub(in crate::pdf::structure) fn extract_tables_from_layout_hints(
             continue;
         }
 
-        // Bounding box from the layout hint (already in PDF coordinates)
+        // How many columns the initial reconstruction found.  Used below to
+        // distinguish multi-column table rows from header paragraphs that happen
+        // to have two text blocks.  A 4-column table requires 2 gaps per row to
+        // qualify as "a table row"; a 2-column table only requires 1.
+        let num_table_cols = table_cells[0].len();
+        let min_column_gaps = (num_table_cols / 2).max(1);
+
+        // Bounding box derived from the layout hint, but with the top edge tightened
+        // to the actual topmost TABLE ROW — not merely the topmost word in the hint.
+        // The raw hint top often extends above the visible table grid to cover an
+        // adjacent paragraph (e.g., a bold metadata header on election-results pages).
+        //
+        // We detect pre-table paragraphs by scanning word rows top-to-bottom and
+        // looking for the first row that has a horizontal gap ≥ col_gap between
+        // consecutive words (column structure). Rows with no such gap are flowing
+        // text (paragraphs), not table rows, and are excluded from the bbox, letting
+        // them survive as ordinary paragraphs in the extraction pipeline.
+        //
+        // HocrWord uses image coordinates (u32, y=0 at top); convert to PDF coords
+        // via pdf_y = page_height − img_y. A small upward margin is added so the
+        // first row's top edge is fully covered.
+        let tightened_y1: f64 = {
+            const SAME_ROW_TOLERANCE_PTS: u32 = 5;
+
+            // Sort words by image-y (ascending = topmost on page first).
+            let mut sorted: Vec<&HocrWord> = table_words.iter().collect();
+            sorted.sort_by_key(|w| w.top);
+
+            // Walk the sorted words, grouping into rows (within SAME_ROW_TOLERANCE_PTS
+            // of the row's anchor top).  For each row, check whether any consecutive
+            // pair of words (sorted by left edge) has a gap ≥ col_gap — if so, this
+            // row has column structure and is the actual first table content row.
+            let mut first_table_row_top: Option<u32> = None;
+            let mut row_start = 0_usize;
+            while row_start < sorted.len() {
+                let row_anchor = sorted[row_start].top;
+                // Find the exclusive end of this row.
+                let row_end = sorted[row_start..]
+                    .iter()
+                    .position(|w| w.top.saturating_sub(row_anchor) > SAME_ROW_TOLERANCE_PTS)
+                    .map(|p| row_start + p)
+                    .unwrap_or(sorted.len());
+
+                // Sort this row's words by left edge and check for a column-sized gap.
+                let mut left_rights: Vec<(u32, u32)> = sorted[row_start..row_end]
+                    .iter()
+                    .map(|w| (w.left, w.left + w.width))
+                    .collect();
+                left_rights.sort_by_key(|&(l, _)| l);
+                let n_col_gaps = left_rights
+                    .windows(2)
+                    .filter(|pair| pair[1].0.saturating_sub(pair[0].1) >= col_gap)
+                    .count();
+                if n_col_gaps >= min_column_gaps {
+                    first_table_row_top = Some(row_anchor);
+                    break;
+                }
+                row_start = row_end;
+            }
+
+            let img_top = first_table_row_top.unwrap_or(hint_img_top as u32);
+            let img_top_with_margin = img_top.saturating_sub(TABLE_BBOX_TOP_TIGHTEN_MARGIN_PTS);
+            let pdf_top = page_height - img_top_with_margin as f32;
+            // Never extend the bbox beyond the original hint top.
+            (pdf_top as f64).min(hint.top as f64)
+        };
         let bounding_box = Some(crate::types::BoundingBox {
             x0: hint.left as f64,
             y0: hint.bottom as f64,
             x1: hint.right as f64,
-            y1: hint.top as f64,
+            y1: tightened_y1,
         });
 
         // Validate with layout_guided=true (relaxed thresholds)
@@ -211,6 +286,24 @@ pub(in crate::pdf::structure) fn extract_tables_from_layout_hints(
             }
         }
 
+        // Reject tables that look like code listings.
+        // The layout model sometimes misclassifies monospace code blocks (JS,
+        // Rust, Go, Java, C, …) as Table regions because the character-level
+        // spacing in a fixed-width font creates apparent column positions that
+        // fool the heuristic grid detector. Curly braces — especially isolated
+        // `{` or `}` cells (from opening/closing lines) — are the most reliable
+        // signal: they appear in virtually all C-family code but never in real
+        // table data.
+        if looks_like_code_listing(&table_cells) {
+            tracing::trace!(
+                page = page_index,
+                rows = table_cells.len(),
+                cols = table_cells.first().map_or(0, |r| r.len()),
+                "table region looks like a code listing — skipping false-positive Table hint"
+            );
+            continue;
+        }
+
         // Table quality validation: reject tables that are actually multi-column
         // prose, repeated page elements, or low-vocabulary repetitive content.
         if !is_well_formed_table(&table_cells) {
@@ -309,10 +402,24 @@ pub(crate) fn compute_adaptive_column_gap(words: &[crate::pdf::table_reconstruct
 
     if gaps.len() >= 3 {
         gaps.sort_unstable();
-        let median_gap = gaps[gaps.len() / 2];
-        // Column gap = 2x median word gap, clamped to [8, 40]
-        let threshold = (median_gap * 2).clamp(8, 40);
-        return threshold;
+
+        // Filter out intra-cell word gaps (typically <30px) to focus on inter-cell gaps.
+        // Large gaps (>40px) are more likely to be column separators.
+        // This prevents small intra-cell spacing from dominating the calculation.
+        let large_gaps: Vec<u32> = gaps.iter().copied().filter(|&g| g >= 40).collect();
+
+        if !large_gaps.is_empty() {
+            // Use median of large gaps as the column boundary threshold.
+            // `gaps` is already sorted, so the filtered subset stays sorted.
+            let median_gap = large_gaps[large_gaps.len() / 2];
+            let threshold = (median_gap / 2).clamp(20, 60);
+            return threshold;
+        } else {
+            // Fallback: use all gaps but with safer bounds
+            let median_gap = gaps[gaps.len() / 2];
+            let threshold = (median_gap * 3).clamp(20, 60);
+            return threshold;
+        }
     }
 
     // Fallback: width-based scaling with tighter defaults for narrow tables
@@ -330,7 +437,7 @@ pub(crate) fn compute_adaptive_column_gap(words: &[crate::pdf::table_reconstruct
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::pdf::table_reconstruct::HocrWord;
+    use crate::pdf::table_reconstruct::{HocrWord, looks_like_code_listing};
 
     fn make_word(text: &str, left: u32, top: u32, width: u32, height: u32) -> HocrWord {
         HocrWord {
@@ -460,5 +567,175 @@ mod tests {
         for table in &tables {
             assert_eq!(table.page_number, 3); // page_index=2 → page_number=3
         }
+    }
+
+    /// When a Table hint covers both a spanning paragraph above the table and the
+    /// actual table grid below, the bbox top must be tightened to exclude the
+    /// paragraph.  The paragraph row has no horizontal gap ≥ col_gap between its
+    /// words; the first actual table row does.
+    ///
+    /// This mimics the la-precinct-bulletin-2014-p1 layout failure where a bold
+    /// metadata header ("Precinct RUN 12/3/2014 11:57:01 AM ...") was being
+    /// filtered by `filter_segments_by_table_bboxes` because the raw Table hint
+    /// bbox extended above the actual table grid.
+    #[test]
+    fn test_bbox_top_tightened_to_first_table_row_skipping_paragraph_header() {
+        // Page dimensions (PDF pts, y=0 at bottom).
+        let page_height: f32 = 800.0;
+
+        // Paragraph header row at image y=5..17 (PDF y ≈ 783..795).
+        // Three words with small inter-word gaps (5 pts) — no column structure.
+        let mut all_words: Vec<HocrWord> = vec![
+            make_word("Pre", 50, 5, 30, 12),
+            make_word("Cin", 85, 5, 30, 12),
+            make_word("ct", 120, 5, 20, 12),
+        ];
+
+        // Three-column table at image y=40..112 (PDF y ≈ 688..760).
+        // Columns are separated by ~160-pt gaps, far exceeding col_gap.
+        // Cells are kept short (≤2 chars each; concatenated row ≤8 chars) so
+        // that `is_well_formed_table`'s prose-row check (row concat ≥15 chars)
+        // is never triggered, and col-uniformity check (mean cell len > 3 chars)
+        // is also skipped.
+        let table_rows: [(&str, &str, &str, u32); 5] = [
+            ("AA", "DD", "GG", 40),
+            ("BB", "EE", "HH", 60),
+            ("CC", "FF", "II", 80),
+            ("AB", "DE", "GH", 100),
+            ("BC", "EF", "HI", 112),
+        ];
+        for (c1, c2, c3, y) in &table_rows {
+            all_words.push(make_word(c1, 50, *y, 30, 12));
+            all_words.push(make_word(c2, 250, *y, 30, 12));
+            all_words.push(make_word(c3, 450, *y, 30, 12));
+        }
+
+        // The Table hint covers the entire area including the paragraph header.
+        // PDF: left=40, bottom=690, right=510, top=800.
+        // Image: top=0, bottom=110 → every word is inside the hint.
+        let hints = vec![make_table_hint(0.9, 40.0, 690.0, 510.0, 800.0)];
+
+        let tables = extract_tables_from_layout_hints(&all_words, &hints, 0, page_height, 0.5, true);
+
+        // A table must be produced.
+        assert!(!tables.is_empty(), "expected a table to be reconstructed");
+
+        let bb = tables[0].bounding_box.as_ref().expect("table must have a bounding_box");
+
+        // The tightened y1 (top of the filter bbox in PDF coords) must be below
+        // the paragraph header (PDF y_bottom ≈ 800−17 = 783).
+        // First table row at image top=40 → pdf_top = 800−(40−4) = 764.
+        // So bb.y1 must be ≈ 764, well below 783.
+        assert!(
+            bb.y1 < 775.0,
+            "bbox top (y1={:.1}) should be tightened below the paragraph header \
+             (header PDF y_bottom ≈ 783)",
+            bb.y1
+        );
+
+        // The bbox bottom must still encompass the full table grid.
+        assert!(
+            bb.y0 <= 695.0,
+            "bbox bottom (y0={:.1}) should still cover the table area",
+            bb.y0
+        );
+    }
+
+    // --- Tests for looks_like_code_listing ---
+
+    #[test]
+    fn test_code_listing_with_isolated_closing_brace_is_rejected() {
+        // Simulates a JS code block reconstructed into a table grid:
+        //
+        //   function | add(a, b) | {
+        //   return   | a + b;    |
+        //   }        |           |
+        //
+        // The isolated `}` cell (from the closing line of the code block)
+        // is the hard-reject signal: no real table has a bare `}` cell.
+        let table_cells = vec![
+            vec!["function".to_string(), "add(a, b)".to_string(), "{".to_string()],
+            vec!["return".to_string(), "a + b;".to_string(), "".to_string()],
+            vec!["}".to_string(), "".to_string(), "".to_string()],
+        ];
+        assert!(
+            looks_like_code_listing(&table_cells),
+            "grid with isolated `}}` cell should be detected as code listing"
+        );
+    }
+
+    #[test]
+    fn test_code_listing_with_opening_brace_only_is_rejected() {
+        // Opening brace `{` alone in a cell is equally specific to code.
+        let table_cells = vec![
+            vec!["if".to_string(), "(x > 0)".to_string(), "{".to_string()],
+            vec!["".to_string(), "return".to_string(), "x".to_string()],
+            vec!["".to_string(), "}".to_string(), "".to_string()],
+        ];
+        assert!(
+            looks_like_code_listing(&table_cells),
+            "grid with isolated `{{` or `}}` cell should be detected as code listing"
+        );
+    }
+
+    #[test]
+    fn test_code_listing_with_inline_braces_fraction_is_rejected() {
+        // Code where braces appear mid-cell (not isolated):
+        //   if (x) { | return x; }
+        //   else {   | return y; }
+        // Two out of four non-empty cells contain `{` or `}` → 50% ≥ 20% threshold.
+        let table_cells = vec![
+            vec!["if (x) {".to_string(), "return x; }".to_string()],
+            vec!["else {".to_string(), "return y; }".to_string()],
+        ];
+        assert!(
+            looks_like_code_listing(&table_cells),
+            "grid with ≥20% of cells containing braces should be detected as code listing"
+        );
+    }
+
+    #[test]
+    fn test_genuine_data_table_is_not_rejected() {
+        // A real 2-column table with header and data rows must NOT be suppressed.
+        let table_cells = vec![
+            vec!["Name".to_string(), "Score".to_string()],
+            vec!["Alice".to_string(), "95".to_string()],
+            vec!["Bob".to_string(), "87".to_string()],
+            vec!["Carol".to_string(), "91".to_string()],
+        ];
+        assert!(
+            !looks_like_code_listing(&table_cells),
+            "genuine data table must not be classified as a code listing"
+        );
+    }
+
+    #[test]
+    fn test_table_with_parenthesised_values_is_not_rejected() {
+        // Documentation tables sometimes have function-call notation in cells
+        // like `to_string()` or `from_str(s)`. These contain `(` and `)` but
+        // no curly braces, so they must not trigger the code-listing guard.
+        let table_cells = vec![
+            vec!["Function".to_string(), "Description".to_string()],
+            vec!["to_string()".to_string(), "Converts to string".to_string()],
+            vec!["from_str(s)".to_string(), "Creates from string".to_string()],
+            vec!["parse()".to_string(), "Parses the value".to_string()],
+        ];
+        assert!(
+            !looks_like_code_listing(&table_cells),
+            "table with parenthesised function names must not be classified as code"
+        );
+    }
+
+    #[test]
+    fn test_empty_table_cells_is_not_rejected() {
+        // A degenerate all-empty table should not crash or falsely fire the check.
+        let table_cells: Vec<Vec<String>> = vec![
+            vec!["".to_string(), "".to_string()],
+            vec!["".to_string(), "".to_string()],
+        ];
+        assert!(
+            !looks_like_code_listing(&table_cells),
+            "all-empty table must not be classified as code listing"
+        );
     }
 }

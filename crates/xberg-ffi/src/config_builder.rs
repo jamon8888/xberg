@@ -9,6 +9,8 @@
 use crate::ffi_panic_guard;
 use crate::ffi_panic_guard_i32;
 use crate::helpers::{clear_last_error, set_last_error};
+use std::ffi::{c_char, CStr};
+use std::ptr;
 use xberg::core::config::LayoutDetectionConfig;
 #[cfg(feature = "tree-sitter")]
 use xberg::core::config::TreeSitterConfig;
@@ -16,8 +18,6 @@ use xberg::core::config::{
     AccelerationConfig, ChunkingConfig, ContentFilterConfig, ExtractionConfig, HtmlOutputConfig, ImageExtractionConfig,
     LanguageDetectionConfig, OcrConfig, PdfConfig, PostProcessorConfig,
 };
-use std::ffi::{CStr, c_char};
-use std::ptr;
 
 /// Opaque builder struct for constructing ExtractionConfig.
 ///

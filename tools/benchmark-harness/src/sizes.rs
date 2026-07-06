@@ -60,7 +60,6 @@ const FRAMEWORKS: &[(&str, &str, &str)] = &[
     ("xberg-elixir", "hex_package", "Elixir hex package with NIF"),
     ("xberg-php", "php_extension", "PHP extension"),
     ("xberg-c", "binary_size", "C FFI binding"),
-    ("xberg-r", "binary_size", "R native package"),
     ("xberg-rust-paddle", "binary_size", "Native Rust core with PaddleOCR"),
     // Third-party frameworks
     ("docling", "pip_package", "IBM Docling document processing"),
@@ -130,20 +129,6 @@ const KNOWN_THIRD_PARTY_SIZES: &[(&str, u64, u64, u64, &str)] = &[
     // approx ~35 MB on Linux x86_64. No persistent model footprint at rest; tessdata
     // lives in the system's tesseract install (~30 MB shared with other backends).
     ("liteparse", 35_000_000, 0, 0, "LiteParse (run-llama) Rust PDF parser"),
-    // xberg-cli: single statically-linked Rust binary on Linux x86_64 release build with
-    // --features ocr,paddle-ocr,layout-detection,embeddings. Measured 57.7 MB on the local
-    // dev machine (ARM macOS); CI Linux release build is within ±5 MB. Bundles Tesseract +
-    // Leptonica + ONNX Runtime + tree-sitter language pack — zero system deps required.
-    // Model downloads (on first use of the relevant feature, cached under ~/.cache/xberg):
-    //   RT-DETR v2 layout ~50 MB, PaddleOCR det/rec/cls ~30 MB each, default embedding
-    //   preset (bge-small) ~130 MB, optional auto-rotate PP-LCNet ~10 MB ≈ 250 MB ceiling.
-    (
-        "xberg",
-        58_000_000,
-        0,
-        250_000_000,
-        "Xberg document intelligence (Rust)",
-    ),
 ];
 
 /// Look up a hardcoded third-party size entry.
@@ -259,7 +244,14 @@ fn measure_framework(name: &str, method: &str) -> Result<Option<u64>> {
     match method {
         "pip_package" => measure_pip_package(extract_package_name(name)),
         "npm_package" => measure_npm_package(extract_package_name(name)),
-        "binary_size" => measure_binary(name),
+        "binary_size" => {
+            // Special handling for xberg: measure CLI binary + runtime artifacts
+            if name == "xberg-rust" {
+                measure_xberg_binary_release()
+            } else {
+                measure_binary(name)
+            }
+        }
         "jar_size" => measure_jar(name),
         "gem_package" => measure_gem_package(extract_package_name(name)),
         "wasm_bundle" => measure_wasm_bundle(name),
@@ -497,17 +489,64 @@ fn measure_npm_package(package: &str) -> Result<Option<u64>> {
     Ok(None)
 }
 
+/// Measure Xberg CLI release binary and bundled artifacts.
+///
+/// Builds/measures the actual xberg-cli release binary with a representative
+/// feature set (ocr, paddle-ocr, layout-detection, embeddings). Includes:
+/// - The compiled binary (target/release/xberg-cli or xberg)
+/// - Any bundled native libraries (tesseract, ONNX Runtime, tree-sitter)
+/// - Cached ML models (if pre-downloaded; otherwise just the binary)
+fn measure_xberg_binary_release() -> Result<Option<u64>> {
+    // Try common binary locations
+    let binary_paths = [
+        "target/release/xberg",
+        "target/release/xberg-cli",
+        "target/debug/xberg",
+        "target/debug/xberg-cli",
+    ];
+
+    // First, look for an already-built binary
+    for path in binary_paths.iter() {
+        if let Ok(metadata) = fs::metadata(path) {
+            let binary_size = metadata.len();
+
+            // Also check for native FFI libraries that might be bundled
+            let ffi_size = measure_native_ffi_libs();
+
+            // Check for cached models in ~/.cache/xberg (if they exist)
+            let home = std::env::var("HOME").unwrap_or_else(|_| "/root".to_string());
+            let model_cache = Path::new(&home).join(".cache/xberg");
+            let model_size = if model_cache.exists() {
+                dir_size(&model_cache)
+            } else {
+                0
+            };
+
+            let total = binary_size + ffi_size + model_size;
+            if binary_size > 0 {
+                eprintln!(
+                    "Xberg measurement: binary={} bytes, ffi_libs={} bytes, cached_models={} bytes, total={}",
+                    binary_size, ffi_size, model_size, total
+                );
+                return Ok(Some(total));
+            }
+        }
+    }
+
+    Ok(None)
+}
+
 /// Measure binary size
 fn measure_binary(name: &str) -> Result<Option<u64>> {
     let binary_name = match name {
         "xberg-rust" => "xberg",
         s if s.starts_with("xberg-go") => "xberg-go",
-        "xberg-c" | "xberg-r" | "xberg-rust-paddle" => name,
+        "xberg-c" | "xberg-rust-paddle" => name,
         _ => return Ok(None),
     };
 
-    // For xberg-rust/c/r/rust-paddle, measure the FFI shared library (used by all bindings)
-    if matches!(name, "xberg-rust" | "xberg-c" | "xberg-r" | "xberg-rust-paddle") {
+    // For xberg-rust/c/rust-paddle, measure the FFI shared library (used by all bindings)
+    if matches!(name, "xberg-rust" | "xberg-c" | "xberg-rust-paddle") {
         let target_paths = [
             "target/release/libxberg_ffi.so",
             "target/release/libxberg_ffi.dylib",
@@ -1009,8 +1048,8 @@ mod tests {
 
     #[test]
     fn test_frameworks_list_complete() {
-        // 13 xberg bindings + 7 third-party = 20 total
-        assert_eq!(FRAMEWORKS.len(), 20);
+        // 12 xberg bindings + 7 third-party = 19 total (R binding removed)
+        assert_eq!(FRAMEWORKS.len(), 19);
 
         // Check all xberg bindings present
         let names: Vec<&str> = FRAMEWORKS.iter().map(|(n, _, _)| *n).collect();

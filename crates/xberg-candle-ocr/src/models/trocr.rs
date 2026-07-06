@@ -237,20 +237,31 @@ impl TrocrEngine {
             return Err(CandleOcrError::UnsupportedConfig("Empty image data".to_string()));
         }
 
+        tracing::debug!(image_size = image_bytes.len(), "TrOCR: preprocessing image");
+
         // Preprocess image: resize to 384x384, normalize with mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5]
         let processor = crate::models::image_processor::ImageProcessor::default();
         let image_tensor = processor
             .process(image_bytes, &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Image preprocessing failed: {}", e)))?;
 
+        if let Ok(shape) = image_tensor.shape() {
+            tracing::debug!(tensor_shape = ?shape.dims(), "TrOCR: image tensor shape after preprocessing");
+        }
+
         // Run encoder forward pass to get encoder hidden states
         let mut model_guard = self.model.lock();
         model_guard.reset_kv_cache();
 
+        tracing::debug!("TrOCR: running encoder forward pass");
         let encoder_hidden_states = model_guard
             .encoder()
             .forward(&image_tensor)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Encoder forward failed: {}", e)))?;
+
+        if let Ok(shape) = encoder_hidden_states.shape() {
+            tracing::debug!(encoder_shape = ?shape.dims(), "TrOCR: encoder hidden states shape");
+        }
 
         // Decoder configuration for generation (from the loaded checkpoint config)
         let decoder_start_token_id = self.decoder_start_token_id;
@@ -261,6 +272,12 @@ impl TrocrEngine {
 
         // Logits processor for sampling
         let mut logits_processor = candle_transformers::generation::LogitsProcessor::new(1337, None, None);
+
+        tracing::debug!(
+            start_token = decoder_start_token_id,
+            eos_token = eos_token_id,
+            "TrOCR: beginning decoding loop"
+        );
 
         // Decoding loop (max 1000 iterations)
         for index in 0..1000 {
@@ -296,8 +313,22 @@ impl TrocrEngine {
 
             token_ids.push(token);
 
+            if index < 5 {
+                tracing::trace!(
+                    iteration = index,
+                    token = token,
+                    num_tokens = token_ids.len(),
+                    "TrOCR: decode iteration"
+                );
+            }
+
             // Stop on EOS token
             if token == eos_token_id {
+                tracing::debug!(
+                    iterations = index + 1,
+                    num_tokens = token_ids.len(),
+                    "TrOCR: reached EOS token"
+                );
                 break;
             }
         }
@@ -307,6 +338,16 @@ impl TrocrEngine {
             .tokenizer
             .decode(&token_ids, true)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Tokenizer decode failed: {}", e)))?;
+
+        if decoded_text.trim().is_empty() {
+            tracing::warn!(num_tokens = token_ids.len(), "TrOCR: decoded text is empty");
+        } else {
+            tracing::debug!(
+                text_len = decoded_text.len(),
+                num_tokens = token_ids.len(),
+                "TrOCR: decoding complete"
+            );
+        }
 
         Ok(CandleOcrOutput {
             content: decoded_text,

@@ -26,13 +26,7 @@ pipeline-ner-llm = ["pipeline", "xberg/ner-llm"]
 pipeline-ner-onnx = ["pipeline", "xberg/ner-onnx"]
 
 # Streaming answer/progress primitives over liter-llm. Native-only.
-streaming = [
-    "vector-store",
-    "dep:xberg",
-    "xberg/liter-llm",
-    "dep:futures",
-    "dep:liter-llm",
-]
+streaming = ["vector-store", "dep:xberg", "xberg/liter-llm", "dep:futures", "dep:liter-llm"]
 
 # Embedded backends.
 in-memory = ["vector-store"]

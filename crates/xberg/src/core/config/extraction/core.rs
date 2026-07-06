@@ -368,6 +368,22 @@ pub struct ExtractionConfig {
     #[serde(skip)]
     #[cfg_attr(alef, alef(skip))]
     pub cancel_token: Option<crate::cancellation::CancellationToken>,
+
+    /// Transient source-filename hint for extension-based language detection.
+    ///
+    /// Set internally during extraction (from `ExtractInput::filename` or a
+    /// downloaded document's filename) so extractors such as the tree-sitter
+    /// code extractor can fall back to extension-based detection when
+    /// content-based detection (e.g. shebang) is inconclusive. Excluded from
+    /// serialization and bindings — it is not a user-facing configuration value.
+    ///
+    /// `pub` (not `pub(crate)`) so binding crates can construct `ExtractionConfig`
+    /// via struct-update syntax (`..Default::default()`); a single private field
+    /// would make that construction illegal across crates (E0451), matching the
+    /// existing `cancel_token` precedent.
+    #[serde(skip)]
+    #[cfg_attr(alef, alef(skip))]
+    pub source_name: Option<String>,
 }
 
 impl Default for ExtractionConfig {
@@ -424,6 +440,7 @@ impl Default for ExtractionConfig {
             captioning: None,
             qr_codes: None,
             cancel_token: None,
+            source_name: None,
         }
     }
 }

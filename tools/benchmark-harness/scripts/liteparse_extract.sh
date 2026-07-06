@@ -71,8 +71,14 @@ END=$(date +%s%N)
 DURATION_MS=$(((END - START) / 1000000))
 
 if command -v jq &>/dev/null; then
+  # Pass content via a temp file with --rawfile rather than --arg. Large PDFs
+  # produce extracted text that exceeds ARG_MAX when passed on the command line,
+  # which made jq die with "Argument list too long" (exit 126). --rawfile reads
+  # the value from a file, so content size is unbounded.
+  CONTENT_FILE=$(mktemp)
+  printf '%s' "$CONTENT" >"$CONTENT_FILE"
   jq -n \
-    --arg content "$CONTENT" \
+    --rawfile content "$CONTENT_FILE" \
     --arg fmt "$FORMAT" \
     --argjson duration "$DURATION_MS" \
     '{
@@ -80,6 +86,7 @@ if command -v jq &>/dev/null; then
       metadata: {framework: "liteparse", output_format: $fmt},
       _extraction_time_ms: $duration
     }'
+  rm -f "$CONTENT_FILE"
 else
   ESCAPED_CONTENT=$(echo "$CONTENT" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed '$ s/\\n$//')
   cat <<EOF

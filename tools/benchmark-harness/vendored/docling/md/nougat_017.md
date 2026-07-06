@@ -19,7 +19,7 @@ New Energy Solutions Optimised for Islands Country Islands
 - Identification of financing/funding options
 - Action plan for the roll-out of a green hydrogen value chain in Orkney
 
-NESOI contact: Stefano Barberis, RINA Consulting, stefano.barberis@rina.org
+NESOI contact: Stefano Barberis, RINA Consulting, <stefano.barberis@rina.org>
 
 The EU Islands Facility NESOI is pleased to introduce the clean energy projects receiving its support:
 

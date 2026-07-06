@@ -1,10 +1,7 @@
 {
 	"id": "config_document_structure_with_headings",
 	"description": "Tests document structure with DOCX heading-driven nesting",
-	"tags": [
-		"contract",
-		"document_structure"
-	],
+	"tags": ["contract", "document_structure"],
 	"call": "extract",
 	"input": {
 		"mock_responses": [
@@ -39,9 +36,7 @@
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"config": {

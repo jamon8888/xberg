@@ -8,7 +8,7 @@
 
 use rmcp::{
     handler::server::router::prompt::{PromptRoute, PromptRouter},
-    model::{GetPromptResult, Prompt, PromptArgument, PromptMessage, PromptMessageRole},
+    model::{GetPromptResult, Prompt, PromptArgument, PromptMessage, Role},
 };
 
 /// Build and return a configured [`PromptRouter`] containing all three guided-workflow prompts.
@@ -49,7 +49,7 @@ where
                     .unwrap_or("json")
                     .to_string();
                 Ok(GetPromptResult::new(vec![PromptMessage::new_text(
-                    PromptMessageRole::User,
+                    Role::User,
                     format!(
                         "Extract text and metadata from the document at: {path}\n\
                          Output format: {fmt}\n\
@@ -104,7 +104,7 @@ where
                 let lang_list: Vec<String> = languages.split(',').map(|s| format!("\"{s}\"")).collect();
                 let force_ocr_str = if force_ocr { "true" } else { "false" };
                 Ok(GetPromptResult::new(vec![PromptMessage::new_text(
-                    PromptMessageRole::User,
+                    Role::User,
                     format!(
                         "Extract content from {path} using OCR.\n\
                          Use the extract tool with:\n\
@@ -170,7 +170,7 @@ where
                     .unwrap_or("2000")
                     .to_string();
                 Ok(GetPromptResult::new(vec![PromptMessage::new_text(
-                    PromptMessageRole::User,
+                    Role::User,
                     format!(
                         "Index {path} for semantic search:\n\
                          1. Call extract with input={{\"kind\":\"uri\",\"uri\":\"{path}\"}}.\n\

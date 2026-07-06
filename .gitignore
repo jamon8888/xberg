@@ -2,6 +2,7 @@
 target/
 build/
 dist/
+.polylint/
 # Ad-hoc PDF/image debug binaries
 /check_pdf_oxide
 /check_*
@@ -107,11 +108,6 @@ TestResults/
 
 # Generated test apps (e2e-generator --mode published)
 test_apps/
-
-# R
-packages/r/src/.cargo/
-.Rhistory
-.RData
 
 # Elixir
 .nox/
@@ -252,6 +248,7 @@ requirements.txt
 docker-compose.yaml
 /tmp/xberg-docker-test-results.json
 tools/benchmark-harness/datasets/
+tools/benchmark-harness/.fixtures-pdf-subset/
 tools/benchmark-harness/vendored/docling/md/iso_21111_10.md
 visualizations/
 
@@ -308,8 +305,6 @@ packages/go/.lib/
 
 .build/
 
-packages/r/src/*.o
-
 # basemind code-map index (local tooling)
 .basemind/
 
@@ -318,6 +313,7 @@ build-output-musl-node/
 
 # BEGIN ai-rulez (DO NOT EDIT - managed by ai-rulez)
 .agents/
+.ai-rulez/.generated-manifest.json
 .cursor/
 .github/agents/
 .github/commands/

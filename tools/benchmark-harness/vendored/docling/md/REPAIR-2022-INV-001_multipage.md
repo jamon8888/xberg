@@ -50,7 +50,7 @@ Limited
 
 Email
 
-gabriel@contoso.com
+<gabriel@contoso.com>
 
 VIN
 
@@ -146,7 +146,7 @@ Limited
 
 Email
 
-batman@wayneindustries.com
+<batman@wayneindustries.com>
 
 VIN
 

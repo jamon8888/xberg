@@ -2,9 +2,17 @@
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+use std::path::PathBuf;
 use std::sync::Mutex;
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+use std::sync::{Arc, LazyLock};
 
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+use ahash::AHashMap;
 use async_trait::async_trait;
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+use parking_lot::RwLock;
 use xberg_gliner_candle::Gliner2Candle;
 
 use crate::Result;
@@ -12,6 +20,41 @@ use crate::text::ner::NerBackend;
 use crate::types::entity::{Entity, EntityCategory};
 
 const DEFAULT_THRESHOLD: f32 = 0.5;
+
+/// Cache key: `(model_dir, lora_adapter_dir)` — mirrors `gline::get_or_init_backend`'s
+/// cache-by-source-and-config pattern (not shared with it directly: `gline` is gated by
+/// the independent `ner-onnx` feature, so a `ner-candle`-only build must not depend on
+/// it) so a given (model, adapter) pair is loaded and LoRA-merged at most once per
+/// process, instead of on every `process()` call.
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+type CandleBackendCacheKey = (PathBuf, Option<PathBuf>);
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+static CANDLE_BACKEND_CACHE: LazyLock<RwLock<AHashMap<CandleBackendCacheKey, Arc<CandleBackend>>>> =
+    LazyLock::new(|| RwLock::new(AHashMap::default()));
+
+/// Return the cached backend for `key`, or build and cache one via `build`.
+#[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+fn get_or_insert_arc(
+    key: CandleBackendCacheKey,
+    build: impl FnOnce() -> crate::Result<CandleBackend>,
+) -> crate::Result<Arc<CandleBackend>> {
+    {
+        let cache = CANDLE_BACKEND_CACHE.read();
+        if let Some(value) = cache.get(&key) {
+            return Ok(Arc::clone(value));
+        }
+    }
+
+    let mut cache = CANDLE_BACKEND_CACHE.write();
+    if let Some(value) = cache.get(&key) {
+        return Ok(Arc::clone(value));
+    }
+
+    let value = Arc::new(build()?);
+    cache.insert(key, Arc::clone(&value));
+    Ok(value)
+}
 
 /// Wraps [`Gliner2Candle`] behind the [`NerBackend`] trait.
 ///
@@ -45,6 +88,19 @@ impl CandleBackend {
         })
     }
 
+    /// Load from a local model directory, reusing a cached, already-LoRA-merged
+    /// backend when one exists for the same `(model_dir, lora_adapter_dir)` pair.
+    ///
+    /// Unlike [`Self::from_local`], which reloads and re-merges on every call, this
+    /// is the entry point [`crate::plugins::processor::builtin::ner::make_backend`]
+    /// should use so a document-processing pipeline pays the model-load + LoRA-merge
+    /// cost once per (model, adapter) pair, not once per document.
+    #[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+    pub(crate) fn get_or_init(model_dir: &Path, lora_adapter_dir: Option<&Path>) -> crate::Result<Arc<Self>> {
+        let key: CandleBackendCacheKey = (model_dir.to_path_buf(), lora_adapter_dir.map(Path::to_path_buf));
+        get_or_insert_arc(key, || Self::from_local(model_dir, lora_adapter_dir))
+    }
+
     /// Load from in-memory model bytes (no filesystem access — required on `wasm32`,
     /// also usable natively when the caller already has the model bytes in memory).
     pub fn from_bytes(safetensors: &[u8], tokenizer_json: &[u8], encoder_config_json: &[u8]) -> crate::Result<Self> {
@@ -76,7 +132,7 @@ fn spans_to_entities(spans: Vec<xberg_gliner_candle::Span>) -> Vec<Entity> {
 impl NerBackend for CandleBackend {
     async fn detect(&self, text: &str, categories: &[EntityCategory]) -> Result<Vec<Entity>> {
         let labels: Vec<&str> = if categories.is_empty() {
-            vec!["person", "organization", "location", "email", "phone"]
+            default_labels().to_vec()
         } else {
             categories.iter().map(category_to_label).collect()
         };
@@ -86,21 +142,38 @@ impl NerBackend for CandleBackend {
             .lock()
             .map_err(|_| crate::XbergError::Other("CandleBackend: model mutex poisoned".into()))?;
 
-        // extract_ner is CPU-bound (tensor inference). On native targets with tokio-runtime,
-        // block_in_place signals tokio to move other tasks off this thread for the duration
-        // without requiring Send. On wasm32 or when tokio-runtime is absent (ner-candle-wasm),
-        // extract_ner is called directly — it is already synchronous.
-        #[cfg(all(not(target_arch = "wasm32"), feature = "tokio-runtime"))]
+        // extract_ner is CPU-bound (tensor inference). On native targets, block_in_place
+        // signals tokio to move other tasks off this thread for the duration without
+        // requiring Send. wasm32 has no multi-threaded tokio runtime (and is single-threaded
+        // regardless), so extract_ner is called directly — it is already synchronous.
+        #[cfg(not(target_arch = "wasm32"))]
         let spans = tokio::task::block_in_place(|| model.extract_ner(text, &labels, DEFAULT_THRESHOLD))
             .map_err(|e| crate::XbergError::Other(format!("CandleBackend inference: {e}")))?;
 
-        #[cfg(any(target_arch = "wasm32", not(feature = "tokio-runtime")))]
+        #[cfg(target_arch = "wasm32")]
         let spans = model
             .extract_ner(text, &labels, DEFAULT_THRESHOLD)
             .map_err(|e| crate::XbergError::Other(format!("CandleBackend inference: {e}")))?;
 
         Ok(spans_to_entities(spans))
     }
+}
+
+/// Labels used when the caller supplies an empty `categories` slice — matches the
+/// full default set the other NER backends (ONNX/LLM) use, not a narrower subset.
+fn default_labels() -> &'static [&'static str] {
+    &[
+        "person",
+        "organization",
+        "location",
+        "email",
+        "phone",
+        "date",
+        "time",
+        "money",
+        "percent",
+        "url",
+    ]
 }
 
 fn category_to_label(cat: &EntityCategory) -> &str {
@@ -144,6 +217,35 @@ mod tests {
     #[test]
     fn from_bytes_rejects_empty_input() {
         let result = CandleBackend::from_bytes(&[], b"{}", b"{}");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn default_labels_matches_broader_backend_set() {
+        // Must include the full default category set the other NER backends use,
+        // not just the narrower person/organization/location/email/phone subset.
+        let labels = default_labels();
+        for expected in [
+            "person",
+            "organization",
+            "location",
+            "email",
+            "phone",
+            "date",
+            "time",
+            "money",
+            "percent",
+            "url",
+        ] {
+            assert!(labels.contains(&expected), "missing default label: {expected}");
+        }
+    }
+
+    #[cfg(all(not(target_arch = "wasm32"), feature = "ner-candle"))]
+    #[test]
+    fn get_or_init_propagates_load_errors_without_panicking() {
+        let missing_dir = std::path::Path::new("/nonexistent/xberg-candle-cache-test-model-dir");
+        let result = CandleBackend::get_or_init(missing_dir, None);
         assert!(result.is_err());
     }
 

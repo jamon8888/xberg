@@ -117,12 +117,21 @@ pub struct ResourceSample {
 ///
 /// Recursively finds all descendants in the process tree by iterating through
 /// all system processes and checking parent PIDs.
+///
+/// Threads are explicitly excluded. On Linux, sysinfo enumerates a process's
+/// threads (tasks) as entries whose `parent()` is the owning process PID. Each
+/// thread reports the *whole* process RSS (threads share one address space), so
+/// summing them in `collect_process_tree_memory` multiplies real RSS by the
+/// thread count. That is exactly what inflated the ORT-backed layout pipeline to
+/// physically impossible peaks (p95 ~138 GB, p99 ~310 GB) while single-threaded
+/// paths stayed correct. `thread_kind()` is `Some(..)` for threads and `None`
+/// for real processes, so filtering on it counts each address space once.
 fn get_child_processes(parent_pid: Pid, system: &System) -> Vec<Pid> {
     system
         .processes()
         .iter()
         .filter_map(|(pid, proc)| {
-            if proc.parent() == Some(parent_pid) {
+            if proc.parent() == Some(parent_pid) && proc.thread_kind().is_none() {
                 Some(*pid)
             } else {
                 None

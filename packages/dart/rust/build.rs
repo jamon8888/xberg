@@ -2,8 +2,9 @@ use std::path::{Path, PathBuf};
 use std::{env, fs};
 
 fn main() {
-    // Re-run whenever any Rust source changes.
+    // Re-run whenever any Rust source changes or FRB config changes.
     println!("cargo:rerun-if-changed=src");
+    println!("cargo:rerun-if-changed=flutter_rust_bridge.yaml");
 
     // Copy compiled library to the location where Dart FFI expects to find it
     // for local development builds.

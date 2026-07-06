@@ -4,10 +4,7 @@
 //! embedding presets) as MCP resources at well-known URIs.
 
 use rmcp::ErrorData;
-use rmcp::model::{
-    AnnotateAble as _, ListResourceTemplatesResult, ListResourcesResult, RawResource, ReadResourceResult,
-    ResourceContents,
-};
+use rmcp::model::{ListResourceTemplatesResult, ListResourcesResult, ReadResourceResult, Resource, ResourceContents};
 
 /// URI for the supported document formats resource.
 pub const URI_FORMATS: &str = "xberg://formats";
@@ -26,26 +23,22 @@ pub const URI_EMBEDDING_PRESETS: &str = "xberg://presets/embeddings";
 pub fn list_resources() -> ListResourcesResult {
     #[allow(unused_mut)]
     let mut resources = vec![
-        RawResource::new(URI_FORMATS, "Supported Formats")
+        Resource::new(URI_FORMATS, "Supported Formats")
             .with_description("All document formats and MIME types supported by Xberg")
-            .with_mime_type("application/json")
-            .no_annotation(),
-        RawResource::new(URI_MODELS, "Model Manifest")
+            .with_mime_type("application/json"),
+        Resource::new(URI_MODELS, "Model Manifest")
             .with_description("Model files, sizes, and SHA256 checksums")
-            .with_mime_type("application/json")
-            .no_annotation(),
-        RawResource::new(URI_OCR_LANGUAGES, "OCR Languages")
+            .with_mime_type("application/json"),
+        Resource::new(URI_OCR_LANGUAGES, "OCR Languages")
             .with_description("Available OCR language codes")
-            .with_mime_type("application/json")
-            .no_annotation(),
+            .with_mime_type("application/json"),
     ];
 
     #[cfg(feature = "embeddings")]
     resources.push(
-        RawResource::new(URI_EMBEDDING_PRESETS, "Embedding Presets")
+        Resource::new(URI_EMBEDDING_PRESETS, "Embedding Presets")
             .with_description("Available embedding model presets")
-            .with_mime_type("application/json")
-            .no_annotation(),
+            .with_mime_type("application/json"),
     );
 
     ListResourcesResult {

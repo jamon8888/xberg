@@ -17,7 +17,7 @@ version: "3"
 #   task test:cov      -> tests with coverage
 #   task format        -> format Rust code
 #   task alef:format   -> format Alef-managed generated output
-#   task lint          -> lint via prek (full pre-commit chain)
+#   task lint          -> lint via poly
 #   task update        -> compatible dependency updates (minor versions only)
 #   task upgrade       -> breaking dependency upgrades (latest versions)
 #   task clean         -> remove all build artifacts
@@ -34,7 +34,6 @@ version: "3"
 #   task dart:*        -> Dart-specific tasks
 #   task swift:*       -> Swift-specific tasks
 #   task kotlin-android:* -> Kotlin/Android-specific tasks
-#   task r:*           -> R-specific tasks
 #   task zig:*         -> Zig-specific tasks
 # ============================================================================
 
@@ -63,8 +62,6 @@ includes:
     taskfile: ./.task/languages/swift.yml
   kotlin-android:
     taskfile: ./.task/languages/kotlin_android.yml
-  r:
-    taskfile: ./.task/languages/r.yml
   zig:
     taskfile: ./.task/languages/zig.yml
   version:
@@ -96,7 +93,7 @@ tasks:
     cmds:
       - task: rust:install
       - alef setup
-      - task: pre-commit:install
+      - poly hooks install
 
   # === Build ===
   build:
@@ -165,25 +162,24 @@ tasks:
 
   # === Lint & Format ===
   lint:
-    desc: "Lint all code via prek (pre-commit framework)"
+    desc: "Lint all code via poly"
     cmds:
-      - prek run --all-files
+      - poly lint .
 
   lint:check:
-    desc: "Lint all code WITHOUT auto-fix (check-only, Rust + bindings)"
+    desc: "Lint all code WITHOUT auto-fix (check-only)"
     cmds:
-      - task: rust:lint:check
-      - alef lint
+      - poly lint .
 
   format:
-    desc: "Format Rust code"
+    desc: "Format all code via poly"
     cmds:
-      - task: rust:format
+      - poly fmt --fix .
 
   format:check:
     desc: "Check code formatting without modifications"
     cmds:
-      - task: rust:format:check
+      - poly fmt --check .
 
   check:
     desc: "Run all checks (format + lint, no modifications)"
@@ -222,10 +218,8 @@ tasks:
       - task: dart:update
       - task: swift:update
       - task: kotlin-android:update
-      - task: r:update
       - task: zig:update
       - alef update
-      - prek autoupdate
 
   upgrade:
     desc: "Upgrade all dependencies to latest including breaking changes"
@@ -243,11 +237,9 @@ tasks:
       - task: dart:upgrade
       - task: swift:upgrade
       - task: kotlin-android:upgrade
-      - task: r:upgrade
       - task: zig:upgrade
       - cmd: alef update --latest
         ignore_error: true
-      - prek autoupdate
       - gau --update .
 
   # === Coverage ===
@@ -308,7 +300,7 @@ tasks:
   e2e:build:
     desc: "Build all language bindings used by e2e suites (release)"
     cmds:
-      - alef build --release --lang python,node,ruby,php,ffi,go,java,csharp,elixir,wasm,r,dart,kotlin_android,swift,zig
+      - alef build --release --lang python,node,ruby,php,ffi,go,java,csharp,elixir,wasm,dart,kotlin_android,swift,zig
 
   e2e:all:
     desc: "Generate, build, and run all e2e test suites"
@@ -320,7 +312,7 @@ tasks:
   e2e:test:
     desc: "Run all e2e test suites across all languages"
     cmds:
-      - alef test --e2e --lang rust,python,node,ruby,php,go,java,csharp,elixir,wasm,r,dart,kotlin_android,swift,zig
+      - alef test --e2e --lang rust,python,node,ruby,php,go,java,csharp,elixir,wasm,dart,kotlin_android,swift,zig
 
   e2e:quick:
     desc: "Run quick Rust e2e tests"
@@ -393,11 +385,6 @@ tasks:
     cmds:
       - alef test --e2e --lang csharp
 
-  r:e2e:
-    desc: "Run R e2e tests"
-    cmds:
-      - alef test --e2e --lang r
-
   dart:codegen:
     desc: "Generate flutter_rust_bridge bindings for Dart"
     cmds:
@@ -423,24 +410,13 @@ tasks:
 
   swift:e2e:
     desc: "Run Swift e2e tests"
+    # Delegate to alef (like every other language) rather than hand-orchestrating the build.
+    # The old flow ran `alef e2e generate --lang swift` at test time, which recomputes alef's
+    # input-sources hash — that stats the sibling-repo crawlberg sources declared in alef.toml
+    # (`../crawlberg/...`), which exist locally but not in CI, breaking the swift job. alef.toml
+    # [crates.test.swift] already defines the build (`before`) and mock-server e2e command.
     cmds:
-      - task: _swift:e2e:build
-      - task: _swift:e2e:test
-
-  _swift:e2e:build:
-    desc: "Build Swift e2e test suite (separate from test run)"
-    internal: true
-    cmds:
-      - alef e2e generate --lang swift
-      - cargo build --locked --release -p xberg-swift
-      - bash scripts/setup-swift-bridge.sh
-
-  _swift:e2e:test:
-    desc: "Run Swift e2e tests (after build)"
-    internal: true
-    cmds:
-      - cd e2e/swift_e2e && rm -rf .build
-      - bash scripts/e2e/run-with-mock-server.sh bash -c 'cd e2e/swift_e2e && swift test'
+      - alef test --e2e --lang swift
 
   zig:e2e:
     desc: "Run Zig e2e tests"
@@ -494,15 +470,14 @@ tasks:
       - cargo build --locked --release -p xberg-php
 
   php:format:
-    desc: "Format PHP binding with php-cs-fixer"
+    desc: "Format PHP binding with poly (mago)"
     cmds:
-      - composer format
+      - poly fmt --fix packages/php
 
   php:lint:
-    desc: "Lint PHP binding with phpstan and php-cs-fixer"
+    desc: "Lint PHP binding with poly (mago)"
     cmds:
-      - composer format:check
-      - composer phpstan
+      - poly lint packages/php
 
   python:build:sdist:publish:
     desc: "Build the Python sdist using maturin"

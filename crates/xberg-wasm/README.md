@@ -35,9 +35,6 @@
   <a href="https://hex.pm/packages/xberg">
     <img src="https://img.shields.io/hexpm/v/xberg?label=Elixir&color=007ec6" alt="Elixir">
   </a>
-  <a href="https://xberg-io.r-universe.dev/xberg">
-    <img src="https://img.shields.io/badge/R-xberg-007ec6" alt="R">
-  </a>
   <a href="https://pub.dev/packages/xberg">
     <img src="https://img.shields.io/pub/v/xberg?label=Dart&color=007ec6" alt="Dart">
   </a>
@@ -87,7 +84,7 @@ Extract text, tables, images, metadata, and code intelligence from 96 file forma
 - **Document intelligence core** — extract text, tables, images, metadata, entities, keywords, and code intelligence through the shared Rust engine.
 - **Format coverage** — PDF, Office, images, HTML/XML, email, archives, notebooks, citations, scientific formats, and plain text.
 - **OCR support** — Tesseract WASM when OCR is enabled; this build does not include ONNX Runtime, PaddleOCR, Candle, or native transcription dependencies.
-- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, R, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
+- **Same engine as every binding** — Rust, Python, Node.js, Go, Java, PHP, Ruby, .NET, Elixir, WASM, Kotlin Android, Swift, Dart, Zig, and C FFI share the same Rust implementation.
 - **WASM package** — browser and edge-compatible extraction where native libraries are unavailable.
 
 ## Installation
@@ -99,6 +96,7 @@ pnpm add @xberg-io/xberg-wasm
 ```
 
 ### System Requirements
+
 - Modern browser with WebAssembly support, or Deno 1.0+, or Cloudflare Workers
 - Optional: [Tesseract WASM](https://github.com/naptha/tesseract.js) for OCR functionality
 

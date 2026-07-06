@@ -255,10 +255,25 @@ pub(crate) fn reorder_segments_by_layout(
 
     // Emit segments in sorted-region order (each at most once), then append any
     // segments that projected to no region, in their original order.
+    // Within each region, sort segments by y (top coordinate) descending, x ascending.
     let mut included = vec![false; segments.len()];
     let mut reorder_map: Vec<usize> = Vec::with_capacity(segments.len());
     for (_, _, indices) in &ordered {
-        for &idx in indices {
+        // Sort indices within this region by segment coordinates (y desc, x asc)
+        let mut sorted_indices: Vec<usize> = indices.clone();
+        sorted_indices.sort_by(|&a, &b| {
+            let seg_a = &segments[a];
+            let seg_b = &segments[b];
+            // Sort by top coordinate (y + height) descending, then x ascending
+            let top_a = seg_a.y + seg_a.height;
+            let top_b = seg_b.y + seg_b.height;
+            match top_b.partial_cmp(&top_a).unwrap_or(std::cmp::Ordering::Equal) {
+                std::cmp::Ordering::Equal => seg_a.x.partial_cmp(&seg_b.x).unwrap_or(std::cmp::Ordering::Equal),
+                other => other,
+            }
+        });
+
+        for &idx in &sorted_indices {
             if idx < segments.len() && !included[idx] {
                 included[idx] = true;
                 reorder_map.push(idx);
@@ -274,6 +289,66 @@ pub(crate) fn reorder_segments_by_layout(
     reorder_map.into_iter().map(|idx| segments[idx].clone()).collect()
 }
 
+/// Reorder spans using purely geometric column detection (no layout hints needed).
+///
+/// Detects columns by clustering span x-centers, then orders spans
+/// left-to-right across columns, and top-to-bottom within each column.
+///
+/// Returns a Vec of span indices in reading order.
+fn reorder_spans_geometric(spans: &[TextSpan]) -> Vec<usize> {
+    if spans.is_empty() {
+        return Vec::new();
+    }
+
+    // Assign each span to a column based on x-center clustering
+    let mut x_centers: Vec<f32> = spans.iter().map(|s| s.x + s.width / 2.0).collect();
+    x_centers.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Deduplicate to find distinct column centers
+    let mut unique_centers: Vec<f32> = Vec::new();
+    for &center in &x_centers {
+        if let Some(&last) = unique_centers.last() {
+            if (center - last).abs() > COLUMN_MERGE_THRESHOLD_PTS {
+                unique_centers.push(center);
+            }
+        } else {
+            unique_centers.push(center);
+        }
+    }
+
+    // Assign each span to its nearest column
+    let mut span_columns: Vec<(usize, f32, usize)> = Vec::new(); // (column_id, top_y, span_idx)
+    for (span_idx, span) in spans.iter().enumerate() {
+        let span_center = span.x + span.width / 2.0;
+        let mut best_col = 0;
+        let mut best_dist = f32::INFINITY;
+
+        for (col_id, &cluster_center) in unique_centers.iter().enumerate() {
+            let dist = (span_center - cluster_center).abs();
+            if dist < best_dist {
+                best_dist = dist;
+                best_col = col_id;
+            }
+        }
+
+        let top_y = span.y + span.height;
+        span_columns.push((best_col, top_y, span_idx));
+    }
+
+    // Sort by (column_id ascending, top_y descending)
+    span_columns.sort_by(|a, b| {
+        match a.0.cmp(&b.0) {
+            std::cmp::Ordering::Equal => {
+                // Same column: sort by y descending (top-to-bottom in PDF coords)
+                b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal)
+            }
+            other => other,
+        }
+    });
+
+    span_columns.into_iter().map(|(_, _, idx)| idx).collect()
+}
+
 /// Reorder spans based on layout regions and column detection.
 ///
 /// Given a set of spans with bounding boxes and layout-detected regions:
@@ -282,11 +357,17 @@ pub(crate) fn reorder_segments_by_layout(
 /// 3. Sort regions by (column_id, top-to-bottom within column)
 /// 4. Emit spans in the order of their sorted regions
 ///
+/// When layout hints are unavailable, falls back to geometric column detection.
+///
 /// Returns a Vec of span indices in reading order.
 pub(crate) fn reorder_spans_by_layout(spans: &[TextSpan], hints: &[LayoutHint]) -> Vec<usize> {
-    if spans.is_empty() || hints.is_empty() {
-        // No reordering needed
-        return (0..spans.len()).collect();
+    if spans.is_empty() {
+        return Vec::new();
+    }
+
+    // If layout hints are available, use them; otherwise fall back to geometric column detection
+    if hints.is_empty() {
+        return reorder_spans_geometric(spans);
     }
 
     // Project spans onto regions
@@ -323,12 +404,27 @@ pub(crate) fn reorder_spans_by_layout(spans: &[TextSpan], hints: &[LayoutHint]) 
         }
     });
 
-    // Emit spans in sorted region order
+    // Emit spans in sorted region order.
+    // Within each region, sort spans by y (top coordinate) descending, x ascending.
     let mut result = Vec::new();
     let mut projected_spans = std::collections::HashSet::new();
 
     for (_, _, region_idx) in sorted_regions {
-        for &span_idx in &regions[region_idx].span_indices {
+        // Sort span indices within this region by coordinates (top_y desc, x asc)
+        let mut sorted_span_indices: Vec<usize> = regions[region_idx].span_indices.clone();
+        sorted_span_indices.sort_by(|&a, &b| {
+            let span_a = &spans[a];
+            let span_b = &spans[b];
+            // Sort by top coordinate (y + height) descending, then x ascending
+            let top_a = span_a.y + span_a.height;
+            let top_b = span_b.y + span_b.height;
+            match top_b.partial_cmp(&top_a).unwrap_or(std::cmp::Ordering::Equal) {
+                std::cmp::Ordering::Equal => span_a.x.partial_cmp(&span_b.x).unwrap_or(std::cmp::Ordering::Equal),
+                other => other,
+            }
+        });
+
+        for &span_idx in &sorted_span_indices {
             result.push(span_idx);
             projected_spans.insert(span_idx);
         }
@@ -672,6 +768,211 @@ mod tests {
         assert!(
             !pdf_config.reading_order,
             "Default reading_order must be false for backward compatibility"
+        );
+    }
+
+    /// Test that within a region, a heading with a higher native index than its
+    /// subsections is now emitted FIRST (top-to-bottom, not native order).
+    /// This guards against issue #1170: chapter heading emitted after subsections.
+    #[test]
+    fn test_intra_region_segment_ordering_heading_before_subsections() {
+        fn seg(text: &str, x: f32, y: f32) -> crate::pdf::hierarchy::SegmentData {
+            crate::pdf::hierarchy::SegmentData {
+                text: text.to_string(),
+                x,
+                y,
+                width: 80.0,
+                height: 12.0,
+                font_size: 10.0,
+                is_bold: false,
+                is_italic: false,
+                is_monospace: false,
+                baseline_y: y,
+                assigned_role: None,
+            }
+        }
+
+        // Native capture order: subsections first (native indices 0, 1, 2, 3),
+        // then heading (native index 4).
+        // Visually: heading at y=450 (top), subsections at y=200, 180, 160, 140 (below)
+        let segments = vec![
+            seg("2.1 Algemeen", 50.0, 200.0),       // native idx 0, subsection
+            seg("2.1.1 ErP label", 50.0, 180.0),    // native idx 1, sub-subsection
+            seg("2.1.2 Gascategorie", 50.0, 160.0), // native idx 2, sub-subsection
+            seg("Table row 1", 50.0, 140.0),        // native idx 3, data
+            seg("2 TOESTELGEGEVENS", 50.0, 450.0),  // native idx 4, HEADING (highest y)
+        ];
+
+        // Single region containing all segments
+        let hints = vec![LayoutHint {
+            class_name: crate::pdf::structure::types::LayoutHintClass::Text,
+            confidence: 0.95,
+            left: 40.0,
+            bottom: 100.0,
+            right: 400.0,
+            top: 500.0,
+        }];
+
+        let reordered = reorder_segments_by_layout(segments, &hints);
+        let order: Vec<&str> = reordered.iter().map(|s| s.text.as_str()).collect();
+
+        // Expected order: heading FIRST (y=450, highest), then subsections top-to-bottom
+        assert_eq!(
+            order,
+            vec![
+                "2 TOESTELGEGEVENS",
+                "2.1 Algemeen",
+                "2.1.1 ErP label",
+                "2.1.2 Gascategorie",
+                "Table row 1"
+            ],
+            "Within a region, segments must be ordered by top coordinate (y + height) descending, \
+             so the heading (y=450) comes before its subsections (y=200, 180, 160, 140)"
+        );
+    }
+
+    /// Test that sub-subsections are ordered correctly (2.1.1 before 2.1.2)
+    /// when they have inverted native indices.
+    #[test]
+    fn test_intra_region_subsection_ordering() {
+        fn seg(text: &str, x: f32, y: f32) -> crate::pdf::hierarchy::SegmentData {
+            crate::pdf::hierarchy::SegmentData {
+                text: text.to_string(),
+                x,
+                y,
+                width: 80.0,
+                height: 12.0,
+                font_size: 10.0,
+                is_bold: false,
+                is_italic: false,
+                is_monospace: false,
+                baseline_y: y,
+                assigned_role: None,
+            }
+        }
+
+        // Native order: 2.1.2 (idx 0) before 2.1.1 (idx 1), but 2.1.1 is visually higher
+        let segments = vec![
+            seg("2.1.2 Gascategorie", 50.0, 180.0), // native idx 0, lower y
+            seg("2.1.1 ErP label", 50.0, 200.0),    // native idx 1, higher y
+        ];
+
+        let hints = vec![LayoutHint {
+            class_name: crate::pdf::structure::types::LayoutHintClass::Text,
+            confidence: 0.95,
+            left: 40.0,
+            bottom: 100.0,
+            right: 400.0,
+            top: 500.0,
+        }];
+
+        let reordered = reorder_segments_by_layout(segments, &hints);
+        let order: Vec<&str> = reordered.iter().map(|s| s.text.as_str()).collect();
+
+        assert_eq!(
+            order,
+            vec!["2.1.1 ErP label", "2.1.2 Gascategorie"],
+            "Segments within a region must be ordered by y coordinate, \
+             so 2.1.1 (y=200) comes before 2.1.2 (y=180)"
+        );
+    }
+
+    /// Test that span ordering works correctly within regions, matching segment behavior
+    #[test]
+    fn test_intra_region_span_ordering_heading_before_subsections() {
+        // Native capture order: subsections first, then heading
+        // Visually: heading at y=450 (top), subsections at y=200, 180, 160 (below)
+        let spans = vec![
+            TextSpan {
+                text: "2.1 Algemeen".to_string(),
+                x: 50.0,
+                y: 200.0,
+                width: 80.0,
+                height: 12.0,
+            },
+            TextSpan {
+                text: "2.1.1 ErP".to_string(),
+                x: 50.0,
+                y: 180.0,
+                width: 60.0,
+                height: 12.0,
+            },
+            TextSpan {
+                text: "2.1.2 Gas".to_string(),
+                x: 50.0,
+                y: 160.0,
+                width: 60.0,
+                height: 12.0,
+            },
+            TextSpan {
+                text: "2 TOESTEL".to_string(),
+                x: 50.0,
+                y: 450.0,
+                width: 80.0,
+                height: 12.0,
+            },
+        ];
+
+        let hints = vec![LayoutHint {
+            class_name: crate::pdf::structure::types::LayoutHintClass::Text,
+            confidence: 0.95,
+            left: 40.0,
+            bottom: 100.0,
+            right: 400.0,
+            top: 500.0,
+        }];
+
+        let order = reorder_spans_by_layout(&spans, &hints);
+        assert_eq!(
+            order,
+            vec![3, 0, 1, 2],
+            "Spans within a region must be ordered by top coordinate descending: \
+             index 3 (y=450) first, then 0, 1, 2 (y=200, 180, 160)"
+        );
+    }
+
+    /// Test geometric column detection when layout hints are absent
+    #[test]
+    fn test_geometric_column_fallback_two_columns() {
+        // Two columns detected geometrically by x-center clustering
+        let spans = vec![
+            TextSpan {
+                text: "Left top".to_string(),
+                x: 50.0,
+                y: 450.0,
+                width: 80.0,
+                height: 12.0,
+            },
+            TextSpan {
+                text: "Left bottom".to_string(),
+                x: 50.0,
+                y: 200.0,
+                width: 80.0,
+                height: 12.0,
+            },
+            TextSpan {
+                text: "Right top".to_string(),
+                x: 300.0,
+                y: 450.0,
+                width: 80.0,
+                height: 12.0,
+            },
+            TextSpan {
+                text: "Right bottom".to_string(),
+                x: 300.0,
+                y: 200.0,
+                width: 80.0,
+                height: 12.0,
+            },
+        ];
+
+        // No hints: should fall back to geometric column detection
+        let order = reorder_spans_by_layout(&spans, &[]);
+        assert_eq!(
+            order,
+            vec![0, 1, 2, 3],
+            "Without hints, geometric fallback should detect columns by x-center \
+             and order left column (0,1) before right column (2,3), top-to-bottom"
         );
     }
 }

@@ -1,26 +1,23 @@
 {
-	"name": "@xberg-io/xberg-cli",
-	"version": "0.0.1",
-	"description": "CLI proxy for xberg — downloads and runs the native xberg binary from GitHub releases.",
-	"license": "MIT",
-	"author": "Na'aman Hirschfeld",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/xberg-io/xberg.git",
-		"directory": "cli-proxy/npm"
-	},
-	"bin": {
-		"xberg": "bin/xberg.js"
-	},
-	"files": [
-		"bin/",
-		"install.js"
-	],
-	"type": "module",
-	"publishConfig": {
-		"access": "public"
-	},
-	"engines": {
-		"node": ">=18"
-	}
+  "name": "@xberg-io/xberg-cli",
+  "version": "0.0.1",
+  "description": "CLI proxy for xberg — downloads and runs the native xberg binary from GitHub releases.",
+  "license": "MIT",
+  "author": "Na'aman Hirschfeld",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xberg-io/xberg.git",
+    "directory": "cli-proxy/npm"
+  },
+  "bin": {
+    "xberg": "bin/xberg.js"
+  },
+  "files": ["bin/", "install.js"],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }

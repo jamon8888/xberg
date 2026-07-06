@@ -1,7 +1,7 @@
 //! Heading classification for paragraphs using font-size clustering.
 
 use super::constants::{MAX_BOLD_HEADING_WORD_COUNT, MAX_HEADING_DISTANCE_MULTIPLIER, MAX_HEADING_WORD_COUNT};
-use super::regions::looks_like_figure_label;
+use super::regions::{looks_like_bare_url, looks_like_figure_label};
 use super::types::{LayoutHintClass, PdfParagraph};
 
 /// Classify paragraphs as headings or body using the global heading map and bold heuristic.
@@ -58,6 +58,7 @@ pub(super) fn classify_paragraphs(paragraphs: &mut [PdfParagraph], heading_map: 
         if let Some(level) = heading_level
             && word_count <= MAX_HEADING_WORD_COUNT
             && !super::layout_classify::is_separator_text(&para_text)
+            && !looks_like_bare_url(&para_text)
         {
             para.heading_level = Some(level);
             continue;
@@ -103,6 +104,7 @@ pub(super) fn classify_paragraphs(paragraphs: &mut [PdfParagraph], heading_map: 
                 && period_ok
                 && colon_ok
                 && !looks_like_figure_label(t)
+                && !looks_like_bare_url(t)
                 && !super::layout_classify::is_separator_text(t)
             {
                 // Use font-size ratio to body to differentiate H2 vs H3:
@@ -653,6 +655,7 @@ pub(super) fn refine_heading_hierarchy(all_pages: &mut [Vec<PdfParagraph>]) {
                 && first_wc <= 10
                 && first_wc > 0
                 && !first.is_page_furniture
+                && !looks_like_bare_url(&first_text)
             {
                 all_pages[0][0].heading_level = Some(1);
             }
@@ -814,6 +817,74 @@ pub(super) fn is_section_pattern(text: &str) -> bool {
     }
     // Starts with section number: "3.2. Methods" or "162-56. Place"
     starts_with_section_number(t)
+}
+
+/// Check if text starts like a numbered SECTION HEADING as opposed to a list item.
+///
+/// `is_section_pattern` treats ANY leading number as a section marker, which
+/// makes numbered list items ("1. First point") unclassifiable as lists. This
+/// tighter predicate only flags patterns that are reliably headings:
+/// - multi-level numbering: "3.2 Methods", "3.2.1 Details"
+/// - roman-numeral markers: "IV. Results", "II) Scope"
+/// - single number with an ALL-CAPS remainder: "1. INTRODUCTION"
+///
+/// A single-level number followed by mixed-case text ("1. Énumération") is a
+/// list item and returns `false`.
+pub(super) fn is_numbered_section_heading(text: &str) -> bool {
+    let t = text.trim();
+    let bytes = t.as_bytes();
+    if bytes.is_empty() {
+        return false;
+    }
+
+    // Roman-numeral markers are section headings.
+    let roman_chars: &[u8] = b"IVXLCDM";
+    let roman_end = bytes.iter().position(|b| !roman_chars.contains(b)).unwrap_or(0);
+    if roman_end > 0
+        && roman_end < bytes.len()
+        && matches!(bytes[roman_end], b'.' | b' ' | b')')
+        && is_valid_roman(&t[..roman_end])
+    {
+        return true;
+    }
+
+    // Parse leading arabic numbering, counting dot-separated levels.
+    // idx only ever advances over ASCII bytes, so slicing `t` at it is safe.
+    let mut levels = 0usize;
+    let mut idx = 0usize;
+    loop {
+        let digit_len = bytes[idx..]
+            .iter()
+            .position(|b| !b.is_ascii_digit())
+            .unwrap_or(bytes.len() - idx);
+        if digit_len == 0 {
+            break;
+        }
+        levels += 1;
+        idx += digit_len;
+        if bytes.get(idx) == Some(&b'.') && bytes.get(idx + 1).is_some_and(|b| b.is_ascii_digit()) {
+            idx += 1; // consume the level separator and parse the next group
+        } else {
+            break;
+        }
+    }
+    if levels == 0 {
+        return false;
+    }
+    if levels >= 2 {
+        return true; // "3.2 Methods" / "3.2.1 Details"
+    }
+
+    // Single-level marker: consume the trailing '.' / ')' and inspect the remainder.
+    if matches!(bytes.get(idx), Some(b'.') | Some(b')')) {
+        idx += 1;
+    }
+    let remainder = t[idx..].trim_start();
+    remainder.chars().any(|c| c.is_alphabetic())
+        && remainder
+            .chars()
+            .filter(|c| c.is_alphabetic())
+            .all(|c| c.is_uppercase())
 }
 
 /// Check if text starts with a section number pattern (e.g., "1 ", "2.1 ", "A.", "III.").
@@ -1328,6 +1399,18 @@ fn is_math_character(c: char) -> bool {
         | '\u{27E9}' // ⟩
         | '\u{00D7}' // ×
         | '\u{00F7}' // ÷
+        // ASCII operators with a strong math signal of their own. Deliberately
+        // excludes prose-common characters (parentheses, hyphen, slash, colon,
+        // angle brackets) so ordinary text never reaches the density threshold.
+        | '+'
+        | '='
+        | '^'
+        // Superscript/subscript forms — exponents like a² reach extraction as
+        // these codepoints.
+        | '\u{00B9}' // ¹
+        | '\u{00B2}' // ²
+        | '\u{00B3}' // ³
+        | '\u{2070}'..='\u{209F}' // Superscripts and Subscripts block
     ) || is_greek_letter(c)
 }
 
@@ -2151,6 +2234,40 @@ mod tests {
     }
 
     #[test]
+    fn test_formula_detection_ascii_operators() {
+        // Simple equations built from ASCII operators only (code_and_formula
+        // fixture: "a² + 8 = 12") must be detected without Unicode symbols.
+        let heading_map = vec![(12.0, None)];
+        let mut paragraphs = vec![make_text_paragraph(12.0, "a2 + 8 = 12", false)];
+        classify_paragraphs(&mut paragraphs, &heading_map);
+        assert!(paragraphs[0].is_formula, "ASCII equation should be a formula");
+    }
+
+    #[test]
+    fn test_formula_detection_superscript_exponent() {
+        let heading_map = vec![(12.0, None)];
+        let mut paragraphs = vec![make_text_paragraph(12.0, "a\u{00B2} + 8 = 12", false)];
+        classify_paragraphs(&mut paragraphs, &heading_map);
+        assert!(
+            paragraphs[0].is_formula,
+            "superscript exponent equation should be a formula"
+        );
+    }
+
+    #[test]
+    fn test_formula_detection_prose_with_equals_not_flagged() {
+        // A normal sentence that merely mentions an equals sign must not flip.
+        let heading_map = vec![(12.0, None)];
+        let mut paragraphs = vec![make_text_paragraph(
+            12.0,
+            "The default setting is size = large for all new documents created here.",
+            false,
+        )];
+        classify_paragraphs(&mut paragraphs, &heading_map);
+        assert!(!paragraphs[0].is_formula, "prose with a single = must stay prose");
+    }
+
+    #[test]
     fn test_formula_detection_high_density() {
         // Even with fewer than 3 math chars, 15%+ density triggers formula
         let heading_map = vec![(12.0, None)];
@@ -2588,5 +2705,45 @@ mod tests {
                 "page {i} short repeating text should be furniture"
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod numbered_section_heading_tests {
+    use super::is_numbered_section_heading;
+
+    #[test]
+    fn multilevel_numbers_are_headings() {
+        assert!(is_numbered_section_heading("3.2 Methods"));
+        assert!(is_numbered_section_heading("3.2.1 Details"));
+        assert!(is_numbered_section_heading("3.2. Methods"));
+    }
+
+    #[test]
+    fn roman_markers_are_headings() {
+        assert!(is_numbered_section_heading("IV. Results"));
+        assert!(is_numbered_section_heading("II) Scope"));
+        assert!(is_numbered_section_heading("I INTRODUCTION"));
+    }
+
+    #[test]
+    fn single_number_with_all_caps_remainder_is_heading() {
+        assert!(is_numbered_section_heading("1. INTRODUCTION"));
+        assert!(is_numbered_section_heading("2) RELATED WORK"));
+    }
+
+    #[test]
+    fn numbered_list_items_are_not_headings() {
+        assert!(!is_numbered_section_heading("1. First point"));
+        assert!(!is_numbered_section_heading("1. Énumération 1"));
+        assert!(!is_numbered_section_heading("12) apples and oranges"));
+        assert!(!is_numbered_section_heading("1.\nÉnumération 1"));
+    }
+
+    #[test]
+    fn non_numbered_text_is_not_a_heading_marker() {
+        assert!(!is_numbered_section_heading("Introduction"));
+        assert!(!is_numbered_section_heading(""));
+        assert!(!is_numbered_section_heading("1."));
     }
 }

@@ -139,18 +139,24 @@ pub enum OcrStatus {
 
 /// Categorizes the source of a benchmark error.
 ///
-/// This distinction is critical: framework errors are the framework's fault
-/// (e.g. a framework can't parse a malformed PDF), while harness errors are
-/// our fault (e.g. timeout, process crash, invalid output format).
+/// This distinction is critical:
+/// - **FrameworkError**: the framework itself reported an extraction error (returned `{"error": "..."}`)
+/// - **HarnessError**: harness infrastructure problem (process crash, invalid JSON output, etc.)
+/// - **ConfigSetupError**: environment/dependency misconfiguration (missing models, torch module not available, etc.)
+/// - **Timeout**: extraction exceeded configured timeout
+/// - **EmptyContent**: framework ran but produced no content
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum ErrorKind {
     /// The framework itself reported an extraction error (returned `{"error": "..."}`)
     /// This is NOT our fault - the framework couldn't handle this file.
     FrameworkError,
-    /// A harness-level error: process crash, invalid JSON output, etc.
-    /// This IS potentially our fault or an infrastructure issue.
+    /// A harness-level error: process crash, invalid JSON output, subprocess failure, etc.
+    /// This IS our fault or an infrastructure issue.
     HarnessError,
+    /// Configuration or setup error: missing dependencies, environment misconfiguration
+    /// (e.g., torch.PP-OCRv6 not available, partition_X not available, missing tessdata, etc.)
+    ConfigSetupError,
     /// Extraction timed out (exceeded the configured timeout duration).
     Timeout,
     /// Framework returned empty or missing content (ran but produced nothing).

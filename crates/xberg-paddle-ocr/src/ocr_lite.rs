@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use image::ImageBuffer;
 use ort::session::builder::SessionBuilder;
+use tracing;
 
 use crate::{
     angle_net::AngleNet,
@@ -145,6 +146,16 @@ impl OcrLite {
         cls_thresh: f32,
         thresh: f32,
     ) -> Result<OcrResult, OcrError> {
+        tracing::debug!(
+            width = img_src.width(),
+            height = img_src.height(),
+            padding = padding,
+            max_side_len = max_side_len,
+            do_angle = do_angle,
+            angle_rollback = angle_rollback,
+            "PaddleOCR: starting detection"
+        );
+
         let origin_max_side = img_src.width().max(img_src.height());
         let mut resize;
         if max_side_len == 0 || max_side_len > origin_max_side {
@@ -158,6 +169,11 @@ impl OcrLite {
         let padding_src = OcrUtils::make_padding(img_src, padding)?;
 
         let scale = ScaleParam::get_scale_param(&padding_src, resize);
+        tracing::debug!(
+            resize_width = scale.dst_width,
+            resize_height = scale.dst_height,
+            "PaddleOCR: image resized"
+        );
 
         self.detect_once(
             &padding_src,
@@ -316,18 +332,38 @@ impl OcrLite {
         cls_thresh: f32,
         thresh: f32,
     ) -> Result<OcrResult, OcrError> {
+        tracing::debug!("PaddleOCR: running DB-net text detection");
         let mut text_boxes =
             self.db_net
                 .get_text_boxes(img_src, scale, box_score_thresh, box_thresh, un_clip_ratio, thresh)?;
+
+        tracing::debug!(
+            num_boxes = text_boxes.len(),
+            min_score = text_boxes.iter().map(|b| b.score).fold(f32::INFINITY, f32::min),
+            max_score = text_boxes.iter().map(|b| b.score).fold(f32::NEG_INFINITY, f32::max),
+            "PaddleOCR: detection complete"
+        );
 
         // Sort boxes in reading order (top-to-bottom, left-to-right)
         Self::sort_text_boxes(&mut text_boxes);
 
         let part_images = OcrUtils::get_part_images(img_src, &text_boxes);
 
+        if do_angle {
+            tracing::debug!(num_regions = part_images.len(), "PaddleOCR: running angle classifier");
+        }
+
         let angles = self
             .angle_net
             .get_angles(&part_images, do_angle, most_angle, cls_thresh)?;
+
+        if do_angle {
+            let rotated_count = angles.iter().filter(|a| a.index != 0).count();
+            tracing::debug!(
+                rotated_regions = rotated_count,
+                "PaddleOCR: angle classification complete"
+            );
+        }
 
         let mut rotated_images: Vec<image::RgbImage> = Vec::with_capacity(part_images.len());
 
@@ -346,12 +382,29 @@ impl OcrLite {
             rotated_images.push(part_image);
         }
 
+        tracing::debug!(
+            num_regions = rotated_images.len(),
+            "PaddleOCR: running CRNN text recognition"
+        );
         let text_lines = self.crnn_net.get_text_lines(
             &rotated_images,
             &angle_rollback_records,
             angle_rollback_threshold,
             Self::DEFAULT_REC_BATCH_SIZE,
         )?;
+
+        if text_lines.is_empty() {
+            tracing::warn!("PaddleOCR: no text recognized");
+        } else {
+            let avg_score = text_lines.iter().map(|l| l.text_score).sum::<f32>() / text_lines.len() as f32;
+            let empty_count = text_lines.iter().filter(|l| l.text.trim().is_empty()).count();
+            tracing::debug!(
+                num_lines = text_lines.len(),
+                avg_score = avg_score,
+                empty_lines = empty_count,
+                "PaddleOCR: recognition complete"
+            );
+        }
 
         let mut text_blocks = Vec::with_capacity(text_lines.len());
         for (i, text_line) in text_lines.into_iter().enumerate() {

@@ -8,7 +8,6 @@ on:
       - "packages/dart/rust/**"
       - "packages/swift/rust/**"
       - "packages/elixir/native/**"
-      - "packages/r/src/rust/**"
       - "packages/ruby/ext/xberg_rb/**"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -22,7 +21,6 @@ on:
       - "packages/dart/rust/**"
       - "packages/swift/rust/**"
       - "packages/elixir/native/**"
-      - "packages/r/src/rust/**"
       - "packages/ruby/ext/xberg_rb/**"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -112,6 +110,12 @@ jobs:
 
       - name: Check no-default-features
         run: cargo check --locked -p xberg --no-default-features
+        shell: bash
+
+      # The WASM Tesseract backend is gated to `ocr-wasm` without `ocr`, a combo no other
+      # job builds; check it here so it can't bit-rot until release-time WASM publish.
+      - name: Check ocr-wasm backend
+        run: cargo check --locked -p xberg --no-default-features --features ocr-wasm --lib
         shell: bash
 
   live-hf:

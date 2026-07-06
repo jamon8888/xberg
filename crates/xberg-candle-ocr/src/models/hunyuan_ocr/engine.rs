@@ -141,9 +141,13 @@ impl HunyuanOCREngine {
     /// or generation fails. Returns `CandleOcrError::Tokenizer` if
     /// tokenization or decoding fails.
     pub fn process_image(&mut self, image_bytes: &[u8]) -> Result<CandleOcrOutput> {
+        tracing::debug!(image_size = image_bytes.len(), model = %self.model_name, "Hunyuan-OCR: starting inference");
         // Decode image bytes to DynamicImage
         let img = image::load_from_memory(image_bytes)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Image decode: {}", e)))?;
+
+        let (img_width, img_height) = img.dimensions();
+        tracing::debug!(width = img_width, height = img_height, "Hunyuan-OCR: image dimensions");
 
         // Build OCR prompt that matches the model's expected input template
         let prompt_text = "Image OCR:";
@@ -155,12 +159,15 @@ impl HunyuanOCREngine {
             .map_err(|e| CandleOcrError::Tokenizer(format!("Encode prompt: {}", e)))?;
         let prompt_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
 
+        tracing::debug!(prompt_len = prompt_ids.len(), "Hunyuan-OCR: prompt tokenization");
+
         let input_ids = Tensor::new(prompt_ids.as_slice(), &self.device)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Token tensor: {}", e)))?
             .unsqueeze(0)
             .map_err(|e| CandleOcrError::InferenceFailed(format!("Unsqueeze batch: {}", e)))?;
 
         // Use the processor to build full multimodal data with image preprocessing, mask and position IDs
+        tracing::debug!("Hunyuan-OCR: processing image and text to multimodal data");
         let hunyuan_data = self
             .processor
             .process_images_and_text(&[img], input_ids.clone(), prompt_text)?;
@@ -175,6 +182,7 @@ impl HunyuanOCREngine {
         ]);
 
         // Run autoregressive generation
+        tracing::debug!("Hunyuan-OCR: clearing cache and running forward pass");
         self.model.clear_kv_cache();
 
         let output_ids = self
@@ -207,6 +215,16 @@ impl HunyuanOCREngine {
             .map_err(|e| CandleOcrError::Tokenizer(format!("Decode error: {}", e)))?
             .trim()
             .to_string();
+
+        if output_text.is_empty() {
+            tracing::warn!("Hunyuan-OCR: output is empty");
+        } else {
+            tracing::debug!(
+                text_len = output_text.len(),
+                num_tokens = token_id.len(),
+                "Hunyuan-OCR: decoding complete"
+            );
+        }
 
         Ok(CandleOcrOutput {
             content: output_text,

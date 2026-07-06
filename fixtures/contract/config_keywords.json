@@ -1,15 +1,9 @@
 {
 	"id": "config_keywords",
 	"description": "Tests keyword extraction via YAKE algorithm",
-	"tags": [
-		"contract",
-		"config",
-		"keywords"
-	],
+	"tags": ["contract", "config", "keywords"],
 	"call": "extract",
-	"assertion_recipes": [
-		"keywords"
-	],
+	"assertion_recipes": ["keywords"],
 	"input": {
 		"mock_responses": [
 			{
@@ -48,9 +42,7 @@
 		}
 	],
 	"skip": {
-		"languages": [
-			"wasm"
-		],
+		"languages": ["wasm"],
 		"reason": "WASM cannot access filesystem; use bytes input with file content instead"
 	},
 	"config": {
