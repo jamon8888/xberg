@@ -2,6 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { homedir } from "os";
 
+declare global {
+  interface Window {
+    ort?: { env: { wasm: { wasmPaths: string } } };
+  }
+}
+
 interface ModelInfo {
   name: string;
   repo: string;
@@ -31,27 +37,16 @@ const MODELS: ModelInfo[] = [
 ];
 
 /**
- * Manages model cache in OPFS (browser) or ~/.cache/xberg (Node).
+ * Manages model cache in OPFS (browser, not yet implemented) or ~/.cache/xberg (Node).
  * Mirrors the MCP WarmupManager responsibilities.
- * Logs cache backend selection for debugging.
  */
 export class CacheManager {
   private cacheDir: string;
-  private vectorBackend: "sqlite-vec" | "cosine" = "cosine";
 
   constructor(cacheDir?: string) {
     this.cacheDir =
       cacheDir ??
       this.defaultCacheDir();
-
-    // Log the cache backend
-    if (typeof window !== "undefined" && "StorageManager" in window) {
-      console.debug(`[cache] OPFS available; sqlite-vec vector backend will be preferred`);
-      this.vectorBackend = "sqlite-vec";
-    } else {
-      console.debug(`[cache] OPFS not available; falling back to JS cosine similarity`);
-      this.vectorBackend = "cosine";
-    }
   }
 
   private defaultCacheDir(): string {
@@ -85,8 +80,11 @@ export class CacheManager {
           // Browser: check OPFS (simplified; actual check would use storage API)
           // For now, assume not cached in CI
         }
-      } catch {
-        // Model not found or error accessing
+      } catch (err) {
+        // File not found is expected; other errors should be logged
+        if (err instanceof Error && "code" in err && err.code !== "ENOENT") {
+          console.warn(`[cache] unexpected error checking ${model.name}:`, err);
+        }
       }
     }
 
@@ -127,10 +125,11 @@ export class CacheManager {
    */
   setWasmPaths(wasmDir: string): void {
     try {
-      if (typeof window !== "undefined" && "ort" in window) {
-        // @ts-ignore - ort global (loaded by onnxruntime-web)
+      if (typeof window !== "undefined" && "ort" in window && window.ort) {
         window.ort.env.wasm.wasmPaths = wasmDir;
         console.debug(`[cache] ORT wasm paths set to ${wasmDir}`);
+      } else {
+        console.debug(`[cache] window.ort not found; setWasmPaths is a no-op`);
       }
     } catch (err) {
       console.warn(`[cache] failed to set ORT wasm paths:`, err);
