@@ -45,4 +45,17 @@ describe("embedder", () => {
     const result = await embedder.embed(texts);
     expect(result).toHaveLength(100);
   }, 60_000);
+
+  it("returns a cached result for identical text without re-invoking the model", async () => {
+    const embedder = await createEmbedder();
+    const texts = ["cache me please"];
+
+    const first = await embedder.embed(texts);
+    const start = performance.now();
+    const second = await embedder.embed(texts);
+    const elapsedMs = performance.now() - start;
+
+    expect(second[0]).toEqual(first[0]);
+    expect(elapsedMs).toBeLessThan(5);
+  }, 60_000);
 });

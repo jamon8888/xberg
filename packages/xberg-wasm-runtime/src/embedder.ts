@@ -9,6 +9,14 @@ if (typeof process !== "undefined" && process.env.CI) {
 const DEFAULT_MODEL = "Xenova/all-MiniLM-L6-v2";
 const DEFAULT_BATCH_SIZE = 32;
 
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /**
  * Create an embedder using transformers.js v3 + ONNX Runtime Web.
  * Vectors are L2-normalized before return (unit-length, matching rag-embeddings rule).
@@ -22,52 +30,43 @@ export async function createEmbedder(
   // Initialize the feature extraction pipeline (embeddings).
   const extractor = await pipeline("feature-extraction", modelId);
 
+  const cache = new Map<string, Float32Array>();
+
   async function embed(texts: string[]): Promise<Float32Array[]> {
     if (texts.length === 0) return [];
 
-    const results: Float32Array[] = [];
+    const hashes = await Promise.all(texts.map((t) => sha256Hex(`${modelId}:${t}`)));
+    const results: (Float32Array | undefined)[] = texts.map((_, i) => cache.get(hashes[i]!));
 
-    // Process in batches to manage memory. Batches are awaited sequentially
-    // (not Promise.all) so at most one batch's tensor output is resident in
-    // memory at a time, and so `results` preserves input order — pushing
-    // from concurrently-resolving batches would make output order depend on
-    // resolution timing rather than input position.
-    for (let i = 0; i < texts.length; i += DEFAULT_BATCH_SIZE) {
-      const batch = texts.slice(
-        i,
-        Math.min(i + DEFAULT_BATCH_SIZE, texts.length)
-      );
+    const uncachedIndices = results
+      .map((r, i) => (r === undefined ? i : -1))
+      .filter((i) => i !== -1);
+    const uncachedTexts = uncachedIndices.map((i) => texts[i]!);
 
-      // Mean-pool token embeddings into a single sentence embedding per input.
-      // We normalize ourselves below rather than relying on the pipeline's
-      // built-in `normalize` option, to keep the normalization logic explicit
-      // and unit-tested in this module.
+    for (let i = 0; i < uncachedTexts.length; i += DEFAULT_BATCH_SIZE) {
+      const batch = uncachedTexts.slice(i, Math.min(i + DEFAULT_BATCH_SIZE, uncachedTexts.length));
+      const batchIndices = uncachedIndices.slice(i, Math.min(i + DEFAULT_BATCH_SIZE, uncachedIndices.length));
+
       // eslint-disable-next-line no-await-in-loop -- intentional: bounds
-      // peak memory to one batch and preserves output ordering (see comment
-      // above the loop).
-      const output = await extractor(batch, {
-        pooling: "mean",
-        normalize: false,
-      });
+      // peak memory to one batch and preserves output ordering.
+      const output = await extractor(batch, { pooling: "mean", normalize: false });
 
-      // `output` is a Tensor with shape [batch.length, hiddenSize] and a flat
-      // `.data` array. Slice out each row before normalizing.
       const [batchSize, hiddenSize] = output.dims;
       if (batchSize === undefined || hiddenSize === undefined) {
-        throw new Error(
-          `Unexpected feature-extraction output shape: [${output.dims.join(", ")}]`
-        );
+        throw new Error(`Unexpected feature-extraction output shape: [${output.dims.join(", ")}]`);
       }
       const flat = Float32Array.from(output.data as ArrayLike<number>);
 
       for (let row = 0; row < batchSize; row++) {
         const start = row * hiddenSize;
-        const vec = flat.subarray(start, start + hiddenSize);
-        results.push(l2Normalize(vec));
+        const vec = l2Normalize(flat.subarray(start, start + hiddenSize));
+        const originalIndex = batchIndices[row]!;
+        results[originalIndex] = vec;
+        cache.set(hashes[originalIndex]!, vec);
       }
     }
 
-    return results;
+    return results as Float32Array[];
   }
 
   return { embed };
