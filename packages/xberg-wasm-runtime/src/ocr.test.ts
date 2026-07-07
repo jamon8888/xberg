@@ -69,31 +69,28 @@ describe("OCR", () => {
       };
     };
 
-    const canvas = createCanvas(800, 200);
+    // The previous fixture (800x200 canvas, bold 100px sans-serif) produced
+    // ZERO detected text boxes: the detection model scales the longest side
+    // to maxSideLength 640 (rounding to a multiple of 32) and is
+    // scale/aspect-sensitive, and the bold `sans-serif` rasterization was
+    // not reliably detected or recognized. A 640x120 canvas with a plain
+    // (non-bold) 64px Arial glyph matches the model's expected input scale
+    // and font rasterization, so detection finds the box and recognition
+    // returns "HELLO" through the default multilingual model.
+    const canvas = createCanvas(640, 120);
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, 800, 200);
+    ctx.fillRect(0, 0, 640, 120);
     ctx.fillStyle = "black";
-    ctx.font = "bold 100px sans-serif";
-    ctx.fillText("HELLO", 20, 130);
+    ctx.font = "64px Arial";
+    ctx.fillText("HELLO", 10, 86);
 
     const pngBuffer = canvas.toBuffer("image/png");
-    const result = await ocr.ocr(new Uint8Array(pngBuffer));
+    const fixtureBytes = new Uint8Array(pngBuffer);
+    const result = await ocr.ocr(fixtureBytes);
 
-    // The detection/recognition models may or may not find text in a
-    // synthetic canvas-rendered image (font rasterization characteristics
-    // differ from real-world scanned/photographed documents), so this does
-    // not assert non-empty results — it asserts the *shape* of the result
-    // is always well-formed, proving the pipeline runs end-to-end without
-    // throwing.
-    expect(result).toHaveProperty("text");
-    expect(typeof result.text).toBe("string");
-    expect(result).toHaveProperty("lines");
-    expect(Array.isArray(result.lines)).toBe(true);
-    for (const line of result.lines) {
-      expect(typeof line.text).toBe("string");
-      expect(typeof line.confidence).toBe("number");
-    }
+    expect(result.lines.length).toBeGreaterThan(0);
+    expect(result.text.toUpperCase()).toContain("HELLO");
   }, 60_000);
 
   it("createOcr never throws even when the backend is unavailable", async () => {
