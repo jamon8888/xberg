@@ -27,8 +27,11 @@ export async function createEmbedder(
 
     const results: Float32Array[] = [];
 
-    // Process in batches to manage memory.
-    const batchPromises: Promise<void>[] = [];
+    // Process in batches to manage memory. Batches are awaited sequentially
+    // (not Promise.all) so at most one batch's tensor output is resident in
+    // memory at a time, and so `results` preserves input order — pushing
+    // from concurrently-resolving batches would make output order depend on
+    // resolution timing rather than input position.
     for (let i = 0; i < texts.length; i += DEFAULT_BATCH_SIZE) {
       const batch = texts.slice(
         i,
@@ -39,33 +42,31 @@ export async function createEmbedder(
       // We normalize ourselves below rather than relying on the pipeline's
       // built-in `normalize` option, to keep the normalization logic explicit
       // and unit-tested in this module.
-      batchPromises.push(
-        (async () => {
-          const output = await extractor(batch, {
-            pooling: "mean",
-            normalize: false,
-          });
+      // eslint-disable-next-line no-await-in-loop -- intentional: bounds
+      // peak memory to one batch and preserves output ordering (see comment
+      // above the loop).
+      const output = await extractor(batch, {
+        pooling: "mean",
+        normalize: false,
+      });
 
-          // `output` is a Tensor with shape [batch.length, hiddenSize] and a flat
-          // `.data` array. Slice out each row before normalizing.
-          const [batchSize, hiddenSize] = output.dims;
-          if (batchSize === undefined || hiddenSize === undefined) {
-            throw new Error(
-              `Unexpected feature-extraction output shape: [${output.dims.join(", ")}]`
-            );
-          }
-          const flat = Float32Array.from(output.data as ArrayLike<number>);
+      // `output` is a Tensor with shape [batch.length, hiddenSize] and a flat
+      // `.data` array. Slice out each row before normalizing.
+      const [batchSize, hiddenSize] = output.dims;
+      if (batchSize === undefined || hiddenSize === undefined) {
+        throw new Error(
+          `Unexpected feature-extraction output shape: [${output.dims.join(", ")}]`
+        );
+      }
+      const flat = Float32Array.from(output.data as ArrayLike<number>);
 
-          for (let row = 0; row < batchSize; row++) {
-            const start = row * hiddenSize;
-            const vec = flat.subarray(start, start + hiddenSize);
-            results.push(l2Normalize(vec));
-          }
-        })()
-      );
+      for (let row = 0; row < batchSize; row++) {
+        const start = row * hiddenSize;
+        const vec = flat.subarray(start, start + hiddenSize);
+        results.push(l2Normalize(vec));
+      }
     }
 
-    await Promise.all(batchPromises);
     return results;
   }
 
