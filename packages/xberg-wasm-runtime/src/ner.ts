@@ -2,7 +2,9 @@ import { pipeline, env } from "@huggingface/transformers";
 import type { CacheConfig, Entity, NerInterface, NerOpts } from "./types";
 import type { TokenClassificationSingle } from "@huggingface/transformers";
 
-// Suppress remote-model fetching in CI once models are already cached locally.
+// Allow reading locally-cached transformers.js models in CI environments.
+// Note: this permits local file loading but does NOT suppress remote downloads;
+// remote model fetching is controlled by env.allowRemoteModels separately.
 if (typeof process !== "undefined" && process.env.CI) {
   env.allowLocalModels = true;
 }
@@ -39,6 +41,23 @@ export async function createNer(
     // may not exist for an arbitrary injected model id.
     const tokenClassifier = await pipeline("token-classification", modelId);
 
+    /**
+     * Named entity recognition on the given text. Returns a list of named
+     * entities with their labels, text, and confidence scores.
+     *
+     * IMPORTANT: The currently-loaded model (Xenova/bert-base-NER) recognizes
+     * only a fixed label set: PER (person), ORG (organization), LOC (location),
+     * and MISC (miscellaneous). The `opts.categories` parameter filters results
+     * to only entities matching those labels, but only works within this fixed
+     * set. Requesting categories outside this set (e.g., EMAIL, PHONE) will
+     * silently return no results with no error. To support arbitrary zero-shot
+     * categories (e.g., PII-specific entity types), swap the model ID to a
+     * genuine GLiNER2 export when one becomes available on the HuggingFace Hub.
+     *
+     * @param text The input text to analyze
+     * @param opts Optional filtering: categories (filter by label), threshold (min confidence score)
+     * @returns Array of entities with label, text, position, and confidence score
+     */
     async function ner(text: string, opts?: NerOpts): Promise<Entity[]> {
       if (!text || text.length === 0) return [];
 
