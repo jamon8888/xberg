@@ -30,7 +30,7 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
       for (const chunk of chunkRecords) {
         const chunkId = `${chunk.sourceId}:${chunk.chunkIndex}`;
         insertChunk.run(chunkId, collection, chunk.sourceId, chunk.chunkIndex, chunk.text, chunk.startOffset, chunk.endOffset);
-        insertVec.run(chunkId, Buffer.from(chunk.embedding.buffer));
+        insertVec.run(chunkId, Buffer.from(chunk.embedding.buffer, chunk.embedding.byteOffset, chunk.embedding.byteLength));
       }
     });
     tx();
