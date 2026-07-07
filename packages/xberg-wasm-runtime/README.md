@@ -5,7 +5,7 @@ Shared JavaScript/TypeScript runtime layer for the [xberg wasm engine](../../cra
 ## Features
 
 - **Embedder**: `@huggingface/transformers` v3 (transformers.js) feature-extraction pipeline over ONNX Runtime. Mean-pooled, L2-normalized (unit-length) vectors, batched 32 texts at a time, processed sequentially to bound peak memory and preserve output order.
-- **Vector Store**: in-memory JS implementation with brute-force cosine similarity. This is a placeholder backend — `wa-sqlite`/OPFS and `sqlite-vec` integration are **not yet wired up**; see [Vector Store Status](#vector-store-status) below.
+- **Vector Store**: real SQLite + [sqlite-vec](https://github.com/asg017/sqlite-vec) backed storage; Node uses `better-sqlite3`, the browser uses a dedicated Worker over OPFS with a vendored `sqlite-vec` WASM bundle. See [Vector Store](#vector-store) below.
 - **NER**: `Xenova/bert-base-NER` (an ONNX export of `dslim/bert-base-NER`) via the transformers.js `token-classification` pipeline. Recognizes a fixed label set (`PER`, `ORG`, `LOC`, `MISC`). Optional — `createNer` returns `null` if the model fails to load instead of throwing; the engine consuming this package (`xberg-wasm`), not this package, decides what fallback (if any) to use.
 - **OCR**: `ppu-paddle-ocr` v6's real `PaddleOcrService` API (`new PaddleOcrService(options)` → `await service.initialize()` → `await service.recognize(buffer, opts)`), run through `onnxruntime-node`. Optional — `createOcr` returns `null` on load/init failure rather than throwing; any fallback behavior lives in the consuming wasm engine, not here.
 - **Model Cache**: `CacheManager` tracks cache location (`~/.cache/xberg` on Node — or `%LOCALAPPDATA%\xberg` on Windows — and a placeholder OPFS path in the browser) and exposes `status()`/`warm()` for pre-download orchestration, mirroring the MCP server's `WarmupManager`.
@@ -85,15 +85,30 @@ const results = await engine.query(q, "col", 10);
 
 `SingleFlightGuard` (from `async_shim.ts`) can wrap calls during development to throw on overlapping invocations instead of silently corrupting state. If your frontend needs true concurrency, create multiple engine instances rather than sharing one handle.
 
-## Vector Store Status
+## Vector Store
 
-The current `createVectorStore` implementation is an **in-memory JS store** (`Map`-backed) with brute-force cosine similarity search. It is functionally correct and used by the test suite, but:
+Real SQLite + [sqlite-vec](https://github.com/asg017/sqlite-vec) backed storage, matching
+`crates/xberg-rag`'s server-side backend so the same storage model is used across the whole
+system:
 
-- No persistence — data does not survive process/tab restart.
-- No `wa-sqlite`/OPFS backend for the browser and no `better-sqlite3`/native backend for Node yet.
-- No `sqlite-vec` (or other ANN index) integration — search is O(n) per query.
+- **Node.js**: `better-sqlite3` + the `sqlite-vec` npm extension, loaded via `sqliteVec.load(db)`.
+- **Browser**: a dedicated Worker running a custom-built `sqlite-vec` WASM bundle
+  (`wasm/sqlite-vec/`, built via `scripts/build-sqlite-vec-wasm.sh`) over OPFS. The main thread
+  talks to the Worker via `postMessage` (`store-browser.ts`) because OPFS's synchronous
+  file-access API only works inside a Worker.
+- **Graph queries**: implemented as plain SQL `WITH RECURSIVE` traversal over a `graph_edges`
+  table (`source`, `target`, `label`, `properties`) — the same shape as
+  `crates/xberg-rag/src/backends/graphqlite.rs`'s `_graph_edges` table — rather than porting
+  `graphqlite` itself to WASM.
 
-Swapping in a persistent, indexed backend is tracked as future work; the `VectorStoreInterface` contract in `src/types.ts` is designed so the backend can be replaced without changing callers.
+**Known limitation**: `sqlite-vec`'s WASM build path is explicitly labeled non-stable/non-semver
+by its own maintainer. `vendor/sqlite-vec-COMMIT` pins the exact vendored commit; re-run
+`scripts/build-sqlite-vec-wasm.sh` and `scripts/smoke-test-sqlite-vec-wasm.mjs` after any upgrade
+rather than bumping the pin casually.
+
+**Known gap**: real OPFS persistence and Worker `postMessage` transport are validated only via a
+mocked in-memory harness in this package's test suite (`environment: "node"` can't run a real
+Worker/OPFS) — real-browser verification (e.g. via Playwright) is a follow-up, not yet done.
 
 ## Testing
 
@@ -110,7 +125,7 @@ Tests cover each module (`embedder`, `store`, `ner`, `ocr`, `cache`, `factory`, 
 ## Known Limitations
 
 - **Pinned ONNX Runtime versions are load-bearing.** The embedder/NER path (transformers.js) and the OCR path (`ppu-paddle-ocr` via `onnxruntime-node`) both load ONNX Runtime natively. Loading both `onnxruntime-web`/`onnxruntime-node` at mismatched versions in the same process previously caused a native SIGSEGV crash. The workspace `pnpm-workspace.yaml` pins both via `overrides` (`onnxruntime-node: 1.21.0`, `onnxruntime-web: 1.22.0-dev.20250409-89f8206ba4`) to keep them compatible — do not bump either independently without re-verifying that embedder + OCR can be loaded together in the same process.
-- Vector store has no persistence or ANN index yet (see [Vector Store Status](#vector-store-status)).
+- Browser OPFS persistence and Worker `postMessage` transport are validated only via a mocked in-memory harness — real-browser verification is pending (see [Vector Store](#vector-store)).
 - Browser OPFS cache paths in `CacheManager` are placeholders; only the Node filesystem path is implemented.
 - `CacheManager.warm()` currently logs progress but does not perform a real model download — actual model fetching happens lazily on first `pipeline(...)` / `PaddleOcrService.initialize()` call inside `createEmbedder`/`createNer`/`createOcr`.
 
