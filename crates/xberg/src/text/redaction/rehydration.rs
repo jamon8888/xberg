@@ -21,6 +21,10 @@ const SALT_LEN: usize = 16;
 const NONCE_LEN: usize = 12;
 const TAG_LEN: usize = 16;
 const KEY_LEN: usize = 32;
+/// Must stay in sync with the shipped TypeScript rehydration module
+/// (`mcp-server/src/redaction/rehydration.ts`), which uses Node's
+/// `crypto.scryptSync` defaults (N = 2^14, r = 8, p = 1).
+/// Changing this value breaks wire-format compatibility with existing TS maps.
 const SCRYPT_LOG_N: u8 = 14;
 const SCRYPT_R: u32 = 8;
 const SCRYPT_P: u32 = 1;
@@ -144,6 +148,11 @@ mod tests {
     }
 
     fn hex_decode(s: &str) -> Vec<u8> {
+        assert!(
+            s.len() % 2 == 0,
+            "hex input must have even length, got {}",
+            s.len()
+        );
         (0..s.len())
             .step_by(2)
             .map(|i| u8::from_str_radix(&s[i..i + 2], 16).expect("valid hex"))
