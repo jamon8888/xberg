@@ -119,7 +119,7 @@ export function registerIntelligenceTools(server: McpServer): void {
   server.tool(
     "structured_extract",
     "Extract structured JSON from a document by providing a JSON Schema. The document is extracted, then the text is sent to an LLM which returns output matching your schema. " +
-    "Requires LLM access configured via XBERG_LLM_MODEL env var or llm_model param. " +
+    "Uses llm_model, falling back to the XBERG_LLM_MODEL env var, then to a built-in default model. " +
     "Returns structured_output matching the schema.",
     {
       input: InputSchema,

@@ -160,7 +160,9 @@ impl XbergEngine {
 
         let chunking = match config {
             Some(c) if !c.is_undefined() && !c.is_null() => {
-                let c_obj: Object = c.dyn_into().unwrap_or_else(|_| Object::new());
+                let c_obj: Object = c
+                    .dyn_into()
+                    .map_err(|_| JsValue::from_str("config must be an object"))?;
                 match get_opt_field(&c_obj, "chunking")? {
                     Some(chunking_obj) => {
                         let mut cfg = xberg::ChunkingConfig::default();
