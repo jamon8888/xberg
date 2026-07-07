@@ -2,6 +2,14 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { Chunk, ExtractionConfig, KeywordAlgorithm } from "@xberg-io/xberg";
 
+let xbergModule: any = null;
+async function getXberg() {
+  if (!xbergModule) {
+    xbergModule = await import("@xberg-io/xberg") as any;
+  }
+  return xbergModule;
+}
+
 const ExtractInputSchema = z.object({
   uri: z.string().optional(),
   bytes: z.array(z.number().int().min(0).max(255)).optional(),
@@ -65,7 +73,7 @@ export function registerExtractTools(server: McpServer): void {
     },
     async ({ input, config }) => {
       try {
-        const { extract, extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg") as any;
+        const { extract, extractInputFromBytes, extractInputFromUri } = await getXberg();
         let extractInput;
         if (input?.bytes) {
           const byteBuffer = Buffer.from(input.bytes);
@@ -127,7 +135,7 @@ export function registerExtractTools(server: McpServer): void {
     },
     async ({ inputs, config }) => {
       try {
-        const { extractBatch, extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg") as any;
+        const { extractBatch, extractInputFromBytes, extractInputFromUri } = await getXberg();
         const nativeInputs = inputs.map((inp) => {
           if (inp.bytes) {
             return extractInputFromBytes(
@@ -159,7 +167,7 @@ export function registerExtractTools(server: McpServer): void {
     "List all document formats xberg can extract from.",
     {},
     async () => {
-      const { listSupportedFormats } = await import("@xberg-io/xberg") as any;
+      const { listSupportedFormats } = await getXberg();
       const formats = listSupportedFormats();
       return {
         content: [{ type: "text" as const, text: JSON.stringify(formats, null, 2) }],

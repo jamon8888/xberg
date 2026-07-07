@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type { ExtractionConfig, JsonValue, LlmConfig, NerConfig } from "@xberg-io/xberg";
+import type { ExtractionConfig, JsonValue, NerConfig } from "@xberg-io/xberg";
 
 const InputSchema = z.object({
   uri: z.string().optional().describe("File path or HTTPS URL"),
@@ -127,13 +127,13 @@ export function registerIntelligenceTools(server: McpServer): void {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }
 
-        const llm: LlmConfig = { model: llm_model ?? process.env.XBERG_LLM_MODEL };
+        const llmModel = llm_model ?? process.env.XBERG_LLM_MODEL;
         const config: ExtractionConfig = {
           structuredExtraction: {
             schema: json_schema as JsonValue,
             schemaName: schema_name,
             strict,
-            llm,
+            llm: { model: llmModel },
           },
         };
 

@@ -111,7 +111,8 @@ impl XbergEngine {
     /// Ingest a single document into the RAG vector store.
     ///
     /// Requires both an `embedder` and a `store` to have been injected.
-    /// `config` is an optional `RagPipelineConfig` — defaults if omitted.
+    /// `config` is an optional object with `chunking.maxCharacters` and `chunking.overlap`
+    /// fields; other `RagPipelineConfig` fields are not yet supported.
     #[allow(clippy::missing_errors_doc)]
     pub async fn ingest(
         &self,

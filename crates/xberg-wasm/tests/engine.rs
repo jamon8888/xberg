@@ -119,6 +119,27 @@ async fn ingest_missing_injection_errors() {
 }
 
 #[wasm_bindgen_test]
+async fn ingest_config_chunking_override() {
+    let engine = make_engine();
+
+    let doc = js_sys::eval(
+        "({ full_text: 'hello world. second sentence. third sentence. fourth sentence.' })",
+    )
+    .unwrap();
+
+    // Default chunking (1000 chars) should produce 1 chunk for this small text
+    let result_default = engine.ingest(doc.clone(), "coll-default".to_string(), None).await;
+    assert!(result_default.is_ok());
+
+    // Override to tiny chunk size (20 chars) should produce multiple chunks
+    let config = js_sys::eval("({ chunking: { maxCharacters: 20, overlap: 5 } })").unwrap();
+    let result_override = engine
+        .ingest(doc, "coll-override".to_string(), Some(config.into()))
+        .await;
+    assert!(result_override.is_ok());
+}
+
+#[wasm_bindgen_test]
 async fn ocr_no_injection_errors() {
     let engine = make_engine();
 
