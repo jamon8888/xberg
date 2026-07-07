@@ -3,6 +3,8 @@ import { createXbergRuntimeFactory } from "./factory";
 import { validateInjectionDescriptor } from "./validation";
 import * as embedderModule from "./embedder";
 import * as storeModule from "./store";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 describe("factory", () => {
   it("creates a valid injection descriptor", async () => {
@@ -84,7 +86,7 @@ describe("factory", () => {
 
   it("applies cache config when provided", async () => {
     const injection = await createXbergRuntimeFactory({
-      nodeCachePath: "/tmp/test-cache",
+      nodeCachePath: join(tmpdir(), "xberg-test-cache"),
       wasmPaths: "/custom/wasm",
     });
     expect(injection.embedder).toBeDefined();
@@ -93,7 +95,7 @@ describe("factory", () => {
 
   it("throws when embedder initialization fails", async () => {
     // Mock createEmbedder to throw an error
-    const spy = vi.spyOn(embedderModule, "createEmbedder").mockRejectedValueOnce(
+    const spy = vi.spyOn(embedderModule, "createEmbedder").mockRejectedValue(
       new Error("embedder load failed")
     );
 
@@ -108,7 +110,7 @@ describe("factory", () => {
 
   it("throws when store initialization fails", async () => {
     // Mock createVectorStore to throw an error
-    const spy = vi.spyOn(storeModule, "createVectorStore").mockRejectedValueOnce(
+    const spy = vi.spyOn(storeModule, "createVectorStore").mockRejectedValue(
       new Error("store init failed")
     );
 

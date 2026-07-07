@@ -156,6 +156,7 @@ export class CacheManager {
     for (const handle of handles) {
       try {
         opts.onProgress?.(handle);
+        // eslint-disable-next-line no-await-in-loop -- download sequentially to bound concurrency
         if (handle === "embedding") {
           await createEmbedder({ nodeCachePath: this.cacheDir });
         } else {

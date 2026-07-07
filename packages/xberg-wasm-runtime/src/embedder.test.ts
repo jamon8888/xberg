@@ -47,12 +47,12 @@ describe("embedder", () => {
   }, 60_000);
 
   it("returns a cached result for identical text without re-invoking the model", async () => {
-    const embedder = await createEmbedder();
+    const freshEmbedder = await createEmbedder();
     const texts = ["cache me please"];
 
-    const first = await embedder.embed(texts);
+    const first = await freshEmbedder.embed(texts);
     const start = performance.now();
-    const second = await embedder.embed(texts);
+    const second = await freshEmbedder.embed(texts);
     const elapsedMs = performance.now() - start;
 
     expect(second[0]).toEqual(first[0]);

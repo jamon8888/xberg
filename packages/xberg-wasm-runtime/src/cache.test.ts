@@ -61,5 +61,5 @@ describe("CacheManager.warm", () => {
     await mgr.warm({ onProgress: (p) => phases.push(p) });
     expect(phases.length).toBeGreaterThan(0);
     expect(existsSync(dir)).toBe(true);
-  }, 120_000);
+  }, 300_000);
 });

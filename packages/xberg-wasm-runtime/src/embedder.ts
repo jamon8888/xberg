@@ -36,19 +36,26 @@ export async function createEmbedder(
     if (texts.length === 0) return [];
 
     const hashes = await Promise.all(texts.map((t) => sha256Hex(`${modelId}:${t}`)));
-    const results: (Float32Array | undefined)[] = texts.map((_, i) => cache.get(hashes[i]!));
+    const results: (Float32Array | undefined)[] = texts.map((_, i) => {
+      const h = hashes[i];
+      return h === undefined ? undefined : cache.get(h);
+    });
 
     const uncachedIndices = results
       .map((r, i) => (r === undefined ? i : -1))
       .filter((i) => i !== -1);
-    const uncachedTexts = uncachedIndices.map((i) => texts[i]!);
+    const uncachedTexts = uncachedIndices
+      .map((i) => texts[i])
+      .filter((t): t is string => t !== undefined);
 
     for (let i = 0; i < uncachedTexts.length; i += DEFAULT_BATCH_SIZE) {
       const batch = uncachedTexts.slice(i, Math.min(i + DEFAULT_BATCH_SIZE, uncachedTexts.length));
-      const batchIndices = uncachedIndices.slice(i, Math.min(i + DEFAULT_BATCH_SIZE, uncachedIndices.length));
+      const batchIndices = uncachedIndices.slice(
+        i,
+        Math.min(i + DEFAULT_BATCH_SIZE, uncachedIndices.length)
+      );
 
-      // eslint-disable-next-line no-await-in-loop -- intentional: bounds
-      // peak memory to one batch and preserves output ordering.
+      // eslint-disable-next-line no-await-in-loop -- one batch at a time; bounds peak memory and preserves order
       const output = await extractor(batch, { pooling: "mean", normalize: false });
 
       const [batchSize, hiddenSize] = output.dims;
@@ -60,9 +67,11 @@ export async function createEmbedder(
       for (let row = 0; row < batchSize; row++) {
         const start = row * hiddenSize;
         const vec = l2Normalize(flat.subarray(start, start + hiddenSize));
-        const originalIndex = batchIndices[row]!;
+        const originalIndex = batchIndices[row];
+        if (originalIndex === undefined) continue;
         results[originalIndex] = vec;
-        cache.set(hashes[originalIndex]!, vec);
+        const h = hashes[originalIndex];
+        if (h !== undefined) cache.set(h, vec);
       }
     }
 
