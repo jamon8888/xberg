@@ -16,4 +16,6 @@ autoInstallPeers: true
 hoist: true
 overrides:
   glob: "10.5.0"
+  onnxruntime-node: "1.21.0"
+  onnxruntime-web: "1.22.0-dev.20250409-89f8206ba4"
 minimumReleaseAge: 0
