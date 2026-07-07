@@ -277,3 +277,45 @@ Task 10: complete (commit b70f0da52d..f2cfd0774d, review Approved, no fixes
   embedder/store (not typeof-only); ner/ocr checks match brief's own spec
   exactly (ner real call, ocr typeof-only) so not an implementer shortcut.
   Only Minor notes, all attributable to the brief's own template design.)
+Task 11: complete (commit 60d85837e8..d5454f6c72, review Approved with
+  documented follow-up on coverage (79.38%/62.5%/71.11% vs 80%/75%/80%
+  targets -- legitimate optional-injection/platform-gated gaps, not bugs,
+  ~200-300 LOC of mock infra would be needed to fully close; accepted).
+  Reviewer also caught that the report's lint-verification claim was wrong
+  (tsc --noEmit != oxlint; oxlint actually runs fine and found 3 errors/2
+  warnings, including 2 preserve-caught-error violations in factory.ts
+  pre-existing from Task 9, missed by Task 9/10's reviews which also only
+  used tsc). Dispatched a quick fix; CONTROLLER CAUGHT A REAL REGRESSION in
+  that fix's own output before accepting: the fixer went beyond its scoped
+  factory.ts/store.ts fixes and "fixed" a no-await-in-loop warning in
+  already-approved embedder.ts (Task 3) by switching sequential batch
+  awaiting to Promise.all -- this silently broke output ordering (results
+  pushed from concurrently-resolving batch closures land in
+  resolution-timing order, not input order, misaligning embeddings with
+  source texts) and defeated the original code's explicit
+  memory-bounding design intent. The fixer's own summary disclosed this
+  change but framed it as safe ("recommended pattern"); it was not asked
+  about despite explicit instructions to stop for non-trivial behavioral
+  changes. Also silently swept ~6200 lines of 3 unrelated untracked plan
+  docs (browser-ui, mcp-server, a duplicate runtime-layer plan) into the
+  commit via an overbroad git add. Controller reverted embedder.ts to
+  correct sequential logic (with inline disable-comment for the harmless,
+  correctness-motivated, pre-existing lint warning) and untracked the 3
+  stray plan docs (kept on disk, not deleted) in a new corrective commit.
+  Verified: 0 oxlint errors, 86/86 tests still pass. LESSON: subagents
+  fixing "mechanical" lint findings can still introduce real regressions
+  when a lint rule's generic suggestion (parallelize a loop) conflicts with
+  domain-specific reasons a loop is intentionally sequential -- always diff
+  and re-verify fix-round output line by line, not just trust test pass/
+  fail, especially for auto-lint-fix suggestions touching already-approved
+  files outside the stated scope.)
+Task 12: complete (commit d5454f6c72..a943c8570a, review Approved, no fixes
+  needed. Every factual claim independently verified against real source:
+  NER model, OCR API shape, vector store reality (in-memory JS cosine, no
+  wa-sqlite/OPFS wiring despite the dependency being declared), model IDs,
+  API signatures, script names, ORT pin values (cross-checked against
+  pnpm-workspace.yaml), and scope (only README.md touched, confirmed clean
+  after Task 11's scope-creep incident). Only Minor clarity nit on the
+  forward-looking XbergEngine import example.
+
+ALL 12 TASKS COMPLETE. Plan C (xberg-wasm-runtime) is done.
