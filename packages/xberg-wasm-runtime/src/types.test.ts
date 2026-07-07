@@ -16,6 +16,8 @@ describe("injectionDescriptor validation", () => {
         listCollections: async () => [],
         dropCollection: async () => {},
         ensureCollection: async () => {},
+        createEdge: async () => {},
+        traverseGraph: async () => [],
       },
     };
     const result = injectionDescriptorSchema.safeParse(descriptor);
@@ -31,6 +33,8 @@ describe("injectionDescriptor validation", () => {
         listCollections: async () => [],
         dropCollection: async () => {},
         ensureCollection: async () => {},
+        createEdge: async () => {},
+        traverseGraph: async () => [],
       },
     };
     const result = injectionDescriptorSchema.safeParse(descriptor);
@@ -49,6 +53,8 @@ describe("injectionDescriptor validation", () => {
         listCollections: async () => [],
         dropCollection: async () => {},
         ensureCollection: async () => {},
+        createEdge: async () => {},
+        traverseGraph: async () => [],
       },
       ner: {
         ner: async (text: string) => [],
