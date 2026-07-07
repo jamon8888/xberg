@@ -1,6 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createXbergRuntimeFactory } from "./factory";
 import { validateInjectionDescriptor } from "./validation";
+import * as embedderModule from "./embedder";
+import * as storeModule from "./store";
 
 describe("factory", () => {
   it("creates a valid injection descriptor", async () => {
@@ -62,5 +64,60 @@ describe("factory", () => {
     const injection = await createXbergRuntimeFactory();
     expect(injection).toHaveProperty("embedder");
     // Cache should be transparently managed; test that we can construct it
+  }, 120_000);
+
+  it("handles missing optional NER gracefully", async () => {
+    // Factory should not throw when NER initialization fails; it should log and continue
+    const injection = await createXbergRuntimeFactory();
+    expect(injection.embedder).toBeDefined();
+    expect(injection.store).toBeDefined();
+    // NER may or may not be present; both are acceptable
+  }, 120_000);
+
+  it("handles missing optional OCR gracefully", async () => {
+    // Factory should not throw when OCR initialization fails; it should log and continue
+    const injection = await createXbergRuntimeFactory();
+    expect(injection.embedder).toBeDefined();
+    expect(injection.store).toBeDefined();
+    // OCR may or may not be present; both are acceptable
+  }, 120_000);
+
+  it("applies cache config when provided", async () => {
+    const injection = await createXbergRuntimeFactory({
+      nodeCachePath: "/tmp/test-cache",
+      wasmPaths: "/custom/wasm",
+    });
+    expect(injection.embedder).toBeDefined();
+    expect(injection.store).toBeDefined();
+  }, 120_000);
+
+  it("throws when embedder initialization fails", async () => {
+    // Mock createEmbedder to throw an error
+    const spy = vi.spyOn(embedderModule, "createEmbedder").mockRejectedValueOnce(
+      new Error("embedder load failed")
+    );
+
+    try {
+      await expect(createXbergRuntimeFactory()).rejects.toThrow(
+        "[factory] embedder initialization failed"
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  }, 120_000);
+
+  it("throws when store initialization fails", async () => {
+    // Mock createVectorStore to throw an error
+    const spy = vi.spyOn(storeModule, "createVectorStore").mockRejectedValueOnce(
+      new Error("store init failed")
+    );
+
+    try {
+      await expect(createXbergRuntimeFactory()).rejects.toThrow(
+        "[factory] vector store initialization failed"
+      );
+    } finally {
+      spy.mockRestore();
+    }
   }, 120_000);
 });

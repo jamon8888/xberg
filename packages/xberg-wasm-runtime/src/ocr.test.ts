@@ -102,4 +102,19 @@ describe("OCR", () => {
     // wasm engine falls back to in-binary Tesseract OCR when this is null.
     await expect(createOcr()).resolves.not.toThrow();
   });
+
+  it("handles inference errors gracefully", async () => {
+    if (!ocr) {
+      console.log("[skip] OCR not enabled");
+      return;
+    }
+
+    // Pass invalid image data to trigger inference error handling
+    const invalidImage = new Uint8Array([0xFF, 0xD8]); // Incomplete JPEG header
+    const result = await ocr.ocr(invalidImage);
+
+    // Should return empty result instead of throwing
+    expect(result).toHaveProperty("text");
+    expect(result).toHaveProperty("lines");
+  }, 60_000);
 });
