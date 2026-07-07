@@ -120,7 +120,30 @@ async fn ingest_missing_injection_errors() {
 
 #[wasm_bindgen_test]
 async fn ingest_config_chunking_override() {
-    let engine = make_engine();
+    let injection = js_sys::eval(
+        r#"
+        (() => {
+            const obj = {};
+            obj.embedder = {
+                embed: (texts) => new Promise((resolve) => {
+                    resolve(texts.map(() => new Float32Array([0.1])));
+                })
+            };
+            obj.store = {
+                upsertDocument: (collection, document, chunks) => {
+                    globalThis.__lastChunks = chunks.map(c => c.content);
+                    return new Promise((resolve) => resolve("doc-id"));
+                }
+            };
+            return obj;
+        })()
+        "#,
+    )
+    .unwrap()
+    .dyn_into::<js_sys::Object>()
+    .unwrap();
+    let config = js_sys::eval("({})").unwrap();
+    let engine = xberg_wasm::engine::XbergEngine::new(config.into(), injection.into()).unwrap();
 
     let doc = js_sys::eval(
         "({ full_text: 'hello world. second sentence. third sentence. fourth sentence.' })",
@@ -132,9 +155,10 @@ async fn ingest_config_chunking_override() {
     assert!(result_default.is_ok());
 
     // Override to tiny chunk size (20 chars) should produce multiple chunks
-    let config = js_sys::eval("({ chunking: { maxCharacters: 20, overlap: 5 } })").unwrap();
+    let config_override =
+        js_sys::eval("({ chunking: { maxCharacters: 20, overlap: 5 } })").unwrap();
     let result_override = engine
-        .ingest(doc, "coll-override".to_string(), Some(config.into()))
+        .ingest(doc, "coll-override".to_string(), Some(config_override.into()))
         .await;
     assert!(result_override.is_ok());
 }

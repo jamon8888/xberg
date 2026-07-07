@@ -27,8 +27,18 @@ pub async fn resolve_ner(
     text: &str,
     categories: &[EntityCategory],
 ) -> Result<Vec<Entity>, JsValue> {
+    resolve_ner_with_timeout(injected, text, categories, crate::bridge::BRIDGE_TIMEOUT_MS).await
+}
+
+/// Like [`resolve_ner`] but with a configurable bridge timeout.
+pub async fn resolve_ner_with_timeout(
+    injected: Option<js_sys::Object>,
+    text: &str,
+    categories: &[EntityCategory],
+    timeout_ms: u32,
+) -> Result<Vec<Entity>, JsValue> {
     match injected {
-        Some(obj) => call_injected_ner(obj, text, categories).await,
+        Some(obj) => call_injected_ner(obj, text, categories, timeout_ms).await,
         None => fallback_ner(),
     }
 }
@@ -39,6 +49,7 @@ async fn call_injected_ner(
     obj: Object,
     text: &str,
     categories: &[EntityCategory],
+    timeout_ms: u32,
 ) -> Result<Vec<Entity>, JsValue> {
     let fn_val = Reflect::get(&obj, &JsValue::from_str("ner"))
         .map_err(|e| js_from_any(format!("failed to read 'ner' property: {e:?}")))?;
@@ -59,7 +70,7 @@ async fn call_injected_ner(
 
     let result = func.apply(&obj, &args)?;
     let promise = Promise::from(result);
-    let js_val = crate::bridge::timed_js_future(promise).await?;
+    let js_val = crate::bridge::timed_js_future_with_timeout(promise, timeout_ms).await?;
 
     let entities: Vec<Entity> = serde_wasm_bindgen::from_value(js_val)
         .map_err(|e| js_from_any(format!("failed to deserialize NER result: {e}")))?;

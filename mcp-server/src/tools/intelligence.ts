@@ -117,7 +117,7 @@ export function registerIntelligenceTools(server: McpServer): void {
       json_schema: z.record(z.unknown()).describe("JSON Schema defining the desired output structure"),
       schema_name: z.string().describe("Short identifier for the schema, e.g. 'invoice' or 'contract_parties'"),
       strict: z.boolean().optional().default(true),
-      llm_model: z.string().optional().describe("LLM model to use, e.g. 'openai/gpt-4o'. Falls back to XBERG_LLM_MODEL env var (default: 'anthropic/claude-sonnet-4-5')."),
+      llm_model: z.string().optional().describe("LLM model to use, e.g. 'openai/gpt-4o'. Falls back to XBERG_LLM_MODEL env var, then to 'anthropic/claude-sonnet-4-5'."),
     },
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
@@ -127,13 +127,13 @@ export function registerIntelligenceTools(server: McpServer): void {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }
 
-        const llmModel = llm_model ?? process.env.XBERG_LLM_MODEL;
+        const resolvedLlmModel = llm_model ?? process.env.XBERG_LLM_MODEL ?? "anthropic/claude-sonnet-4-5";
         const config: ExtractionConfig = {
           structuredExtraction: {
             schema: json_schema as JsonValue,
             schemaName: schema_name,
             strict,
-            llm: { model: llmModel },
+            llm: { model: resolvedLlmModel },
           },
         };
 

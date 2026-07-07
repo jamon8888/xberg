@@ -8,8 +8,8 @@ use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
 use crate::bridge::embedder::JsEmbedder;
-use crate::bridge::ner::resolve_ner;
-use crate::bridge::ocr::resolve_ocr;
+use crate::bridge::ner::resolve_ner_with_timeout;
+use crate::bridge::ocr::resolve_ocr_with_timeout;
 use crate::bridge::store::JsVectorStore;
 use xberg_rag::query::{RetrieveMode, RetrieveQuery};
 
@@ -26,27 +26,42 @@ fn get_opt_field(obj: &Object, field: &str) -> Result<Option<Object>, JsValue> {
     })
 }
 
+/// Extract an optional numeric field, returning `None` if the field is
+/// missing, `null`, `undefined`, or not a number.
+fn get_opt_number(obj: &Object, field: &str) -> Result<Option<f64>, JsValue> {
+    let val = js_sys::Reflect::get(obj, &JsValue::from_str(field))
+        .map_err(|_| JsValue::from_str(&format!("failed to read field '{field}'")))?;
+    if val.is_undefined() || val.is_null() {
+        return Ok(None);
+    }
+    Ok(val.as_f64())
+}
+
 /// Rehydration map type (token → original PII text).
 type RehydrationMap = HashMap<String, String>;
 
 /// Stateful engine handle exposed to JS.
 ///
-/// Constructed via `XbergEngine.new(config, injection)` where `config` is
-/// reserved for future use and `injection` is a plain object with optional
-/// `embedder`, `store`, `ner`, and `ocr` keys.
+/// Constructed via `XbergEngine.new(config, injection)` where `config` may
+/// contain optional settings (e.g. `bridgeTimeoutMs`) and `injection` is a
+/// plain object with optional `embedder`, `store`, `ner`, and `ocr` keys.
 #[wasm_bindgen]
 pub struct XbergEngine {
     embedder: Option<Arc<JsEmbedder>>,
     store: Option<Arc<JsVectorStore>>,
     ner: Option<js_sys::Object>,
     ocr: Option<js_sys::Object>,
+    bridge_timeout_ms: u32,
 }
 
 #[wasm_bindgen]
 impl XbergEngine {
     /// Create a new engine with injected bridges.
     ///
-    /// `config` is reserved for future use (currently ignored).
+    /// `config` may contain:
+    /// - `bridgeTimeoutMs` — timeout in milliseconds for JS bridge calls
+    ///   (defaults to 30,000ms if not provided)
+    ///
     /// `injection` may contain:
     /// - `embedder` — object with `embed(texts: string[]): Promise<number[][]>`
     /// - `store`    — object implementing the VectorStore JS protocol
@@ -54,8 +69,16 @@ impl XbergEngine {
     /// - `ocr`      — object with `ocr(imageBytes, opts): Promise<string>`
     #[wasm_bindgen(constructor)]
     pub fn new(config: JsValue, injection: JsValue) -> Result<XbergEngine, JsValue> {
-        // `config` is reserved for future use; ignore for now.
-        let _ = config;
+        let bridge_timeout_ms = if config.is_undefined() || config.is_null() {
+            crate::bridge::BRIDGE_TIMEOUT_MS
+        } else {
+            let config_obj: Object = config.dyn_into().map_err(|_| {
+                JsValue::from_str("config must be an object")
+            })?;
+            get_opt_number(&config_obj, "bridgeTimeoutMs")?
+                .map(|v| v as u32)
+                .unwrap_or(crate::bridge::BRIDGE_TIMEOUT_MS)
+        };
 
         let obj: Object = if injection.is_undefined() || injection.is_null() {
             Object::new()
@@ -66,10 +89,10 @@ impl XbergEngine {
         };
 
         let embedder = get_opt_field(&obj, "embedder")?
-            .map(|o| Arc::new(JsEmbedder::new(Arc::new(o))));
+            .map(|o| Arc::new(JsEmbedder::with_timeout(o, bridge_timeout_ms)));
 
         let store = get_opt_field(&obj, "store")?
-            .map(|o| Arc::new(JsVectorStore::new("default".to_string(), Arc::new(o))));
+            .map(|o| Arc::new(JsVectorStore::with_timeout("default".to_string(), o, bridge_timeout_ms)));
 
         let ner = get_opt_field(&obj, "ner")?;
         let ocr = get_opt_field(&obj, "ocr")?;
@@ -79,6 +102,7 @@ impl XbergEngine {
             store,
             ner,
             ocr,
+            bridge_timeout_ms,
         })
     }
 
@@ -111,8 +135,9 @@ impl XbergEngine {
     /// Ingest a single document into the RAG vector store.
     ///
     /// Requires both an `embedder` and a `store` to have been injected.
-    /// `config` is an optional object with `chunking.maxCharacters` and `chunking.overlap`
-    /// fields; other `RagPipelineConfig` fields are not yet supported.
+    /// `config` is an optional object; only `chunking.maxCharacters` and
+    /// `chunking.overlap` are currently supported. All other fields are
+    /// ignored.
     #[allow(clippy::missing_errors_doc)]
     pub async fn ingest(
         &self,
@@ -140,21 +165,13 @@ impl XbergEngine {
                 if chunking_val.is_undefined() || chunking_val.is_null() {
                     xberg::ChunkingConfig::default()
                 } else {
+                    let chunking_obj: Object = chunking_val.dyn_into().unwrap_or_else(|_| Object::new());
                     let mut cfg = xberg::ChunkingConfig::default();
-                    if let Ok(v) =
-                        js_sys::Reflect::get(&chunking_val, &JsValue::from_str("maxCharacters"))
-                    {
-                        if let Some(n) = v.as_f64() {
-                            cfg.max_characters = n as usize;
-                        }
+                    if let Some(n) = get_opt_number(&chunking_obj, "maxCharacters")? {
+                        cfg.max_characters = n as usize;
                     }
-                    if let Ok(v) = js_sys::Reflect::get(
-                        &chunking_val,
-                        &JsValue::from_str("overlap"),
-                    ) {
-                        if let Some(n) = v.as_f64() {
-                            cfg.overlap = n as usize;
-                        }
+                    if let Some(n) = get_opt_number(&chunking_obj, "overlap")? {
+                        cfg.overlap = n as usize;
                     }
                     cfg
                 }
@@ -187,7 +204,7 @@ impl XbergEngine {
                 .unwrap_or_else(|| "eng".to_string())
         };
 
-        let text = resolve_ocr(self.ocr.clone(), &bytes, &language)
+        let text = resolve_ocr_with_timeout(self.ocr.clone(), &bytes, &language, self.bridge_timeout_ms)
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
@@ -248,7 +265,7 @@ impl XbergEngine {
                 Vec::new()
             };
 
-        let entities = resolve_ner(self.ner.clone(), &text, &categories)
+        let entities = resolve_ner_with_timeout(self.ner.clone(), &text, &categories, self.bridge_timeout_ms)
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 

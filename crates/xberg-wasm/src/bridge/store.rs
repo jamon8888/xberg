@@ -11,8 +11,6 @@ use xberg_rag::query::{RetrieveOutput, RetrieveQuery};
 use xberg_rag::store::VectorStore;
 use xberg_rag::types::{ChunkRecord, CollectionSpec, CollectionStats, DocumentId, DocumentRecord};
 
-use crate::bridge::timed_js_future;
-
 #[derive(Debug)]
 struct JsStoreError(String);
 
@@ -27,11 +25,16 @@ impl Error for JsStoreError {}
 pub struct JsVectorStore {
     name: String,
     inner: Object,
+    timeout_ms: u32,
 }
 
 impl JsVectorStore {
     pub fn new(name: String, inner: Object) -> Self {
-        Self { name, inner }
+        Self { name, inner, timeout_ms: crate::bridge::BRIDGE_TIMEOUT_MS }
+    }
+
+    pub fn with_timeout(name: String, inner: Object, timeout_ms: u32) -> Self {
+        Self { name, inner, timeout_ms }
     }
 
     async fn call_method(&self, method: &str, args: &[JsValue]) -> RagResult<JsValue> {
@@ -48,7 +51,9 @@ impl JsVectorStore {
         }
         let result = func.apply(&self.inner, &js_args).map_err(js_to_rag)?;
         let promise = Promise::from(result);
-        timed_js_future(promise).await.map_err(js_to_rag)
+        crate::bridge::timed_js_future_with_timeout(promise, self.timeout_ms)
+            .await
+            .map_err(js_to_rag)
     }
 }
 

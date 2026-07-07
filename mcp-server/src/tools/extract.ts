@@ -2,10 +2,11 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { Chunk, ExtractionConfig, KeywordAlgorithm } from "@xberg-io/xberg";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let xbergModule: any = null;
 async function getXberg() {
   if (!xbergModule) {
-    xbergModule = await import("@xberg-io/xberg") as any;
+    xbergModule = await import("@xberg-io/xberg");
   }
   return xbergModule;
 }

@@ -7,7 +7,7 @@ use std::sync::OnceLock;
 
 use wasm_bindgen::prelude::*;
 
-const BRIDGE_TIMEOUT_MS: u32 = 30_000;
+pub(crate) const BRIDGE_TIMEOUT_MS: u32 = 30_000;
 
 fn get_timeout_racer() -> &'static js_sys::Function {
     static RACER: OnceLock<js_sys::Function> = OnceLock::new();
@@ -45,4 +45,12 @@ pub fn with_timeout(promise: js_sys::Promise, ms: u32) -> js_sys::Promise {
 /// Convenience wrapper: create a timed-out `JsFuture` from a `Promise`.
 pub fn timed_js_future(promise: js_sys::Promise) -> wasm_bindgen_futures::JsFuture {
     wasm_bindgen_futures::JsFuture::from(with_timeout(promise, BRIDGE_TIMEOUT_MS))
+}
+
+/// Convenience wrapper: create a `JsFuture` with a custom timeout from a `Promise`.
+pub fn timed_js_future_with_timeout(
+    promise: js_sys::Promise,
+    ms: u32,
+) -> wasm_bindgen_futures::JsFuture {
+    wasm_bindgen_futures::JsFuture::from(with_timeout(promise, ms))
 }
