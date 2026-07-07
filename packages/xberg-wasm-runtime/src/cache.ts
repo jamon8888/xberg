@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { homedir } from "os";
+import { env } from "@huggingface/transformers";
+import { createEmbedder } from "./embedder";
+import { createNer } from "./ner";
 
 declare global {
   interface Window {
@@ -14,6 +17,25 @@ interface ModelInfo {
   path: string;
   size: number;
 }
+
+/**
+ * Pipeline handles that `warm()` can pre-download. Each maps to a factory in
+ * this package whose `pipeline(...)` call performs the actual model fetch.
+ */
+type WarmHandle = "embedding" | "ner";
+
+interface WarmOptions {
+  /** Restrict warm-up to these model display names (see `MODELS`). */
+  modelNames?: string[];
+  /** Called once per pipeline handle before it is downloaded. */
+  onProgress?: (phase: string) => void;
+}
+
+/** Maps legacy `MODELS` display names to the pipeline handles `warm()` knows. */
+const MODEL_NAME_TO_HANDLE: Record<string, WarmHandle> = {
+  "Embedder (minilm-l6-v2)": "embedding",
+  "GLiNER2 NER": "ner",
+};
 
 const MODELS: ModelInfo[] = [
   {
@@ -91,29 +113,58 @@ export class CacheManager {
     return { cached, size: totalSize };
   }
 
+  /**
+   * Pre-download and cache the model artifacts used by the SDK's embedder and
+   * NER pipelines so cold-start never blocks on a network fetch.
+   *
+   * The download is performed by routing `@huggingface/transformers` to this
+   * cache directory (`env.cacheDir`) and invoking the existing `createEmbedder`
+   * / `createNer` factories, whose `pipeline(...)` calls are what actually
+   * fetch and persist the model files. No model-download logic is reimplemented
+   * here.
+   *
+   * Accepts either a list of model display names (legacy form, see `MODELS`)
+   * or an options object carrying an `onProgress` callback. Returns the set of
+   * pipeline handles that succeeded / failed.
+   */
+  async warm(modelNames?: string[]): Promise<{ success: string[]; failed: string[] }>;
+  async warm(opts?: WarmOptions): Promise<{ success: string[]; failed: string[] }>;
   async warm(
-    modelNames?: string[]
-  ): Promise<{
-    success: string[];
-    failed: string[];
-  }> {
+    arg?: string[] | WarmOptions
+  ): Promise<{ success: string[]; failed: string[] }> {
+    const opts: WarmOptions = Array.isArray(arg)
+      ? { modelNames: arg }
+      : (arg ?? {});
+
+    const selected = opts.modelNames
+      ? opts.modelNames
+          .map((name) => MODEL_NAME_TO_HANDLE[name])
+          .filter((h): h is WarmHandle => h !== undefined)
+      : (["embedding", "ner"] as WarmHandle[]);
+
+    // De-duplicate while preserving order: embedding first, then ner.
+    const handles = ["embedding", "ner"].filter(
+      (h) => selected.includes(h as WarmHandle)
+    ) as WarmHandle[];
+
     const success: string[] = [];
     const failed: string[] = [];
 
-    const models = modelNames
-      ? MODELS.filter((m) => modelNames.includes(m.name))
-      : MODELS;
+    // Route transformers.js downloads into this cache directory.
+    env.cacheDir = this.cacheDir;
 
-    for (const model of models) {
+    for (const handle of handles) {
       try {
-        // Simulate model download/caching
-        // In a real implementation, this would fetch from HF hub
-        // For CI, we assume models are already cached or downloadable
-        console.debug(`[cache] warming ${model.name}...`);
-        success.push(model.name);
+        opts.onProgress?.(handle);
+        if (handle === "embedding") {
+          await createEmbedder({ nodeCachePath: this.cacheDir });
+        } else {
+          await createNer({ nodeCachePath: this.cacheDir });
+        }
+        success.push(handle);
       } catch (err) {
-        console.error(`[cache] warm failed for ${model.name}:`, err);
-        failed.push(model.name);
+        console.error(`[cache] warm failed for ${handle}:`, err);
+        failed.push(handle);
       }
     }
 

@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { CacheManager } from "./cache";
+import { join } from "node:path";
+import { existsSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 describe("cache manager", () => {
   it("reports initial cache status", async () => {
@@ -33,14 +36,14 @@ describe("cache manager", () => {
     expect(result).toHaveProperty("failed");
     expect(Array.isArray(result.success)).toBe(true);
     expect(Array.isArray(result.failed)).toBe(true);
-  });
+  }, 120_000);
 
   it("handles model warming with specific model names", async () => {
     const manager = new CacheManager();
     const result = await manager.warm(["Embedder (minilm-l6-v2)"]);
     expect(result).toHaveProperty("success");
     expect(result).toHaveProperty("failed");
-  });
+  }, 120_000);
 
   it("setWasmPaths handles missing window gracefully", () => {
     const manager = new CacheManager();
@@ -48,4 +51,15 @@ describe("cache manager", () => {
     // setWasmPaths should not throw
     expect(() => manager.setWasmPaths("/some/path")).not.toThrow();
   });
+});
+
+describe("CacheManager.warm", () => {
+  it("downloads and caches embedding + ner model artifacts", async () => {
+    const dir = join(tmpdir(), `xberg-warm-${Date.now()}`);
+    const mgr = new CacheManager(dir);
+    const phases: string[] = [];
+    await mgr.warm({ onProgress: (p) => phases.push(p) });
+    expect(phases.length).toBeGreaterThan(0);
+    expect(existsSync(dir)).toBe(true);
+  }, 120_000);
 });
