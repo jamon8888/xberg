@@ -2,9 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { extract } from "@xberg-io/xberg";
 import type { ExtractionConfig, NerConfig } from "@xberg-io/xberg";
-import { GlinerArchitecture } from "@xberg-io/xberg";
 import { detectPii, mergeNerEntities, type NerEntity } from "../redaction/detect.js";
 import { applyRedaction } from "../redaction/redact.js";
 import { writeRedactedDocx } from "../redaction/output/docx.js";
@@ -126,7 +124,7 @@ export function registerIngestTools(server: McpServer): void {
     },
     async ({ source_folder, redacted_folder, collection, redaction_strategy, rehydration_passphrase, use_ner, ner_backend, ner_model, ner_hf_repo, ner_hf_model_file, ner_hf_tokenizer_file, ner_hf_architecture, ner_llm_model, ner_categories }) => {
       try {
-        const { extractInputFromUri } = await import("@xberg-io/xberg") as any;
+        const { extract, extractInputFromUri, GlinerArchitecture } = await import("@xberg-io/xberg") as any;
         if (!fs.existsSync(source_folder)) {
           return { content: [{ type: "text" as const, text: "Error: source_folder does not exist" }], isError: true };
         }

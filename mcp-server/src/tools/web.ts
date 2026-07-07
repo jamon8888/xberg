@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { BrowserMode, UrlExtractionMode, type ExtractionConfig } from "@xberg-io/xberg";
+import type { ExtractionConfig } from "@xberg-io/xberg";
 
 export function registerWebTools(server: McpServer): void {
   server.tool(
@@ -28,13 +28,13 @@ export function registerWebTools(server: McpServer): void {
     },
     async ({ url, mode, max_pages, max_depth, js_rendering, allow_subdomains }) => {
       try {
-        const { extract, extractInputFromUri } = await import("@xberg-io/xberg") as any;
-        const extractInput = extractInputFromUri(url);
+        const xberg = await import("@xberg-io/xberg") as any;
+        const extractInput = xberg.extractInputFromUri(url);
 
-        const urlMode = mode === "crawl" ? UrlExtractionMode.Crawl : UrlExtractionMode.Document;
-        const browserMode = js_rendering === "always" ? BrowserMode.Always
-          : js_rendering === "never" ? BrowserMode.Never
-          : BrowserMode.Auto;
+        const urlMode = mode === "crawl" ? xberg.UrlExtractionMode.Crawl : xberg.UrlExtractionMode.Document;
+        const browserMode = js_rendering === "always" ? xberg.BrowserMode.Always
+          : js_rendering === "never" ? xberg.BrowserMode.Never
+          : xberg.BrowserMode.Auto;
 
         const config: ExtractionConfig = {
           url: {
@@ -48,7 +48,7 @@ export function registerWebTools(server: McpServer): void {
           },
         };
 
-        const result = await extract(extractInput, config);
+        const result = await xberg.extract(extractInput, config);
         const docs = result.results ?? [];
 
         return {
