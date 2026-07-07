@@ -4,35 +4,64 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
 use crate::bridge::embedder::JsEmbedder;
-use crate::bridge::ner::resolve_ner;
-use crate::bridge::ocr::resolve_ocr;
+use crate::bridge::ner::resolve_ner_with_timeout;
+use crate::bridge::ocr::resolve_ocr_with_timeout;
 use crate::bridge::store::JsVectorStore;
 use xberg_rag::query::{RetrieveMode, RetrieveQuery};
+
+/// Extract an optional JS object field, returning `None` if the field is
+/// missing, `null`, or `undefined`.
+fn get_opt_field(obj: &Object, field: &str) -> Result<Option<Object>, JsValue> {
+    let val = js_sys::Reflect::get(obj, &JsValue::from_str(field))
+        .map_err(|_| JsValue::from_str(&format!("failed to read field '{field}'")))?;
+    if val.is_undefined() || val.is_null() {
+        return Ok(None);
+    }
+    val.dyn_into::<Object>().map(Some).map_err(|_| {
+        JsValue::from_str(&format!("field '{field}' must be an object"))
+    })
+}
+
+/// Extract an optional numeric field, returning `None` if the field is
+/// missing, `null`, `undefined`, or not a number.
+fn get_opt_number(obj: &Object, field: &str) -> Result<Option<f64>, JsValue> {
+    let val = js_sys::Reflect::get(obj, &JsValue::from_str(field))
+        .map_err(|_| JsValue::from_str(&format!("failed to read field '{field}'")))?;
+    if val.is_undefined() || val.is_null() {
+        return Ok(None);
+    }
+    Ok(val.as_f64())
+}
 
 /// Rehydration map type (token → original PII text).
 type RehydrationMap = HashMap<String, String>;
 
 /// Stateful engine handle exposed to JS.
 ///
-/// Constructed via `XbergEngine.new(config, injection)` where `config` is
-/// reserved for future use and `injection` is a plain object with optional
-/// `embedder`, `store`, `ner`, and `ocr` keys.
+/// Constructed via `XbergEngine.new(config, injection)` where `config` may
+/// contain optional settings (e.g. `bridgeTimeoutMs`) and `injection` is a
+/// plain object with optional `embedder`, `store`, `ner`, and `ocr` keys.
 #[wasm_bindgen]
 pub struct XbergEngine {
     embedder: Option<Arc<JsEmbedder>>,
     store: Option<Arc<JsVectorStore>>,
     ner: Option<js_sys::Object>,
     ocr: Option<js_sys::Object>,
+    bridge_timeout_ms: u32,
 }
 
 #[wasm_bindgen]
 impl XbergEngine {
     /// Create a new engine with injected bridges.
     ///
-    /// `config` is reserved for future use (currently ignored).
+    /// `config` may contain:
+    /// - `bridgeTimeoutMs` — timeout in milliseconds for JS bridge calls
+    ///   (defaults to 30,000ms if not provided)
+    ///
     /// `injection` may contain:
     /// - `embedder` — object with `embed(texts: string[]): Promise<number[][]>`
     /// - `store`    — object implementing the VectorStore JS protocol
@@ -40,60 +69,40 @@ impl XbergEngine {
     /// - `ocr`      — object with `ocr(imageBytes, opts): Promise<string>`
     #[wasm_bindgen(constructor)]
     pub fn new(config: JsValue, injection: JsValue) -> Result<XbergEngine, JsValue> {
-        // `config` is reserved for future use; ignore for now.
-        let _ = config;
+        let bridge_timeout_ms = if config.is_undefined() || config.is_null() {
+            crate::bridge::BRIDGE_TIMEOUT_MS
+        } else {
+            let config_obj: Object = config.dyn_into().map_err(|_| {
+                JsValue::from_str("config must be an object")
+            })?;
+            get_opt_number(&config_obj, "bridgeTimeoutMs")?
+                .map(|v| v as u32)
+                .unwrap_or(crate::bridge::BRIDGE_TIMEOUT_MS)
+        };
 
-        let obj: js_sys::Object = if injection.is_undefined() || injection.is_null() {
-            js_sys::Object::new()
+        let obj: Object = if injection.is_undefined() || injection.is_null() {
+            Object::new()
         } else {
             injection
-                .dyn_into::<js_sys::Object>()
+                .dyn_into::<Object>()
                 .map_err(|_| JsValue::from_str("injection must be an object"))?
         };
 
-        let embedder = js_sys::Reflect::get(&obj, &"embedder".into())
-            .ok()
-            .filter(|v| !v.is_undefined() && !v.is_null())
-            .map(|v| {
-                v.dyn_into::<js_sys::Object>()
-                    .map(Arc::new)
-                    .map(JsEmbedder::new)
-                    .map(Arc::new)
-            })
-            .transpose()
-            .map_err(|_| JsValue::from_str("embedder must be an object"))?;
+        let embedder = get_opt_field(&obj, "embedder")?
+            .map(|o| Arc::new(JsEmbedder::with_timeout(o, bridge_timeout_ms)));
 
-        let store = js_sys::Reflect::get(&obj, &"store".into())
-            .ok()
-            .filter(|v| !v.is_undefined() && !v.is_null())
-            .map(|v| {
-                v.dyn_into::<js_sys::Object>()
-                    .map(Arc::new)
-                    .map(|inner| JsVectorStore::new("default".to_string(), inner))
-                    .map(Arc::new)
-            })
-            .transpose()
-            .map_err(|_| JsValue::from_str("store must be an object"))?;
+        let store = get_opt_field(&obj, "store")?
+            .map(|o| Arc::new(JsVectorStore::with_timeout("default".to_string(), o, bridge_timeout_ms)));
 
-        let ner = js_sys::Reflect::get(&obj, &"ner".into())
-            .ok()
-            .filter(|v| !v.is_undefined() && !v.is_null())
-            .map(|v| v.dyn_into::<js_sys::Object>())
-            .transpose()
-            .map_err(|_| JsValue::from_str("ner must be an object"))?;
-
-        let ocr = js_sys::Reflect::get(&obj, &"ocr".into())
-            .ok()
-            .filter(|v| !v.is_undefined() && !v.is_null())
-            .map(|v| v.dyn_into::<js_sys::Object>())
-            .transpose()
-            .map_err(|_| JsValue::from_str("ocr must be an object"))?;
+        let ner = get_opt_field(&obj, "ner")?;
+        let ocr = get_opt_field(&obj, "ocr")?;
 
         Ok(XbergEngine {
             embedder,
             store,
             ner,
             ocr,
+            bridge_timeout_ms,
         })
     }
 
@@ -126,8 +135,16 @@ impl XbergEngine {
     /// Ingest a single document into the RAG vector store.
     ///
     /// Requires both an `embedder` and a `store` to have been injected.
+    /// `config` is an optional object; only `chunking.maxCharacters` and
+    /// `chunking.overlap` are currently supported. All other fields are
+    /// ignored.
     #[allow(clippy::missing_errors_doc)]
-    pub async fn ingest(&self, doc: JsValue, collection: String) -> Result<JsValue, JsValue> {
+    pub async fn ingest(
+        &self,
+        doc: JsValue,
+        collection: String,
+        config: Option<JsValue>,
+    ) -> Result<JsValue, JsValue> {
         let ingest_req: xberg_rag::pipeline::IngestRequest =
             serde_wasm_bindgen::from_value(doc)
                 .map_err(|e| JsValue::from_str(&e.to_string()))?;
@@ -141,7 +158,28 @@ impl XbergEngine {
             .as_ref()
             .ok_or_else(|| JsValue::from_str("store not injected"))?;
 
-        let pipeline_config = xberg_rag::pipeline::RagPipelineConfig::default();
+        let chunking = match config {
+            Some(c) if !c.is_undefined() && !c.is_null() => {
+                let c_obj: Object = c
+                    .dyn_into()
+                    .map_err(|_| JsValue::from_str("config must be an object"))?;
+                match get_opt_field(&c_obj, "chunking")? {
+                    Some(chunking_obj) => {
+                        let mut cfg = xberg::ChunkingConfig::default();
+                        if let Some(n) = get_opt_number(&chunking_obj, "maxCharacters")? {
+                            cfg.max_characters = n as usize;
+                        }
+                        if let Some(n) = get_opt_number(&chunking_obj, "overlap")? {
+                            cfg.overlap = n as usize;
+                        }
+                        cfg
+                    }
+                    None => xberg::ChunkingConfig::default(),
+                }
+            }
+            _ => xberg::ChunkingConfig::default(),
+        };
+        let pipeline_config = xberg_rag::pipeline::RagPipelineConfig { chunking: &chunking };
         let result = xberg_rag::pipeline::ingest_document_local(
             store.clone(),
             &collection,
@@ -167,7 +205,7 @@ impl XbergEngine {
                 .unwrap_or_else(|| "eng".to_string())
         };
 
-        let text = resolve_ocr(self.ocr.clone(), &bytes, &language)
+        let text = resolve_ocr_with_timeout(self.ocr.clone(), &bytes, &language, self.bridge_timeout_ms)
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
@@ -177,6 +215,7 @@ impl XbergEngine {
     /// Decrypt a rehydration map and substitute tokens in `doc`.
     ///
     /// Returns the dehydrated text with original PII values restored.
+    #[cfg(feature = "redaction-rehydrate")]
     #[allow(clippy::missing_errors_doc)]
     pub fn rehydrate(
         &self,
@@ -227,7 +266,7 @@ impl XbergEngine {
                 Vec::new()
             };
 
-        let entities = resolve_ner(self.ner.clone(), &text, &categories)
+        let entities = resolve_ner_with_timeout(self.ner.clone(), &text, &categories, self.bridge_timeout_ms)
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
@@ -256,10 +295,21 @@ impl XbergEngine {
             RetrieveMode::FullText
         };
 
+        let query_vector = match self.embedder.as_ref() {
+            Some(emb) => {
+                let mut vecs = emb
+                    .embed(vec![q.clone()])
+                    .await
+                    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+                vecs.pop()
+            }
+            None => None,
+        };
+
         let retrieve_query = RetrieveQuery {
             mode,
             query_text: Some(q),
-            query_vector: None,
+            query_vector,
             top_k: k,
             filter: None,
             candidate_multiplier: None,
@@ -343,7 +393,7 @@ impl XbergEngine {
                 xberg::types::redaction::RedactionStrategy::Hash => {
                     use sha2::{Digest, Sha256};
                     let hash = Sha256::digest(m.text.as_bytes());
-                    format!("{:x}", &hash[..8])
+                    hash[..8].iter().map(|b| format!("{b:02x}")).collect::<String>()
                 }
                 xberg::types::redaction::RedactionStrategy::TokenReplace => {
                     let token = format!("[{}_{}]", cat_key.to_uppercase(), idx);

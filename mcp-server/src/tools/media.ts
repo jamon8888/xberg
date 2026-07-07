@@ -22,7 +22,7 @@ export function registerMediaTools(server: McpServer): void {
     },
     async ({ uri, bytes, mime_type, filename, model, language }) => {
       try {
-        const { extract, extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
+        const { extract, extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg") as any;
 
         let extractInput;
         if (bytes) {
@@ -40,7 +40,7 @@ export function registerMediaTools(server: McpServer): void {
         const config: ExtractionConfig = {
           transcription: {
             enabled: true,
-            model,
+            model: model as any,
             language,
           },
         };
@@ -53,9 +53,9 @@ export function registerMediaTools(server: McpServer): void {
             type: "text" as const,
             text: JSON.stringify({
               transcript: doc?.content ?? "",
-              duration_ms: doc?.metadata?.["audio"]?.["durationMs"] ?? null,
+              duration_ms: (doc?.metadata as any)?.["audio"]?.["durationMs"] ?? null,
               detected_language: (doc?.detectedLanguages ?? [])[0] ?? null,
-              model,
+            model: model as any,
             }, null, 2),
           }],
         };

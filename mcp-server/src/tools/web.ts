@@ -28,24 +28,27 @@ export function registerWebTools(server: McpServer): void {
     },
     async ({ url, mode, max_pages, max_depth, js_rendering, allow_subdomains }) => {
       try {
-        const { extract, extractInputFromUri } = await import("@xberg-io/xberg");
-        const extractInput = extractInputFromUri(url);
+        const xberg = await import("@xberg-io/xberg") as any;
+        const extractInput = xberg.extractInputFromUri(url);
+
+        const urlMode = mode === "crawl" ? xberg.UrlExtractionMode.Crawl : xberg.UrlExtractionMode.Document;
+        const browserMode = js_rendering === "always" ? xberg.BrowserMode.Always
+          : js_rendering === "never" ? xberg.BrowserMode.Never
+          : xberg.BrowserMode.Auto;
 
         const config: ExtractionConfig = {
           url: {
-            mode: mode as "document" | "crawl",
+            mode: urlMode,
             crawl: {
               maxDepth: max_depth,
               maxPages: max_pages,
               allowSubdomains: allow_subdomains,
-              browser: {
-                mode: js_rendering as "auto" | "always" | "never",
-              },
+              browser: { mode: browserMode },
             },
           },
         };
 
-        const result = await extract(extractInput, config);
+        const result = await xberg.extract(extractInput, config);
         const docs = result.results ?? [];
 
         return {
@@ -53,7 +56,7 @@ export function registerWebTools(server: McpServer): void {
             type: "text" as const,
             text: JSON.stringify({
               pages_extracted: docs.length,
-              documents: docs.map((doc) => ({
+              documents: docs.map((doc: any) => ({
                 url: (doc.metadata as Record<string, unknown>)?.["sourceUrl"] ?? url,
                 title: doc.metadata?.title ?? null,
                 content: doc.content ?? "",

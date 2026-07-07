@@ -9,8 +9,6 @@
 #[cfg(target_arch = "wasm32")]
 use js_sys::{Function, Object, Promise, Reflect};
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_futures::JsFuture;
 
 /// Resolve the best available OCR backend and return extracted text.
 ///
@@ -25,8 +23,19 @@ pub async fn resolve_ocr(
     image_bytes: &[u8],
     language: &str,
 ) -> Result<String, JsValue> {
+    resolve_ocr_with_timeout(injected, image_bytes, language, crate::bridge::BRIDGE_TIMEOUT_MS)
+        .await
+}
+
+/// Like [`resolve_ocr`] but with a configurable bridge timeout.
+pub async fn resolve_ocr_with_timeout(
+    injected: Option<js_sys::Object>,
+    image_bytes: &[u8],
+    language: &str,
+    timeout_ms: u32,
+) -> Result<String, JsValue> {
     match injected {
-        Some(obj) => call_injected_ocr(obj, image_bytes, language).await,
+        Some(obj) => call_injected_ocr(obj, image_bytes, language, timeout_ms).await,
         None => fallback_ocr(image_bytes, language).await,
     }
 }
@@ -36,6 +45,7 @@ async fn call_injected_ocr(
     obj: Object,
     image_bytes: &[u8],
     language: &str,
+    timeout_ms: u32,
 ) -> Result<String, JsValue> {
     let fn_val = Reflect::get(&obj, &JsValue::from_str("ocr"))
         .map_err(|e| js_from_any(format!("failed to read 'ocr' property: {e:?}")))?;
@@ -50,7 +60,7 @@ async fn call_injected_ocr(
     let args = js_sys::Array::of2(&js_bytes, &opts);
     let result = func.apply(&obj, &args)?;
     let promise = Promise::from(result);
-    let js_val = JsFuture::from(promise).await?;
+    let js_val = crate::bridge::timed_js_future_with_timeout(promise, timeout_ms).await?;
 
     let text = Reflect::get(&js_val, &JsValue::from_str("text"))
         .map_err(|e| js_from_any(format!("ocr result missing 'text': {e:?}")))?

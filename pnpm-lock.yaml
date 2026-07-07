@@ -36,6 +36,8 @@ importers:
         specifier: ^3.6.2
         version: 3.7.1(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@22.19.21)
 
+  crates/xberg-rag-node: {}
+
   crates/xberg-wasm: {}
 
   e2e/node:

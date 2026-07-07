@@ -4,7 +4,6 @@ use std::fmt;
 use async_trait::async_trait;
 use js_sys::{Array, Float32Array, Object, Reflect};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 use xberg_rag::error::{RagError, RagResult};
 use xberg_rag::pipeline::Embedder;
 
@@ -21,11 +20,16 @@ impl Error for JsBridgeError {}
 
 pub struct JsEmbedder {
     inner: Object,
+    timeout_ms: u32,
 }
 
 impl JsEmbedder {
     pub fn new(inner: Object) -> Self {
-        Self { inner }
+        Self { inner, timeout_ms: crate::bridge::BRIDGE_TIMEOUT_MS }
+    }
+
+    pub fn with_timeout(inner: Object, timeout_ms: u32) -> Self {
+        Self { inner, timeout_ms }
     }
 }
 
@@ -45,9 +49,12 @@ impl Embedder for JsEmbedder {
                 )))
             })?;
         let promise = f.call1(&self.inner, &js_texts).map_err(js_to_rag)?;
-        let result = JsFuture::from(js_sys::Promise::from(promise))
-            .await
-            .map_err(js_to_rag)?;
+        let result = crate::bridge::timed_js_future_with_timeout(
+            js_sys::Promise::from(promise),
+            self.timeout_ms,
+        )
+        .await
+        .map_err(js_to_rag)?;
         let arr: Array = result.dyn_into().map_err(|_| {
             RagError::Backend(Box::new(JsBridgeError(
                 "embed() did not resolve to an array".into(),

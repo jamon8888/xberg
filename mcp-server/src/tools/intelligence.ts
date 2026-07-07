@@ -1,6 +1,15 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import type { ExtractionConfig, NerConfig } from "@xberg-io/xberg";
+import type { ExtractionConfig, JsonValue, NerConfig } from "@xberg-io/xberg";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let xbergModule: any = null;
+async function getXberg() {
+  if (!xbergModule) {
+    xbergModule = await import("@xberg-io/xberg");
+  }
+  return xbergModule;
+}
 
 const InputSchema = z.object({
   uri: z.string().optional().describe("File path or HTTPS URL"),
@@ -10,7 +19,7 @@ const InputSchema = z.object({
 });
 
 async function buildExtractInput(input: z.infer<typeof InputSchema>) {
-  const { extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg");
+  const { extractInputFromBytes, extractInputFromUri } = await getXberg();
   if (input.bytes) {
     return extractInputFromBytes(
       Buffer.from(input.bytes),
@@ -64,7 +73,7 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, backend, categories, model, hf_repo, hf_model_file, hf_tokenizer_file, hf_architecture, llm_model, disable_ocr }) => {
       try {
-        const { extract, GlinerArchitecture } = await import("@xberg-io/xberg");
+        const { extract, GlinerArchitecture } = await getXberg();
         const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
@@ -110,29 +119,30 @@ export function registerIntelligenceTools(server: McpServer): void {
   server.tool(
     "structured_extract",
     "Extract structured JSON from a document by providing a JSON Schema. The document is extracted, then the text is sent to an LLM which returns output matching your schema. " +
-    "Requires LLM access configured via XBERG_LLM_MODEL env var or llm_model param. " +
+    "Uses llm_model, falling back to the XBERG_LLM_MODEL env var, then to a built-in default model. " +
     "Returns structured_output matching the schema.",
     {
       input: InputSchema,
       json_schema: z.record(z.unknown()).describe("JSON Schema defining the desired output structure"),
       schema_name: z.string().describe("Short identifier for the schema, e.g. 'invoice' or 'contract_parties'"),
       strict: z.boolean().optional().default(true),
-      llm_model: z.string().optional().describe("LLM model to use, e.g. 'openai/gpt-4o'. Falls back to XBERG_LLM_MODEL env var."),
+      llm_model: z.string().optional().describe("LLM model to use, e.g. 'openai/gpt-4o'. Falls back to XBERG_LLM_MODEL env var, then to 'anthropic/claude-sonnet-4-5'."),
     },
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
-        const { extract } = await import("@xberg-io/xberg");
+        const { extract } = await getXberg();
         const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
         }
 
+        const resolvedLlmModel = llm_model ?? process.env.XBERG_LLM_MODEL ?? "anthropic/claude-sonnet-4-5";
         const config: ExtractionConfig = {
           structuredExtraction: {
-            schema: json_schema,
+            schema: json_schema as JsonValue,
             schemaName: schema_name,
             strict,
-            llm: llm_model ? { model: llm_model } : undefined,
+            llm: { model: resolvedLlmModel },
           },
         };
 

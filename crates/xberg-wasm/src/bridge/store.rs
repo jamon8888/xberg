@@ -4,7 +4,6 @@ use std::fmt;
 use async_trait::async_trait;
 use js_sys::{Object, Promise, Reflect};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 use xberg_rag::capability::Capabilities;
 use xberg_rag::error::{RagError, RagResult};
 use xberg_rag::filter::Filter;
@@ -26,11 +25,16 @@ impl Error for JsStoreError {}
 pub struct JsVectorStore {
     name: String,
     inner: Object,
+    timeout_ms: u32,
 }
 
 impl JsVectorStore {
     pub fn new(name: String, inner: Object) -> Self {
-        Self { name, inner }
+        Self { name, inner, timeout_ms: crate::bridge::BRIDGE_TIMEOUT_MS }
+    }
+
+    pub fn with_timeout(name: String, inner: Object, timeout_ms: u32) -> Self {
+        Self { name, inner, timeout_ms }
     }
 
     async fn call_method(&self, method: &str, args: &[JsValue]) -> RagResult<JsValue> {
@@ -47,7 +51,9 @@ impl JsVectorStore {
         }
         let result = func.apply(&self.inner, &js_args).map_err(js_to_rag)?;
         let promise = Promise::from(result);
-        JsFuture::from(promise).await.map_err(js_to_rag)
+        crate::bridge::timed_js_future_with_timeout(promise, self.timeout_ms)
+            .await
+            .map_err(js_to_rag)
     }
 }
 
@@ -58,12 +64,19 @@ impl VectorStore for JsVectorStore {
     }
 
     fn capabilities(&self) -> Capabilities {
-        Capabilities {
+        // Try to read capabilities from the injected JS store, falling back
+        // to a default that advertises full-text + hybrid + filtering.
+        let fallback = || Capabilities {
             full_text: true,
             hybrid: true,
             filtering: true,
             index_methods: vec![],
-        }
+        };
+        let caps_val = match Reflect::get(&self.inner, &JsValue::from_str("capabilities")) {
+            Ok(v) if !v.is_undefined() && !v.is_null() => v,
+            _ => return fallback(),
+        };
+        serde_wasm_bindgen::from_value::<Capabilities>(caps_val).unwrap_or_else(|_| fallback())
     }
 
     async fn ensure_collection(&self, spec: &CollectionSpec) -> RagResult<()> {

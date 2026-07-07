@@ -11,8 +11,6 @@
 #[cfg(target_arch = "wasm32")]
 use js_sys::{Function, Object, Promise, Reflect};
 use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_futures::JsFuture;
 
 use xberg::types::entity::{Entity, EntityCategory};
 
@@ -29,8 +27,18 @@ pub async fn resolve_ner(
     text: &str,
     categories: &[EntityCategory],
 ) -> Result<Vec<Entity>, JsValue> {
+    resolve_ner_with_timeout(injected, text, categories, crate::bridge::BRIDGE_TIMEOUT_MS).await
+}
+
+/// Like [`resolve_ner`] but with a configurable bridge timeout.
+pub async fn resolve_ner_with_timeout(
+    injected: Option<js_sys::Object>,
+    text: &str,
+    categories: &[EntityCategory],
+    timeout_ms: u32,
+) -> Result<Vec<Entity>, JsValue> {
     match injected {
-        Some(obj) => call_injected_ner(obj, text, categories).await,
+        Some(obj) => call_injected_ner(obj, text, categories, timeout_ms).await,
         None => fallback_ner(),
     }
 }
@@ -41,6 +49,7 @@ async fn call_injected_ner(
     obj: Object,
     text: &str,
     categories: &[EntityCategory],
+    timeout_ms: u32,
 ) -> Result<Vec<Entity>, JsValue> {
     let fn_val = Reflect::get(&obj, &JsValue::from_str("ner"))
         .map_err(|e| js_from_any(format!("failed to read 'ner' property: {e:?}")))?;
@@ -51,15 +60,17 @@ async fn call_injected_ner(
     let js_text = JsValue::from_str(text);
     let js_cats = js_sys::Array::new();
     for c in categories {
-        let cat_str = serde_json::to_string(c)
-            .map_err(|e| js_from_any(format!("failed to serialize category: {e}")))?;
+        let cat_str = serde_json::to_value(c)
+            .ok()
+            .and_then(|v| v.as_str().map(String::from))
+            .unwrap_or_default();
         js_cats.push(&JsValue::from_str(&cat_str));
     }
     let args = js_sys::Array::of2(&js_text, &js_cats);
 
     let result = func.apply(&obj, &args)?;
     let promise = Promise::from(result);
-    let js_val = JsFuture::from(promise).await?;
+    let js_val = crate::bridge::timed_js_future_with_timeout(promise, timeout_ms).await?;
 
     let entities: Vec<Entity> = serde_wasm_bindgen::from_value(js_val)
         .map_err(|e| js_from_any(format!("failed to deserialize NER result: {e}")))?;

@@ -18390,8 +18390,7 @@ mod __alef_wasm_bridge_ocrbackend {
             result
                 .as_string()
                 .and_then(|s| {
-                    serde_json::from_str::<xberg::OcrBackendType>(&format!("\"{}\"", s))
-                        .map_err(|_| xberg::XbergError::Other(format!("Failed to deserialize result: {}", e)))
+                    serde_json::from_str::<xberg::OcrBackendType>(&format!("\"{}\"", s)).ok()
                 })
                 .unwrap_or_default()
         }
