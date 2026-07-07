@@ -35,7 +35,7 @@ fn get_timeout_racer() -> &'static js_sys::Function {
 /// alive after the promise settles.
 pub fn with_timeout(promise: js_sys::Promise, ms: u32) -> js_sys::Promise {
     let racer = get_timeout_racer();
-    let p_val = JsValue::from(promise);
+    let p_val = JsValue::from(&promise);
     match racer.call2(&JsValue::NULL, &p_val, &JsValue::from(ms)) {
         Ok(val) => val.into(),
         Err(_) => promise,

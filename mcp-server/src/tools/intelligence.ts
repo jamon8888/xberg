@@ -2,6 +2,15 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { ExtractionConfig, JsonValue, NerConfig } from "@xberg-io/xberg";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let xbergModule: any = null;
+async function getXberg() {
+  if (!xbergModule) {
+    xbergModule = await import("@xberg-io/xberg");
+  }
+  return xbergModule;
+}
+
 const InputSchema = z.object({
   uri: z.string().optional().describe("File path or HTTPS URL"),
   bytes: z.array(z.number().int().min(0).max(255)).optional().describe("Raw bytes as number array"),
@@ -10,7 +19,7 @@ const InputSchema = z.object({
 });
 
 async function buildExtractInput(input: z.infer<typeof InputSchema>) {
-  const { extractInputFromBytes, extractInputFromUri } = await import("@xberg-io/xberg") as any;
+  const { extractInputFromBytes, extractInputFromUri } = await getXberg();
   if (input.bytes) {
     return extractInputFromBytes(
       Buffer.from(input.bytes),
@@ -64,7 +73,7 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, backend, categories, model, hf_repo, hf_model_file, hf_tokenizer_file, hf_architecture, llm_model, disable_ocr }) => {
       try {
-        const { extract, GlinerArchitecture } = await import("@xberg-io/xberg") as any;
+        const { extract, GlinerArchitecture } = await getXberg();
         const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
@@ -121,7 +130,7 @@ export function registerIntelligenceTools(server: McpServer): void {
     },
     async ({ input, json_schema, schema_name, strict, llm_model }) => {
       try {
-        const { extract } = await import("@xberg-io/xberg") as any;
+        const { extract } = await getXberg();
         const extractInput = await buildExtractInput(input);
         if (!extractInput) {
           return { content: [{ type: "text" as const, text: "Error: provide input.uri or input.bytes" }], isError: true };
