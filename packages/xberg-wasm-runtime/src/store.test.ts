@@ -123,4 +123,14 @@ describe("vector store", () => {
     const collections = await store.listCollections();
     expect(collections).not.toContain(testCollection);
   });
+
+  it("creates and traverses a graph edge through the dispatcher", async () => {
+    await store.createEdge({ id: "e1", source: "x", target: "y", label: "rel" });
+    const reached = await store.traverseGraph(["x"], 1, ["rel"]);
+    expect(reached).toContain("y");
+  });
+
+  it("query throws for a non-existent collection rather than returning empty", async () => {
+    await expect(store.query("no-such-collection", [1, 0, 0], 5)).rejects.toThrow();
+  });
 });

@@ -24,12 +24,14 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
     const table = vecTableName(collection);
     const insertDoc = db.prepare(`INSERT OR REPLACE INTO documents (document_id, source_id, collection, metadata, text) VALUES (?, ?, ?, ?, ?)`);
     const insertChunk = db.prepare(`INSERT OR REPLACE INTO chunks (chunk_id, collection, source_id, chunk_index, text, start_offset, end_offset) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    const insertVec = db.prepare(`INSERT OR REPLACE INTO ${table} (chunk_id, embedding) VALUES (?, ?)`);
+    const deleteVec = db.prepare(`DELETE FROM ${table} WHERE chunk_id = ?`);
+    const insertVec = db.prepare(`INSERT INTO ${table} (chunk_id, embedding) VALUES (?, ?)`);
     const tx = db.transaction(() => {
       insertDoc.run(doc.documentId, doc.sourceId, collection, doc.metadata ? JSON.stringify(doc.metadata) : null, doc.text ?? null);
       for (const chunk of chunkRecords) {
         const chunkId = `${chunk.sourceId}:${chunk.chunkIndex}`;
         insertChunk.run(chunkId, collection, chunk.sourceId, chunk.chunkIndex, chunk.text, chunk.startOffset, chunk.endOffset);
+        deleteVec.run(chunkId);
         insertVec.run(chunkId, Buffer.from(chunk.embedding.buffer, chunk.embedding.byteOffset, chunk.embedding.byteLength));
       }
     });
