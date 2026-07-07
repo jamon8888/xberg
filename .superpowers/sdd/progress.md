@@ -143,3 +143,132 @@ Task 1: complete (commits cdefd83d8a..f91e768f23, review Approved after 1 fix ro
   binaries), protobufjs=false (pure JS, no install script) -- reasoning
   independently verified by re-reviewer against node_modules/.pnpm/*/package.json.
   Re-review: Approved, no new issues.)
+Task 2: complete (commit f91e768f23..4fa1546ac8, review Approved.
+  Note for final review: reviewer flagged 2 Important-but-inherited-from-plan
+  weaknesses, non-blocking per reviewer's own assessment -- (a) z.function()
+  zod schemas don't actually validate async-ness at parse time (only at
+  invoke time via .implement()), so injectionDescriptorSchema accepts sync
+  functions that violate the Promise-returning interface; (b) `as
+  z.ZodType<InjectionDescriptor>` cast on injectionDescriptorSchema bypasses
+  structural type-checking between the hand-written interface and the zod
+  schema. Both present verbatim in the plan's own code, not implementer
+  deviations.)
+Task 3: complete (commit 4fa1546ac8..e2a0bc827c, review Approved.
+  Plan's literal embedder.ts snippet was broken against real transformers.js
+  v3 API (confirmed by implementer + independently re-verified by reviewer
+  against installed type decls): quantized option doesn't exist, .data
+  iteration was wrong shape (Tensor.data is flat row-major, needed .dims-based
+  subarray slicing), test model ID Xenova/minilm-l6-v2 doesn't exist on HF Hub
+  (corrected to Xenova/all-MiniLM-L6-v2). All three deviations verified
+  correct. Live network model download in test accepted per user decision
+  (overrides plan's "no network calls in CI" for this task only -- also
+  applies to Tasks 5/6). Minor non-blocking notes: misleading comment on
+  env.allowLocalModels (doesn't actually block remote fetch, allowRemoteModels
+  does), CacheConfig.wasmPaths declared but unused by this module (future
+  WASM-caching wiring task).)
+Task 4: complete (commit e2a0bc827c..f11a975084, review Approved.
+  delete/deleteDocument reserved-word fix verified correct: no syntax error,
+  VectorStoreInterface.delete still satisfied externally. Non-blocking notes
+  inherited from plan's own reference code (not implementer deviations): (a)
+  upsertDocument overwrites the whole chunk array keyed by sourceId rather
+  than a true per-(collectionId,sourceId,chunkIndex) merge -- only
+  accidentally idempotent for single-chunk test case; (b) query's collection
+  filter uses key.startsWith(`${collection}:`) which could prefix-collide
+  across similarly-named collections (e.g. "docs" matching "docs-extra");
+  (c) vectorBackend field is dead/hardcoded to "cosine", sqlite-vec toggle
+  not implemented (expected -- future work per plan text); (d) no test for
+  cosine dimension-mismatch throw path.)
+Task 5: complete (commits f11a975084..001d171db0, review Approved after 1 fix
+  round. Model substitution Xenova/gliner2-small-onnx (doesn't exist, zero-shot)
+  -> Xenova/bert-base-NER (fixed PER/ORG/LOC/MISC labels) verified correct;
+  offset-recovery and BIO-span merging logic (both needed since brief's
+  snippet didn't actually implement them) independently verified correct by
+  reviewer via type-decl inspection + simulated token streams. Fix round:
+  documented the fixed-label-set constraint on categories filtering, fixed
+  misleading allowLocalModels comment, added 3 real test assertions (merged
+  multi-word entity text, categories filter, threshold filter). Re-review
+  found fix commit had accidentally picked up a Co-Authored-By: Claude
+  Sonnet 5 trailer, violating repo's no-ai-signatures critical rule --
+  controller amended the commit message directly (content/tests unchanged,
+  5/5 still passing) rather than dispatching another subagent round.
+  SEPARATE INCIDENT during this task: C: drive hit 0 bytes free mid-review,
+  breaking git read commands. Investigated with user's consent, found 11
+  total worktrees on disk; only removed the 2 that were both clean AND
+  verified (git merge-base --is-ancestor) fully merged into main
+  (angry-edison-b34d9c, compassionate-agnesi-3771e7, both at a49d38c94c).
+  Did NOT touch wasm-engine worktree despite looking similar (9 "ahead"
+  commits) -- verified those commits are NOT merged into main, real
+  divergent work. Freed ~5GB, disk now at 4.8GB free -- tight but workable,
+  worth monitoring on later tasks.)
+Task 6: complete (commit 001d171db0..0ff2647b5d, review Approved.
+  Brief written against ppu-paddle-ocr@^0.5.0 (never existed); real installed
+  dependency is ^6.0.0, a 6-major-version gap. Implementer investigated real
+  v6 API (PaddleOcrService/.recognize(), not Paddle/.ocr()) -- reviewer
+  independently confirmed every claimed API surface against the package's
+  actual .d.ts files, not invented. Also found+fixed a real bug in the
+  brief's own test pattern: it.skipIf(!ocr) evaluates at collection time
+  before beforeAll runs, so it always skips regardless of actual OCR
+  availability -- replaced with in-body guards matching ner.test.ts's
+  pattern, reviewer confirmed this is correct vitest semantics.
+  Non-blocking Important note for final review: synthetic canvas-rendered
+  text fixture produces 0 detected text boxes across 2 models/2 engines
+  (already exhaustively investigated by implementer, likely font-rasterization
+  mismatch not a plumbing bug) -- test suite proves no-throw + correct types
+  but not numerical OCR correctness. Reviewer explicitly recommended tracking
+  as follow-up (needs a different test fixture) rather than blocking this
+  task, since it's not a cheap fix. Minor notes: CacheConfig.models.ocr
+  semantics (lookup key) differ undocumented from models.ner semantics (raw
+  HF id); minor || vs ?? robustness nit.)
+Task 7: complete (commits 0ff2647b5d..2173fae7f7, review Approved after 1 fix
+  round. Pure fs/path module, no ML API risk. Fix round addressed 2 Important
+  + 3 Minor: removed dead vectorBackend field/detection logic, distinguished
+  ENOENT vs other fs errors in status() with warn logging for unexpected
+  errors, replaced @ts-ignore with declare global Window.ort typing (repo
+  convention forbids @ts-ignore), added no-op visibility log to
+  setWasmPaths(), corrected docstring overstating OPFS capability. Re-review
+  verified all 5 directly against source, no new issues, tsc --noEmit clean.
+  No AI-attribution trailer this time (explicit warning included in fix
+  dispatch after Task 5's incident).)
+Task 8: complete (commit 2173fae7f7..4424961cd2, review clean Approved, no
+  fixes needed. finally-block reset and non-flaky deterministic race test
+  both independently verified against source. Only Minor style notes.)
+Task 9: complete (commit 4424961cd2..b70f0da52d, review Approved, no fixes
+  needed. MAJOR FINDING: discovered+fixed a real native SIGSEGV -- embedder/
+  ner (transformers.js -> onnxruntime-web ~1.21) and ocr (ppu-paddle-ocr ->
+  onnxruntime-web 1.27) crash the process when both load in one Node
+  process, since createXbergRuntimeFactory always attempts ocr best-effort.
+  Confirmed via isolated node repro independent of vitest (exit 139) both
+  before and after. User chose "try pin first, fallback to docs if broken"
+  -- pin succeeded: pnpm-workspace.yaml overrides pin onnxruntime-node to
+  1.21.0 and onnxruntime-web to 1.22.0-dev.20250409-89f8206ba4 (matching
+  what transformers.js already used). Reviewer independently verified: (a)
+  the override is real and correctly scoped -- grepped every package.json
+  in the worktree, only xberg-wasm-runtime depends on onnxruntime-*, no
+  other workspace member affected; (b) lockfile diff shows exactly the
+  expected mechanism (ppu-paddle-ocr's onnxruntime-web resolution moved to
+  match the pin, old 1.27 entries removed entirely); (c) OCR not silently
+  degraded to null post-pin -- verified via external log evidence
+  ([factory] injection descriptor created (with NER) (with OCR)) and the
+  isolated node repro, not just ocr.test.ts's own weak null-tolerant
+  assertions (same weak-test pattern flagged in Task 6, pre-existing, not
+  introduced here). Full suite independently re-run by controller: 14/14
+  files, 50/50 tests pass, no crash. Commit message documents root cause
+  clearly so a future maintainer won't strip the pin as "stale". Minor
+  follow-up noted: factory.test.ts's combined ner+ocr test only asserts
+  embedder/store presence, not ner/ocr presence directly -- could add a
+  stronger assertion now that the crash is fixed.)
+Task 10: implemented and committed (commit f2cfd0774d), independently
+  verified by controller (5/5 tests pass, no AI-attribution trailer). Peer
+  review dispatch failed immediately -- session hit monthly spend limit
+  before the reviewer could do any work (0 real tool calls, empty result).
+  NOT YET PEER-REVIEWED. Session paused here per user's "finalize" request
+  after hitting the spend limit.
+
+SESSION PAUSED (spend limit reached). Status: Tasks 1-9 complete and
+  reviewer-approved (Task 9 fixed a major cross-cutting ORT SIGSEGV via a
+  narrowly-scoped, verified version pin -- see its entry above). Task 10 is
+  implemented, committed, and controller-verified but awaiting peer review.
+  Tasks 11 (coverage/build verification) and 12 (README) remain untouched.
+  To resume: dispatch a reviewer for commit b70f0da52d..f2cfd0774d (diff
+  already generated at .superpowers/sdd/review-b70f0da52d..f2cfd0774d.diff),
+  then continue with task-brief for Task 11.
