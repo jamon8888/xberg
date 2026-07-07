@@ -8,6 +8,9 @@ packages:
   - "!e2e/wasm" # excluded: depends on wasm-pack build output (crates/xberg-wasm/pkg)
 allowBuilds:
   esbuild: true
+  onnxruntime-node: true
+  protobufjs: false
+  sharp: true
 sharedWorkspaceLockfile: true
 autoInstallPeers: true
 hoist: true
