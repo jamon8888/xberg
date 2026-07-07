@@ -116,3 +116,30 @@ Task 4: complete (commit 0a5959f72a, review clean — Approved. Controller
 # separate follow-ups (task_706665c3, task_71b413e1) — NEITHER blocks this
 # plan's own deliverables or was introduced by this plan's changes.
 # Next: final whole-branch review, then superpowers:finishing-a-development-branch.
+
+# ==========================================================================
+# xberg-wasm-runtime-layer Plan — SDD Progress (Sub-project C)
+# Plan: docs/superpowers/plans/2026-07-02-xberg-wasm-runtime-layer.md
+# Worktree: .claude/worktrees/wasm-runtime-layer
+# Branch: worktree-wasm-runtime-layer (from main @ cdefd83d8a)
+# Started: 2026-07-06
+# Pre-flight scan found 3 defects, resolved with user before Task 1:
+#  1. wa-sqlite@^1.1.0 doesn't exist (only 1.0.0 ever published) -> pin ^1.0.0
+#  2. ppu-paddle-ocr@^0.5.0 doesn't exist (lowest 1.0.0, latest 6.0.0) -> pin ^6.0.0
+#  3. store.ts Task 4: `async function delete(...)` is a JS reserved-word
+#     syntax error -> implement as deleteDocument, expose as `delete: deleteDocument`
+#  Also: align vitest/typescript devDeps with workspace root (^4.1.9/^6.0.3)
+#     instead of plan's stale ^1.0.0/^5.3.0, per user decision.
+# Base commit (before Task 1): cdefd83d8a
+# ==========================================================================
+Task 1: complete (commits cdefd83d8a..f91e768f23, review Approved after 1 fix round.
+  Implementer hit account monthly spend limit on first dispatch attempt with zero
+  work done, re-dispatch succeeded. Reviewer found 3 Important issues: vitest v4
+  coverage schema needed nesting under thresholds (implementer wrongly claimed it
+  was verified), pnpm-lock.yaml regenerated but not committed, pnpm-workspace.yaml
+  allowBuilds mutated with literal placeholder strings for onnxruntime-node/
+  protobufjs/sharp. Fix subagent resolved all 3: onnxruntime-node=true and sharp=true
+  (verified against their actual postinstall/install scripts pulling native
+  binaries), protobufjs=false (pure JS, no install script) -- reasoning
+  independently verified by re-reviewer against node_modules/.pnpm/*/package.json.
+  Re-review: Approved, no new issues.)
