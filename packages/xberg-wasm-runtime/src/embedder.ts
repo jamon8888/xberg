@@ -28,6 +28,7 @@ export async function createEmbedder(
     const results: Float32Array[] = [];
 
     // Process in batches to manage memory.
+    const batchPromises: Promise<void>[] = [];
     for (let i = 0; i < texts.length; i += DEFAULT_BATCH_SIZE) {
       const batch = texts.slice(
         i,
@@ -38,28 +39,33 @@ export async function createEmbedder(
       // We normalize ourselves below rather than relying on the pipeline's
       // built-in `normalize` option, to keep the normalization logic explicit
       // and unit-tested in this module.
-      const output = await extractor(batch, {
-        pooling: "mean",
-        normalize: false,
-      });
+      batchPromises.push(
+        (async () => {
+          const output = await extractor(batch, {
+            pooling: "mean",
+            normalize: false,
+          });
 
-      // `output` is a Tensor with shape [batch.length, hiddenSize] and a flat
-      // `.data` array. Slice out each row before normalizing.
-      const [batchSize, hiddenSize] = output.dims;
-      if (batchSize === undefined || hiddenSize === undefined) {
-        throw new Error(
-          `Unexpected feature-extraction output shape: [${output.dims.join(", ")}]`
-        );
-      }
-      const flat = Float32Array.from(output.data as ArrayLike<number>);
+          // `output` is a Tensor with shape [batch.length, hiddenSize] and a flat
+          // `.data` array. Slice out each row before normalizing.
+          const [batchSize, hiddenSize] = output.dims;
+          if (batchSize === undefined || hiddenSize === undefined) {
+            throw new Error(
+              `Unexpected feature-extraction output shape: [${output.dims.join(", ")}]`
+            );
+          }
+          const flat = Float32Array.from(output.data as ArrayLike<number>);
 
-      for (let row = 0; row < batchSize; row++) {
-        const start = row * hiddenSize;
-        const vec = flat.subarray(start, start + hiddenSize);
-        results.push(l2Normalize(vec));
-      }
+          for (let row = 0; row < batchSize; row++) {
+            const start = row * hiddenSize;
+            const vec = flat.subarray(start, start + hiddenSize);
+            results.push(l2Normalize(vec));
+          }
+        })()
+      );
     }
 
+    await Promise.all(batchPromises);
     return results;
   }
 

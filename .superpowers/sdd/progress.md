@@ -272,3 +272,8 @@ SESSION PAUSED (spend limit reached). Status: Tasks 1-9 complete and
   To resume: dispatch a reviewer for commit b70f0da52d..f2cfd0774d (diff
   already generated at .superpowers/sdd/review-b70f0da52d..f2cfd0774d.diff),
   then continue with task-brief for Task 11.
+Task 10: complete (commit b70f0da52d..f2cfd0774d, review Approved, no fixes
+  needed, resumed after spend-limit pause. Genuine real round-trips on
+  embedder/store (not typeof-only); ner/ocr checks match brief's own spec
+  exactly (ner real call, ocr typeof-only) so not an implementer shortcut.
+  Only Minor notes, all attributable to the brief's own template design.)

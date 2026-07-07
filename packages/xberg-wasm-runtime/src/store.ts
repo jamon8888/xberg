@@ -6,7 +6,7 @@ import type { VectorStoreInterface, DocumentRecord, ChunkRecord, CacheConfig } f
  * Logs the vector search backend selection for debugging.
  */
 export async function createVectorStore(
-  config?: CacheConfig
+  _config?: CacheConfig
 ): Promise<VectorStoreInterface> {
   // For now, a simple in-memory implementation for testing.
   // Browser: wa-sqlite over OPFS in a dedicated Worker (implement via postMessage).
@@ -16,7 +16,7 @@ export async function createVectorStore(
   const documents = new Map<string, DocumentRecord>();
   const chunks = new Map<string, ChunkRecord[]>(); // key: sourceId
 
-  let vectorBackend: "sqlite-vec" | "cosine" = "cosine";
+  const vectorBackend: "sqlite-vec" | "cosine" = "cosine";
 
   interface CollectionMetadata {
     name: string;

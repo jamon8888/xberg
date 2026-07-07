@@ -33,13 +33,13 @@ export async function createXbergRuntimeFactory(
   try {
     embedder = await createEmbedder(config);
   } catch (err) {
-    throw new Error(`[factory] embedder initialization failed: ${err}`);
+    throw new Error(`[factory] embedder initialization failed: ${err}`, { cause: err });
   }
 
   try {
     store = await createVectorStore(config);
   } catch (err) {
-    throw new Error(`[factory] vector store initialization failed: ${err}`);
+    throw new Error(`[factory] vector store initialization failed: ${err}`, { cause: err });
   }
 
   // Create optional components (null if unavailable)
