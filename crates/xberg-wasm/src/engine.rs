@@ -160,20 +160,19 @@ impl XbergEngine {
 
         let chunking = match config {
             Some(c) if !c.is_undefined() && !c.is_null() => {
-                let chunking_val = js_sys::Reflect::get(&c, &JsValue::from_str("chunking"))
-                    .unwrap_or(JsValue::UNDEFINED);
-                if chunking_val.is_undefined() || chunking_val.is_null() {
-                    xberg::ChunkingConfig::default()
-                } else {
-                    let chunking_obj: Object = chunking_val.dyn_into().unwrap_or_else(|_| Object::new());
-                    let mut cfg = xberg::ChunkingConfig::default();
-                    if let Some(n) = get_opt_number(&chunking_obj, "maxCharacters")? {
-                        cfg.max_characters = n as usize;
+                let c_obj: Object = c.dyn_into().unwrap_or_else(|_| Object::new());
+                match get_opt_field(&c_obj, "chunking")? {
+                    Some(chunking_obj) => {
+                        let mut cfg = xberg::ChunkingConfig::default();
+                        if let Some(n) = get_opt_number(&chunking_obj, "maxCharacters")? {
+                            cfg.max_characters = n as usize;
+                        }
+                        if let Some(n) = get_opt_number(&chunking_obj, "overlap")? {
+                            cfg.overlap = n as usize;
+                        }
+                        cfg
                     }
-                    if let Some(n) = get_opt_number(&chunking_obj, "overlap")? {
-                        cfg.overlap = n as usize;
-                    }
-                    cfg
+                    None => xberg::ChunkingConfig::default(),
                 }
             }
             _ => xberg::ChunkingConfig::default(),
