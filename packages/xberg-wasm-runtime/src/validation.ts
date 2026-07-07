@@ -14,6 +14,8 @@ export const vectorStoreSchema = z.object({
   listCollections: asyncFunctionSchema,
   dropCollection: asyncFunctionSchema,
   ensureCollection: asyncFunctionSchema,
+  createEdge: asyncFunctionSchema,
+  traverseGraph: asyncFunctionSchema,
 });
 
 export const nerSchema = z.object({

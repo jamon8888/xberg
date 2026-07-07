@@ -24,6 +24,14 @@ export interface ChunkRecord {
   embedding: Float32Array;
 }
 
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  properties?: Record<string, unknown>;
+}
+
 export interface VectorStoreInterface {
   upsertDocument(
     collection: string,
@@ -39,6 +47,8 @@ export interface VectorStoreInterface {
   listCollections(): Promise<string[]>;
   dropCollection(collection: string): Promise<void>;
   ensureCollection(collection: string, vectorDim: number): Promise<void>;
+  createEdge(edge: GraphEdge): Promise<void>;
+  traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): Promise<string[]>;
 }
 
 export interface Entity {
