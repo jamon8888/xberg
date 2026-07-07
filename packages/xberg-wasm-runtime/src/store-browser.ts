@@ -1,5 +1,5 @@
 import type { VectorStoreInterface, DocumentRecord, ChunkRecord, GraphEdge, CacheConfig } from "./types";
-import type { StoreWorkerRequest, StoreWorkerResponse, StoreWorkerRequestBase } from "./store-worker";
+import type { StoreWorkerResponse, StoreWorkerRequestBase } from "./store-worker";
 
 export async function createBrowserVectorStore(
   config?: CacheConfig
