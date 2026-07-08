@@ -73,13 +73,8 @@ export interface Entity {
 	score?: number;
 }
 
-export interface NerOpts {
-	categories?: string[];
-	threshold?: number;
-}
-
 export interface NerInterface {
-	ner(text: string, opts?: NerOpts): Promise<Entity[]>;
+	ner(text: string, categories?: string[], threshold?: number): Promise<Entity[]>;
 }
 
 export interface OcrOpts {

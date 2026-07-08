@@ -1,5 +1,5 @@
 import { pipeline, env } from "@huggingface/transformers";
-import type { CacheConfig, Entity, NerInterface, NerOpts } from "./types.js";
+import type { CacheConfig, Entity, NerInterface } from "./types.js";
 import type { TokenClassificationSingle } from "@huggingface/transformers";
 import { selectModelBackend } from "./backend.js";
 import { configureTransformersEnvironment } from "./runtime-env.js";
@@ -46,18 +46,23 @@ export async function createNer(config?: CacheConfig): Promise<NerInterface | nu
 		 *
 		 * IMPORTANT: The currently-loaded model (Xenova/bert-base-NER) recognizes
 		 * only a fixed label set: PER (person), ORG (organization), LOC (location),
-		 * and MISC (miscellaneous). The `opts.categories` parameter filters results
-		 * to only entities matching those labels, but only works within this fixed
+		 * and MISC (miscellaneous). The `categories` parameter filters results to
+		 * only entities matching those labels, but only works within this fixed
 		 * set. Requesting categories outside this set (e.g., EMAIL, PHONE) will
-		 * silently return no results with no error. To support arbitrary zero-shot
-		 * categories (e.g., PII-specific entity types), swap the model ID to a
-		 * genuine GLiNER2 export when one becomes available on the HuggingFace Hub.
+		 * silently return no results with no error — packages/xberg-wasm-runtime's
+		 * pii.ts regex layer exists specifically to cover that gap deterministically.
+		 *
+		 * `categories` is a plain positional array (not an options object) because
+		 * this must match crates/xberg-wasm/src/bridge/ner.rs's
+		 * call_injected_ner, which calls `ner(text, categories)` positionally —
+		 * the Rust bridge is the fixed contract this signature exists to satisfy.
 		 *
 		 * @param text The input text to analyze
-		 * @param opts Optional filtering: categories (filter by label), threshold (min confidence score)
+		 * @param categories Optional label filter
+		 * @param threshold Optional minimum confidence score
 		 * @returns Array of entities with label, text, position, and confidence score
 		 */
-		async function ner(text: string, opts?: NerOpts): Promise<Entity[]> {
+		async function ner(text: string, categories?: string[], threshold?: number): Promise<Entity[]> {
 			if (!text || text.length === 0) return [];
 
 			try {
@@ -66,7 +71,7 @@ export async function createNer(config?: CacheConfig): Promise<NerInterface | nu
 					Array.isArray(predictions) ? predictions : [predictions]
 				) as TokenClassificationSingle[];
 
-				return mergeEntities(tokens, text, opts);
+				return mergeEntities(tokens, text, categories, threshold);
 			} catch (err) {
 				console.error("[ner] classification failed:", err);
 				return [];
@@ -96,7 +101,7 @@ const WORDPIECE_CONTINUATION_PREFIX = "##";
  * forward-scanning cursor (so repeated words resolve to distinct
  * occurrences in order).
  */
-function mergeEntities(tokens: TokenClassificationSingle[], sourceText: string, opts?: NerOpts): Entity[] {
+function mergeEntities(tokens: TokenClassificationSingle[], sourceText: string, categories?: string[], threshold?: number): Entity[] {
 	const entities: Entity[] = [];
 	let current: Entity | null = null;
 	let searchCursor = 0;
@@ -150,10 +155,10 @@ function mergeEntities(tokens: TokenClassificationSingle[], sourceText: string, 
 	}
 
 	return entities.filter((entity) => {
-		if (opts?.threshold !== undefined && (entity.score ?? 0) < opts.threshold) {
+		if (threshold !== undefined && (entity.score ?? 0) < threshold) {
 			return false;
 		}
-		if (opts?.categories && !opts.categories.includes(entity.label)) {
+		if (categories && !categories.includes(entity.label)) {
 			return false;
 		}
 		return true;

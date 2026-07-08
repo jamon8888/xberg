@@ -91,7 +91,7 @@ describe("NER", () => {
 		expect(allEntities.length).toBeGreaterThan(0);
 
 		// Filter to only PER (person) category
-		const personEntities = await ner.ner(text, { categories: ["PER"] });
+		const personEntities = await ner.ner(text, ["PER"]);
 
 		// All returned entities must have label "PER"
 		for (const entity of personEntities) {
@@ -100,7 +100,7 @@ describe("NER", () => {
 
 		// Requesting a category that bert-base-NER does not support (e.g., EMAIL)
 		// should return empty results (not an error).
-		const emailEntities = await ner.ner(text, { categories: ["EMAIL"] });
+		const emailEntities = await ner.ner(text, ["EMAIL"]);
 		expect(emailEntities).toEqual([]);
 	}, 60_000);
 
@@ -116,7 +116,7 @@ describe("NER", () => {
 		expect(allEntities.length).toBeGreaterThan(0);
 
 		// Set a high confidence threshold
-		const highThresholdEntities = await ner.ner(text, { threshold: 0.99 });
+		const highThresholdEntities = await ner.ner(text, undefined, 0.99);
 
 		// All returned entities must have score >= threshold
 		for (const entity of highThresholdEntities) {
