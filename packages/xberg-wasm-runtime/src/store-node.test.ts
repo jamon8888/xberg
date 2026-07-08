@@ -141,4 +141,117 @@ describe("node vector store (better-sqlite3 + sqlite-vec)", () => {
 		expect(reached).toContain("b");
 		expect(reached).not.toContain("c");
 	});
+
+	it("retrieve() in fulltext mode finds a chunk by exact text match", async () => {
+		await store.ensureCollection(testCollection, vectorDim);
+		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
+		await store.upsertDocument(testCollection, doc, [
+			{
+				sourceId: "src-1",
+				chunkIndex: 0,
+				text: "the quick brown fox",
+				startOffset: 0,
+				endOffset: 19,
+				embedding: new Float32Array([1, 0, 0, 0]),
+			},
+		]);
+		const results = await store.retrieve(testCollection, { mode: "fulltext", queryText: "brown fox", k: 5 });
+		expect(results[0]?.text).toBe("the quick brown fox");
+	});
+
+	it("retrieve() in vector mode matches query() behavior", async () => {
+		await store.ensureCollection(testCollection, vectorDim);
+		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
+		await store.upsertDocument(testCollection, doc, [
+			{
+				sourceId: "src-1",
+				chunkIndex: 0,
+				text: "apple",
+				startOffset: 0,
+				endOffset: 5,
+				embedding: new Float32Array([1, 0, 0, 0]),
+			},
+		]);
+		const results = await store.retrieve(testCollection, { mode: "vector", queryVector: [1, 0, 0, 0], k: 5 });
+		expect(results[0]?.text).toBe("apple");
+	});
+
+	it("retrieve() in hybrid mode ranks a chunk good on both signals above either extreme", async () => {
+		await store.ensureCollection(testCollection, vectorDim);
+		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
+		// Fixture verified against the real better-sqlite3 + sqlite-vec + FTS5 engine (not assumed):
+		// - FTS5 MATCH ANDs bareword terms by default, so the query text is kept to terms every
+		//   textually-relevant chunk actually contains ("hybrid search"), otherwise a partial text
+		//   match is excluded from the fulltext ranking entirely rather than ranked lower.
+		// - Two vector-only filler chunks push chunk 1's vector rank down to 5th so RRF's convex
+		//   1/(k+rank) sum genuinely favors chunk 2 (moderate rank 2 + rank 2) over chunk 1
+		//   (best-possible text rank 1 offset by a much worse vector rank) instead of tying/losing.
+		await store.upsertDocument(testCollection, doc, [
+			{
+				// Exact vector match, textually irrelevant to the query text.
+				sourceId: "src-1",
+				chunkIndex: 0,
+				text: "zzz unrelated content",
+				startOffset: 0,
+				endOffset: 22,
+				embedding: new Float32Array([1, 0, 0, 0]),
+			},
+			{
+				// Textually exact, vector-distant.
+				sourceId: "src-1",
+				chunkIndex: 1,
+				text: "hybrid search",
+				startOffset: 23,
+				endOffset: 37,
+				embedding: new Float32Array([0, 0, 0, 1]),
+			},
+			{
+				// Moderately good on both.
+				sourceId: "src-1",
+				chunkIndex: 2,
+				text: "hybrid search related content",
+				startOffset: 38,
+				endOffset: 68,
+				embedding: new Float32Array([0.7, 0, 0, 0.7]),
+			},
+			{
+				// Vector-only filler, textually irrelevant: closer to the query vector than chunk 1,
+				// pushing chunk 1 further down the vector ranking.
+				sourceId: "src-1",
+				chunkIndex: 3,
+				text: "filler padding words one",
+				startOffset: 69,
+				endOffset: 94,
+				embedding: new Float32Array([0.2, 0, 0, 0.6]),
+			},
+			{
+				// Second vector-only filler, same purpose as chunk 3.
+				sourceId: "src-1",
+				chunkIndex: 4,
+				text: "filler padding words two",
+				startOffset: 95,
+				endOffset: 120,
+				embedding: new Float32Array([0.1, 0, 0, 0.8]),
+			},
+		]);
+		const results = await store.retrieve(testCollection, {
+			mode: "hybrid",
+			queryVector: [1, 0, 0, 0],
+			queryText: "hybrid search",
+			k: 3,
+		});
+		expect(results[0]?.chunkId).toBe("src-1:2");
+	});
+
+	it("retrieve() throws for fulltext mode without queryText", async () => {
+		await store.ensureCollection(testCollection, vectorDim);
+		await expect(store.retrieve(testCollection, { mode: "fulltext", k: 5 })).rejects.toThrow(/queryText/);
+	});
+
+	it("retrieve() throws for hybrid mode missing either query input", async () => {
+		await store.ensureCollection(testCollection, vectorDim);
+		await expect(store.retrieve(testCollection, { mode: "hybrid", queryText: "x", k: 5 })).rejects.toThrow(
+			/queryVector/,
+		);
+	});
 });

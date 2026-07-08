@@ -3,7 +3,17 @@ import * as sqliteVec from "sqlite-vec";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { SCHEMA_SQL, createVecTableSql, vecTableName, sanitizeTableName } from "./store-schema.js";
-import type { VectorStoreInterface, DocumentRecord, ChunkRecord, GraphEdge, CacheConfig } from "./types.js";
+import { reciprocalRankFusion } from "./retrieve-fusion.js";
+import type {
+	VectorStoreInterface,
+	DocumentRecord,
+	ChunkRecord,
+	GraphEdge,
+	CacheConfig,
+	RetrieveOptions,
+} from "./types.js";
+
+const HYBRID_CANDIDATE_MULTIPLIER = 4;
 
 export async function createNodeVectorStore(config?: CacheConfig): Promise<VectorStoreInterface> {
 	const dbPath =
@@ -110,6 +120,44 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
 		return rows.map((r) => ({ chunkId: r.chunkId, text: r.text, score: -r.distance }));
 	}
 
+	async function fullTextQuery(
+		collection: string,
+		queryText: string,
+		k: number,
+	): Promise<Array<{ chunkId: string; text: string; score: number }>> {
+		const rows = db
+			.prepare(
+				`SELECT f.chunk_id AS chunkId, c.text AS text, bm25(chunks_fts) AS rank
+       FROM chunks_fts f JOIN chunks c ON c.chunk_id = f.chunk_id AND c.collection = f.collection
+       WHERE chunks_fts MATCH ? AND f.collection = ? ORDER BY rank LIMIT ?`,
+			)
+			.all(queryText, collection, k) as Array<{ chunkId: string; text: string; rank: number }>;
+		// bm25() is smaller-is-better; negate for the larger-is-better score convention query() already uses.
+		return rows.map((r) => ({ chunkId: r.chunkId, text: r.text, score: -r.rank }));
+	}
+
+	async function retrieve(
+		collection: string,
+		opts: RetrieveOptions,
+	): Promise<Array<{ chunkId: string; text: string; score: number }>> {
+		if (opts.mode === "vector") {
+			if (!opts.queryVector) throw new Error("retrieve: queryVector is required for mode 'vector'");
+			return query(collection, opts.queryVector, opts.k);
+		}
+		if (opts.mode === "fulltext") {
+			if (!opts.queryText) throw new Error("retrieve: queryText is required for mode 'fulltext'");
+			return fullTextQuery(collection, opts.queryText, opts.k);
+		}
+		if (!opts.queryVector) throw new Error("retrieve: queryVector is required for mode 'hybrid'");
+		if (!opts.queryText) throw new Error("retrieve: queryText is required for mode 'hybrid'");
+		const candidateK = opts.k * HYBRID_CANDIDATE_MULTIPLIER;
+		const [vectorResults, textResults] = await Promise.all([
+			query(collection, opts.queryVector, candidateK),
+			fullTextQuery(collection, opts.queryText, candidateK),
+		]);
+		return reciprocalRankFusion([vectorResults, textResults]).slice(0, opts.k);
+	}
+
 	async function deleteDocument(collection: string, documentId: string): Promise<void> {
 		const table = vecTableName(collection);
 		const doc = db
@@ -183,6 +231,7 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
 		ensureCollection,
 		upsertDocument,
 		query,
+		retrieve,
 		delete: deleteDocument,
 		listCollections,
 		dropCollection,
