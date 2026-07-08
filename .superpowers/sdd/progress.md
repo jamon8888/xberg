@@ -433,4 +433,26 @@ Task 11: implemented (commit 30c6e7c1af..13790c08c6), VERIFICATION BLOCKED by en
   Send-future extractor.rs bug (task_706665c3). Neither blocker is
   introduced by this task; the change is correct against the verified
   API surface. Verification gate must be re-run in a healthy toolchain.
+Task 12 (optional): complete (commit 5bf44013e1..7958e73992, review clean,
+  Approved). Made Encoder::from_buffered_safetensors + AllHeads::
+  from_buffered_safetensors take an explicit dtype param (default F32
+  threaded through by Gliner2Candle::from_bytes); enables opt-in F16
+  downcast on wasm32 without changing default output. Controller
+  re-verified: cargo test -p xberg-gliner-candle --lib 11/11 pass (crate
+  does NOT pull aws-lc-sys, so it compiles in this env); cargo fmt clean.
+  xberg-wasm wasm32 build not re-run (blocked by pre-existing
+  task_706665c3 Send-future bug, and Task 12 changes no xberg-wasm
+  call site — from_bytes stays F32).
+
+# PLAN COMPLETE — all 12 tasks shipped on feature/wasm-runtime-sqlite-store.
+  Tasks 1-9 (TS) fully implemented + green (vitest/tsc/oxlint) and
+  reviewed. Task 10 (Rust gated model-load test) PASS against the real
+  1.17 GiB fastino/gliner2-privacy-filter-PII-multi model. Task 11
+  (wasm NER Candle fallback wiring) implemented + symbol-verified but
+  compile verification BLOCKED by pre-existing env toolchain failures
+  (aws-lc-sys Windows/MSVC 14.44; wasm32 task_706665c3). Task 12
+  (F16 opt-in) implemented + green (11/11 lib tests). Two non-blocking
+  plan oversights fixed during execution: cache.test.ts asserted the
+  old all-MiniLM model name (Task 7); NerOpts removal needed a
+  re-verified tree-wide sweep (Task 8).
 
