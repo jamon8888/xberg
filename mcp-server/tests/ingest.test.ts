@@ -81,7 +81,7 @@ describe("engine.ingest (Task 5 core behavior)", () => {
   // `store.ts`'s `retrieve()` implements everything else per the real
   // protocol (collection lookup, cosine scoring, top_k, filtering) and would
   // work end-to-end once the Rust type is corrected.
-  it("engine.query currently throws due to an unconstructible PrimaryScore shape (Rust-side bug)", async () => {
+  it("engine.query returns scored chunks with a deserializable primary_score", async () => {
     await store.ensureCollection({ name: "test_col_query", embedding_dim: EMBEDDING_DIM });
     const doc = {
       full_text: "Hello world. This is a test document about machine learning.",
@@ -93,9 +93,27 @@ describe("engine.ingest (Task 5 core behavior)", () => {
     };
     await engine.ingest(doc, "test_col_query");
 
-    await expect(engine.query("machine learning", "test_col_query", 3)).rejects.toThrow(
-      /invalid type: map, expected f32/
-    );
+    // Regression: `PrimaryScore` was an internally-tagged enum with newtype
+    // scalar variants (`Vector(f32)`), which serde cannot (de)serialize —
+    // every query() failed with "invalid type: map, expected f32". The variants
+    // are now struct variants `{ score }`, so the wire shape
+    // `{ kind: "vector", score }` round-trips. See crates/xberg-rag/src/types.rs.
+    //
+    // engine.query returns the full RetrieveOutput (`&output` in
+    // crates/xberg-wasm/src/engine.rs), i.e. `{ mode, chunks, primary_latency_ms }`,
+    // not a bare chunk array.
+    const output = (await engine.query("machine learning", "test_col_query", 3)) as {
+      mode: string;
+      chunks: Array<{ score: number; primary_score: { kind: string; score?: number } }>;
+      primary_latency_ms: number;
+    };
+    expect(output.mode).toBe("vector");
+    expect(Array.isArray(output.chunks)).toBe(true);
+    expect(output.chunks.length).toBeGreaterThan(0);
+    const top = output.chunks[0]!;
+    expect(typeof top.score).toBe("number");
+    expect(top.primary_score.kind).toBe("vector");
+    expect(typeof top.primary_score.score).toBe("number");
   }, 60_000);
 
   it("camelCase chunking config is parsed and ingestion succeeds", async () => {

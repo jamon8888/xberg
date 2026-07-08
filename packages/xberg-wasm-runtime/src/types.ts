@@ -80,8 +80,8 @@ export interface DocumentSummary {
  * `#[serde(rename_all = "snake_case")]`).
  */
 export type PrimaryScore =
-  | { kind: "vector"; 0: number }
-  | { kind: "full_text"; 0: number }
+  | { kind: "vector"; score: number }
+  | { kind: "full_text"; score: number }
   | { kind: "hybrid"; vector: number; full_text: number; rrf: number };
 
 /**

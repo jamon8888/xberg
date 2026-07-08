@@ -258,20 +258,10 @@ export async function createVectorStore(
         external_id: c.externalId,
         content: query.include_content ? c.content : undefined,
         score: s,
-        // KNOWN LIMITATION: `PrimaryScore::Vector(f32)` is an internally-tagged
-        // newtype-over-scalar variant (`#[serde(tag = "kind")]` in
-        // crates/xberg-rag/src/types.rs), which cannot be produced by
-        // serde_wasm_bindgen in any JS shape — internally-tagged newtype
-        // variants only deserialize when the inner type is itself a
-        // struct/map whose fields flatten alongside the tag key; a bare f32
-        // has no fields to flatten. This is a Rust-side type bug (tracked
-        // separately, out of scope here) that affects every JS-backed
-        // VectorStore, not just this one. We emit the closest-effort shape
-        // (flattened, matching how the struct-variant `Hybrid` case works)
-        // so callers that only read `score` (not `primary_score`) still get
-        // correct behavior; `retrieve()` will still throw when the bridge
-        // deserializes this specific field until the Rust type is fixed.
-        primary_score: { kind: "vector", 0: s } as unknown as RetrievedChunk["primary_score"],
+        // `PrimaryScore::Vector` is a struct variant `{ score }` under the
+        // internally-tagged (`tag = "kind"`) enum, so the wire shape is
+        // `{ kind: "vector", score }` — the fields flatten alongside the tag.
+        primary_score: { kind: "vector", score: s },
         chunk_metadata: c.chunkMetadata,
         document:
           query.include_document && doc ? summarize(c.documentId, doc.record) : undefined,
