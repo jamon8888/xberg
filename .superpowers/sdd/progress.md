@@ -379,3 +379,15 @@ Task 5: complete (commit 8fcbb3c026..f5834a08a3, review clean, Approved.
   is now fully implemented by both createNodeVectorStore and
   createBrowserVectorStore, closing the scoped breakage introduced by Task 2.
   store.ts dispatcher needed no changes (already delegates to both).)
+Task 7: complete (commit c0974bddaa..6354897b0e, review clean, Approved.
+  DEFAULT_MODEL swapped Xenova/all-MiniLM-L6-v2 -> Xenova/bge-m3 (1024-dim,
+  multilingual); cache.ts MODELS embedder entry + bge-m3 key in
+  MODEL_NAME_TO_HANDLE updated (legacy MiniLM keys kept for backward
+  compat); embedder.test.ts beforeAll + new 1024-dim assertion added.
+  PLAN OVERSIGHT FIXED: existing cache.test.ts status() test asserted the
+  old all-MiniLM dir/display name; updated fake dir to Xenova/bge-m3/onnx
+  and expected ["Embedder (bge-m3)", "BERT NER"] so the suite stays green.
+  Controller re-verified: vitest embedder.test.ts+cache.test.ts 13 pass/1
+  skip, tsc --noEmit clean, oxlint 0 warnings/0 errors. Only the four
+  intended files committed.)
+
