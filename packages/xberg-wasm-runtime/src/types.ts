@@ -53,7 +53,10 @@ export interface VectorStoreInterface {
 		queryVector: number[],
 		k: number,
 	): Promise<Array<{ chunkId: string; text: string; score: number }>>;
-	retrieve(collection: string, opts: RetrieveOptions): Promise<Array<{ chunkId: string; text: string; score: number }>>;
+	retrieve(
+		collection: string,
+		opts: RetrieveOptions,
+	): Promise<Array<{ chunkId: string; text: string; score: number }>>;
 	delete(collection: string, documentId: string): Promise<void>;
 	listCollections(): Promise<string[]>;
 	dropCollection(collection: string): Promise<void>;
