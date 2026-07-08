@@ -406,4 +406,12 @@ Task 9: complete (commit 4c2d42ec5b..988326969e, review clean, Approved.
   counts; detectPiiWithNer merge + empty-ner floor). Controller re-verified:
   vitest pii.test.ts 9/9 pass, tsc --noEmit clean, oxlint 0 warnings/0
   errors. Only the two intended files committed.)
+Task 10: complete (commit fe428f424f..e3bc0d0609, review clean, Approved.
+  Added gated #[ignore]d smoke test pii_model_loads_from_bytes_and_
+  extracts_entities. Downloaded the real fastino/gliner2-privacy-filter-
+  PII-multi model (model.safetensors 1.17 GiB + tokenizer.json +
+  encoder_config/config.json) and ran the gated test: PASSED (1 passed,
+  0 failed) — confirms Gliner2Candle::from_bytes loads the real pinned
+  PII model and extracts entities without a tensor mismatch, closing the
+  design spec's Q3 risk. Only smoke.rs committed.)
 
