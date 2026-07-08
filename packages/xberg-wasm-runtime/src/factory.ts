@@ -4,7 +4,7 @@ import { createNer } from "./ner.js";
 import { createOcr } from "./ocr.js";
 import { CacheManager } from "./cache.js";
 import { validateInjectionDescriptor } from "./validation.js";
-import type { CacheConfig, InjectionDescriptor } from "./types.js";
+import type { CacheConfig, EmbedderInterface, InjectionDescriptor, VectorStoreInterface } from "./types.js";
 
 /**
  * Create a complete injection descriptor for the wasm engine.
@@ -22,8 +22,8 @@ export async function createXbergRuntimeFactory(config?: CacheConfig): Promise<I
 	}
 
 	// Create required components
-	let embedder;
-	let store;
+	let embedder: EmbedderInterface;
+	let store: VectorStoreInterface;
 
 	try {
 		embedder = await createEmbedder(config);

@@ -36,12 +36,13 @@ export async function createOcr(config?: CacheConfig): Promise<OcrInterface | nu
 		const { PaddleOcrService, ...models } = await import("ppu-paddle-ocr");
 
 		const modelId = config?.models?.ocr;
-		const modelPreset =
-			(modelId && (models as Record<string, unknown>)[modelId]) ||
-			(models as Record<string, unknown>)[DEFAULT_MODEL_EXPORT];
+		const availableModels = models as Record<string, unknown>;
+		const initialModelKey = modelId && availableModels[modelId] ? modelId : DEFAULT_MODEL_EXPORT;
+		const modelPreset = availableModels[initialModelKey];
 
 		const service = new PaddleOcrService(modelPreset ? { model: modelPreset as never } : undefined);
 		await service.initialize();
+		let activeModelKey = initialModelKey;
 
 		/**
 		 * Run OCR on an image. `opts.languages` selects a language-specific
@@ -55,14 +56,17 @@ export async function createOcr(config?: CacheConfig): Promise<OcrInterface | nu
 			try {
 				const requestedLanguage = opts?.languages?.[0];
 				const languageModelKey = requestedLanguage && LANGUAGE_MODEL_MAP[requestedLanguage];
-				if (languageModelKey && languageModelKey !== DEFAULT_MODEL_EXPORT) {
-					const preset = (models as Record<string, unknown>)[languageModelKey];
+				const desiredModelKey =
+					languageModelKey && availableModels[languageModelKey] ? languageModelKey : DEFAULT_MODEL_EXPORT;
+				if (desiredModelKey !== activeModelKey) {
+					const preset = availableModels[desiredModelKey];
 					if (preset) {
 						await service.changeDetectionModel((preset as { detection: string }).detection);
 						await service.changeRecognitionModel((preset as { recognition: string }).recognition);
 						await service.changeTextDictionary(
 							(preset as { charactersDictionary: string }).charactersDictionary,
 						);
+						activeModelKey = desiredModelKey;
 					}
 				}
 

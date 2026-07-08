@@ -68,6 +68,8 @@ Each runtime component can also be constructed independently:
 - `createOcr(config?: CacheConfig): Promise<OcrInterface | null>` — returns `null` on failure, never throws.
 - `new CacheManager(cacheDir?: string)` — `status()` reports cached models and total size; `warm(modelNames?)` pre-downloads; `setWasmPaths(dir)` configures ONNX Runtime Web.
 
+Vector stores own database/Worker resources. Call `await store.close()` when the runtime is no longer needed.
+
 ### Single-Flight Constraint
 
 The wasm engine holds `&self` across await points in its JSPI bridges, so it is **not safe for concurrent calls on a single handle**:

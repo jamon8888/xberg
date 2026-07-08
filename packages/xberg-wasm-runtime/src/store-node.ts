@@ -12,17 +12,30 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
 		mkdirSync(dirname(dbPath), { recursive: true });
 	}
 	const db = new Database(dbPath);
-	sqliteVec.load(db);
-	db.pragma("journal_mode = WAL");
-	db.exec(SCHEMA_SQL);
+	try {
+		sqliteVec.load(db);
+		db.pragma("journal_mode = WAL");
+		db.exec(SCHEMA_SQL);
+	} catch (error) {
+		db.close();
+		throw error;
+	}
 
 	const vectorDims = new Map<string, number>();
+	let closed = false;
 
 	async function ensureCollection(collection: string, vectorDim: number): Promise<void> {
+		if (!collection.trim()) throw new Error("collection must not be empty");
+		if (!Number.isInteger(vectorDim) || vectorDim <= 0) {
+			throw new Error("vectorDim must be a positive integer");
+		}
 		const existing = db.prepare("SELECT vector_dim FROM collections WHERE name = ?").get(collection) as
 			| { vector_dim: number }
 			| undefined;
 		if (existing) {
+			if (existing.vector_dim !== vectorDim) {
+				throw new Error(`collection ${collection} expects vectors of dimension ${existing.vector_dim}`);
+			}
 			vectorDims.set(collection, existing.vector_dim);
 			return;
 		}
@@ -84,6 +97,7 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
 		queryVector: number[],
 		k: number,
 	): Promise<Array<{ chunkId: string; text: string; score: number }>> {
+		if (!Number.isInteger(k) || k <= 0) throw new Error("k must be a positive integer");
 		const table = vecTableName(collection);
 		const queryBuf = Buffer.from(new Float32Array(queryVector).buffer);
 		const rows = db
@@ -160,6 +174,12 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
 	}
 
 	return {
+		close: async () => {
+			if (!closed) {
+				db.close();
+				closed = true;
+			}
+		},
 		ensureCollection,
 		upsertDocument,
 		query,

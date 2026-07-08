@@ -33,6 +33,7 @@ export interface GraphEdge {
 }
 
 export interface VectorStoreInterface {
+	close(): Promise<void>;
 	upsertDocument(
 		collection: string,
 		doc: DocumentRecord,

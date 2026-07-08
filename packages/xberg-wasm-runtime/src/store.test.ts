@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, beforeEach } from "vitest";
 import { createVectorStore } from "./store";
 import type { VectorStoreInterface, DocumentRecord, ChunkRecord } from "./types";
 
@@ -10,6 +10,8 @@ describe("vector store", () => {
 	beforeEach(async () => {
 		store = await createVectorStore();
 	});
+
+	afterEach(async () => store.close());
 
 	it("ensures a collection", async () => {
 		await store.ensureCollection(testCollection, vectorDim);

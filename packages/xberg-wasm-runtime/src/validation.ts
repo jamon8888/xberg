@@ -8,6 +8,7 @@ export const embedderSchema = z.object({
 });
 
 export const vectorStoreSchema = z.object({
+	close: asyncFunctionSchema,
 	upsertDocument: asyncFunctionSchema,
 	query: asyncFunctionSchema,
 	delete: asyncFunctionSchema,
@@ -37,6 +38,7 @@ export const cacheConfigSchema = z
 	.object({
 		opfsPath: z.string().optional(),
 		nodeCachePath: z.string().optional(),
+		nodeStorePath: z.string().optional(),
 		wasmPaths: z.string().optional(),
 		models: z
 			.object({

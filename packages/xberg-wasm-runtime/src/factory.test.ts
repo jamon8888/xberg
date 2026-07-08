@@ -3,6 +3,8 @@ import { createXbergRuntimeFactory } from "./factory";
 import { validateInjectionDescriptor } from "./validation";
 import * as embedderModule from "./embedder";
 import * as storeModule from "./store";
+import * as nerModule from "./ner";
+import * as ocrModule from "./ocr";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -69,19 +71,29 @@ describe("factory", () => {
 	}, 120_000);
 
 	it("handles missing optional NER gracefully", async () => {
-		// Factory should not throw when NER initialization fails; it should log and continue
-		const injection = await createXbergRuntimeFactory();
-		expect(injection.embedder).toBeDefined();
-		expect(injection.store).toBeDefined();
-		// NER may or may not be present; both are acceptable
+		const spy = vi.spyOn(nerModule, "createNer").mockRejectedValueOnce(new Error("NER unavailable"));
+		try {
+			const injection = await createXbergRuntimeFactory();
+			expect(injection.embedder).toBeDefined();
+			expect(injection.store).toBeDefined();
+			expect(injection.ner).toBeUndefined();
+			await injection.store.close();
+		} finally {
+			spy.mockRestore();
+		}
 	}, 120_000);
 
 	it("handles missing optional OCR gracefully", async () => {
-		// Factory should not throw when OCR initialization fails; it should log and continue
-		const injection = await createXbergRuntimeFactory();
-		expect(injection.embedder).toBeDefined();
-		expect(injection.store).toBeDefined();
-		// OCR may or may not be present; both are acceptable
+		const spy = vi.spyOn(ocrModule, "createOcr").mockRejectedValueOnce(new Error("OCR unavailable"));
+		try {
+			const injection = await createXbergRuntimeFactory();
+			expect(injection.embedder).toBeDefined();
+			expect(injection.store).toBeDefined();
+			expect(injection.ocr).toBeUndefined();
+			await injection.store.close();
+		} finally {
+			spy.mockRestore();
+		}
 	}, 120_000);
 
 	it("applies cache config when provided", async () => {

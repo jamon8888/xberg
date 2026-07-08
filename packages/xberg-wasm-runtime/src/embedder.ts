@@ -10,6 +10,7 @@ if (typeof process !== "undefined" && process.env.CI) {
 
 const DEFAULT_MODEL = "Xenova/all-MiniLM-L6-v2";
 const DEFAULT_BATCH_SIZE = 32;
+const MAX_CACHE_ENTRIES = 1_024;
 
 async function sha256Hex(input: string): Promise<string> {
 	const bytes = new TextEncoder().encode(input);
@@ -40,7 +41,13 @@ export async function createEmbedder(config?: CacheConfig): Promise<EmbedderInte
 		const hashes = await Promise.all(texts.map((t) => sha256Hex(`${modelId}:${t}`)));
 		const results: (Float32Array | undefined)[] = texts.map((_, i) => {
 			const h = hashes[i];
-			return h === undefined ? undefined : cache.get(h);
+			if (h === undefined) return undefined;
+			const cached = cache.get(h);
+			if (cached) {
+				cache.delete(h);
+				cache.set(h, cached);
+			}
+			return cached;
 		});
 
 		const uncachedIndices = results.map((r, i) => (r === undefined ? i : -1)).filter((i) => i !== -1);
@@ -66,7 +73,13 @@ export async function createEmbedder(config?: CacheConfig): Promise<EmbedderInte
 				if (originalIndex === undefined) continue;
 				results[originalIndex] = vec;
 				const h = hashes[originalIndex];
-				if (h !== undefined) cache.set(h, vec);
+				if (h !== undefined) {
+					cache.set(h, vec);
+					if (cache.size > MAX_CACHE_ENTRIES) {
+						const oldestKey = cache.keys().next().value;
+						if (oldestKey !== undefined) cache.delete(oldestKey);
+					}
+				}
 			}
 		}
 

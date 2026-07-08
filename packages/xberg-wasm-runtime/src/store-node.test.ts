@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, beforeEach } from "vitest";
 import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,10 +14,26 @@ describe("node vector store (better-sqlite3 + sqlite-vec)", () => {
 		store = await createNodeVectorStore({ nodeStorePath: ":memory:" });
 	});
 
+	afterEach(async () => store.close());
+
 	it("creates a persistent database inside nodeCachePath", async () => {
 		const cacheDirectory = mkdtempSync(join(tmpdir(), "xberg-store-"));
-		await createNodeVectorStore({ nodeCachePath: cacheDirectory });
+		const persistentStore = await createNodeVectorStore({ nodeCachePath: cacheDirectory });
 		expect(existsSync(join(cacheDirectory, "store.sqlite3"))).toBe(true);
+		await persistentStore.close();
+	});
+
+	it("validates collection names and dimensions", async () => {
+		await expect(store.ensureCollection(" ", vectorDim)).rejects.toThrow("collection must not be empty");
+		await expect(store.ensureCollection(testCollection, 0)).rejects.toThrow("positive integer");
+		await store.ensureCollection(testCollection, vectorDim);
+		await expect(store.ensureCollection(testCollection, vectorDim + 1)).rejects.toThrow(
+			"expects vectors of dimension",
+		);
+	});
+
+	it.each([0, -1, 1.5])("rejects invalid query limit %s", async (k) => {
+		await expect(store.query(testCollection, [1, 0, 0, 0], k)).rejects.toThrow("positive integer");
 	});
 
 	it("keeps sanitized-name collisions isolated", async () => {

@@ -1,11 +1,12 @@
 import { resolve } from "node:path";
 import { CacheManager } from "../dist/cache.js";
 
+const homeDirectory = process.env.USERPROFILE ?? process.env.HOME ?? ".";
 const cacheDirectory = resolve(
   process.env.XBERG_CACHE_DIR ??
     (process.platform === "win32"
-      ? `${process.env.LOCALAPPDATA ?? `${process.env.USERPROFILE}/AppData/Local`}/xberg`
-      : `${process.env.HOME}/.cache/xberg`),
+      ? `${process.env.LOCALAPPDATA ?? `${homeDirectory}/AppData/Local`}/xberg`
+      : `${homeDirectory}/.cache/xberg`),
 );
 
 const manager = new CacheManager(cacheDirectory);

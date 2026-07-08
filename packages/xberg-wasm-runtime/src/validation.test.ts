@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { validateInjectionDescriptor } from "./validation.js";
+import { cacheConfigSchema, validateInjectionDescriptor } from "./validation.js";
 
 describe("validateInjectionDescriptor", () => {
 	it("returns a validated descriptor", () => {
@@ -7,6 +7,7 @@ describe("validateInjectionDescriptor", () => {
 		const result = validateInjectionDescriptor({
 			embedder: { embed: method },
 			store: {
+				close: method,
 				upsertDocument: method,
 				query: method,
 				delete: method,
@@ -26,5 +27,11 @@ describe("validateInjectionDescriptor", () => {
 
 		expect(result.valid).toBe(false);
 		if (!result.valid) expect(result.error.length).toBeGreaterThan(0);
+	});
+});
+
+describe("cacheConfigSchema", () => {
+	it("accepts an explicit Node SQLite store path", () => {
+		expect(cacheConfigSchema.safeParse({ nodeStorePath: "C:/xberg/store.sqlite3" }).success).toBe(true);
 	});
 });

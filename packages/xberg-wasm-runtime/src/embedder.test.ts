@@ -49,11 +49,9 @@ describe("embedder", () => {
 		const texts = ["cache me please"];
 
 		const first = await freshEmbedder.embed(texts);
-		const start = performance.now();
 		const second = await freshEmbedder.embed(texts);
-		const elapsedMs = performance.now() - start;
 
-		expect(second[0]).toEqual(first[0]);
-		expect(elapsedMs).toBeLessThan(5);
+		// Cache hits return the exact stored vector object; recomputation creates a new one.
+		expect(second[0]).toBe(first[0]);
 	}, 60_000);
 });

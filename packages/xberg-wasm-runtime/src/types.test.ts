@@ -10,6 +10,7 @@ describe("injectionDescriptor validation", () => {
 				},
 			},
 			store: {
+				close: async () => {},
 				upsertDocument: async () => ({ documentId: "1", chunksCount: 1 }),
 				query: async () => [],
 				delete: async () => {},
@@ -27,6 +28,7 @@ describe("injectionDescriptor validation", () => {
 	it("rejects missing embedder", () => {
 		const descriptor = {
 			store: {
+				close: async () => {},
 				upsertDocument: async () => ({ documentId: "1", chunksCount: 1 }),
 				query: async () => [],
 				delete: async () => {},
@@ -47,6 +49,7 @@ describe("injectionDescriptor validation", () => {
 				embed: async (texts: string[]) => texts.map(() => new Float32Array([0.1])),
 			},
 			store: {
+				close: async () => {},
 				upsertDocument: async () => ({ documentId: "1", chunksCount: 1 }),
 				query: async () => [],
 				delete: async () => {},

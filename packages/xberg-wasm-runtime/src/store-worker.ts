@@ -3,6 +3,7 @@ import type { ChunkRecord, DocumentRecord, GraphEdge } from "./types.js";
 
 export type StoreWorkerRequest =
 	| { op: "init"; dbPath: string; id: number }
+	| { op: "close"; id: number }
 	| { op: "ensureCollection"; collection: string; vectorDim: number; id: number }
 	| { op: "upsertDocument"; collection: string; doc: DocumentRecord; chunks: ChunkRecord[]; id: number }
 	| { op: "query"; collection: string; queryVector: number[]; k: number; id: number }
@@ -95,6 +96,8 @@ async function initialize(dbPath: string): Promise<void> {
 	try {
 		database.exec(SCHEMA_SQL);
 	} catch (error) {
+		database.close();
+		database = undefined;
 		throw new Error(`creating store schema: ${error instanceof Error ? error.message : String(error)}`, {
 			cause: error,
 		});
@@ -103,11 +106,22 @@ async function initialize(dbPath: string): Promise<void> {
 	try {
 		version = database.selectValue("SELECT vec_version()");
 	} catch (error) {
+		database.close();
+		database = undefined;
 		throw new Error(`checking sqlite-vec: ${error instanceof Error ? error.message : String(error)}`, {
 			cause: error,
 		});
 	}
-	if (typeof version !== "string") throw new Error("sqlite-vec failed to initialize");
+	if (typeof version !== "string") {
+		database.close();
+		database = undefined;
+		throw new Error("sqlite-vec failed to initialize");
+	}
+}
+
+function closeDatabase(): void {
+	database?.close();
+	database = undefined;
 }
 
 function ensureCollection(collection: string, vectorDim: number): void {
@@ -265,6 +279,8 @@ async function dispatch(request: StoreWorkerRequest): Promise<unknown> {
 	switch (request.op) {
 		case "init":
 			return initialize(request.dbPath);
+		case "close":
+			return closeDatabase();
 		case "ensureCollection":
 			return ensureCollection(request.collection, request.vectorDim);
 		case "upsertDocument":

@@ -10,6 +10,7 @@ export async function createBrowserVectorStore(config?: CacheConfig): Promise<Ve
 	}
 
 	let nextId = 1;
+	let closed = false;
 	const pending = new Map<
 		number,
 		{
@@ -53,9 +54,23 @@ export async function createBrowserVectorStore(config?: CacheConfig): Promise<Ve
 		return response.result as T;
 	}
 
-	await call<void>({ op: "init", dbPath });
+	try {
+		await call<void>({ op: "init", dbPath });
+	} catch (error) {
+		worker.terminate();
+		throw error;
+	}
 
 	return {
+		close: async () => {
+			if (closed) return;
+			try {
+				await call<void>({ op: "close" });
+			} finally {
+				closed = true;
+				worker.terminate();
+			}
+		},
 		ensureCollection: (collection: string, vectorDim: number) =>
 			call<void>({ op: "ensureCollection", collection, vectorDim }),
 		upsertDocument: (collection: string, doc: DocumentRecord, chunks: ChunkRecord[]) =>
