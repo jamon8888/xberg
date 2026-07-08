@@ -14,6 +14,7 @@ import { registerIntelligenceTools } from "./tools/intelligence.js";
 import { registerMediaTools } from "./tools/media.js";
 import { registerWebTools } from "./tools/web.js";
 import { WarmupManager } from "./warmup.js";
+import { initializeEngine } from "./engine.js";
 
 const server = new McpServer({
   name: "xberg-mcp",
@@ -41,6 +42,11 @@ async function main() {
   if (missing.length > 0) {
     console.error(`[xberg-mcp] First-time setup: downloading ${missing.join(", ")}...`);
   }
+
+  // Build the wasm engine (B) wired to C's shared runtime factory before we
+  // accept requests, so tool handlers can rely on getEngine() being ready.
+  await initializeEngine();
+  console.error("[xberg-mcp] engine initialized");
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
