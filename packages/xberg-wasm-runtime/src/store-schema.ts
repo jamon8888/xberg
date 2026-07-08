@@ -60,4 +60,25 @@ CREATE TABLE IF NOT EXISTS graph_edges (
 CREATE INDEX IF NOT EXISTS idx_edges_source ON graph_edges(source);
 CREATE INDEX IF NOT EXISTS idx_edges_target ON graph_edges(target);
 CREATE INDEX IF NOT EXISTS idx_edges_label ON graph_edges(label);
+CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+  chunk_id UNINDEXED,
+  collection UNINDEXED,
+  text,
+  content='chunks',
+  content_rowid='rowid'
+);
+CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
+  INSERT INTO chunks_fts(rowid, chunk_id, collection, text)
+  VALUES (new.rowid, new.chunk_id, new.collection, new.text);
+END;
+CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
+  INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, collection, text)
+  VALUES ('delete', old.rowid, old.chunk_id, old.collection, old.text);
+END;
+CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
+  INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, collection, text)
+  VALUES ('delete', old.rowid, old.chunk_id, old.collection, old.text);
+  INSERT INTO chunks_fts(rowid, chunk_id, collection, text)
+  VALUES (new.rowid, new.chunk_id, new.collection, new.text);
+END;
 `;

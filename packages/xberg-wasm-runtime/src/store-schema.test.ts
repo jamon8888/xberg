@@ -32,4 +32,11 @@ describe("store-schema", () => {
 		expect(SCHEMA_SQL).toContain("target");
 		expect(SCHEMA_SQL).toContain("label");
 	});
+	it("SCHEMA_SQL defines an FTS5 external-content table synced to chunks", () => {
+		expect(SCHEMA_SQL).toContain("CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5");
+		expect(SCHEMA_SQL).toContain("content='chunks'");
+		expect(SCHEMA_SQL).toContain("CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks");
+		expect(SCHEMA_SQL).toContain("CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks");
+		expect(SCHEMA_SQL).toContain("CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks");
+	});
 });
