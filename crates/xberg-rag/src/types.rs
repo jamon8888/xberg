@@ -152,7 +152,7 @@ pub struct DocumentSummary {
 
 /// How a retrieved chunk was primarily scored.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", content = "value", rename_all = "snake_case")]
 pub enum PrimaryScore {
     /// Vector similarity.
     Vector(f32),
@@ -206,4 +206,57 @@ pub struct CollectionStats {
     /// Most recent ingestion time as Unix seconds, if tracked.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_ingested_at: Option<i64>,
+}
+
+#[cfg(test)]
+mod primary_score_wire_shape_tests {
+    use super::PrimaryScore;
+
+    /// Documents PrimaryScore's actual JSON wire shape for JS-side consumers
+    /// (packages/xberg-wasm-runtime's retrieve() wire-alignment work) — the
+    /// #[serde(tag = "kind", rename_all = "snake_case")] internal tagging on
+    /// a mix of newtype and struct variants is not something to infer from
+    /// reading the enum definition; this test is the source of truth.
+    #[test]
+    fn vector_variant_wire_shape() {
+        let json = serde_json::to_string(&PrimaryScore::Vector(0.5)).expect("serialize");
+        assert_eq!(json, r#"{"kind":"vector","value":0.5}"#);
+    }
+
+    #[test]
+    fn full_text_variant_wire_shape() {
+        let json = serde_json::to_string(&PrimaryScore::FullText(0.75)).expect("serialize");
+        assert_eq!(json, r#"{"kind":"full_text","value":0.75}"#);
+    }
+
+    #[test]
+    fn hybrid_variant_wire_shape() {
+        let json = serde_json::to_string(&PrimaryScore::Hybrid {
+            vector: 0.5,
+            full_text: 0.75,
+            rrf: 0.032,
+        })
+        .expect("serialize");
+        assert_eq!(
+            json,
+            r#"{"kind":"hybrid","value":{"vector":0.5,"full_text":0.75,"rrf":0.032}}"#
+        );
+    }
+
+    #[test]
+    fn round_trips_through_deserialize() {
+        for original in [
+            PrimaryScore::Vector(0.5),
+            PrimaryScore::FullText(0.75),
+            PrimaryScore::Hybrid {
+                vector: 0.5,
+                full_text: 0.75,
+                rrf: 0.032,
+            },
+        ] {
+            let json = serde_json::to_string(&original).expect("serialize");
+            let round_tripped: PrimaryScore = serde_json::from_str(&json).expect("deserialize");
+            assert_eq!(original, round_tripped);
+        }
+    }
 }
