@@ -390,4 +390,13 @@ Task 7: complete (commit c0974bddaa..6354897b0e, review clean, Approved.
   Controller re-verified: vitest embedder.test.ts+cache.test.ts 13 pass/1
   skip, tsc --noEmit clean, oxlint 0 warnings/0 errors. Only the four
   intended files committed.)
+Task 8: complete (commit cfd0595157..161bd440dd, review clean, Approved.
+  NerInterface.ner signature changed from ner(text, opts?: NerOpts) to
+  ner(text, categories?, threshold?) to match crates/xberg-wasm's
+  call_injected_ner positional contract; NerOpts removed. ner.ts
+  (import, doc comment, signature, mergeEntities call + filter) and
+  ner.test.ts (3 call sites) updated. Controller re-verified: vitest
+  ner.test.ts+contract.test.ts 10/10 pass, tsc --noEmit clean, oxlint 0
+  warnings/0 errors. Confirmed no other module references NerOpts (tsc
+  clean). Only the three intended files committed.)
 
