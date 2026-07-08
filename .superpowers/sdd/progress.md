@@ -414,4 +414,23 @@ Task 10: complete (commit fe428f424f..e3bc0d0609, review clean, Approved.
   0 failed) — confirms Gliner2Candle::from_bytes loads the real pinned
   PII model and extracts entities without a tensor mismatch, closing the
   design spec's Q3 risk. Only smoke.rs committed.)
+Task 11: implemented (commit 30c6e7c1af..13790c08c6), VERIFICATION BLOCKED by environment.
+  Replaced crates/xberg-wasm/src/bridge/ner.rs per plan: added
+  initCandleNer (wasm_bindgen js_name) + thread_local Rc<CandleBackend>
+  cache + async fallback_ner calling xberg::text::ner::candle::
+  CandleBackend::detect. All referenced symbols verified present:
+  CandleBackend::from_bytes(&[u8],&[u8],&[u8]), NerBackend::detect
+  (&self,text,&[EntityCategory])->Result<Vec<Entity>>,
+  crate::bridge::BRIDGE_TIMEOUT_MS, crate::bridge::
+  timed_js_future_with_timeout, xberg::text::ner::NerBackend re-export.
+  BLOCKER (pre-existing, NOT from this change): native `cargo test -p
+  xberg-wasm --lib` fails in aws-lc-sys v0.42.0 build script with
+  C1083 '../asn1/internal.h' — a Windows/MSVC 14.44 toolchain
+  incompatibility in a transitive C dep, identical to the documented
+  'Windows toolchain environment errors' blocker from prior sessions
+  (sccache/sysroot). wasm32 build (`--target wasm32-unknown-unknown
+  --features wasm-target`) is additionally blocked by the pre-existing
+  Send-future extractor.rs bug (task_706665c3). Neither blocker is
+  introduced by this task; the change is correct against the verified
+  API surface. Verification gate must be re-run in a healthy toolchain.
 
