@@ -29,6 +29,11 @@ wasm-opt = false
 crate-type = ["cdylib"]
 
 [features]
+# Enabled by default so `wasm-pack build` (which builds default features) ships
+# them: in-wasm rehydration (AES-GCM decrypt_map/rehydrate — gated in engine.rs)
+# and YAKE/RAKE keyword extraction, both needed by the MCP server. All pure-Rust,
+# wasm-safe (aes-gcm, scrypt, rake, stopwords — no tokio/native deps).
+default = ["redaction-rehydrate", "keywords-yake", "keywords-rake"]
 api = ["xberg/api"]
 api-types = ["xberg/api-types"]
 auto-rotate-types = ["xberg/auto-rotate-types"]
