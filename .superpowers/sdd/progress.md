@@ -399,4 +399,11 @@ Task 8: complete (commit cfd0595157..161bd440dd, review clean, Approved.
   ner.test.ts+contract.test.ts 10/10 pass, tsc --noEmit clean, oxlint 0
   warnings/0 errors. Confirmed no other module references NerOpts (tsc
   clean). Only the three intended files committed.)
+Task 9: complete (commit 4c2d42ec5b..988326969e, review clean, Approved.
+  Created src/pii.ts (detectPii + mergeNerEntities + groupByCategory +
+  detectPiiWithNer, ported from mcp-server/src/redaction/detect.ts) and
+  src/pii.test.ts (9 tests: detectPii categories, filter, empty; group
+  counts; detectPiiWithNer merge + empty-ner floor). Controller re-verified:
+  vitest pii.test.ts 9/9 pass, tsc --noEmit clean, oxlint 0 warnings/0
+  errors. Only the two intended files committed.)
 
