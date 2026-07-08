@@ -319,3 +319,63 @@ Task 12: complete (commit d5454f6c72..a943c8570a, review Approved, no fixes
   forward-looking XbergEngine import example.
 
 ALL 12 TASKS COMPLETE. Plan C (xberg-wasm-runtime) is done.
+
+# ==========================================================================
+# xberg-wasm-runtime search/embedding/PII Plan — SDD Progress
+# Plan: docs/superpowers/plans/2026-07-08-xberg-wasm-runtime-search-embedding-pii.md
+# Worktree: .worktrees/wasm-runtime-sqlite-store
+# Branch: feature/wasm-runtime-sqlite-store
+# Started: 2026-07-08
+# Base commit (before Task 1): 919a4ee1ba
+# ==========================================================================
+Task 1: complete (commits 919a4ee1ba..2245849dd3, review clean, Approved)
+Task 2: complete (commits 2245849dd3..333ab4eb1c, review Approved after 1 fix round.
+  Implementer's first pass silently added retrieve: asyncFunctionSchema.optional()
+  to validation.ts (outside the brief's file list) to avoid breaking
+  contract.test.ts/factory.test.ts, and left types.ts's retrieve() signature
+  unwrapped (oxfmt --check failed). Reviewer caught both as Important. Fix
+  round 1 formatted types.ts (committed) but the "make retrieve required"
+  attempt for validation.ts broke 12 tests + 2 tsc errors because
+  store-node.ts/store-browser.ts don't implement retrieve() until Tasks 3/5 —
+  correctly reported BLOCKED rather than forcing it through. Controller
+  resolution: discarded the premature required-change, kept .optional() with
+  a new explanatory comment naming the exact two files/tasks that must flip
+  it to required. Re-review verified the comment against the plan doc
+  directly (not just trusted) — Approved, no new issues. Minor non-blocking
+  note: validation.ts's new comment line is 122 chars, 2 over the repo's
+  120-char guideline (not enforced by oxfmt/oxlint on comments).)
+Task 3: complete (commit 333ab4eb1c..5da143dc09, review Approved, no fixes
+  needed. Implementer found the brief's own hybrid-mode test fixture didn't
+  hold on the real engine (FTS5 MATCH ANDs bareword terms so a 4-term query
+  excluded a candidate entirely rather than de-ranking it; RRF's 1/(rrfK+rank)
+  convexity means rank (1,3) can beat rank (2,2)) -- fixed the fixture
+  (shorter 2-term query + 2 vector-only filler chunks), not the algorithm or
+  assertion, verified empirically via a throwaway probe script (deleted
+  before commit). Reviewer independently re-derived vector ranks (2 distance
+  metrics), BM25 text ranks (by hand), and RRF scores from scratch --  all
+  confirmed, and reviewer additionally proved the fixture isn't vacuous by
+  checking 3 plausible wrong implementations would each fail it. DONE_WITH_
+  CONCERNS from implementer was a legitimate flag, not evasion; concern was
+  fully resolved before review. Lesson carried into Task 4: browser hybrid
+  fixture will likely need the same empirical correction.)
+Task 4: complete (commit 5da143dc09..8fcbb3c026, review Approved, no fixes
+  needed. FTS5-compiled-in gate passed cleanly first try (real insert + real
+  fulltext query + real content assertion, not just no-throw). Hybrid fixture
+  hit the identical FTS5-AND/RRF-convexity issue from Task 3 and was fixed
+  the same way (shorter query + 2 vector-only filler chunks) -- reviewer
+  independently recomputed against the real reciprocalRankFusion formula,
+  confirmed genuine ~1.5% margin, not vacuous. Implementer needed a retrieve
+  RPC method on store-browser.ts to even run these Playwright tests (that's
+  Task 5's file) -- applied it locally, left UNCOMMITTED so it doesn't
+  preempt Task 5's own commit. Reviewer flagged (Minor, non-blocking) that
+  this means commit 8fcbb3c026 alone isn't bisectable/CI-green in isolation
+  until Task 5 lands immediately after -- expected given plan ordering.)
+Task 5: complete (commit 8fcbb3c026..f5834a08a3, review clean, Approved.
+  Implementer committed the store-browser.ts RPC-client wiring as f5834a08a3
+  (added RetrieveOptions import + retrieve call entry mirroring the existing
+  query entry). Controller independently re-verified: vitest (store-browser/
+  store-node/store-schema/retrieve-fusion/ner/types/validation) 39/39 pass,
+  tsc --noEmit clean, oxlint src/ 0 warnings/0 errors. VectorStoreInterface
+  is now fully implemented by both createNodeVectorStore and
+  createBrowserVectorStore, closing the scoped breakage introduced by Task 2.
+  store.ts dispatcher needed no changes (already delegates to both).)
