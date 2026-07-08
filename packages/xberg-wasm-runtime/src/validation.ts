@@ -11,6 +11,7 @@ export const vectorStoreSchema = z.object({
 	close: asyncFunctionSchema,
 	upsertDocument: asyncFunctionSchema,
 	query: asyncFunctionSchema,
+	retrieve: asyncFunctionSchema.optional(),
 	delete: asyncFunctionSchema,
 	listCollections: asyncFunctionSchema,
 	dropCollection: asyncFunctionSchema,

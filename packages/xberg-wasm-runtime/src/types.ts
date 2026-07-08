@@ -32,6 +32,15 @@ export interface GraphEdge {
 	properties?: Record<string, unknown>;
 }
 
+export type RetrieveMode = "vector" | "fulltext" | "hybrid";
+
+export interface RetrieveOptions {
+	mode: RetrieveMode;
+	queryText?: string;
+	queryVector?: number[];
+	k: number;
+}
+
 export interface VectorStoreInterface {
 	close(): Promise<void>;
 	upsertDocument(
@@ -44,6 +53,7 @@ export interface VectorStoreInterface {
 		queryVector: number[],
 		k: number,
 	): Promise<Array<{ chunkId: string; text: string; score: number }>>;
+	retrieve(collection: string, opts: RetrieveOptions): Promise<Array<{ chunkId: string; text: string; score: number }>>;
 	delete(collection: string, documentId: string): Promise<void>;
 	listCollections(): Promise<string[]>;
 	dropCollection(collection: string): Promise<void>;
