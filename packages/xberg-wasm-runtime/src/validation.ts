@@ -11,9 +11,7 @@ export const vectorStoreSchema = z.object({
 	close: asyncFunctionSchema,
 	upsertDocument: asyncFunctionSchema,
 	query: asyncFunctionSchema,
-	// TODO: retrieve must become required once store-node.ts and store-browser.ts implement VectorStoreInterface.retrieve().
-	// At that point, also add a retrieve stub to validation.test.ts store mocks.
-	retrieve: asyncFunctionSchema.optional(),
+	retrieve: asyncFunctionSchema,
 	delete: asyncFunctionSchema,
 	listCollections: asyncFunctionSchema,
 	dropCollection: asyncFunctionSchema,

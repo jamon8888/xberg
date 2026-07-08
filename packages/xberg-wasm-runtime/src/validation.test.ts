@@ -10,6 +10,7 @@ describe("validateInjectionDescriptor", () => {
 				close: method,
 				upsertDocument: method,
 				query: method,
+				retrieve: method,
 				delete: method,
 				listCollections: method,
 				dropCollection: method,

@@ -92,11 +92,13 @@ export function mergeNerEntities(regex: PiiFinding[], entities: Entity[]): PiiFi
 		const overlap = findings.find((f) => spansOverlap(f, { start, end }));
 		if (overlap) {
 			if (entityConfidence > overlap.confidence) {
+				counters[category] = (counters[category] ?? 0) + 1;
 				overlap.category = category;
 				overlap.confidence = entityConfidence;
 				overlap.original = entityText;
 				overlap.start = start;
 				overlap.end = end;
+				overlap.token = `[${category}_${counters[category]}]`;
 			}
 			continue;
 		}

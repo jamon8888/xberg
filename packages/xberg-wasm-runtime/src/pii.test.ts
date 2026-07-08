@@ -58,4 +58,16 @@ describe("detectPiiWithNer", () => {
 		const findings = detectPiiWithNer("Contact: a@b.com", []);
 		expect(findings.some((f) => f.category === "EMAIL")).toBe(true);
 	});
+
+	it("regenerates the token to match the new category when a higher-confidence NER entity overrides a regex finding", () => {
+		// "555-123-4567" overlaps a PHONE regex match, but the NER entity has higher
+		// confidence and is actually a person's name — the resulting finding must carry
+		// a NAME token, not a stale PHONE token.
+		const nerResult: Entity[] = [{ label: "person", text: "555-123-4567", start: 0, end: 12, score: 0.99 }];
+		const findings = detectPiiWithNer("555-123-4567 called", nerResult);
+
+		expect(findings).toHaveLength(1);
+		expect(findings[0]?.category).toBe("NAME");
+		expect(findings[0]?.token).toBe("[NAME_1]");
+	});
 });
