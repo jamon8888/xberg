@@ -1,7 +1,7 @@
-export * from "./embedder";
-export * from "./store";
-export * from "./ner";
-export * from "./ocr";
-export * from "./cache";
-export * from "./async_shim";
-export { createXbergRuntimeFactory } from "./factory";
+export * from "./embedder.js";
+export * from "./store.js";
+export * from "./ner.js";
+export * from "./ocr.js";
+export * from "./cache.js";
+export * from "./async_shim.js";
+export { createXbergRuntimeFactory } from "./factory.js";

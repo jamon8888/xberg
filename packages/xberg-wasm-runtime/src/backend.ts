@@ -11,6 +11,21 @@
  * without throwing.
  */
 export type OnnxBackend = "webgpu" | "webgl" | "wasm";
+export type ModelBackend = {
+	device: "webgpu" | "wasm" | "cpu";
+	dtype: "fp32" | "q8";
+};
+
+export function selectModelBackend(): ModelBackend {
+	if (typeof process !== "undefined" && process.versions?.node) {
+		return { device: "cpu", dtype: "q8" };
+	}
+	const hasWebGpu =
+		typeof navigator !== "undefined" &&
+		"gpu" in navigator &&
+		(navigator as Navigator & { gpu?: unknown }).gpu !== undefined;
+	return hasWebGpu ? { device: "webgpu", dtype: "fp32" } : { device: "wasm", dtype: "q8" };
+}
 
 export function detectBackend(): OnnxBackend {
 	if (typeof window === "undefined" || typeof document === "undefined") {
@@ -18,7 +33,7 @@ export function detectBackend(): OnnxBackend {
 	}
 
 	try {
-		const nav = globalThis.navigator as Navigator & {
+		const nav = globalThis.navigator as {
 			gpu?: { requestAdapter?: () => Promise<unknown> };
 		};
 		// Synchronous check is intentional: the full WebGPU adapter request is

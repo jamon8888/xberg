@@ -45,14 +45,15 @@ const results = await engine.query("search query", "my-collection", 10);
 
 ### `createXbergRuntimeFactory(config?: CacheConfig): Promise<InjectionDescriptor>`
 
-Builds a complete injection descriptor for the wasm engine. Initializes the cache manager, kicks off a non-blocking model warmup, then constructs the embedder and vector store (required — failures here throw) and NER/OCR (optional — failures are caught and logged, resulting in `ner`/`ocr` being omitted from the descriptor). The final descriptor is validated against a zod schema before being returned.
+Builds a complete injection descriptor for the wasm engine. It constructs the embedder and vector store (required — failures throw) and NER/OCR (optional — failures are logged and omitted). Model factory initialization performs the required downloads before the descriptor is returned. The final descriptor is validated against a zod schema.
 
 **Parameters** (`CacheConfig`, all optional):
 - `models.embedder` — transformers.js model ID (default: `"Xenova/all-MiniLM-L6-v2"`)
 - `models.ner` — transformers.js token-classification model ID (default: `"Xenova/bert-base-NER"`)
 - `models.ocr` — `ppu-paddle-ocr` model preset export name (default: `"V6_SMALL_MODEL"`)
 - `nodeCachePath` — Node.js cache directory (default: `~/.cache/xberg`, or `%LOCALAPPDATA%\xberg` on Windows)
-- `opfsPath` — Browser OPFS mount point (reserved; browser cache I/O is not yet implemented)
+- `nodeStorePath` — explicit Node SQLite database filename (default: `<nodeCachePath>/store.sqlite3`)
+- `opfsPath` — browser OPFS database path (default: `/xberg/default.sqlite3`; absolute paths only)
 - `wasmPaths` — ONNX Runtime Web wasm binary directory, set on `window.ort.env.wasm.wasmPaths` for self-hosting (no CDN)
 
 **Returns:** an `InjectionDescriptor` — `{ embedder, store, ner?, ocr? }` — ready for `new XbergEngine(config, injection)`.
@@ -93,7 +94,8 @@ system:
 
 - **Node.js**: `better-sqlite3` + the `sqlite-vec` npm extension, loaded via `sqliteVec.load(db)`.
 - **Browser**: a dedicated Worker running a custom-built `sqlite-vec` WASM bundle
-  (`wasm/sqlite-vec/`, built via `scripts/build-sqlite-vec-wasm.sh`) over OPFS. The main thread
+  (`wasm/sqlite-vec/`, built via `scripts/build-sqlite-vec-wasm.sh`) over OPFS. The bundle uses
+  pinned sqlite-vec source with SQLite 3.53.3. The main thread
   talks to the Worker via `postMessage` (`store-browser.ts`) because OPFS's synchronous
   file-access API only works inside a Worker.
 - **Graph queries**: implemented as plain SQL `WITH RECURSIVE` traversal over a `graph_edges`
@@ -106,42 +108,48 @@ by its own maintainer. `vendor/sqlite-vec-COMMIT` pins the exact vendored commit
 `scripts/build-sqlite-vec-wasm.sh` and `scripts/smoke-test-sqlite-vec-wasm.mjs` after any upgrade
 rather than bumping the pin casually.
 
-**Known gap**: real OPFS persistence and Worker `postMessage` transport are validated only via a
-mocked in-memory harness in this package's test suite (`environment: "node"` can't run a real
-Worker/OPFS) — real-browser verification (e.g. via Playwright) is a follow-up, not yet done.
+The browser host must serve COOP `same-origin` and COEP `require-corp` headers. Playwright tests
+exercise the real Worker, OPFS persistence across reopen, sqlite-vec queries, collection isolation,
+graph traversal, deletion, and collection dropping in Chromium.
 
 ## Testing
 
 ```bash
 pnpm test              # Run tests in watch mode (vitest)
 pnpm test:run          # Run tests once
+pnpm test:coverage     # Run unit/integration tests with coverage gates
+pnpm test:browser      # Run real Chromium Worker/OPFS tests
+pnpm test:models       # Cold-download all models into an isolated cache
+pnpm setup:models      # Download/setup production models in the configured cache
+pnpm build:sqlite-wasm # Rebuild the pinned sqlite-vec browser bundle with Docker
 pnpm run build         # Compile to dist/ (tsc)
 pnpm run lint          # Check with oxlint
 pnpm run format        # Format with oxfmt
 ```
 
-Tests cover each module (`embedder`, `store`, `ner`, `ocr`, `cache`, `factory`, `async_shim`) plus a `contract.test.ts` that verifies the factory's output satisfies the engine's injection contract. Coverage is high but below the repository's 80%/75% targets in places (embedder/NER/OCR model-loading branches, platform-specific cache paths, and optional-injection fallback branches are difficult to exercise without real model downloads or a browser environment); the gap is in optional-injection and platform-gated code paths, not untested core logic.
+Tests cover each module plus the factory contract. Node coverage gates require 80% lines/functions
+and 75% branches; browser-only storage behavior is covered separately with Playwright.
 
 ## Known Limitations
 
 - **Pinned ONNX Runtime versions are load-bearing.** The embedder/NER path (transformers.js) and the OCR path (`ppu-paddle-ocr` via `onnxruntime-node`) both load ONNX Runtime natively. Loading both `onnxruntime-web`/`onnxruntime-node` at mismatched versions in the same process previously caused a native SIGSEGV crash. The workspace `pnpm-workspace.yaml` pins both via `overrides` (`onnxruntime-node: 1.21.0`, `onnxruntime-web: 1.22.0-dev.20250409-89f8206ba4`) to keep them compatible — do not bump either independently without re-verifying that embedder + OCR can be loaded together in the same process.
-- Browser OPFS persistence and Worker `postMessage` transport are validated only via a mocked in-memory harness — real-browser verification is pending (see [Vector Store](#vector-store)).
 - Browser OPFS cache paths in `CacheManager` are placeholders; only the Node filesystem path is implemented.
-- `CacheManager.warm()` currently logs progress but does not perform a real model download — actual model fetching happens lazily on first `pipeline(...)` / `PaddleOcrService.initialize()` call inside `createEmbedder`/`createNer`/`createOcr`.
 
 ## Model Cache
 
 - **Node**: `~/.cache/xberg` (or `%LOCALAPPDATA%\xberg` on Windows), checked via `CacheManager.status()`.
 - **Browser**: reserved OPFS path (`/opfs/xberg`); not yet backed by real storage I/O.
 
-Model downloads themselves are handled lazily by `@huggingface/transformers` and `ppu-paddle-ocr` on first pipeline/service initialization, not by `CacheManager.warm()` directly.
+`CacheManager.warm()` initializes the embedding, NER, and OCR factories sequentially. This performs
+real model download/setup while bounding peak memory. Use `XBERG_CACHE_DIR` to override the Node
+cache used by `pnpm setup:models`; Paddle OCR manages its own upstream cache.
 
 ## Dependencies
 
 - `@huggingface/transformers` ^3.0.0 — embedder and NER pipelines
 - `onnxruntime-web` ^1.18.0 (workspace-pinned to `1.22.0-dev.20250409-89f8206ba4`) — browser inference backend
 - `ppu-paddle-ocr` ^6.0.0 — OCR (`onnxruntime-node`, workspace-pinned to `1.21.0`, is an optional peer dependency of this package)
-- `wa-sqlite` ^1.0.0 — currently unused pending the persistent vector store backend
+- `better-sqlite3` + `sqlite-vec` — Node persistent vector store
 - `zod` ^3.22.0 — runtime validation of the injection descriptor and cache config
 
 ## License

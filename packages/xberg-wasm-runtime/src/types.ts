@@ -4,102 +4,103 @@
  */
 
 export interface EmbedderInterface {
-  embed(texts: string[]): Promise<Float32Array[]>;
+	embed(texts: string[]): Promise<Float32Array[]>;
 }
 
 export interface DocumentRecord {
-  documentId: string;
-  sourceId: string;
-  collectionId: string;
-  metadata?: Record<string, unknown>;
-  text?: string;
+	documentId: string;
+	sourceId: string;
+	collectionId: string;
+	metadata?: Record<string, unknown>;
+	text?: string;
 }
 
 export interface ChunkRecord {
-  sourceId: string;
-  chunkIndex: number;
-  text: string;
-  startOffset: number;
-  endOffset: number;
-  embedding: Float32Array;
+	sourceId: string;
+	chunkIndex: number;
+	text: string;
+	startOffset: number;
+	endOffset: number;
+	embedding: Float32Array;
 }
 
 export interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  label?: string;
-  properties?: Record<string, unknown>;
+	id: string;
+	source: string;
+	target: string;
+	label?: string;
+	properties?: Record<string, unknown>;
 }
 
 export interface VectorStoreInterface {
-  upsertDocument(
-    collection: string,
-    doc: DocumentRecord,
-    chunks: ChunkRecord[]
-  ): Promise<{ documentId: string; chunksCount: number }>;
-  query(
-    collection: string,
-    queryVector: number[],
-    k: number
-  ): Promise<Array<{ chunkId: string; text: string; score: number }>>;
-  delete(collection: string, documentId: string): Promise<void>;
-  listCollections(): Promise<string[]>;
-  dropCollection(collection: string): Promise<void>;
-  ensureCollection(collection: string, vectorDim: number): Promise<void>;
-  createEdge(edge: GraphEdge): Promise<void>;
-  traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): Promise<string[]>;
+	upsertDocument(
+		collection: string,
+		doc: DocumentRecord,
+		chunks: ChunkRecord[],
+	): Promise<{ documentId: string; chunksCount: number }>;
+	query(
+		collection: string,
+		queryVector: number[],
+		k: number,
+	): Promise<Array<{ chunkId: string; text: string; score: number }>>;
+	delete(collection: string, documentId: string): Promise<void>;
+	listCollections(): Promise<string[]>;
+	dropCollection(collection: string): Promise<void>;
+	ensureCollection(collection: string, vectorDim: number): Promise<void>;
+	createEdge(edge: GraphEdge): Promise<void>;
+	traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): Promise<string[]>;
 }
 
 export interface Entity {
-  label: string;
-  text: string;
-  start: number;
-  end: number;
-  score?: number;
+	label: string;
+	text: string;
+	start: number;
+	end: number;
+	score?: number;
 }
 
 export interface NerOpts {
-  categories?: string[];
-  threshold?: number;
+	categories?: string[];
+	threshold?: number;
 }
 
 export interface NerInterface {
-  ner(text: string, opts?: NerOpts): Promise<Entity[]>;
+	ner(text: string, opts?: NerOpts): Promise<Entity[]>;
 }
 
 export interface OcrOpts {
-  languages?: string[];
-  useCpu?: boolean;
+	languages?: string[];
+	useCpu?: boolean;
 }
 
 export interface OcrResult {
-  text: string;
-  lines: Array<{
-    text: string;
-    confidence: number;
-    bbox?: { x: number; y: number; w: number; h: number };
-  }>;
+	text: string;
+	lines: Array<{
+		text: string;
+		confidence: number;
+		bbox?: { x: number; y: number; w: number; h: number };
+	}>;
 }
 
 export interface OcrInterface {
-  ocr(bytes: Uint8Array, opts?: OcrOpts): Promise<OcrResult>;
+	ocr(bytes: Uint8Array, opts?: OcrOpts): Promise<OcrResult>;
 }
 
 export interface InjectionDescriptor {
-  embedder: EmbedderInterface;
-  store: VectorStoreInterface;
-  ner?: NerInterface;
-  ocr?: OcrInterface;
+	embedder: EmbedderInterface;
+	store: VectorStoreInterface;
+	ner?: NerInterface;
+	ocr?: OcrInterface;
 }
 
 export interface CacheConfig {
-  opfsPath?: string; // Browser OPFS mount point
-  nodeCachePath?: string; // Node ~/.cache/xberg path
-  wasmPaths?: string; // ORT wasm binaries directory
-  models?: {
-    embedder?: string; // Model identifier for transformers.js
-    ner?: string;
-    ocr?: string;
-  };
+	opfsPath?: string; // Browser OPFS mount point
+	nodeCachePath?: string; // Node ~/.cache/xberg path
+	nodeStorePath?: string; // Node SQLite file path; defaults inside nodeCachePath
+	wasmPaths?: string; // ORT wasm binaries directory
+	models?: {
+		embedder?: string; // Model identifier for transformers.js
+		ner?: string;
+		ocr?: string;
+	};
 }
