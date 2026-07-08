@@ -1,4 +1,11 @@
-import type { VectorStoreInterface, DocumentRecord, ChunkRecord, GraphEdge, CacheConfig } from "./types.js";
+import type {
+	VectorStoreInterface,
+	DocumentRecord,
+	ChunkRecord,
+	GraphEdge,
+	CacheConfig,
+	RetrieveOptions,
+} from "./types.js";
 import type { StoreWorkerResponse, StoreWorkerRequestBase } from "./store-worker.js";
 
 export async function createBrowserVectorStore(config?: CacheConfig): Promise<VectorStoreInterface> {
@@ -77,6 +84,8 @@ export async function createBrowserVectorStore(config?: CacheConfig): Promise<Ve
 			call<{ documentId: string; chunksCount: number }>({ op: "upsertDocument", collection, doc, chunks }),
 		query: (collection: string, queryVector: number[], k: number) =>
 			call<Array<{ chunkId: string; text: string; score: number }>>({ op: "query", collection, queryVector, k }),
+		retrieve: (collection: string, opts: RetrieveOptions) =>
+			call<Array<{ chunkId: string; text: string; score: number }>>({ op: "retrieve", collection, opts }),
 		delete: (collection: string, documentId: string) => call<void>({ op: "delete", collection, documentId }),
 		listCollections: () => call<string[]>({ op: "listCollections" }),
 		dropCollection: (collection: string) => call<void>({ op: "dropCollection", collection }),
