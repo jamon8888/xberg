@@ -33,6 +33,7 @@ interface WarmOptions {
 const MODEL_NAME_TO_HANDLE: Record<string, WarmHandle> = {
 	"Embedder (minilm-l6-v2)": "embedding",
 	"Embedder (all-MiniLM-L6-v2)": "embedding",
+	"Embedder (bge-m3)": "embedding",
 	"GLiNER2 NER": "ner",
 	"BERT NER": "ner",
 	"PP-OCRv6 OCR": "ocr",
@@ -40,8 +41,8 @@ const MODEL_NAME_TO_HANDLE: Record<string, WarmHandle> = {
 
 const MODELS: ModelInfo[] = [
 	{
-		name: "Embedder (all-MiniLM-L6-v2)",
-		path: "Xenova/all-MiniLM-L6-v2",
+		name: "Embedder (bge-m3)",
+		path: "Xenova/bge-m3",
 	},
 	{
 		name: "BERT NER",

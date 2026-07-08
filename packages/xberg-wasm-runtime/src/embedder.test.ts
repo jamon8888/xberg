@@ -5,14 +5,16 @@ describe("embedder", () => {
 	let embedder: Awaited<ReturnType<typeof createEmbedder>>;
 
 	beforeAll(async () => {
-		// "Xenova/minilm-l6-v2" (as written in the original spec) does not exist on
-		// the Hub; the real, canonically-cased transformers.js feature-extraction
-		// model is "Xenova/all-MiniLM-L6-v2" (2.9M+ downloads, quantized ONNX
-		// variants included). This triggers a live download on first run.
+		// Xenova/bge-m3 — verified real, live transformers.js-compatible ONNX
+		// export of BAAI/bge-m3 (1024-dim, multilingual) via
+		// scripts/verify-embedding-model.mjs. Replaces the earlier
+		// Xenova/all-MiniLM-L6-v2 default, which was never a deliberate quality
+		// choice (substituted only because the original plan's test model ID
+		// didn't exist on the Hub).
 		embedder = await createEmbedder({
-			models: { embedder: "Xenova/all-MiniLM-L6-v2" },
+			models: { embedder: "Xenova/bge-m3" },
 		});
-	}, 120_000);
+	}, 180_000);
 
 	it("embeds a single string to a normalized vector", async () => {
 		const result = await embedder.embed(["hello world"]);
@@ -25,6 +27,11 @@ describe("embedder", () => {
 		// L2 normalization check: magnitude should be ~1.0
 		const magnitude = Math.sqrt(Array.from(vec).reduce((sum, v) => sum + v * v, 0));
 		expect(magnitude).toBeCloseTo(1.0, 1);
+	}, 60_000);
+
+	it("produces 1024-dimensional vectors (bge-m3)", async () => {
+		const result = await embedder.embed(["dimension check"]);
+		expect(result[0]?.length).toBe(1024);
 	}, 60_000);
 
 	it("embeds multiple strings", async () => {

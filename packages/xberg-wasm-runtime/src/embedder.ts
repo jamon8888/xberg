@@ -8,7 +8,7 @@ if (typeof process !== "undefined" && process.env.CI) {
 	env.allowLocalModels = true;
 }
 
-const DEFAULT_MODEL = "Xenova/all-MiniLM-L6-v2";
+const DEFAULT_MODEL = "Xenova/bge-m3";
 const DEFAULT_BATCH_SIZE = 32;
 const MAX_CACHE_ENTRIES = 1_024;
 

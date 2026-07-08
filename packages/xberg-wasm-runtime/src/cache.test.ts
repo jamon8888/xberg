@@ -55,7 +55,7 @@ describe("cache manager", () => {
 
 	it("reports transformers.js artifacts from its actual cache layout", async () => {
 		const directory = join(tmpdir(), `xberg-status-${Date.now()}`);
-		const embedderDirectory = join(directory, "Xenova", "all-MiniLM-L6-v2", "onnx");
+		const embedderDirectory = join(directory, "Xenova", "bge-m3", "onnx");
 		const nerDirectory = join(directory, "Xenova", "bert-base-NER", "onnx");
 		mkdirSync(embedderDirectory, { recursive: true });
 		mkdirSync(nerDirectory, { recursive: true });
@@ -63,7 +63,7 @@ describe("cache manager", () => {
 		writeFileSync(join(nerDirectory, "model_quantized.onnx"), Buffer.alloc(64));
 
 		const status = await new CacheManager(directory).status();
-		expect(status.cached).toEqual(["Embedder (all-MiniLM-L6-v2)", "BERT NER"]);
+		expect(status.cached).toEqual(["Embedder (bge-m3)", "BERT NER"]);
 		expect(status.size).toBe(96);
 	});
 });
