@@ -101,7 +101,12 @@ const WORDPIECE_CONTINUATION_PREFIX = "##";
  * forward-scanning cursor (so repeated words resolve to distinct
  * occurrences in order).
  */
-function mergeEntities(tokens: TokenClassificationSingle[], sourceText: string, categories?: string[], threshold?: number): Entity[] {
+function mergeEntities(
+	tokens: TokenClassificationSingle[],
+	sourceText: string,
+	categories?: string[],
+	threshold?: number,
+): Entity[] {
 	const entities: Entity[] = [];
 	let current: Entity | null = null;
 	let searchCursor = 0;
