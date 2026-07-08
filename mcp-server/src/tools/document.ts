@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getStore } from "../store.js";
+import { getRuntime } from "../engine.js";
+import type { DocumentRecord, ChunkRecord, Filter, RetrieveQuery } from "xberg-wasm-runtime";
 
 const DocumentRecordSchema = z.object({
   external_id: z.string().optional(),
@@ -68,11 +69,11 @@ export function registerDocumentTools(server: McpServer): void {
     },
     async ({ collection, document, chunks }) => {
       try {
-        const store = await getStore();
+        const { store } = getRuntime();
         const docId = await store.upsertDocument(
           collection,
-          JSON.stringify(document),
-          JSON.stringify(chunks)
+          document as DocumentRecord,
+          chunks as ChunkRecord[]
         );
         return {
           content: [{ type: "text" as const, text: JSON.stringify({ doc_id: docId }) }],
@@ -98,7 +99,7 @@ export function registerDocumentTools(server: McpServer): void {
     },
     async ({ collection, document_id, external_id, filter }) => {
       try {
-        const store = await getStore();
+        const { embedder, store } = getRuntime();
 
         const retrieveFilter = filter ?? (document_id
           ? { eq: { field: "doc.external_id", value: document_id } }
@@ -113,18 +114,26 @@ export function registerDocumentTools(server: McpServer): void {
           };
         }
 
-        const queryJson = JSON.stringify({
-          mode: "full_text",
-          query_text: document_id ?? external_id ?? "document",
+        // R6: the wasm store is vector-only (no full_text mode), so fetch-by-id
+        // is expressed as a filtered vector query — the filter does the actual
+        // selection, the vector score only orders the (at most one matching
+        // group of) chunks.
+        const queryText = document_id ?? external_id ?? "document";
+        const vecs = await embedder.embed([queryText]);
+        const queryVector = vecs[0] ? Array.from(vecs[0]) : undefined;
+
+        const rq: RetrieveQuery = {
+          mode: "vector",
+          query_text: queryText,
+          query_vector: queryVector,
           top_k: 1,
-          filter: retrieveFilter,
+          filter: retrieveFilter as Filter,
           include_content: true,
           include_document: true,
           group_by_document: true,
-        });
+        };
 
-        const outputJson = await store.retrieve(collection, queryJson);
-        const output = JSON.parse(outputJson);
+        const output = await store.retrieve(collection, rq);
 
         return {
           content: [{ type: "text" as const, text: JSON.stringify(output, null, 2) }],
@@ -148,8 +157,8 @@ export function registerDocumentTools(server: McpServer): void {
     },
     async ({ collection, ids }) => {
       try {
-        const store = await getStore();
-        const count = await store.deleteDocuments(collection, JSON.stringify(ids));
+        const { store } = getRuntime();
+        const count = await store.deleteDocuments(collection, ids);
         return {
           content: [{ type: "text" as const, text: JSON.stringify({ deleted: count }) }],
         };
@@ -172,8 +181,8 @@ export function registerDocumentTools(server: McpServer): void {
     },
     async ({ collection, filter }) => {
       try {
-        const store = await getStore();
-        const count = await store.deleteByFilter(collection, JSON.stringify(filter));
+        const { store } = getRuntime();
+        const count = await store.deleteByFilter(collection, filter as Filter);
         return {
           content: [{ type: "text" as const, text: JSON.stringify({ deleted: count }) }],
         };
