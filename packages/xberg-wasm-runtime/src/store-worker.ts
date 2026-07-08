@@ -1,5 +1,6 @@
 import { SCHEMA_SQL, createVecTableSql, sanitizeTableName, vecTableName } from "./store-schema.js";
-import type { ChunkRecord, DocumentRecord, GraphEdge } from "./types.js";
+import { reciprocalRankFusion } from "./retrieve-fusion.js";
+import type { ChunkRecord, DocumentRecord, GraphEdge, RetrieveOptions } from "./types.js";
 
 export type StoreWorkerRequest =
 	| { op: "init"; dbPath: string; id: number }
@@ -7,6 +8,7 @@ export type StoreWorkerRequest =
 	| { op: "ensureCollection"; collection: string; vectorDim: number; id: number }
 	| { op: "upsertDocument"; collection: string; doc: DocumentRecord; chunks: ChunkRecord[]; id: number }
 	| { op: "query"; collection: string; queryVector: number[]; k: number; id: number }
+	| { op: "retrieve"; collection: string; opts: RetrieveOptions; id: number }
 	| { op: "delete"; collection: string; documentId: string; id: number }
 	| { op: "listCollections"; id: number }
 	| { op: "dropCollection"; collection: string; id: number }
@@ -37,6 +39,8 @@ interface SqliteModule {
 }
 
 let database: SqliteDb | undefined;
+
+const HYBRID_CANDIDATE_MULTIPLIER = 4;
 
 async function ensureOpfsDirectory(dbPath: string): Promise<void> {
 	const directoryNames = dbPath.split("/").filter(Boolean).slice(0, -1);
@@ -203,6 +207,38 @@ function query(
 	return result.map((row) => ({ chunkId: row.chunkId, text: row.text, score: -row.distance }));
 }
 
+function fullTextQuery(
+	collection: string,
+	queryText: string,
+	k: number,
+): Array<{ chunkId: string; text: string; score: number }> {
+	const result = rows<{ chunkId: string; text: string; rank: number }>(
+		requireDatabase(),
+		`SELECT f.chunk_id AS chunkId, c.text AS text, bm25(chunks_fts) AS rank
+     FROM chunks_fts f JOIN chunks c ON c.chunk_id = f.chunk_id AND c.collection = f.collection
+     WHERE chunks_fts MATCH ? AND f.collection = ? ORDER BY rank LIMIT ?`,
+		[queryText, collection, k],
+	);
+	return result.map((row) => ({ chunkId: row.chunkId, text: row.text, score: -row.rank }));
+}
+
+function retrieve(collection: string, opts: RetrieveOptions): Array<{ chunkId: string; text: string; score: number }> {
+	if (opts.mode === "vector") {
+		if (!opts.queryVector) throw new Error("retrieve: queryVector is required for mode 'vector'");
+		return query(collection, opts.queryVector, opts.k);
+	}
+	if (opts.mode === "fulltext") {
+		if (!opts.queryText) throw new Error("retrieve: queryText is required for mode 'fulltext'");
+		return fullTextQuery(collection, opts.queryText, opts.k);
+	}
+	if (!opts.queryVector) throw new Error("retrieve: queryVector is required for mode 'hybrid'");
+	if (!opts.queryText) throw new Error("retrieve: queryText is required for mode 'hybrid'");
+	const candidateK = opts.k * HYBRID_CANDIDATE_MULTIPLIER;
+	const vectorResults = query(collection, opts.queryVector, candidateK);
+	const textResults = fullTextQuery(collection, opts.queryText, candidateK);
+	return reciprocalRankFusion([vectorResults, textResults]).slice(0, opts.k);
+}
+
 function deleteDocument(collection: string, documentId: string): void {
 	const db = requireDatabase();
 	const sourceId = db.selectValue("SELECT source_id FROM documents WHERE collection = ? AND document_id = ?", [
@@ -287,6 +323,8 @@ async function dispatch(request: StoreWorkerRequest): Promise<unknown> {
 			return upsertDocument(request.collection, request.doc, request.chunks);
 		case "query":
 			return query(request.collection, request.queryVector, request.k);
+		case "retrieve":
+			return retrieve(request.collection, request.opts);
 		case "delete":
 			return deleteDocument(request.collection, request.documentId);
 		case "listCollections":
