@@ -26,7 +26,7 @@ use crate::types::{ChunkRecord, DocumentId, DocumentRecord, RetrievedChunk};
 use serde_json::Value;
 
 #[cfg(feature = "pipeline-redaction")]
-use xberg::text::redaction::{RehydrationMap, TokenCounter};
+use xberg::text::redaction::TokenCounter;
 
 // ─── Helpers for full-field redaction ──────────────────────────────────────────
 
@@ -58,6 +58,7 @@ fn redact_json_value(
 }
 
 /// Synchronous version for JSON values (regex patterns only, no NER).
+#[cfg(feature = "pipeline-redaction")]
 fn redact_string_sync(
     text: &str,
     counter: &mut TokenCounter,
@@ -204,8 +205,7 @@ async fn redact_request(
     // Redact keywords (Vec<String>)
     let mut keywords = Vec::new();
     for kw in request.keywords {
-        let redacted =
-            redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(kw);
+        let redacted = redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(kw);
         keywords.push(redacted);
     }
 
@@ -857,10 +857,15 @@ mod tests {
         assert!(outcome.rehydration_map.values().any(|v| v == "alice@example.com"));
         assert!(outcome.rehydration_map.values().any(|v| v == "Alice"));
 
-        // Verify stored chunks are actually redacted (L739 fix)
+        // Verify stored chunks are actually redacted (L739 fix).
+        // InMemoryVectorStore only supports RetrieveMode::Vector (it errors
+        // with UnsupportedMode for FullText/Hybrid/Graph — see
+        // backends::memory::tests). StubEmbedder returns a constant vector
+        // for every text, so any non-empty query_vector of the right
+        // dimension retrieves everything in the collection.
         let query = RetrieveQuery {
-            mode: RetrieveMode::FullText,
-            query_text: Some("alice@example.com".to_string()),
+            mode: RetrieveMode::Vector,
+            query_vector: Some(vec![0.1; DIM as usize]),
             top_k: 10,
             include_content: true,
             ..Default::default()

@@ -14,10 +14,12 @@ pub mod patterns;
 pub mod rehydration;
 pub mod strategy;
 
-pub use engine::redact;
 #[cfg(feature = "redaction-rehydrate")]
 pub use engine::redact_capturing_rehydration_map;
 #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
 pub use engine::{TextRedactionOutcome, redact_text_capturing_rehydration_map};
+pub use engine::{dedupe_overlaps, redact};
+pub use patterns::scan_text;
 #[cfg(feature = "redaction-rehydrate")]
 pub use rehydration::{RehydrationMap, decrypt_map, encrypt_map};
+pub use strategy::{TokenCounter, apply_strategy};

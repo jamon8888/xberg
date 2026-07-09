@@ -462,7 +462,7 @@ fn apply_replacements_reverse(text: &str, matches: &[PatternMatch], findings: &[
 /// Strategy: walk matches in (start, -length) order; keep a match only if its
 /// start is at or after the previously-kept end. This is a standard interval
 /// dedupe that prefers earlier and longer spans.
-fn dedupe_overlaps(mut matches: Vec<PatternMatch>) -> Vec<PatternMatch> {
+pub fn dedupe_overlaps(mut matches: Vec<PatternMatch>) -> Vec<PatternMatch> {
     if matches.is_empty() {
         return matches;
     }
