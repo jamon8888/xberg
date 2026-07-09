@@ -37,6 +37,7 @@ pub async fn redact(result: &mut ExtractedDocument, config: &RedactionConfig) ->
 /// to the original PII text it replaced. Only populated for `TokenReplace` strategy
 /// tokens; `Mask` and `Hash` replacements are not reversible and are not included.
 #[cfg(feature = "redaction-rehydrate")]
+#[cfg_attr(alef, alef(skip))]
 pub async fn redact_capturing_rehydration_map(
     result: &mut ExtractedDocument,
     config: &RedactionConfig,
@@ -80,6 +81,7 @@ pub struct TextRedactionOutcome {
 ///
 /// Propagates errors from `ner.detect(...)`.
 #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
+#[cfg_attr(alef, alef(skip))]
 pub async fn redact_text_capturing_rehydration_map(
     text: &str,
     strategy: RedactionStrategy,
