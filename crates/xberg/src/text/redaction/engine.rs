@@ -9,7 +9,9 @@ use std::collections::HashSet;
 use crate::Result;
 use crate::core::config::redaction::RedactionConfig;
 use crate::types::ExtractedDocument;
-use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport, RedactionStrategy};
+#[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
+use crate::types::redaction::RedactionStrategy;
+use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport};
 
 use super::patterns::{PatternMatch, scan_text};
 use super::strategy::{TokenCounter, apply_strategy};
