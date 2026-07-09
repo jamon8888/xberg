@@ -24,6 +24,8 @@ use crate::query::{RetrieveMode, RetrieveQuery};
 use crate::store::VectorStore;
 use crate::types::{ChunkRecord, DocumentId, DocumentRecord, RetrievedChunk};
 use serde_json::Value;
+
+#[cfg(feature = "pipeline-redaction")]
 use xberg::text::redaction::{RehydrationMap, TokenCounter};
 
 // ─── Helpers for full-field redaction ──────────────────────────────────────────
@@ -105,7 +107,8 @@ pub trait Embedder: 'static {
 // ─── IngestRequest ───────────────────────────────────────────────────────────
 
 /// Input for a single document ingestion.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
 pub struct IngestRequest {
     /// Full text of the document to chunk and embed.
     pub full_text: String,
