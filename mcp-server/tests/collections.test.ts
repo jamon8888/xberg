@@ -70,7 +70,7 @@ describe("collection/document/stats store plumbing (Task 7a)", () => {
     expect(stats.documents).toBeGreaterThanOrEqual(1);
   }, 60_000);
 
-  it("registers collection/document/stats/report tools without throwing (no native ../store.js import)", async () => {
+  it("registers collection/document/stats/report tools without throwing (no native store dependency)", async () => {
     const { McpServer } = await import("@modelcontextprotocol/sdk/server/mcp.js");
     const { registerCollectionTools } = await import("../src/tools/collection.js");
     const { registerDocumentTools } = await import("../src/tools/document.js");

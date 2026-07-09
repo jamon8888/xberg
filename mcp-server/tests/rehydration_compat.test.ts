@@ -1,24 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync, unlinkSync, rmSync } from "node:fs";
-
-// `rehydrate.ts` imports `getCacheDir` from `../store.js`, which loads the
-// native xberg-rag-node binding (.node binary) at module scope. That binding
-// is only present when the crate has been built locally; in CI the MCP
-// unit-test job does not compile it. Detect its absence up front and skip
-// the tool-level e2e suite instead of crashing at import time.
-function nativeBindingAvailable(): boolean {
-  try {
-    createRequire(import.meta.url)("xberg-rag-node");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const HAVE_NATIVE = nativeBindingAvailable();
 
 // Cross-format compatibility: the TS `encryptMapFile` (Node crypto, AES-256-GCM,
 // `XPII\x01` wire format) must produce blobs that the wasm engine's
@@ -85,7 +68,7 @@ describe("rehydration TS-encrypt <-> wasm-decrypt parity", () => {
   }, 60_000);
 });
 
-describe.skipIf(!HAVE_NATIVE)("rehydrate_document tool (wasm engine, end-to-end)", () => {
+describe("rehydrate_document tool (wasm engine, end-to-end)", () => {
   let client: import("@modelcontextprotocol/sdk/client/index.js").Client;
   let rehydrationDir: string;
 

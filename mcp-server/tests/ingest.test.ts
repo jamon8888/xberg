@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { createRequire } from "node:module";
 import type { XbergEngine } from "@xberg-io/xberg-wasm";
 import type { VectorStoreInterface } from "xberg-wasm-runtime";
 import { createXbergRuntimeFactory } from "xberg-wasm-runtime";
@@ -21,16 +20,6 @@ import { createXbergRuntimeFactory } from "xberg-wasm-runtime";
 // — mirroring what a real caller must do, since neither `XbergEngine.ingest`
 // nor the current `create_collection` MCP tool (which targets the *native*
 // xberg-rag-node store, not this wasm one) creates it automatically.
-function nativeBindingAvailable(): boolean {
-  try {
-    createRequire(import.meta.url)("xberg-rag-node");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const HAVE_NATIVE = nativeBindingAvailable();
 
 describe("engine.ingest (Task 5 core behavior)", () => {
   let engine: XbergEngine;
@@ -135,7 +124,7 @@ describe("engine.ingest (Task 5 core behavior)", () => {
   }, 60_000);
 });
 
-describe.skipIf(!HAVE_NATIVE)("ingest tool module (requires native binding)", () => {
+describe("ingest tool module", () => {
   it("registers ingest_document and ingest_folder without throwing", async () => {
     const { McpServer } = await import("@modelcontextprotocol/sdk/server/mcp.js");
     const { registerIngestTools } = await import("../src/tools/ingest.js");

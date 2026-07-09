@@ -1,26 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { initializeEngine, getEngine, getRuntime } from "../src/engine.js";
-
-// src/store.ts does `import { RagStore } from "xberg-rag-node"` at module
-// scope (a real import, not `import type`), which throws at load time when
-// the native .node binary hasn't been built for this platform. Two of the 13
-// tool modules — cache.ts and rehydrate.ts — import `getCacheDir` from
-// store.ts, so *those two* transitively require the native binding to import
-// at all, unlike the intelligence/media/web groups (which only `import type`
-// from `@xberg-io/xberg` and always import cleanly). This mirrors the guard
-// already used by e2e-native.test.ts and ingest.test.ts in this repo.
-function nativeBindingAvailable(): boolean {
-  try {
-    createRequire(import.meta.url)("xberg-rag-node");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const HAVE_NATIVE = nativeBindingAvailable();
 
 // End-to-end coverage for Task 9:
 //
@@ -43,13 +23,15 @@ const HAVE_NATIVE = nativeBindingAvailable();
 // their handlers, since their native capability isn't available.
 
 describe("all 13 tool groups register on one McpServer", () => {
-  it("registers the 11 groups importable without a native binding, without throwing or colliding", async () => {
+  it("registers all 13 groups without throwing or colliding (mirrors src/index.ts)", async () => {
     const { registerExtractTools } = await import("../src/tools/extract.js");
     const { registerCollectionTools } = await import("../src/tools/collection.js");
     const { registerQueryTools } = await import("../src/tools/query.js");
     const { registerDocumentTools } = await import("../src/tools/document.js");
     const { registerIngestTools } = await import("../src/tools/ingest.js");
+    const { registerRehydrateTools } = await import("../src/tools/rehydrate.js");
     const { registerPiiTools } = await import("../src/tools/pii.js");
+    const { registerCacheTools } = await import("../src/tools/cache.js");
     const { registerReportTools } = await import("../src/tools/reports.js");
     const { registerStatsTools } = await import("../src/tools/stats.js");
     const { registerIntelligenceTools } = await import("../src/tools/intelligence.js");
@@ -58,13 +40,18 @@ describe("all 13 tool groups register on one McpServer", () => {
 
     const server = new McpServer({ name: "e2e-test-server", version: "0.0.0" });
 
+    // Same order as src/index.ts. cache.ts and rehydrate.ts are now native-free
+    // (getCacheDir moved to src/paths.ts when store.ts was removed), so all 13
+    // groups import and register cleanly without the native binding.
     expect(() => {
       registerExtractTools(server);
       registerCollectionTools(server);
       registerQueryTools(server);
       registerDocumentTools(server);
       registerIngestTools(server);
+      registerRehydrateTools(server);
       registerPiiTools(server);
+      registerCacheTools(server);
       registerReportTools(server);
       registerStatsTools(server);
       registerIntelligenceTools(server);
@@ -81,62 +68,12 @@ describe("all 13 tool groups register on one McpServer", () => {
     const registeredTools = Object.keys(
       (server as unknown as { _registeredTools: Record<string, unknown> })._registeredTools ?? {},
     );
-    expect(registeredTools.length).toBeGreaterThanOrEqual(11);
+    expect(registeredTools.length).toBeGreaterThanOrEqual(13);
     // Spot-check a handful of tool names from distinct groups actually landed.
-    for (const name of ["extract_document", "create_collection", "query_corpus", "detect_pii", "collection_stats"]) {
+    for (const name of ["extract_document", "create_collection", "query_corpus", "detect_pii", "collection_stats", "rehydrate_document"]) {
       expect(registeredTools).toContain(name);
     }
   });
-
-  // cache.ts and rehydrate.ts both import `getCacheDir` from store.ts, which
-  // does a real (non-type) `import { RagStore } from "xberg-rag-node"` at
-  // module scope — so these two additionally require the native binding to
-  // even import, unlike the other 11 groups above. This test completes the
-  // full 13-group registration (matching src/index.ts exactly) whenever the
-  // native binding is present; in this worktree it is not built, so it's
-  // skipped (see HAVE_NATIVE / e2e-native.test.ts / ingest.test.ts for the
-  // established precedent of this guard in this repo).
-  it.skipIf(!HAVE_NATIVE)(
-    "additionally registers cache + rehydrate tools, completing all 13 groups without collision",
-    async () => {
-      const { registerExtractTools } = await import("../src/tools/extract.js");
-      const { registerCollectionTools } = await import("../src/tools/collection.js");
-      const { registerQueryTools } = await import("../src/tools/query.js");
-      const { registerDocumentTools } = await import("../src/tools/document.js");
-      const { registerIngestTools } = await import("../src/tools/ingest.js");
-      const { registerRehydrateTools } = await import("../src/tools/rehydrate.js");
-      const { registerPiiTools } = await import("../src/tools/pii.js");
-      const { registerCacheTools } = await import("../src/tools/cache.js");
-      const { registerReportTools } = await import("../src/tools/reports.js");
-      const { registerStatsTools } = await import("../src/tools/stats.js");
-      const { registerIntelligenceTools } = await import("../src/tools/intelligence.js");
-      const { registerMediaTools } = await import("../src/tools/media.js");
-      const { registerWebTools } = await import("../src/tools/web.js");
-
-      const server = new McpServer({ name: "e2e-test-server-full", version: "0.0.0" });
-
-      expect(() => {
-        registerExtractTools(server);
-        registerCollectionTools(server);
-        registerQueryTools(server);
-        registerDocumentTools(server);
-        registerIngestTools(server);
-        registerRehydrateTools(server);
-        registerPiiTools(server);
-        registerCacheTools(server);
-        registerReportTools(server);
-        registerStatsTools(server);
-        registerIntelligenceTools(server);
-        registerMediaTools(server);
-        registerWebTools(server);
-      }).not.toThrow();
-
-      const registeredTools = Object.keys(
-        (server as unknown as { _registeredTools: Record<string, unknown> })._registeredTools ?? {},
-      );
-      expect(registeredTools.length).toBeGreaterThanOrEqual(13);
-    },
-  );
 });
 
 describe("cohesive wasm pipeline: ingest -> query -> detect_pii -> redact -> stats", () => {
