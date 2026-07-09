@@ -31,7 +31,7 @@ try {
   const buildCommand = [
     "apt-get update -qq",
     "apt-get install -y -qq tcl file gettext-base curl unzip",
-    `curl -fsSL -o /tmp/sqlite.zip https://www.sqlite.org/2026/sqlite-amalgamation-${sqliteVersion}.zip`,
+    `curl -fsSL -o /tmp/sqlite.zip https://www.sqlite.org/sqlite-amalgamation-${sqliteVersion}.zip`,
     "unzip -q /tmp/sqlite.zip -d /tmp/sqlite",
     "mkdir -p vendor",
     `touch -d @${sourceDateEpoch} VERSION`,
