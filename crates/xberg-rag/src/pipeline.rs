@@ -67,6 +67,53 @@ pub struct IngestRequest {
     pub metadata: serde_json::Value,
 }
 
+/// Result of ingesting one document when `pipeline-redaction` is enabled.
+///
+/// The pipeline never persists or encrypts `rehydration_map` itself — the
+/// caller decides what to do with it (e.g. `xberg-wasm`'s `engine.ingest()`
+/// returns it to JS as-is; a separate, unchanged `encryptMap` method exists
+/// for callers that want to persist an encrypted copy).
+#[cfg(feature = "pipeline-redaction")]
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct IngestOutcome {
+    /// The [`DocumentId`] assigned by the store.
+    pub document_id: DocumentId,
+    /// Token → original-text map. This pipeline always uses `TokenReplace`,
+    /// so every PII finding produces an entry.
+    pub rehydration_map: xberg::text::redaction::RehydrationMap,
+    /// Per-category finding counts (e.g. `{"Email": 2, "Person": 1}`) —
+    /// counts only, never the matched text itself.
+    pub pii_category_counts: std::collections::HashMap<String, usize>,
+}
+
+/// Detect and redact PII (regex + NER) in `request.full_text`, returning a
+/// copy of `request` with `full_text` replaced by the redacted text, plus the
+/// rehydration map and category counts produced along the way. Shared by
+/// both [`ingest_document`] and the wasm32 [`ingest_document_local`].
+#[cfg(feature = "pipeline-redaction")]
+async fn redact_request(
+    request: IngestRequest,
+    ner: &dyn xberg::text::ner::NerBackend,
+) -> RagResult<(
+    IngestRequest,
+    xberg::text::redaction::RehydrationMap,
+    std::collections::HashMap<String, usize>,
+)> {
+    let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
+        &request.full_text,
+        xberg::types::redaction::RedactionStrategy::TokenReplace,
+        ner,
+    )
+    .await
+    .map_err(RagError::Core)?;
+
+    let redacted_request = IngestRequest {
+        full_text: outcome.redacted_text,
+        ..request
+    };
+    Ok((redacted_request, outcome.rehydration_map, outcome.category_counts))
+}
+
 // ─── RagPipelineConfig ───────────────────────────────────────────────────────
 
 /// Configuration for the ingest/retrieve pipeline.
@@ -114,7 +161,7 @@ pub fn chunk_to_record(chunk: xberg::Chunk, ordinal: u32, embedding: Vec<f32>) -
 ///
 /// Propagates chunking, embedding, or store errors wrapped in
 /// [`RagError`].
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "pipeline-redaction")))]
 pub async fn ingest_document(
     store: Arc<dyn VectorStore>,
     collection: &str,
@@ -164,9 +211,66 @@ pub async fn ingest_document(
     store.upsert_document(collection, &document, &chunk_records).await
 }
 
+#[cfg(all(not(target_arch = "wasm32"), feature = "pipeline-redaction"))]
+pub async fn ingest_document(
+    store: Arc<dyn VectorStore>,
+    collection: &str,
+    request: IngestRequest,
+    config: &RagPipelineConfig<'_>,
+    embedder: &dyn Embedder,
+    ner: &dyn xberg::text::ner::NerBackend,
+) -> RagResult<IngestOutcome> {
+    let (request, rehydration_map, pii_category_counts) = redact_request(request, ner).await?;
+
+    let text = request.full_text.clone();
+    let chunking_config = config.chunking.clone();
+
+    let chunks = tokio::task::spawn_blocking(move || xberg::chunking::chunk_for_rag(&text, &chunking_config))
+        .await
+        .map_err(|e| RagError::Backend(Box::new(e)))?
+        .map_err(RagError::Core)?
+        .chunks;
+
+    let texts: Vec<String> = chunks.iter().map(|c| c.content.clone()).collect();
+    let embeddings = embedder.embed(texts).await?;
+
+    if embeddings.len() != chunks.len() {
+        return Err(RagError::EmbeddingCountMismatch {
+            expected: chunks.len(),
+            got: embeddings.len(),
+        });
+    }
+
+    let chunk_records: Vec<ChunkRecord> = chunks
+        .into_iter()
+        .zip(embeddings)
+        .enumerate()
+        .map(|(i, (chunk, emb))| chunk_to_record(chunk, i as u32, emb))
+        .collect();
+
+    let document = DocumentRecord {
+        external_id: request.external_id,
+        title: request.title,
+        mime: request.mime,
+        source_uri: request.source_uri,
+        full_text: request.full_text,
+        keywords: request.keywords,
+        entities: request.entities,
+        labels: request.labels,
+        metadata: request.metadata,
+    };
+
+    let document_id = store.upsert_document(collection, &document, &chunk_records).await?;
+    Ok(IngestOutcome {
+        document_id,
+        rehydration_map,
+        pii_category_counts,
+    })
+}
+
 /// Like [`ingest_document`] but alias for the same codepath on non-wasm32;
 /// delegates directly to [`ingest_document`] since both use `spawn_blocking`.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(feature = "pipeline-redaction")))]
 pub async fn ingest_document_local(
     store: Arc<dyn VectorStore>,
     collection: &str,
@@ -177,9 +281,23 @@ pub async fn ingest_document_local(
     ingest_document(store, collection, request, config, embedder).await
 }
 
+/// Like [`ingest_document`] but alias for the same codepath on non-wasm32;
+/// delegates directly to [`ingest_document`] since both use `spawn_blocking`.
+#[cfg(all(not(target_arch = "wasm32"), feature = "pipeline-redaction"))]
+pub async fn ingest_document_local(
+    store: Arc<dyn VectorStore>,
+    collection: &str,
+    request: IngestRequest,
+    config: &RagPipelineConfig<'_>,
+    embedder: &dyn Embedder,
+    ner: &dyn xberg::text::ner::NerBackend,
+) -> RagResult<IngestOutcome> {
+    ingest_document(store, collection, request, config, embedder, ner).await
+}
+
 /// Like [`ingest_document`] but chunks inline (no `tokio::task::spawn_blocking`),
 /// so it compiles and runs on `wasm32` where the multi-thread runtime is absent.
-#[cfg(target_arch = "wasm32")]
+#[cfg(all(target_arch = "wasm32", not(feature = "pipeline-redaction")))]
 pub async fn ingest_document_local(
     store: Arc<dyn VectorStore>,
     collection: &str,
@@ -221,6 +339,58 @@ pub async fn ingest_document_local(
     };
 
     store.upsert_document(collection, &document, &chunk_records).await
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "pipeline-redaction"))]
+pub async fn ingest_document_local(
+    store: Arc<dyn VectorStore>,
+    collection: &str,
+    request: IngestRequest,
+    config: &RagPipelineConfig<'_>,
+    embedder: &dyn Embedder,
+    ner: &dyn xberg::text::ner::NerBackend,
+) -> RagResult<IngestOutcome> {
+    let (request, rehydration_map, pii_category_counts) = redact_request(request, ner).await?;
+
+    let chunks = xberg::chunking::chunk_for_rag(&request.full_text, config.chunking)
+        .map_err(RagError::Core)?
+        .chunks;
+
+    let texts: Vec<String> = chunks.iter().map(|c| c.content.clone()).collect();
+    let embeddings = embedder.embed(texts).await?;
+
+    if embeddings.len() != chunks.len() {
+        return Err(RagError::EmbeddingCountMismatch {
+            expected: chunks.len(),
+            got: embeddings.len(),
+        });
+    }
+
+    let chunk_records: Vec<ChunkRecord> = chunks
+        .into_iter()
+        .zip(embeddings)
+        .enumerate()
+        .map(|(i, (chunk, emb))| chunk_to_record(chunk, i as u32, emb))
+        .collect();
+
+    let document = DocumentRecord {
+        external_id: request.external_id,
+        title: request.title,
+        mime: request.mime,
+        source_uri: request.source_uri,
+        full_text: request.full_text,
+        keywords: request.keywords,
+        entities: request.entities,
+        labels: request.labels,
+        metadata: request.metadata,
+    };
+
+    let document_id = store.upsert_document(collection, &document, &chunk_records).await?;
+    Ok(IngestOutcome {
+        document_id,
+        rehydration_map,
+        pii_category_counts,
+    })
 }
 
 // ─── retrieve ────────────────────────────────────────────────────────────────
@@ -365,6 +535,13 @@ mod tests {
         }
     }
 
+    // These pre-existing tests call the 5-argument `ingest_document`/
+    // `ingest_document_local` signatures, which only exist when
+    // `pipeline-redaction` is off (see the cfg-split variants above). They
+    // are gated out under `pipeline-redaction`, where the 6-argument
+    // `IngestOutcome`-returning variants take over; that codepath is covered
+    // by `ingest_document_redacts_pii_and_returns_rehydration_map` below.
+    #[cfg(not(feature = "pipeline-redaction"))]
     #[tokio::test]
     async fn ingest_document_returns_document_id() {
         const DIM: u32 = 4;
@@ -388,8 +565,10 @@ mod tests {
         assert!(!doc_id.0.is_empty());
     }
 
+    #[cfg(not(feature = "pipeline-redaction"))]
     struct BadEmbedder;
 
+    #[cfg(not(feature = "pipeline-redaction"))]
     #[async_trait]
     impl Embedder for BadEmbedder {
         async fn embed(&self, texts: Vec<String>) -> RagResult<Vec<Vec<f32>>> {
@@ -398,6 +577,7 @@ mod tests {
         }
     }
 
+    #[cfg(not(feature = "pipeline-redaction"))]
     #[tokio::test]
     async fn ingest_rejects_embedder_count_mismatch() {
         const DIM: u32 = 4;
@@ -417,6 +597,7 @@ mod tests {
         assert!(matches!(err, RagError::EmbeddingCountMismatch { .. }));
     }
 
+    #[cfg(not(feature = "pipeline-redaction"))]
     #[tokio::test]
     async fn retrieve_embeds_query_when_no_vector_provided() {
         const DIM: u32 = 4;
@@ -480,6 +661,7 @@ mod tests {
         assert!(record.external_id.is_none());
     }
 
+    #[cfg(not(feature = "pipeline-redaction"))]
     #[tokio::test]
     async fn ingest_document_local_delegates_to_ingest_document() {
         const DIM: u32 = 4;
@@ -500,5 +682,59 @@ mod tests {
             .unwrap();
 
         assert!(!id.0.is_empty());
+    }
+
+    #[cfg(feature = "pipeline-redaction")]
+    struct StubNerBackend;
+
+    #[cfg(feature = "pipeline-redaction")]
+    #[async_trait]
+    impl xberg::text::ner::NerBackend for StubNerBackend {
+        async fn detect(
+            &self,
+            text: &str,
+            _categories: &[xberg::types::entity::EntityCategory],
+        ) -> xberg::Result<Vec<xberg::types::entity::Entity>> {
+            if let Some(pos) = text.find("Alice") {
+                Ok(vec![xberg::types::entity::Entity {
+                    category: xberg::types::entity::EntityCategory::Person,
+                    text: "Alice".to_string(),
+                    start: pos as u32,
+                    end: (pos + 5) as u32,
+                    confidence: Some(0.99),
+                }])
+            } else {
+                Ok(vec![])
+            }
+        }
+    }
+
+    #[cfg(feature = "pipeline-redaction")]
+    #[tokio::test]
+    async fn ingest_document_redacts_pii_and_returns_rehydration_map() {
+        const DIM: u32 = 4;
+        let store: Arc<dyn VectorStore> = make_store("pii-test");
+        store.ensure_collection(&make_collection("docs", DIM)).await.unwrap();
+
+        let embedder = StubEmbedder { dim: DIM as usize };
+        let chunking = xberg::ChunkingConfig::default();
+        let config = RagPipelineConfig { chunking: &chunking };
+        let ner = StubNerBackend;
+
+        let request = IngestRequest {
+            full_text: "Contact Alice at alice@example.com for details.".to_string(),
+            ..Default::default()
+        };
+
+        let outcome = ingest_document(Arc::clone(&store), "docs", request, &config, &embedder, &ner)
+            .await
+            .unwrap();
+
+        assert!(!outcome.document_id.0.is_empty());
+        assert_eq!(outcome.pii_category_counts.get("Email"), Some(&1));
+        assert_eq!(outcome.pii_category_counts.get("Person"), Some(&1));
+        assert_eq!(outcome.rehydration_map.len(), 2);
+        assert!(outcome.rehydration_map.values().any(|v| v == "alice@example.com"));
+        assert!(outcome.rehydration_map.values().any(|v| v == "Alice"));
     }
 }
