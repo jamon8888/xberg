@@ -57,6 +57,7 @@ export function detectPii(text: string, filterCategories?: string[]): PiiFinding
 }
 
 const NER_LABEL_TO_PII: Record<string, string> = {
+	// GLiNER2 / in-binary Candle privacy adapter labels (lowercased).
 	person: "NAME",
 	organization: "ORG",
 	location: "LOCATION",
@@ -65,6 +66,13 @@ const NER_LABEL_TO_PII: Record<string, string> = {
 	date: "DATE",
 	money: "MONEY",
 	url: "URL",
+	// transformers.js `token-classification` labels, e.g. Xenova/bert-base-NER
+	// (CoNLL-2003: PER/ORG/LOC/MISC). mergeNerEntities lowercases labels before
+	// lookup, so these keys must be the lowercased CoNLL forms.
+	per: "NAME",
+	org: "ORG",
+	loc: "LOCATION",
+	misc: "MISC",
 };
 
 function spansOverlap(a: PiiFinding, b: { start: number; end: number }): boolean {
@@ -77,7 +85,11 @@ function spansOverlap(a: PiiFinding, b: { start: number; end: number }): boolean
  * `confidence` — the field names differ between the two packages by design,
  * this function is the adapter).
  */
-export function mergeNerEntities(regex: PiiFinding[], entities: Entity[]): PiiFinding[] {
+export function mergeNerEntities(
+	regex: PiiFinding[],
+	entities: Entity[],
+	filterCategories?: string[],
+): PiiFinding[] {
 	const findings = [...regex];
 	const counters: Record<string, number> = {};
 	for (const f of findings) {
@@ -86,6 +98,7 @@ export function mergeNerEntities(regex: PiiFinding[], entities: Entity[]): PiiFi
 
 	for (const entity of entities) {
 		const category = NER_LABEL_TO_PII[entity.label.toLowerCase()] ?? `NER_${entity.label.toUpperCase()}`;
+		if (filterCategories && !filterCategories.includes(category)) continue;
 		const { text: entityText, start, end } = entity;
 		const entityConfidence = entity.score ?? 0.8;
 
@@ -134,5 +147,5 @@ export function groupByCategory(findings: PiiFinding[]): Record<string, number> 
  */
 export function detectPiiWithNer(text: string, nerResult: Entity[], filterCategories?: string[]): PiiFinding[] {
 	const regexFindings = detectPii(text, filterCategories);
-	return mergeNerEntities(regexFindings, nerResult);
+	return mergeNerEntities(regexFindings, nerResult, filterCategories);
 }

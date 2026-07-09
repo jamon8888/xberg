@@ -212,6 +212,7 @@ function fullTextQuery(
 	queryText: string,
 	k: number,
 ): Array<{ chunkId: string; text: string; score: number }> {
+	if (!Number.isInteger(k) || k <= 0) throw new Error("k must be a positive integer");
 	const result = rows<{ chunkId: string; text: string; rank: number }>(
 		requireDatabase(),
 		`SELECT f.chunk_id AS chunkId, c.text AS text, bm25(chunks_fts) AS rank

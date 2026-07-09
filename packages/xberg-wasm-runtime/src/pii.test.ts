@@ -59,6 +59,28 @@ describe("detectPiiWithNer", () => {
 		expect(findings.some((f) => f.category === "EMAIL")).toBe(true);
 	});
 
+	it("maps CoNLL-style PER/ORG/LOC labels (e.g. Xenova/bert-base-NER) to PII categories", () => {
+		const nerResult: Entity[] = [
+			{ label: "PER", text: "Alice", start: 0, end: 5, score: 0.95 },
+			{ label: "ORG", text: "Acme", start: 10, end: 14, score: 0.9 },
+			{ label: "LOC", text: "Paris", start: 20, end: 25, score: 0.9 },
+		];
+		const findings = detectPiiWithNer("Alice works at Acme in Paris", nerResult);
+		expect(findings.some((f) => f.category === "NAME" && f.original === "Alice")).toBe(true);
+		expect(findings.some((f) => f.category === "ORG" && f.original === "Acme")).toBe(true);
+		expect(findings.some((f) => f.category === "LOCATION" && f.original === "Paris")).toBe(true);
+	});
+
+	it("filters NER entities by filterCategories in detectPiiWithNer", () => {
+		const nerResult: Entity[] = [
+			{ label: "PER", text: "Alice", start: 0, end: 5, score: 0.95 },
+			{ label: "ORG", text: "Acme", start: 10, end: 14, score: 0.9 },
+		];
+		const findings = detectPiiWithNer("Alice at Acme", nerResult, ["ORG"]);
+		expect(findings.some((f) => f.category === "ORG")).toBe(true);
+		expect(findings.some((f) => f.category === "NAME")).toBe(false);
+	});
+
 	it("regenerates the token to match the new category when a higher-confidence NER entity overrides a regex finding", () => {
 		// "555-123-4567" overlaps a PHONE regex match, but the NER entity has higher
 		// confidence and is actually a person's name — the resulting finding must carry

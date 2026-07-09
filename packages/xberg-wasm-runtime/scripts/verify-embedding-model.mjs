@@ -7,6 +7,8 @@ const configs = [
 	{ device: "webgpu", dtype: "fp32" },
 ];
 
+let hadFailure = false;
+
 for (const config of configs) {
 	console.log(`\n--- ${modelId} device=${config.device} dtype=${config.dtype} ---`);
 	const start = performance.now();
@@ -17,5 +19,10 @@ for (const config of configs) {
 		console.log(`OK: dims=[${output.dims.join(", ")}] loaded in ${elapsedMs}ms`);
 	} catch (error) {
 		console.error(`FAILED: ${error instanceof Error ? error.message : String(error)}`);
+		hadFailure = true;
 	}
+}
+
+if (hadFailure) {
+	process.exitCode = 1;
 }

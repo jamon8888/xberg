@@ -125,6 +125,7 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<Vecto
 		queryText: string,
 		k: number,
 	): Promise<Array<{ chunkId: string; text: string; score: number }>> {
+		if (!Number.isInteger(k) || k <= 0) throw new Error("k must be a positive integer");
 		const rows = db
 			.prepare(
 				`SELECT f.chunk_id AS chunkId, c.text AS text, bm25(chunks_fts) AS rank
