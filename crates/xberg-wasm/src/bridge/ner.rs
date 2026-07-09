@@ -42,6 +42,13 @@ pub fn init_candle_ner(safetensors: &[u8], tokenizer_json: &[u8], encoder_config
     Ok(())
 }
 
+/// Return the currently-loaded Candle NER backend, if `initCandleNer` has
+/// been called. Used by `engine.rs::ingest()` to thread the already-loaded
+/// model into `xberg-rag`'s mandatory PII+NER redaction step.
+pub(crate) fn get_candle_ner() -> Option<std::rc::Rc<CandleBackend>> {
+    CANDLE_NER.with(|cell| cell.borrow().clone())
+}
+
 /// Resolve the best available NER backend for the current request.
 ///
 /// 1. If `injected` is `Some(obj)`, call `obj.ner(text, categories)`.

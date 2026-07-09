@@ -563,7 +563,7 @@ exclude_functions = [
 
 [crates.wasm.extra_dependencies]
 async-trait = "0.1"
-xberg-rag = { path = "../xberg-rag", default-features = false, features = ["vector-store", "pipeline"] }
+xberg-rag = { path = "../xberg-rag", default-features = false, features = ["vector-store", "pipeline", "pipeline-redaction"] }
 
 [crates.ffi]
 prefix = "xberg"

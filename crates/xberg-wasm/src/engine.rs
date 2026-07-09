@@ -134,10 +134,16 @@ impl XbergEngine {
 
     /// Ingest a single document into the RAG vector store.
     ///
-    /// Requires both an `embedder` and a `store` to have been injected.
-    /// `config` is an optional object; only `chunking.maxCharacters` and
+    /// Requires an `embedder` and a `store` to have been injected, and
+    /// requires `initCandleNer` to have been called first — PII+NER
+    /// redaction is mandatory and always runs before chunking. `config` is
+    /// an optional object; only `chunking.maxCharacters` and
     /// `chunking.overlap` are currently supported. All other fields are
     /// ignored.
+    ///
+    /// Returns `{ document_id, rehydration_map, pii_category_counts }`. The
+    /// caller decides whether/how to persist or encrypt `rehydration_map` —
+    /// this method never does so itself (use `encryptMap` separately).
     #[allow(clippy::missing_errors_doc)]
     pub async fn ingest(
         &self,
@@ -157,6 +163,9 @@ impl XbergEngine {
             .store
             .as_ref()
             .ok_or_else(|| JsValue::from_str("store not injected"))?;
+        let ner_backend = crate::bridge::ner::get_candle_ner().ok_or_else(|| {
+            JsValue::from_str("PII detection unavailable: initCandleNer has not been called")
+        })?;
 
         let chunking = match config {
             Some(c) if !c.is_undefined() && !c.is_null() => {
@@ -186,6 +195,7 @@ impl XbergEngine {
             ingest_req,
             &pipeline_config,
             embedder.as_ref(),
+            ner_backend.as_ref(),
         )
         .await
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
