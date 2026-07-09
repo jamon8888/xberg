@@ -111,6 +111,52 @@ describe("vector store", () => {
     expect(output.chunks[0]?.content).toBe("apple fruit");
   });
 
+  // Metric-specific scoring (mirrors `score()` in
+  // crates/xberg-rag/src/backends/memory.rs). One dataset distinguishes all
+  // three metrics: query [1,0], candidate "double" [2,0], candidate "exact"
+  // [1,0]. Cosine ties both at 1.0; L2 ranks the exact match first (distance 0
+  // vs 1); inner product ranks the double first (dot 2 vs 1).
+  async function seedMetricDocs(metric: "cosine" | "l2" | "innerproduct") {
+    await store.ensureCollection({ name: testCollection, embedding_dim: 2, distance_metric: metric });
+    await store.upsertDocument(
+      testCollection,
+      { full_text: "double", external_id: "double" },
+      [{ ordinal: 0, content: "double", embedding: [2, 0] }]
+    );
+    await store.upsertDocument(
+      testCollection,
+      { full_text: "exact", external_id: "exact" },
+      [{ ordinal: 0, content: "exact", embedding: [1, 0] }]
+    );
+  }
+
+  it("ranks by L2 distance when the collection metric is l2", async () => {
+    await seedMetricDocs("l2");
+    const output = await store.retrieve(testCollection, {
+      mode: "vector",
+      top_k: 5,
+      query_vector: [1, 0],
+      include_content: true,
+    });
+    expect(output.chunks[0]?.content).toBe("exact");
+    // Negated distance: exact match is 0, the [2,0] candidate is -1.
+    expect(output.chunks[0]?.score).toBeCloseTo(0);
+    expect(output.chunks[1]?.score).toBeCloseTo(-1);
+  });
+
+  it("ranks by inner product when the collection metric is innerproduct", async () => {
+    await seedMetricDocs("innerproduct");
+    const output = await store.retrieve(testCollection, {
+      mode: "vector",
+      top_k: 5,
+      query_vector: [1, 0],
+      include_content: true,
+    });
+    expect(output.chunks[0]?.content).toBe("double");
+    expect(output.chunks[0]?.score).toBeCloseTo(2);
+    expect(output.chunks[1]?.score).toBeCloseTo(1);
+  });
+
   it("deletes documents by id", async () => {
     await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
 

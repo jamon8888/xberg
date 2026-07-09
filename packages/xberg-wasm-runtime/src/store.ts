@@ -2,6 +2,7 @@ import type {
   VectorStoreInterface,
   CollectionSpec,
   CollectionStats,
+  DistanceMetric,
   DocumentRecord,
   ChunkRecord,
   DocumentSummary,
@@ -183,10 +184,18 @@ export async function createVectorStore(
     requireCollection(collection);
     let removed = 0;
     for (const id of ids) {
-      const doc = documents.get(id);
+      // The MCP delete_documents tool accepts "Document IDs or external IDs".
+      // Internal ids hit `documents` directly; otherwise resolve the id through
+      // this collection's external-id index before deleting.
+      const resolvedId = documents.has(id)
+        ? id
+        : externalIndex.get(collection)?.get(id);
+      if (!resolvedId) continue;
+
+      const doc = documents.get(resolvedId);
       if (doc && doc.collection === collection) {
-        documents.delete(id);
-        chunksByDoc.delete(id);
+        documents.delete(resolvedId);
+        chunksByDoc.delete(resolvedId);
         if (doc.record.external_id) {
           externalIndex.get(collection)?.delete(doc.record.external_id);
         }
@@ -228,7 +237,7 @@ export async function createVectorStore(
     const spec = requireCollection(collection);
 
     const topK = query.top_k;
-    if (!Number.isFinite(topK) || topK < 1) {
+    if (!Number.isInteger(topK) || topK < 1 || topK > 200) {
       throw new Error("invalid query: top_k must be between 1 and 200");
     }
 
@@ -249,7 +258,7 @@ export async function createVectorStore(
     });
 
     let scored: RetrievedChunk[] = allChunks.map((c) => {
-      const s = cosineSimilarity(queryVector, c.embedding);
+      const s = scoreByMetric(spec.distance_metric ?? "cosine", queryVector, c.embedding);
       const doc = documents.get(c.documentId);
       return {
         id: c.id,
@@ -473,4 +482,40 @@ function cosineSimilarity(a: number[], b: number[]): number {
   if (magA === 0 || magB === 0) return 0;
 
   return dotProduct / (magA * magB);
+}
+
+/**
+ * Score a query vector against a candidate embedding under a collection's
+ * distance metric. Mirrors `score()` in
+ * `crates/xberg-rag/src/backends/memory.rs`: higher is always more relevant, so
+ * the L2 branch returns the negated Euclidean distance and all three metrics
+ * sort correctly under a descending `score` ordering.
+ */
+function scoreByMetric(metric: DistanceMetric, a: number[], b: number[]): number {
+  switch (metric) {
+    case "innerproduct": {
+      if (a.length !== b.length) {
+        throw new Error(`Vector dimension mismatch: ${a.length} vs ${b.length}`);
+      }
+      let dot = 0;
+      for (let i = 0; i < a.length; i++) {
+        dot += (a[i] as number) * (b[i] as number);
+      }
+      return dot;
+    }
+    case "l2": {
+      if (a.length !== b.length) {
+        throw new Error(`Vector dimension mismatch: ${a.length} vs ${b.length}`);
+      }
+      let d2 = 0;
+      for (let i = 0; i < a.length; i++) {
+        const diff = (a[i] as number) - (b[i] as number);
+        d2 += diff * diff;
+      }
+      return -Math.sqrt(d2);
+    }
+    case "cosine":
+    default:
+      return cosineSimilarity(a, b);
+  }
 }
