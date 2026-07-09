@@ -77,6 +77,12 @@ pub struct TextRedactionOutcome {
 /// Only `RedactionStrategy::TokenReplace` populates `rehydration_map`;
 /// `Mask`/`Hash`/`Drop` leave it empty (matching [`apply_strategy`]).
 ///
+/// `counter` is caller-supplied rather than started fresh here so a caller
+/// redacting multiple related fields (e.g. a document's body plus its title
+/// and metadata) can thread one `TokenCounter` through all of them — token
+/// numbers stay unique across the whole request instead of colliding when
+/// the same PII category appears in more than one field.
+///
 /// # Errors
 ///
 /// Propagates errors from `ner.detect(...)`.
@@ -86,6 +92,7 @@ pub async fn redact_text_capturing_rehydration_map(
     text: &str,
     strategy: RedactionStrategy,
     ner: &dyn crate::text::ner::NerBackend,
+    counter: &mut TokenCounter,
 ) -> Result<TextRedactionOutcome> {
     use crate::types::entity::EntityCategory;
 
@@ -123,12 +130,11 @@ pub async fn redact_text_capturing_rehydration_map(
 
     let matches = dedupe_overlaps(matches);
 
-    let mut counter = TokenCounter::new();
     let mut rehydration_map = RehydrationMap::new();
     let mut category_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     let mut findings: Vec<RedactionFinding> = Vec::with_capacity(matches.len());
     for m in &matches {
-        let replacement = apply_strategy(strategy, &m.text, &m.category, &mut counter);
+        let replacement = apply_strategy(strategy, &m.text, &m.category, counter);
         if strategy == RedactionStrategy::TokenReplace {
             rehydration_map
                 .entry(replacement.clone())
@@ -719,6 +725,7 @@ mod tests {
             "Contact Alice at alice@example.com for details.",
             RedactionStrategy::TokenReplace,
             &ner,
+            &mut TokenCounter::new(),
         )
         .await
         .unwrap();
@@ -745,6 +752,7 @@ mod tests {
             "Call 555-0100 or email bob@test.io.",
             RedactionStrategy::TokenReplace,
             &ner,
+            &mut TokenCounter::new(),
         )
         .await
         .unwrap();

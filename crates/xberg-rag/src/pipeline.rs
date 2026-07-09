@@ -35,20 +35,21 @@ fn redact_json_value(
     value: &mut Value,
     counter: &mut TokenCounter,
     rehydration_map: &mut xberg::text::redaction::RehydrationMap,
+    category_counts: &mut std::collections::HashMap<String, usize>,
 ) -> RagResult<()> {
     match value {
         Value::String(s) => {
-            let redacted = redact_string_sync(s, counter, rehydration_map)?;
+            let redacted = redact_string_sync(s, counter, rehydration_map, category_counts)?;
             *s = redacted;
         }
         Value::Array(arr) => {
             for v in arr {
-                redact_json_value(v, counter, rehydration_map)?;
+                redact_json_value(v, counter, rehydration_map, category_counts)?;
             }
         }
         Value::Object(obj) => {
             for (_, v) in obj.iter_mut() {
-                redact_json_value(v, counter, rehydration_map)?;
+                redact_json_value(v, counter, rehydration_map, category_counts)?;
             }
         }
         _ => {}
@@ -61,6 +62,7 @@ fn redact_string_sync(
     text: &str,
     counter: &mut TokenCounter,
     rehydration_map: &mut xberg::text::redaction::RehydrationMap,
+    category_counts: &mut std::collections::HashMap<String, usize>,
 ) -> RagResult<String> {
     let matches = xberg::text::redaction::scan_text(text, &[]);
     let matches = xberg::text::redaction::dedupe_overlaps(matches);
@@ -79,6 +81,7 @@ fn redact_string_sync(
         rehydration_map
             .entry(replacement.clone())
             .or_insert_with(|| m.text.clone());
+        *category_counts.entry(format!("{:?}", m.category)).or_insert(0) += 1;
         result.push_str(&replacement);
         last_end = m.end;
     }
@@ -164,51 +167,57 @@ async fn redact_request(
 )> {
     use xberg::types::redaction::RedactionStrategy;
 
+    // One counter shared across full_text and every secondary field, so token
+    // numbers stay unique request-wide. Starting a fresh counter per field
+    // (the previous approach) let a category collide across fields — e.g.
+    // full_text's [EMAIL_1] and title's [EMAIL_1] would both exist, and the
+    // second `rehydration_map.entry(...).or_insert_with(...)` would silently
+    // discard the title's original value, since the key already existed.
+    let mut counter = TokenCounter::new();
+
     // Redact full_text once with NER + regex, getting the base outcome
     let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
         &request.full_text,
         RedactionStrategy::TokenReplace,
         ner,
+        &mut counter,
     )
     .await
     .map_err(RagError::Core)?;
 
-    // Reuse the outcome's redacted text, rehydration map, and category counts.
-    // For other fields, use a fresh counter (token numbering won't match full_text
-    // exactly, but that's acceptable; the rehydration map is the source of truth).
-    let mut counter = TokenCounter::new();
     let mut rehydration_map = outcome.rehydration_map;
     let mut category_counts = outcome.category_counts;
 
     // Redact optional string fields (regex only, no NER)
     let title = request
         .title
-        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s));
+        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(s));
 
     let source_uri = request
         .source_uri
-        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s));
+        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(s));
 
     let external_id = request
         .external_id
-        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s));
+        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(s));
 
     // Redact keywords (Vec<String>)
     let mut keywords = Vec::new();
     for kw in request.keywords {
-        let redacted = redact_string_sync(&kw, &mut counter, &mut rehydration_map).unwrap_or(kw);
+        let redacted =
+            redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(kw);
         keywords.push(redacted);
     }
 
     // Redact JSON fields recursively
     let mut entities = request.entities;
-    redact_json_value(&mut entities, &mut counter, &mut rehydration_map).unwrap_or(());
+    redact_json_value(&mut entities, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
 
     let mut labels = request.labels;
-    redact_json_value(&mut labels, &mut counter, &mut rehydration_map).unwrap_or(());
+    redact_json_value(&mut labels, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
 
     let mut metadata = request.metadata;
-    redact_json_value(&mut metadata, &mut counter, &mut rehydration_map).unwrap_or(());
+    redact_json_value(&mut metadata, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
 
     let redacted_request = IngestRequest {
         full_text: outcome.redacted_text, // reuse the already-redacted text
@@ -871,5 +880,46 @@ mod tests {
             );
             assert!(!content.contains("Alice"), "stored chunk should NOT contain raw name");
         }
+    }
+
+    #[cfg(feature = "pipeline-redaction")]
+    #[tokio::test]
+    async fn ingest_document_shares_token_counter_across_fields() {
+        const DIM: u32 = 4;
+        let store: Arc<dyn VectorStore> = make_store("pii-cross-field-test");
+        store.ensure_collection(&make_collection("docs", DIM)).await.unwrap();
+
+        let embedder = StubEmbedder { dim: DIM as usize };
+        let chunking = xberg::ChunkingConfig::default();
+        let config = RagPipelineConfig { chunking: &chunking };
+        let ner = StubNerBackend;
+
+        // Two distinct emails in two different fields, same category. Before
+        // the fix, full_text's own TokenCounter numbered its email [EMAIL_1],
+        // then a *fresh* counter for title also started at [EMAIL_1] — the
+        // second `rehydration_map.entry("[EMAIL_1]").or_insert_with(...)` was
+        // a no-op since the key already existed, silently discarding the
+        // title's real email from the map and mislabeling its stored text.
+        let request = IngestRequest {
+            full_text: "Please review the attached document.".to_string(),
+            title: Some("Report for bob@example.com".to_string()),
+            source_uri: Some("Sent by carol@example.com".to_string()),
+            ..Default::default()
+        };
+
+        let outcome = ingest_document(Arc::clone(&store), "docs", request, &config, &embedder, &ner)
+            .await
+            .unwrap();
+
+        assert_eq!(outcome.pii_category_counts.get("Email"), Some(&2));
+        assert_eq!(outcome.rehydration_map.len(), 2);
+        assert_eq!(
+            outcome.rehydration_map.get("[EMAIL_1]").map(String::as_str),
+            Some("bob@example.com")
+        );
+        assert_eq!(
+            outcome.rehydration_map.get("[EMAIL_2]").map(String::as_str),
+            Some("carol@example.com")
+        );
     }
 }
