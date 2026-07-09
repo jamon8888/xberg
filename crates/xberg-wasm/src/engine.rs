@@ -66,6 +66,10 @@ impl XbergEngine {
     /// - `embedder` — object with `embed(texts: string[]): Promise<number[][]>`
     /// - `store`    — object implementing the VectorStore JS protocol
     /// - `ner`      — object with `ner(text, categories): Promise<...>`
+    ///                **NOTE:** this injected NER bridge is ONLY used by
+    ///                `XbergEngine::ner()`. It does NOT satisfy `ingest()`'s
+    ///                NER requirement — `ingest()` uses the Candle backend
+    ///                via `initCandleNer()`, which must be called separately.
     /// - `ocr`      — object with `ocr(imageBytes, opts): Promise<string>`
     #[wasm_bindgen(constructor)]
     pub fn new(config: JsValue, injection: JsValue) -> Result<XbergEngine, JsValue> {

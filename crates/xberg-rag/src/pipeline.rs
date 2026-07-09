@@ -29,73 +29,6 @@ use xberg::text::redaction::{RehydrationMap, TokenCounter};
 // ─── Helpers for full-field redaction ──────────────────────────────────────────
 
 #[cfg(feature = "pipeline-redaction")]
-async fn redact_string(
-    text: &str,
-    ner: &dyn xberg::text::ner::NerBackend,
-    counter: &mut TokenCounter,
-    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
-) -> RagResult<String> {
-    use xberg::types::entity::EntityCategory;
-
-    let mut matches = xberg::text::redaction::scan_text(text, &[]);
-
-    let entities = ner
-        .detect(
-            text,
-            &[
-                EntityCategory::Person,
-                EntityCategory::Organization,
-                EntityCategory::Location,
-            ],
-        )
-        .await
-        .map_err(RagError::Core)?;
-
-    for e in entities {
-        let category = match e.category {
-            EntityCategory::Person => xberg::types::redaction::PiiCategory::Person,
-            EntityCategory::Organization => xberg::types::redaction::PiiCategory::Organization,
-            EntityCategory::Location => xberg::types::redaction::PiiCategory::Location,
-            _ => continue,
-        };
-        let start = e.start as usize;
-        let end = e.end as usize;
-        let original = text
-            .get(start..end)
-            .ok_or_else(|| RagError::Core(xberg::XbergError::validation(
-                "NER backend returned an invalid byte span".to_string(),
-            )))?;
-        matches.push(xberg::text::redaction::PatternMatch {
-            start,
-            end,
-            category,
-            text: original.to_string(),
-        });
-    }
-
-    let matches = xberg::text::redaction::dedupe_overlaps(matches);
-    let mut result = String::new();
-    let mut last_end = 0;
-
-    for m in &matches {
-        result.push_str(&text[last_end..m.start]);
-        let replacement = xberg::text::redaction::apply_strategy(
-            xberg::types::redaction::RedactionStrategy::TokenReplace,
-            &m.text,
-            &m.category,
-            counter,
-        );
-        rehydration_map
-            .entry(replacement.clone())
-            .or_insert_with(|| m.text.clone());
-        result.push_str(&replacement);
-        last_end = m.end;
-    }
-    result.push_str(&text[last_end..]);
-    Ok(result)
-}
-
-#[cfg(feature = "pipeline-redaction")]
 fn redact_json_value(
     value: &mut Value,
     counter: &mut TokenCounter,
@@ -228,7 +161,7 @@ async fn redact_request(
 )> {
     use xberg::types::redaction::RedactionStrategy;
 
-    // First, redact full_text with NER to get the base outcome (includes NER matches)
+    // Redact full_text once with NER + regex, getting the base outcome
     let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
         &request.full_text,
         RedactionStrategy::TokenReplace,
@@ -237,31 +170,25 @@ async fn redact_request(
     .await
     .map_err(RagError::Core)?;
 
-    // Create shared counter and rehydration map from the full_text outcome
+    // Reuse the outcome's redacted text, rehydration map, and category counts.
+    // For other fields, use a fresh counter (token numbering won't match full_text
+    // exactly, but that's acceptable; the rehydration map is the source of truth).
     let mut counter = TokenCounter::new();
-    // Replay the counter state from the outcome's category_counts to keep token numbering consistent
-    // Note: TokenCounter doesn't expose internal state, so we create fresh and accept slight
-    // token number differences for non-full_text fields (acceptable trade-off)
-    
-    let mut rehydration_map = outcome.rehydration_map.clone();
-    let mut category_counts = outcome.category_counts.clone();
+    let mut rehydration_map = outcome.rehydration_map;
+    let mut category_counts = outcome.category_counts;
 
-    // Redact full_text using the shared state (re-run with shared counter for consistency)
-    let redacted_full_text = redact_string(&request.full_text, ner, &mut counter, &mut rehydration_map).await?;
+    // Redact optional string fields (regex only, no NER)
+    let title = request
+        .title
+        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s));
 
-    // Redact optional string fields
-    let title = request.title.map(|s| {
-        // Use sync version for optional fields (no NER, just regex)
-        redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s)
-    });
+    let source_uri = request
+        .source_uri
+        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s));
 
-    let source_uri = request.source_uri.map(|s| {
-        redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s)
-    });
-
-    let external_id = request.external_id.map(|s| {
-        redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s)
-    });
+    let external_id = request
+        .external_id
+        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map).unwrap_or(s));
 
     // Redact keywords (Vec<String>)
     let mut keywords = Vec::new();
@@ -281,7 +208,7 @@ async fn redact_request(
     redact_json_value(&mut metadata, &mut counter, &mut rehydration_map).unwrap_or(());
 
     let redacted_request = IngestRequest {
-        full_text: redacted_full_text,
+        full_text: outcome.redacted_text, // reuse the already-redacted text
         title,
         mime: request.mime,
         source_uri,
@@ -291,10 +218,6 @@ async fn redact_request(
         labels,
         metadata,
     };
-
-    // Merge category counts from the additional redactions
-    // (Note: this is approximate since we don't track per-field counts precisely)
-    // For a more accurate count, we'd need to track during redaction
 
     Ok((redacted_request, rehydration_map, category_counts))
 }
@@ -943,10 +866,7 @@ mod tests {
                 !content.contains("alice@example.com"),
                 "stored chunk should NOT contain raw email"
             );
-            assert!(
-                !content.contains("Alice"),
-                "stored chunk should NOT contain raw name"
-            );
+            assert!(!content.contains("Alice"), "stored chunk should NOT contain raw name");
         }
     }
 }
