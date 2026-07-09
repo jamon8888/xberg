@@ -214,9 +214,9 @@ mod primary_score_wire_shape_tests {
 
     /// Documents PrimaryScore's actual JSON wire shape for JS-side consumers
     /// (packages/xberg-wasm-runtime's retrieve() wire-alignment work) — the
-    /// #[serde(tag = "kind", rename_all = "snake_case")] internal tagging on
-    /// a mix of newtype and struct variants is not something to infer from
-    /// reading the enum definition; this test is the source of truth.
+    /// enum uses adjacent tagging (`#[serde(tag = "kind", content = "value", rename_all = "snake_case")]`),
+    /// where the variant name serializes as the `kind` field (snake_case) and the
+    /// payload as the `value` field. This test is the source of truth.
     #[test]
     fn vector_variant_wire_shape() {
         let json = serde_json::to_string(&PrimaryScore::Vector(0.5)).expect("serialize");

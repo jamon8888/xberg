@@ -101,20 +101,25 @@ pub async fn redact_text_capturing_rehydration_map(
             ],
         )
         .await?;
-    matches.extend(entities.into_iter().filter_map(|e| {
+    for e in entities {
         let category = match e.category {
             EntityCategory::Person => PiiCategory::Person,
             EntityCategory::Organization => PiiCategory::Organization,
             EntityCategory::Location => PiiCategory::Location,
-            _ => return None,
+            _ => continue,
         };
-        Some(PatternMatch {
-            start: e.start as usize,
-            end: e.end as usize,
+        let start = e.start as usize;
+        let end = e.end as usize;
+        let original = text
+            .get(start..end)
+            .ok_or_else(|| crate::XbergError::validation("NER backend returned an invalid byte span"))?;
+        matches.push(PatternMatch {
+            start,
+            end,
             category,
-            text: e.text,
-        })
-    }));
+            text: original.to_string(),
+        });
+    }
 
     let matches = dedupe_overlaps(matches);
 
@@ -680,10 +685,12 @@ mod tests {
         assert_eq!(out, "Email me at [REDACTED] or [REDACTED].");
     }
 
+    #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
     struct StubNerBackend {
         entities: Vec<crate::types::entity::Entity>,
     }
 
+    #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
     #[async_trait::async_trait]
     impl crate::text::ner::NerBackend for StubNerBackend {
         async fn detect(
@@ -695,6 +702,7 @@ mod tests {
         }
     }
 
+    #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
     #[tokio::test]
     async fn redact_text_merges_regex_and_ner_matches() {
         let ner = StubNerBackend {
@@ -728,6 +736,7 @@ mod tests {
         assert_eq!(outcome.category_counts.get("Email"), Some(&1));
     }
 
+    #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
     #[tokio::test]
     async fn redact_text_works_with_no_ner_matches() {
         let ner = StubNerBackend { entities: vec![] };
