@@ -9,7 +9,7 @@ use std::collections::HashSet;
 use crate::Result;
 use crate::core::config::redaction::RedactionConfig;
 use crate::types::ExtractedDocument;
-use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport};
+use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport, RedactionStrategy};
 
 use super::patterns::{PatternMatch, scan_text};
 use super::strategy::{TokenCounter, apply_strategy};
@@ -46,6 +46,102 @@ pub async fn redact_capturing_rehydration_map(
 
 // When redaction is off, redact_inner takes no rehydration_map arg.
 // The cfg-gated parameter approach is used above; this comment documents intent.
+
+/// Outcome of [`redact_text_capturing_rehydration_map`]: the redacted text,
+/// its rehydration map, and per-category finding counts. Counts only — the
+/// matched PII text itself is never included here, per the redaction
+/// pipeline's logging rule.
+#[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
+#[derive(Debug, Clone, Default)]
+pub struct TextRedactionOutcome {
+    pub redacted_text: String,
+    pub rehydration_map: RehydrationMap,
+    pub category_counts: std::collections::HashMap<String, usize>,
+}
+
+/// Redact plain text (not an [`ExtractedDocument`]) using regex PII patterns
+/// merged with NER-detected Person/Organization/Location entities, capturing
+/// a token→original rehydration map.
+///
+/// Unlike [`redact`]/[`redact_capturing_rehydration_map`], which always
+/// construct their own NER backend from a [`RedactionConfig`]'s
+/// [`NerConfig`](crate::core::config::ner::NerConfig) (filesystem `model_dir`
+/// for the Candle path), this function takes an already-constructed `ner`
+/// backend reference — for callers holding a backend loaded via
+/// `NerBackend::from_bytes` (e.g. wasm32, no filesystem access) instead of
+/// from a local directory.
+///
+/// Only `RedactionStrategy::TokenReplace` populates `rehydration_map`;
+/// `Mask`/`Hash`/`Drop` leave it empty (matching [`apply_strategy`]).
+///
+/// # Errors
+///
+/// Propagates errors from `ner.detect(...)`.
+#[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
+pub async fn redact_text_capturing_rehydration_map(
+    text: &str,
+    strategy: RedactionStrategy,
+    ner: &dyn crate::text::ner::NerBackend,
+) -> Result<TextRedactionOutcome> {
+    use crate::types::entity::EntityCategory;
+
+    let mut matches = scan_text(text, &[]);
+
+    let entities = ner
+        .detect(
+            text,
+            &[
+                EntityCategory::Person,
+                EntityCategory::Organization,
+                EntityCategory::Location,
+            ],
+        )
+        .await?;
+    matches.extend(entities.into_iter().filter_map(|e| {
+        let category = match e.category {
+            EntityCategory::Person => PiiCategory::Person,
+            EntityCategory::Organization => PiiCategory::Organization,
+            EntityCategory::Location => PiiCategory::Location,
+            _ => return None,
+        };
+        Some(PatternMatch {
+            start: e.start as usize,
+            end: e.end as usize,
+            category,
+            text: e.text,
+        })
+    }));
+
+    let matches = dedupe_overlaps(matches);
+
+    let mut counter = TokenCounter::new();
+    let mut rehydration_map = RehydrationMap::new();
+    let mut category_counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut findings: Vec<RedactionFinding> = Vec::with_capacity(matches.len());
+    for m in &matches {
+        let replacement = apply_strategy(strategy, &m.text, &m.category, &mut counter);
+        if strategy == RedactionStrategy::TokenReplace {
+            rehydration_map
+                .entry(replacement.clone())
+                .or_insert_with(|| m.text.clone());
+        }
+        *category_counts.entry(format!("{:?}", m.category)).or_insert(0) += 1;
+        findings.push(RedactionFinding {
+            start: m.start as u32,
+            end: m.end as u32,
+            category: m.category.clone(),
+            strategy,
+            replacement_token: replacement,
+        });
+    }
+
+    let redacted_text = apply_replacements_reverse(text, &matches, &findings);
+    Ok(TextRedactionOutcome {
+        redacted_text,
+        rehydration_map,
+        category_counts,
+    })
+}
 
 /// Core redaction implementation shared by [`redact`] and [`redact_capturing_rehydration_map`].
 async fn redact_inner(
@@ -578,5 +674,70 @@ mod tests {
         ];
         let out = apply_replacements_reverse(text, &matches, &findings);
         assert_eq!(out, "Email me at [REDACTED] or [REDACTED].");
+    }
+
+    struct StubNerBackend {
+        entities: Vec<crate::types::entity::Entity>,
+    }
+
+    #[async_trait::async_trait]
+    impl crate::text::ner::NerBackend for StubNerBackend {
+        async fn detect(
+            &self,
+            _text: &str,
+            _categories: &[crate::types::entity::EntityCategory],
+        ) -> Result<Vec<crate::types::entity::Entity>> {
+            Ok(self.entities.clone())
+        }
+    }
+
+    #[tokio::test]
+    async fn redact_text_merges_regex_and_ner_matches() {
+        let ner = StubNerBackend {
+            entities: vec![crate::types::entity::Entity {
+                category: crate::types::entity::EntityCategory::Person,
+                text: "Alice".to_string(),
+                start: 8,
+                end: 13,
+                confidence: Some(0.99),
+            }],
+        };
+
+        let outcome = redact_text_capturing_rehydration_map(
+            "Contact Alice at alice@example.com for details.",
+            RedactionStrategy::TokenReplace,
+            &ner,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(outcome.redacted_text, "Contact [PERSON_1] at [EMAIL_1] for details.");
+        assert_eq!(
+            outcome.rehydration_map.get("[PERSON_1]").map(String::as_str),
+            Some("Alice")
+        );
+        assert_eq!(
+            outcome.rehydration_map.get("[EMAIL_1]").map(String::as_str),
+            Some("alice@example.com")
+        );
+        assert_eq!(outcome.category_counts.get("Person"), Some(&1));
+        assert_eq!(outcome.category_counts.get("Email"), Some(&1));
+    }
+
+    #[tokio::test]
+    async fn redact_text_works_with_no_ner_matches() {
+        let ner = StubNerBackend { entities: vec![] };
+
+        let outcome = redact_text_capturing_rehydration_map(
+            "Call 555-0100 or email bob@test.io.",
+            RedactionStrategy::TokenReplace,
+            &ner,
+        )
+        .await
+        .unwrap();
+
+        assert!(outcome.redacted_text.contains("[EMAIL_1]"));
+        assert!(!outcome.redacted_text.contains("bob@test.io"));
+        assert_eq!(outcome.category_counts.len(), outcome.rehydration_map.len());
     }
 }
