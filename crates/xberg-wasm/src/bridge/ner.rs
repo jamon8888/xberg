@@ -130,6 +130,55 @@ async fn fallback_ner(text: &str, categories: &[EntityCategory]) -> Result<Vec<E
     }
 }
 
+/// Adapter that wraps an injected JS NER object as a [`NerBackend`].
+///
+/// Used by `engine.ingest()` to feed the injected JS NER into
+/// `xberg-rag`'s `redact_request` pipeline, which requires a
+/// `&dyn NerBackend`. The JS bridge is already async and fits the
+/// `NerBackend::detect` contract directly.
+pub(crate) struct JsNerBridge {
+    obj: Object,
+    timeout_ms: u32,
+}
+
+impl JsNerBridge {
+    /// Wrap an injected JS object that exposes `ner(text, categories)`.
+    pub fn new(obj: Object, timeout_ms: u32) -> Self {
+        Self { obj, timeout_ms }
+    }
+}
+
+#[async_trait(?Send)]
+impl NerBackend for JsNerBridge {
+    async fn detect(
+        &self,
+        text: &str,
+        categories: &[EntityCategory],
+    ) -> xberg::Result<Vec<Entity>> {
+        call_injected_ner(self.obj.clone(), text, categories, self.timeout_ms)
+            .await
+            .map_err(|e| xberg::XbergError::Plugin(format!("JS NER bridge: {e:?}")))
+    }
+}
+
+/// Resolve the best NER backend for `ingest()`, preferring the injected JS
+/// bridge when available, falling back to the in-binary Candle backend.
+///
+/// Returns `Ok(Some(backend))` if NER is available, `Ok(None)` only if
+/// both are unavailable (caller should error), or `Err` on init failure.
+pub(crate) fn resolve_ingest_ner(
+    injected: Option<&js_sys::Object>,
+    timeout_ms: u32,
+) -> Option<Box<dyn NerBackend>> {
+    // Injected JS bridge takes priority — it's always available in browser
+    // contexts where Candle may not have been initialized.
+    if let Some(obj) = injected {
+        return Some(Box::new(JsNerBridge::new(obj.clone(), timeout_ms)));
+    }
+    // Fall back to the Candle backend if initCandleNer was called.
+    None
+}
+
 /// Convert a Display error into a JsValue suitable for propagation.
 fn js_from_any(v: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&v.to_string())

@@ -58,6 +58,117 @@ fn redact_json_value(
     Ok(())
 }
 
+/// Keys whose string values are opaque identifiers rather than narrative text.
+/// NER is skipped for these leaves to bound inference cost.
+#[cfg(feature = "pipeline-redaction")]
+const NON_NARRATIVE_KEYS: &[&str] = &[
+    "id", "url", "uri", "hash", "sha", "email", "phone", "token", "type", "kind", "lang",
+];
+
+/// Heuristic: should a JSON string leaf get the NER+regex treatment (vs
+/// regex-only)? Only free-text-shaped, longer leaves — short terms and
+/// opaque-keyed values stay regex-only to bound NER cost.
+#[cfg(feature = "pipeline-redaction")]
+fn is_free_text_leaf(key: &str, text: &str) -> bool {
+    if text.len() <= 20 {
+        return false;
+    }
+    if NON_NARRATIVE_KEYS.iter().any(|k| key.eq_ignore_ascii_case(k)) {
+        return false;
+    }
+    true
+}
+
+/// Redact a single string with NER when it looks like free text, else regex-only.
+#[cfg(feature = "pipeline-redaction")]
+async fn redact_string_maybe_ner(
+    text: &str,
+    ner: &dyn xberg::text::ner::NerBackend,
+    counter: &mut TokenCounter,
+    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
+    category_counts: &mut std::collections::HashMap<String, usize>,
+) -> RagResult<String> {
+    if is_free_text_leaf("", text) {
+        redact_secondary_string(
+            text,
+            RedactionStrategy::TokenReplace,
+            ner,
+            counter,
+            rehydration_map,
+            category_counts,
+        )
+        .await
+    } else {
+        redact_string_sync(text, counter, rehydration_map, category_counts)
+    }
+}
+
+/// Async JSON redactor: applies NER+regex to free-text string leaves and
+/// regex-only to opaque/short leaves, sharing the request-wide `TokenCounter`
+/// and accumulators. Mirrors the fail-closed discipline of `redact_request`.
+#[cfg(feature = "pipeline-redaction")]
+async fn redact_json_value_async(
+    value: &mut Value,
+    ner: &dyn xberg::text::ner::NerBackend,
+    counter: &mut TokenCounter,
+    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
+    category_counts: &mut std::collections::HashMap<String, usize>,
+) -> RagResult<()> {
+    match value {
+        Value::String(s) => {
+            if is_free_text_leaf("", s) {
+                let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
+                    s,
+                    RedactionStrategy::TokenReplace,
+                    ner,
+                    counter,
+                )
+                .await
+                .map_err(RagError::Core)?;
+                rehydration_map.extend(outcome.rehydration_map);
+                for (category, count) in outcome.category_counts {
+                    *category_counts.entry(category).or_insert(0) += count;
+                }
+                *s = outcome.redacted_text;
+            } else {
+                *s = redact_string_sync(s, counter, rehydration_map, category_counts)?;
+            }
+        }
+        Value::Array(arr) => {
+            for v in arr {
+                redact_json_value_async(v, ner, counter, rehydration_map, category_counts).await?;
+            }
+        }
+        Value::Object(obj) => {
+            for (key, v) in obj.iter_mut() {
+                if let Value::String(s) = v {
+                    if is_free_text_leaf(key, s) {
+                        let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
+                            s,
+                            RedactionStrategy::TokenReplace,
+                            ner,
+                            counter,
+                        )
+                        .await
+                        .map_err(RagError::Core)?;
+                        rehydration_map.extend(outcome.rehydration_map);
+                        for (category, count) in outcome.category_counts {
+                            *category_counts.entry(category).or_insert(0) += count;
+                        }
+                        *s = outcome.redacted_text;
+                    } else {
+                        *s = redact_string_sync(s, counter, rehydration_map, category_counts)?;
+                    }
+                } else {
+                    redact_json_value_async(v, ner, counter, rehydration_map, category_counts).await?;
+                }
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
 /// Synchronous version for JSON values (regex patterns only, no NER).
 #[cfg(feature = "pipeline-redaction")]
 fn redact_string_sync(
@@ -255,30 +366,51 @@ async fn redact_request(
     // ingestion boundary if stricter guarantees are required.)
     let external_id = request.external_id;
 
-    // keywords/entities/labels/metadata are structured (a list of short terms,
-    // or arbitrary caller-supplied JSON) rather than narrative text — running
-    // NER per leaf would mean one inference call per array element/JSON leaf,
-    // which doesn't scale with metadata size and rarely fires (structured
-    // fields are much less likely to carry an unlabeled name than free text).
-    // Deliberately regex-only; revisit if a real workload needs NER coverage
-    // here too.
+    // keywords/entities/labels/metadata are structured. To avoid a NER
+    // inference call per array element / JSON leaf (which does not scale with
+    // metadata size), we only apply NER to leaves that look like free text
+    // (length > 20 chars and a non-opaque key); everything else stays
+    // regex-only. This closes the gap where a person/org/location PII in a
+    // long narrative metadata value slipped past regex and persisted raw.
     let mut keywords = Vec::new();
     for kw in request.keywords {
         // Fail closed: a redaction error must not persist the raw keyword.
-        let redacted = redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts)?;
+        let redacted =
+            redact_string_maybe_ner(&kw, ner, &mut counter, &mut rehydration_map, &mut category_counts).await?;
         keywords.push(redacted);
     }
 
     // Fail closed: propagate any redaction error instead of falling back to the
     // unredacted value, which could silently persist PII into structured fields.
     let mut entities = request.entities;
-    redact_json_value(&mut entities, &mut counter, &mut rehydration_map, &mut category_counts)?;
+    redact_json_value_async(
+        &mut entities,
+        ner,
+        &mut counter,
+        &mut rehydration_map,
+        &mut category_counts,
+    )
+    .await?;
 
     let mut labels = request.labels;
-    redact_json_value(&mut labels, &mut counter, &mut rehydration_map, &mut category_counts)?;
+    redact_json_value_async(
+        &mut labels,
+        ner,
+        &mut counter,
+        &mut rehydration_map,
+        &mut category_counts,
+    )
+    .await?;
 
     let mut metadata = request.metadata;
-    redact_json_value(&mut metadata, &mut counter, &mut rehydration_map, &mut category_counts)?;
+    redact_json_value_async(
+        &mut metadata,
+        ner,
+        &mut counter,
+        &mut rehydration_map,
+        &mut category_counts,
+    )
+    .await?;
 
     let redacted_request = IngestRequest {
         full_text: outcome.redacted_text, // reuse the already-redacted text
@@ -987,5 +1119,70 @@ mod tests {
             outcome.rehydration_map.get("[EMAIL_2]").map(String::as_str),
             Some("carol@example.com")
         );
+    }
+
+    #[cfg(feature = "pipeline-redaction")]
+    #[tokio::test]
+    async fn ingest_redacts_pii_in_structured_keywords_and_metadata() {
+        const DIM: u32 = 4;
+        let store: Arc<dyn VectorStore> = make_store("structured-pii-test");
+        store.ensure_collection(&make_collection("docs", DIM)).await.unwrap();
+
+        let embedder = StubEmbedder { dim: DIM as usize };
+        let chunking = xberg::ChunkingConfig::default();
+        let config = RagPipelineConfig { chunking: &chunking };
+        let ner = StubNerBackend;
+
+        // A keyword carrying a person name (short, but still goes through
+        // redact_string_maybe_ner). A metadata string long enough to pass the
+        // free-text heuristic (> 20 chars) and carrying "Alice".
+        let metadata_json = serde_json::json!({
+            "author": "Alice submitted this document on Monday morning",
+            "id": "abc-123"
+        });
+
+        let request = IngestRequest {
+            full_text: "Some neutral content here.".to_string(),
+            keywords: vec!["Alice".to_string(), "rust".to_string()],
+            metadata: metadata_json,
+            ..Default::default()
+        };
+
+        let outcome = ingest_document(Arc::clone(&store), "docs", request, &config, &embedder, &ner)
+            .await
+            .unwrap();
+
+        // Alice appears in keyword AND in metadata value — should be redacted.
+        assert!(
+            outcome.pii_category_counts.get("Person").copied().unwrap_or(0) >= 2,
+            "expected at least 2 Person redactions (keyword + metadata), got {:?}",
+            outcome.pii_category_counts
+        );
+
+        // Rehydration map must contain the original "Alice" text.
+        assert!(
+            outcome.rehydration_map.values().any(|v| v == "Alice"),
+            "rehydration map should contain 'Alice', got: {:?}",
+            outcome.rehydration_map
+        );
+
+        // Verify stored chunks: no raw "Alice" should survive.
+        let query = RetrieveQuery {
+            mode: RetrieveMode::Vector,
+            query_vector: Some(vec![0.1; DIM as usize]),
+            top_k: 10,
+            include_content: true,
+            ..Default::default()
+        };
+        let results = store.retrieve("docs", &query).await.unwrap();
+        assert!(!results.chunks.is_empty());
+        for chunk in &results.chunks {
+            let content = chunk.content.as_ref().expect("content should be included");
+            assert!(
+                !content.contains("Alice"),
+                "stored chunk should NOT contain raw name 'Alice', got: {}",
+                content
+            );
+        }
     }
 }

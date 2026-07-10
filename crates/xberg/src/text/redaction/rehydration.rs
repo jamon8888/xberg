@@ -148,11 +148,7 @@ mod tests {
     }
 
     fn hex_decode(s: &str) -> Vec<u8> {
-        assert!(
-            s.len() % 2 == 0,
-            "hex input must have even length, got {}",
-            s.len()
-        );
+        assert!(s.len() % 2 == 0, "hex input must have even length, got {}", s.len());
         (0..s.len())
             .step_by(2)
             .map(|i| u8::from_str_radix(&s[i..i + 2], 16).expect("valid hex"))

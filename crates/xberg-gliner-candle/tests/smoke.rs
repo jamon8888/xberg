@@ -53,7 +53,6 @@ fn base_model_extracts_entities_and_adapter_changes_output() {
     );
 }
 
-
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
 #[ignore = "requires real fastino/gliner2-privacy-filter-PII-multi safetensors on disk"]
@@ -83,5 +82,8 @@ fn pii_model_loads_from_bytes_and_extracts_entities() {
     let spans = model
         .extract_ner(text, &labels, 0.3)
         .expect("extraction against the real PII model must succeed");
-    assert!(!spans.is_empty(), "the real PII model must find at least one entity in a PII-laden sentence");
+    assert!(
+        !spans.is_empty(),
+        "the real PII model must find at least one entity in a PII-laden sentence"
+    );
 }

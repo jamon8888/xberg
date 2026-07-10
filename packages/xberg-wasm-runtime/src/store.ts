@@ -335,7 +335,14 @@ export async function createInMemoryVectorStore(
     };
   }
 
+  async function close(): Promise<void> {
+    documents.clear();
+    collections.clear();
+    chunksByDoc.clear();
+  }
+
   return {
+    close,
     ensureCollection,
     dropCollection,
     getCollection,
