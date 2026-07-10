@@ -65,6 +65,7 @@ pub type RejectionCounts = BTreeMap<&'static str, usize>;
 ///
 /// Returns the surviving matches (in their original relative order) plus a
 /// count of rejections keyed by reason.
+#[cfg_attr(alef, alef(skip))]
 pub fn apply_validators(
     matches: Vec<PatternMatch>,
     text: &str,

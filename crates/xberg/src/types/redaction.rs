@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 /// audit-log consumers can see exactly what fired. Offsets are relative to the *original*
 /// pre-redaction `content` and are intended for audit reconstruction only — the original
 /// bytes are dropped at the end of the pipeline.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
 pub struct RedactionReport {
     /// Individual redaction findings in original-source byte order.
@@ -32,6 +32,7 @@ pub struct RedactionReport {
     /// `findings` — the validator determined they were never PII in the
     /// first place, so nothing was redacted for them.
     #[serde(default)]
+    #[cfg_attr(alef, alef(skip))]
     pub rejection_counts: Vec<RejectionCount>,
 }
 
