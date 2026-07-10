@@ -47,22 +47,27 @@ export function createMapUploadHandler(
         }
         chunks.push(buf);
       }
-    } catch {
-      sendJson(res, 400, { error: "failed to read request body" });
-      return;
+
+      const body = Buffer.concat(chunks);
+      if (body.length === 0) {
+        sendJson(res, 400, { error: "empty body" });
+        return;
+      }
+
+      const dir = getRehydrationDir();
+      mkdirSync(dir, { recursive: true });
+      const mapPath = join(dir, `${documentId}.map`);
+      writeFileSync(mapPath, body);
+
+      sendJson(res, 200, { status: "stored" });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!res.headersSent) {
+        const status = msg === "payload too large" ? 413 : 500;
+        res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg }));
+      } else {
+        res.end();
+      }
     }
-
-    const body = Buffer.concat(chunks);
-    if (body.length === 0) {
-      sendJson(res, 400, { error: "empty body" });
-      return;
-    }
-
-    const dir = getRehydrationDir();
-    mkdirSync(dir, { recursive: true });
-    const mapPath = join(dir, `${documentId}.map`);
-    writeFileSync(mapPath, body);
-
-    sendJson(res, 200, { status: "stored" });
   };
 }
