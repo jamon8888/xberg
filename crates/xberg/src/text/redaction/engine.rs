@@ -9,50 +9,102 @@ use std::collections::HashSet;
 use crate::Result;
 use crate::core::config::redaction::RedactionConfig;
 use crate::types::ExtractedDocument;
-use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport};
+use crate::types::redaction::{PiiCategory, RedactionFinding, RedactionReport, RejectionCount};
 
 use super::patterns::{PatternMatch, scan_text};
 use super::strategy::{TokenCounter, apply_strategy};
+use super::validators::{self, EntityValidator, RejectionCounts, apply_validators};
 
 #[cfg(feature = "redaction-rehydrate")]
 use super::rehydration::RehydrationMap;
 
+/// Outcome of [`redact_capturing_rehydration_map`]: the token → original-text
+/// rehydration map plus a count of PII candidates the post-detection
+/// validators rejected (e.g. failed-checksum IBANs, failed-Luhn card
+/// numbers), keyed by rejection reason.
+///
+/// `rejection_counts` here is the same audit-only count also written to
+/// `result.redaction_report.rejection_counts` — repeated here as a
+/// Rust-native `RejectionCounts` map so callers of this richer API don't have
+/// to reconstruct it from the FFI-friendly `Vec<RejectionCount>` shape used
+/// on [`crate::types::redaction::RedactionReport`]. Rejected candidates never
+/// appear in `map` or in `findings` — validators ran before either was
+/// populated, so they were never treated as PII in the first place.
+#[cfg(feature = "redaction-rehydrate")]
+#[derive(Debug, Clone, Default)]
+pub struct TextRedactionOutcome {
+    /// Token → original PII text, populated for `TokenReplace` strategy hits.
+    pub map: RehydrationMap,
+    /// Post-detection validator rejection counts, keyed by reason.
+    pub rejection_counts: RejectionCounts,
+}
+
 /// Run pattern redaction (and optional NER-driven redaction) over `result` and
-/// rewrite every textual field. Populates `result.redaction_report`.
+/// rewrite every textual field. Populates `result.redaction_report`, whose
+/// `rejection_counts` field surfaces what the post-detection validators (see
+/// [`super::validators`]) dropped from the main content. The same counts are
+/// also logged at `DEBUG` under the `xberg::redaction` target.
+///
+/// `redact` implements [`crate::plugins::PostProcessor::process`], whose
+/// signature is `Result<()>` and shared by every post-processor, so it cannot
+/// return the counts directly — callers that need them as a typed value
+/// (rather than reading `result.redaction_report` afterwards) should use
+/// [`redact_capturing_rehydration_map`], whose richer [`TextRedactionOutcome`]
+/// return type carries them.
 pub async fn redact(result: &mut ExtractedDocument, config: &RedactionConfig) -> Result<()> {
-    redact_inner(
+    let rejection_counts = redact_inner(
         result,
         config,
         #[cfg(feature = "redaction-rehydrate")]
         None,
     )
-    .await
+    .await?;
+    if !rejection_counts.is_empty() {
+        tracing::debug!(
+            target: "xberg::redaction",
+            rejections = ?rejection_counts,
+            "post-detection validators rejected candidate PII matches"
+        );
+    }
+    Ok(())
 }
 
 /// Run redaction and capture the token → original text map for later rehydration.
 ///
-/// Returns a [`RehydrationMap`] mapping each replacement token (e.g. `[EMAIL_1]`)
-/// to the original PII text it replaced. Only populated for `TokenReplace` strategy
-/// tokens; `Mask` and `Hash` replacements are not reversible and are not included.
+/// Returns a [`TextRedactionOutcome`] whose `map` field maps each replacement
+/// token (e.g. `[EMAIL_1]`) to the original PII text it replaced — only
+/// populated for `TokenReplace` strategy tokens; `Mask` and `Hash`
+/// replacements are not reversible and are not included — and whose
+/// `rejection_counts` field surfaces what the post-detection validators
+/// dropped.
 #[cfg(feature = "redaction-rehydrate")]
 pub async fn redact_capturing_rehydration_map(
     result: &mut ExtractedDocument,
     config: &RedactionConfig,
-) -> Result<RehydrationMap> {
+) -> Result<TextRedactionOutcome> {
     let mut map = RehydrationMap::new();
-    redact_inner(result, config, Some(&mut map)).await?;
-    Ok(map)
+    let rejection_counts = redact_inner(result, config, Some(&mut map)).await?;
+    Ok(TextRedactionOutcome { map, rejection_counts })
 }
 
 // When redaction is off, redact_inner takes no rehydration_map arg.
 // The cfg-gated parameter approach is used above; this comment documents intent.
 
 /// Core redaction implementation shared by [`redact`] and [`redact_capturing_rehydration_map`].
+///
+/// Returns the [`RejectionCounts`] accumulated while validating the main
+/// `result.content` match set (see step 4b below). Secondary text fields
+/// (formatted content, chunks, entity/summary/translation/label text) run
+/// the same validators for correctness — so validator-rejected candidates
+/// are not redacted anywhere in the document — but their individual
+/// rejection counts are not merged into the returned total, since they are
+/// re-derivations of the same source text and would otherwise inflate the
+/// audit counters with duplicates of the same underlying rejection.
 async fn redact_inner(
     result: &mut ExtractedDocument,
     config: &RedactionConfig,
     #[cfg(feature = "redaction-rehydrate")] mut rehydration_map: Option<&mut RehydrationMap>,
-) -> Result<()> {
+) -> Result<RejectionCounts> {
     // Validate user-supplied terms/patterns up front so the engine never tries to
     // compile a malformed regex mid-pipeline.
     config.validate()?;
@@ -87,6 +139,12 @@ async fn redact_inner(
     // 4. Resolve overlaps: prefer earlier match; if equal start, prefer longer span.
     let matches = dedupe_overlaps(matches);
 
+    // 4b. Post-detection validators: deterministic checks that need no
+    // regex-adjacent context (checksum-style) run once per surviving match,
+    // after dedup, instead of inline during the regex scan.
+    let default_validators = default_validators();
+    let (matches, rejection_counts) = apply_validators(matches, &result.content, &default_validators);
+
     // Build findings before rewriting (so offsets refer to the original content).
     let mut counter = TokenCounter::new();
     let mut findings: Vec<RedactionFinding> = Vec::with_capacity(matches.len());
@@ -115,7 +173,8 @@ async fn redact_inner(
     //    formatted_content uses different offsets from `content`, so we rescan it
     //    rather than reuse `matches`.
     if let Some(formatted) = result.formatted_content.as_ref() {
-        let formatted_matches = build_matches_for(formatted, &categories_vec, config, &custom_regexes);
+        let formatted_matches =
+            build_matches_for(formatted, &categories_vec, config, &custom_regexes, &default_validators);
         let formatted_findings: Vec<RedactionFinding> = formatted_matches
             .iter()
             .map(|m| {
@@ -140,7 +199,13 @@ async fn redact_inner(
     // 7. Rewrite each chunk.
     if let Some(chunks) = result.chunks.as_mut() {
         for chunk in chunks.iter_mut() {
-            let chunk_matches = build_matches_for(&chunk.content, &categories_vec, config, &custom_regexes);
+            let chunk_matches = build_matches_for(
+                &chunk.content,
+                &categories_vec,
+                config,
+                &custom_regexes,
+                &default_validators,
+            );
             if chunk_matches.is_empty() {
                 continue;
             }
@@ -180,13 +245,27 @@ async fn redact_inner(
     // 8. Rewrite NER entity text (if any).
     if let Some(entities) = result.entities.as_mut() {
         for entity in entities.iter_mut() {
-            entity.text = redact_string(&entity.text, &categories_vec, config, &custom_regexes, &mut counter);
+            entity.text = redact_string(
+                &entity.text,
+                &categories_vec,
+                config,
+                &custom_regexes,
+                &mut counter,
+                &default_validators,
+            );
         }
     }
 
     // 9. Rewrite summary text.
     if let Some(summary) = result.summary.as_mut() {
-        summary.text = redact_string(&summary.text, &categories_vec, config, &custom_regexes, &mut counter);
+        summary.text = redact_string(
+            &summary.text,
+            &categories_vec,
+            config,
+            &custom_regexes,
+            &mut counter,
+            &default_validators,
+        );
     }
 
     // 10. Rewrite translation body + formatted markup.
@@ -197,9 +276,17 @@ async fn redact_inner(
             config,
             &custom_regexes,
             &mut counter,
+            &default_validators,
         );
         if let Some(formatted) = translation.formatted_content.as_mut() {
-            *formatted = redact_string(formatted, &categories_vec, config, &custom_regexes, &mut counter);
+            *formatted = redact_string(
+                formatted,
+                &categories_vec,
+                config,
+                &custom_regexes,
+                &mut counter,
+                &default_validators,
+            );
         }
     }
 
@@ -208,22 +295,50 @@ async fn redact_inner(
     if let Some(pages) = result.page_classifications.as_mut() {
         for page in pages.iter_mut() {
             for label in page.labels.iter_mut() {
-                label.label = redact_string(&label.label, &categories_vec, config, &custom_regexes, &mut counter);
+                label.label = redact_string(
+                    &label.label,
+                    &categories_vec,
+                    config,
+                    &custom_regexes,
+                    &mut counter,
+                    &default_validators,
+                );
             }
         }
     }
 
     // 12. Populate redaction_report.
     let total = findings.len() as u32;
+    let report_rejection_counts: Vec<RejectionCount> = rejection_counts
+        .iter()
+        .map(|(&reason, &count)| RejectionCount {
+            reason: reason.to_string(),
+            count: count as u32,
+        })
+        .collect();
     result.redaction_report = Some(RedactionReport {
         findings,
         total_redacted: total,
+        rejection_counts: report_rejection_counts,
     });
 
     // Drop the original_content explicitly so the compiler can't keep it alive.
     drop(original_content);
 
-    Ok(())
+    Ok(rejection_counts)
+}
+
+/// Default post-detection validators, applied after every match set (main
+/// content, formatted content, chunks, and other rewritten text fields) is
+/// deduplicated. Centralised so every field runs the exact same
+/// checksum/Luhn checks that used to live inline in `find_all` — otherwise
+/// secondary fields would lose that validation and redact false positives
+/// that the main content correctly leaves untouched.
+fn default_validators() -> Vec<Box<dyn EntityValidator>> {
+    vec![
+        Box::new(validators::iban::IbanChecksumValidator),
+        Box::new(validators::luhn::LuhnValidator),
+    ]
 }
 
 /// Compute the set of categories the engine will consider during this run.
@@ -256,16 +371,23 @@ fn active_categories(config: &RedactionConfig) -> HashSet<PiiCategory> {
 /// (NER backends operate on the main `content`; secondary fields are
 /// regex-only by design — re-running NER per field would be expensive and
 /// the source field text is generally derived from the main content.)
+///
+/// Runs `validators` after dedup, same as the main content path — the
+/// per-field rejection counts are intentionally discarded (see
+/// [`redact_inner`]'s doc comment); only the filtered match set is kept.
 fn build_matches_for(
     text: &str,
     categories: &[PiiCategory],
     config: &RedactionConfig,
     custom_regexes: &[(String, regex::Regex)],
+    validators: &[Box<dyn EntityValidator>],
 ) -> Vec<PatternMatch> {
     let mut matches = scan_text(text, categories);
     matches.extend(scan_custom(text, custom_regexes));
     apply_category_and_preserve_filters(&mut matches, config);
-    dedupe_overlaps(matches)
+    let matches = dedupe_overlaps(matches);
+    let (matches, _rejection_counts) = apply_validators(matches, text, validators);
+    matches
 }
 
 /// Apply the category allowlist (if any categories were configured) and the
@@ -390,8 +512,9 @@ fn redact_string(
     config: &RedactionConfig,
     custom_regexes: &[(String, regex::Regex)],
     counter: &mut TokenCounter,
+    validators: &[Box<dyn EntityValidator>],
 ) -> String {
-    let matches = build_matches_for(text, categories, config, custom_regexes);
+    let matches = build_matches_for(text, categories, config, custom_regexes, validators);
     if matches.is_empty() {
         return text.to_string();
     }

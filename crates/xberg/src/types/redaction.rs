@@ -26,6 +26,26 @@ pub struct RedactionReport {
     pub findings: Vec<RedactionFinding>,
     /// Total number of redactions applied across the document.
     pub total_redacted: u32,
+    /// Post-detection validator rejection counts for the main document
+    /// content (e.g. a failed-checksum IBAN or a failed-Luhn card number),
+    /// keyed by reason. Audit-only: rejected candidates never appear in
+    /// `findings` — the validator determined they were never PII in the
+    /// first place, so nothing was redacted for them.
+    #[serde(default)]
+    pub rejection_counts: Vec<RejectionCount>,
+}
+
+/// One rejection-reason tally emitted by the redaction engine's
+/// post-detection validators (see
+/// [`crate::text::redaction::validators::EntityValidator`]).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
+pub struct RejectionCount {
+    /// Static reason identifier reported by the validator (e.g.
+    /// `"iban_checksum_failed"`). Never contains the underlying PII text.
+    pub reason: String,
+    /// Number of candidates rejected for this reason.
+    pub count: u32,
 }
 
 /// One redaction event: which span was rewritten, why, and with what.

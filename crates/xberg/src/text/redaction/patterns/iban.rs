@@ -2,8 +2,10 @@
 //!
 //! Format: two-letter ISO 3166-1 country code + two check digits + up to 30
 //! alphanumeric BBAN characters. The regex matches IBANs with optional space
-//! separators every four characters (the common pretty-print form). Matches
-//! are further validated against the ISO 13616 mod-97 checksum.
+//! separators every four characters (the common pretty-print form). Surviving
+//! matches are further validated against the ISO 13616 mod-97 checksum by
+//! [`crate::text::redaction::validators::iban::IbanChecksumValidator`],
+//! post-aggregation.
 
 use super::PatternMatch;
 use crate::types::redaction::PiiCategory;
@@ -32,8 +34,10 @@ static RE_IBAN: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"\b[A-Z]{2}\d{2}(?:[ ]?[A-Z0-9]{4}){2,7}(?:[ ]?[A-Z0-9]{1,3})?\b").expect("iban regex compiles")
 });
 
-/// Find all IBAN spans in `text`, validated against the country-code allowlist,
-/// length range, and the ISO 13616 mod-97 checksum.
+/// Find all IBAN spans in `text`, validated against the country-code allowlist
+/// and length range. The ISO 13616 mod-97 checksum runs later, post-aggregation,
+/// via [`crate::text::redaction::validators::iban::IbanChecksumValidator`] — it
+/// needs no regex-adjacent context, so it is not duplicated here.
 pub fn find_all(text: &str) -> Vec<PatternMatch> {
     let upper = text.to_ascii_uppercase();
 
@@ -50,9 +54,6 @@ pub fn find_all(text: &str) -> Vec<PatternMatch> {
             if !(15..=34).contains(&compact.len()) {
                 return None;
             }
-            if !iban_checksum_valid(&compact) {
-                return None;
-            }
             Some(PatternMatch {
                 start: m.start(),
                 end: m.end(),
@@ -63,49 +64,20 @@ pub fn find_all(text: &str) -> Vec<PatternMatch> {
         .collect()
 }
 
-/// ISO 13616 IBAN checksum: move the first 4 characters to the end, convert
-/// letters to numbers (A=10, B=11, ... Z=35), and verify the resulting
-/// number mod 97 equals 1. Rejects the ~1-in-100 non-checksum-valid strings
-/// that the country-code + length filter alone lets through.
-fn iban_checksum_valid(compact: &str) -> bool {
-    if compact.len() < 4 {
-        return false;
-    }
-    let rearranged = format!("{}{}", &compact[4..], &compact[..4]);
-    let mut remainder: u64 = 0;
-    for c in rearranged.chars() {
-        let value = if c.is_ascii_digit() {
-            c.to_digit(10).unwrap_or(0) as u64
-        } else if c.is_ascii_uppercase() {
-            (c as u64) - ('A' as u64) + 10
-        } else {
-            return false;
-        };
-        // Fold digit-by-digit (or two-digit for letters) to avoid overflow
-        // on IBANs up to 34 chars (~68 decimal digits after expansion).
-        let digits = if value >= 10 { 2 } else { 1 };
-        remainder = (remainder * 10u64.pow(digits) + value) % 97;
-    }
-    remainder == 1
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn checksum_valid_iban_is_detected() {
+    fn shape_valid_iban_is_detected() {
+        // Checksum validity is not checked here — that is now
+        // `validators::iban::IbanChecksumValidator`'s job, applied
+        // post-aggregation. This only exercises country-code + length shape
+        // filtering.
         let matches = find_all("IBAN: FR7630006000011234567890189 for transfer.");
         assert_eq!(matches.len(), 1);
         assert_eq!(matches[0].category, PiiCategory::Iban);
         assert_eq!(matches[0].text, "FR7630006000011234567890189");
-    }
-
-    #[test]
-    fn checksum_invalid_iban_is_rejected() {
-        // Same IBAN as above with the last BBAN digit flipped (9 -> 8).
-        let matches = find_all("IBAN: FR7630006000011234567890188 for transfer.");
-        assert!(matches.is_empty());
     }
 
     #[test]
