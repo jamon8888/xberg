@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createServer, type Server } from "node:http";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { connect } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolveSafePath, serveStaticFile } from "../src/http/static-server.js";
@@ -55,5 +56,25 @@ describe("http/static-server", () => {
   it("resolveSafePath rejects a traversal attempt above the root", () => {
     expect(resolveSafePath(dir, "/../../../etc/passwd")).toBeNull();
     expect(resolveSafePath(dir, "/..%2f..%2f..%2fetc%2fpasswd")).toBeNull();
+  });
+
+  it("returns 403 for a traversal attempt over the wire", async () => {
+    const url = new URL(baseUrl);
+    const status = await new Promise<number>((resolve, reject) => {
+      const socket = connect(Number(url.port), url.hostname, () => {
+        // Send a literal request line; fetch/http clients normalize ".." away.
+        socket.write("GET /../../../../etc/passwd HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+      });
+      let buffer = "";
+      socket.on("data", (chunk) => {
+        buffer += chunk.toString();
+      });
+      socket.on("end", () => {
+        const match = buffer.match(/^HTTP\/1\.1 (\d+)/);
+        resolve(match ? Number(match[1]) : 0);
+      });
+      socket.on("error", reject);
+    });
+    expect(status).toBe(403);
   });
 });
