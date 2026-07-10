@@ -97,6 +97,14 @@ describe("http/ingest-route", () => {
     });
   });
 
+  it("rejects a non-JSON body with 400", async () => {
+    const store = makeFakeStore();
+    await withServer(store, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}/ingest`, { method: "POST", body: "not json {" });
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("maps a dimension-mismatch store error to 400", async () => {
     const store = makeFakeStore({
       upsertDocument: async () => {
