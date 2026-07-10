@@ -210,13 +210,16 @@ export interface Entity {
   score?: number;
 }
 
-export interface NerOpts {
-  categories?: string[];
-  threshold?: number;
-}
-
 export interface NerInterface {
-  ner(text: string, opts?: NerOpts): Promise<Entity[]>;
+  /**
+   * `categories` is a plain positional array (not an options object) because
+   * this must match `crates/xberg-wasm/src/bridge/ner.rs`'s
+   * `call_injected_ner`, which calls `ner(text, categories)` positionally —
+   * the Rust bridge is the fixed contract this signature exists to satisfy.
+   * `threshold` is accepted for callers that filter client-side; the Rust
+   * bridge itself never passes it.
+   */
+  ner(text: string, categories?: string[], threshold?: number): Promise<Entity[]>;
 }
 
 export interface OcrOpts {
