@@ -362,3 +362,12 @@
 # Bench capturé (commit 33ffd0b): extract 0.21ms / ingest 14.64ms / query 3.09ms (médianes warmed).
 # Commits session 2 = 11 (9 tâches + ledger + bench-numbers). Total depuis 4bcb885 = 21.
 # Branche prête. PR non ouverte (décision user).
+
+# ==========================================================================
+# PII Quick Wins + Medium Lift Plan — SDD Progress
+# Plan: docs/superpowers/plans/2026-07-10-pii-quick-wins-and-medium-lift.md
+# Worktree: .claude/worktrees/pii-quick-wins-medium-lift
+# Branch: worktree-pii-quick-wins-medium-lift (from origin/main @ 97a7d2cd34)
+# Started: 2026-07-10
+# ==========================================================================
+Task 1: complete (commits 9556fbc815..7fb3f21b68, review clean — spec PASS, quality PASS). Implementer also found+fixed a pre-existing IBAN regex over-matching bug (bled into trailing all-caps words) with its own regression test; reviewer confirmed it's a real adjacent bug, correctly in-scope, but noted (non-blocking WARNING) it should have been a separate commit from the checksum feature per atomic-commits convention. Not fixed — cosmetic history-hygiene only, no functional issue.
