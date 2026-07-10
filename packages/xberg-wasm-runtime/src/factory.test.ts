@@ -97,13 +97,18 @@ describe("factory", () => {
 	}, 120_000);
 
 	it("applies cache config when provided", async () => {
+		// Unlike the other tests here, this points nodeCachePath at a fresh
+		// tmpdir specifically to verify the config value is honored — so it
+		// always forces a cold download of the default model (Xenova/bge-m3,
+		// ~500-600MB) rather than hitting the transformers.js-managed cache
+		// the other tests share. Needs a longer timeout than a warm-cache run.
 		const injection = await createXbergRuntimeFactory({
 			nodeCachePath: join(tmpdir(), "xberg-test-cache"),
 			wasmPaths: "/custom/wasm",
 		});
 		expect(injection.embedder).toBeDefined();
 		expect(injection.store).toBeDefined();
-	}, 120_000);
+	}, 300_000);
 
 	it("throws when embedder initialization fails", async () => {
 		// Mock createEmbedder to throw an error
