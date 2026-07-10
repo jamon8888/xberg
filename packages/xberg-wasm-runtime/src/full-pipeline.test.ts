@@ -85,9 +85,9 @@ describe("full pipeline (real embedder + NER + OCR + SQLite store)", () => {
 		expect(out.chunks[0]?.primary_score.kind).toBe("vector");
 	}, 120_000);
 
-	it("extracts text from a real rendered image via OCR, then embeds/stores/retrieves it", async () => {
+	it("extracts text from a real rendered image via OCR, then embeds/stores/retrieves it", async (testCtx) => {
 		if (!ocr) {
-			console.log("[skip] OCR not enabled in this environment");
+			testCtx.skip();
 			return;
 		}
 

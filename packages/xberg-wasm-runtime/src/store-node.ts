@@ -3,7 +3,7 @@ import * as sqliteVec from "sqlite-vec";
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { SCHEMA_SQL, createVecTableSql, vecTableName, sanitizeTableName } from "./store-schema.js";
+import { SCHEMA_SQL, SCHEMA_VERSION, createVecTableSql, vecTableName, sanitizeTableName } from "./store-schema.js";
 import { evalFilter } from "./filter-eval.js";
 import type {
 	VectorStoreInterface,
@@ -108,7 +108,14 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<NodeV
 	try {
 		sqliteVec.load(db);
 		db.pragma("journal_mode = WAL");
-		db.exec(SCHEMA_SQL);
+		// Versioned migration: only (re)apply the schema when the persisted
+		// database is on an older layout, then record the current version.
+		// `SCHEMA_SQL` uses `IF NOT EXISTS`, so re-applying is idempotent and
+		// never drops existing data.
+		if (Number(db.pragma("user_version")) < SCHEMA_VERSION) {
+			db.exec(SCHEMA_SQL);
+			db.pragma(`user_version = ${SCHEMA_VERSION}`);
+		}
 	} catch (error) {
 		db.close();
 		throw error;

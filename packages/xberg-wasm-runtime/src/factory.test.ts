@@ -5,6 +5,7 @@ import * as embedderModule from "./embedder";
 import * as storeModule from "./store";
 import * as nerModule from "./ner";
 import * as ocrModule from "./ocr";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -97,17 +98,28 @@ describe("factory", () => {
 	}, 120_000);
 
 	it("applies cache config when provided", async () => {
-		// Unlike the other tests here, this points nodeCachePath at a fresh
-		// tmpdir specifically to verify the config value is honored — so it
-		// always forces a cold download of the default model (Xenova/bge-m3,
+		// Unlike the other tests here, this points nodeCachePath at a fresh,
+		// unique tmpdir specifically to verify the config value is honored — so
+		// it always forces a cold download of the default model (Xenova/bge-m3,
 		// ~500-600MB) rather than hitting the transformers.js-managed cache
-		// the other tests share. Needs a longer timeout than a warm-cache run.
+		// the other tests share. Use a unique directory (not a shared
+		// "xberg-test-cache") so concurrent runs don't collide, and clean it up
+		// afterwards.
+		const cacheDir = mkdtempSync(join(tmpdir(), "xberg-test-cache-"));
 		const injection = await createXbergRuntimeFactory({
-			nodeCachePath: join(tmpdir(), "xberg-test-cache"),
+			nodeCachePath: cacheDir,
 			wasmPaths: "/custom/wasm",
 		});
-		expect(injection.embedder).toBeDefined();
-		expect(injection.store).toBeDefined();
+		try {
+			expect(injection.embedder).toBeDefined();
+			expect(injection.store).toBeDefined();
+			// The configured cache path must be honored: the store should have
+			// been created under it.
+			expect(existsSync(join(cacheDir, "store.sqlite3"))).toBe(true);
+		} finally {
+			await injection.store.close();
+			rmSync(cacheDir, { recursive: true, force: true });
+		}
 	}, 300_000);
 
 	it("throws when embedder initialization fails", async () => {

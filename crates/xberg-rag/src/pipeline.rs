@@ -213,10 +213,11 @@ async fn redact_request(
     let mut rehydration_map = outcome.rehydration_map;
     let mut category_counts = outcome.category_counts;
 
-    // title/source_uri/external_id are single narrative strings — exactly the
-    // shape a person's name (NER, not regex-detectable) is likely to appear
-    // in (e.g. a filename-derived title "Report for Alice Smith"). Route them
-    // through the same NER+regex path as full_text, sharing the one counter.
+    // title/source_uri are single narrative strings — exactly the shape a
+    // person's name (NER, not regex-detectable) is likely to appear in (e.g. a
+    // filename-derived title "Report for Alice Smith"). Route them through the
+    // same NER+regex path as full_text, sharing the one counter. `external_id`
+    // is preserved unchanged below as the caller-supplied idempotency key.
     let title = match request.title {
         Some(s) => Some(
             redact_secondary_string(
@@ -245,20 +246,14 @@ async fn redact_request(
         ),
         None => None,
     };
-    let external_id = match request.external_id {
-        Some(s) => Some(
-            redact_secondary_string(
-                &s,
-                RedactionStrategy::TokenReplace,
-                ner,
-                &mut counter,
-                &mut rehydration_map,
-                &mut category_counts,
-            )
-            .await?,
-        ),
-        None => None,
-    };
+    // `external_id` is the caller-supplied idempotency key for upserts. Routing
+    // it through `redact_secondary_string` would replace PII with an
+    // order-dependent token (e.g. `[EMAIL_1]`) that a re-ingest of the *same*
+    // id would not reproduce, silently breaking idempotency. Preserve it
+    // unchanged — it is an opaque key, not narrative text, and callers must
+    // supply a non-PII id. (Rejecting PII-bearing ids is handled at the
+    // ingestion boundary if stricter guarantees are required.)
+    let external_id = request.external_id;
 
     // keywords/entities/labels/metadata are structured (a list of short terms,
     // or arbitrary caller-supplied JSON) rather than narrative text — running
@@ -269,18 +264,21 @@ async fn redact_request(
     // here too.
     let mut keywords = Vec::new();
     for kw in request.keywords {
-        let redacted = redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(kw);
+        // Fail closed: a redaction error must not persist the raw keyword.
+        let redacted = redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts)?;
         keywords.push(redacted);
     }
 
+    // Fail closed: propagate any redaction error instead of falling back to the
+    // unredacted value, which could silently persist PII into structured fields.
     let mut entities = request.entities;
-    redact_json_value(&mut entities, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
+    redact_json_value(&mut entities, &mut counter, &mut rehydration_map, &mut category_counts)?;
 
     let mut labels = request.labels;
-    redact_json_value(&mut labels, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
+    redact_json_value(&mut labels, &mut counter, &mut rehydration_map, &mut category_counts)?;
 
     let mut metadata = request.metadata;
-    redact_json_value(&mut metadata, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
+    redact_json_value(&mut metadata, &mut counter, &mut rehydration_map, &mut category_counts)?;
 
     let redacted_request = IngestRequest {
         full_text: outcome.redacted_text, // reuse the already-redacted text

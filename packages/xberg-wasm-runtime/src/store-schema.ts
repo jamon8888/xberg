@@ -28,6 +28,15 @@ export function createVecTableSql(collection: string, vectorDim: number): string
 // pre-wire-alignment DocumentRecord/ChunkRecord shape. JSON-typed columns
 // (keywords/entities/labels/metadata/chunk_metadata) store `JSON.stringify`d
 // values and are parsed back out on read.
+/**
+ * Current persisted-schema version. Bump this and add a branch in the store
+ * init paths (store-node.ts / store-worker.ts) when the SQL layout changes, so
+ * existing databases are migrated in place instead of being left on a stale
+ * layout that newer queries (e.g. `embedding_dim`, `full_text`, `content`)
+ * would fail against.
+ */
+export const SCHEMA_VERSION = 1;
+
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS collections (
   name TEXT PRIMARY KEY,

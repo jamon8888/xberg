@@ -1,4 +1,4 @@
-import { SCHEMA_SQL, createVecTableSql, sanitizeTableName, vecTableName } from "./store-schema.js";
+import { SCHEMA_SQL, SCHEMA_VERSION, createVecTableSql, sanitizeTableName, vecTableName } from "./store-schema.js";
 import { evalFilter } from "./filter-eval.js";
 import type {
 	CollectionSpec,
@@ -169,7 +169,15 @@ async function initialize(dbPath: string): Promise<void> {
 		});
 	}
 	try {
-		database.exec(SCHEMA_SQL);
+		// Versioned migration: only (re)apply the schema when the persisted
+		// database is on an older layout, then record the current version.
+		// `SCHEMA_SQL` uses `IF NOT EXISTS`, so re-applying is idempotent and
+		// never drops existing data.
+		const version = Number(database.selectValue("PRAGMA user_version") ?? 0);
+		if (version < SCHEMA_VERSION) {
+			database.exec(SCHEMA_SQL);
+			database.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+		}
 	} catch (error) {
 		database.close();
 		database = undefined;

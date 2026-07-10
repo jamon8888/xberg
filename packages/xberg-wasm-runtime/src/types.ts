@@ -202,6 +202,8 @@ export interface RetrieveOutput {
  * (the bridge propagates thrown/rejected promises as backend errors).
  */
 export interface VectorStoreInterface {
+  /** Release any native/worker resources held by the store. Safe to call more than once. */
+  close(): Promise<void>;
   /** Returns undefined on success, or an error message string on failure. */
   ensureCollection(spec: CollectionSpec): Promise<string | void>;
   /** Returns undefined on success, or an error message string on failure. */

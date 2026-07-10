@@ -8,6 +8,7 @@ export const embedderSchema = z.object({
 });
 
 export const vectorStoreSchema = z.object({
+	close: asyncFunctionSchema,
 	ensureCollection: asyncFunctionSchema,
 	dropCollection: asyncFunctionSchema,
 	getCollection: asyncFunctionSchema,
