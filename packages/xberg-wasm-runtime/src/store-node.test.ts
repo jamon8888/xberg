@@ -197,4 +197,23 @@ describe("node vector store (better-sqlite3 + sqlite-vec)", () => {
 		expect(out.chunks).toHaveLength(1);
 		expect(out.chunks[0]?.content).toBe("gold chunk");
 	});
+
+	it("creates a graph edge and traverses it via recursive CTE", async () => {
+		await store.createEdge({ id: "e1", source: "a", target: "b", label: "relates_to" });
+		await store.createEdge({ id: "e2", source: "b", target: "c", label: "relates_to" });
+		await store.createEdge({ id: "e3", source: "a", target: "z", label: "unrelated" });
+		const reached = await store.traverseGraph(["a"], 2, ["relates_to"]);
+		expect(reached).toContain("a");
+		expect(reached).toContain("b");
+		expect(reached).toContain("c");
+		expect(reached).not.toContain("z");
+	});
+
+	it("traverseGraph respects depth limit", async () => {
+		await store.createEdge({ id: "e1", source: "a", target: "b" });
+		await store.createEdge({ id: "e2", source: "b", target: "c" });
+		const reached = await store.traverseGraph(["a"], 1);
+		expect(reached).toContain("b");
+		expect(reached).not.toContain("c");
+	});
 });

@@ -8,6 +8,7 @@ import type {
 	ChunkRecord,
 	DocumentSummary,
 	Filter,
+	GraphEdge,
 	RetrieveQuery,
 	RetrieveOutput,
 	RetrievedChunk,
@@ -23,7 +24,9 @@ export type StoreWorkerRequest =
 	| { op: "deleteDocuments"; collection: string; ids: string[]; id: number }
 	| { op: "deleteByFilter"; collection: string; filter: Filter; id: number }
 	| { op: "retrieve"; collection: string; query: RetrieveQuery; id: number }
-	| { op: "collectionStats"; collection: string; id: number };
+	| { op: "collectionStats"; collection: string; id: number }
+	| { op: "createEdge"; edge: GraphEdge; id: number }
+	| { op: "traverseGraph"; startIds: string[]; depth: number; edgeLabels?: string[]; id: number };
 
 export interface StoreWorkerResponse {
 	id: number;
@@ -563,6 +566,39 @@ function collectionStats(collection: string): CollectionStats {
 	};
 }
 
+function createEdge(edge: GraphEdge): void {
+	requireDatabase().exec({
+		sql: "INSERT OR REPLACE INTO graph_edges (id, source, target, label, properties) VALUES (?, ?, ?, ?, ?)",
+		bind: [
+			edge.id,
+			edge.source,
+			edge.target,
+			edge.label ?? null,
+			edge.properties ? JSON.stringify(edge.properties) : null,
+		],
+	});
+}
+
+function traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): string[] {
+	if (startIds.length === 0) return [];
+	if (!Number.isInteger(depth) || depth < 0) throw new Error("depth must be a non-negative integer");
+	const labels = edgeLabels ?? [];
+	const labelFilter = labels.length ? `AND e.label IN (${labels.map(() => "?").join(",")})` : "";
+	const result = rows<{ node_id: string }>(
+		requireDatabase(),
+		`
+    WITH RECURSIVE traversal(node_id, depth) AS (
+      SELECT value, 0 FROM json_each(?)
+      UNION
+      SELECT e.target, traversal.depth + 1 FROM traversal
+      JOIN graph_edges e ON e.source = traversal.node_id
+      WHERE traversal.depth < ? ${labelFilter}
+    ) SELECT DISTINCT node_id FROM traversal`,
+		[JSON.stringify(startIds), depth, ...labels],
+	);
+	return result.map(({ node_id }) => node_id);
+}
+
 async function dispatch(request: StoreWorkerRequest): Promise<unknown> {
 	switch (request.op) {
 		case "init":
@@ -585,6 +621,10 @@ async function dispatch(request: StoreWorkerRequest): Promise<unknown> {
 			return retrieve(request.collection, request.query);
 		case "collectionStats":
 			return collectionStats(request.collection);
+		case "createEdge":
+			return createEdge(request.edge);
+		case "traverseGraph":
+			return traverseGraph(request.startIds, request.depth, request.edgeLabels);
 	}
 }
 

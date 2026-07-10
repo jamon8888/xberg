@@ -14,6 +14,7 @@ import type {
 	ChunkRecord,
 	DocumentSummary,
 	Filter,
+	GraphEdge,
 	RetrieveQuery,
 	RetrieveOutput,
 	RetrievedChunk,
@@ -22,13 +23,21 @@ import type {
 
 /**
  * `VectorStoreInterface` (the canonical, factory-validated contract) has no
- * `close()` — the in-memory reference backend has no state to release, and
+ * `close()`, `createEdge`, or `traverseGraph` — the in-memory reference
+ * backend has no state to release and no graph capability, and
  * `validateInjectionDescriptor`'s zod schema strips unknown keys, so adding
- * `close` there would be silently dropped anyway. This SQLite-backed store
- * genuinely owns a native handle, so callers that construct it directly
- * (tests, lifecycle-aware hosts) get an extra `close()` for cleanup.
+ * them there would be silently dropped anyway. This SQLite-backed store
+ * genuinely owns a native handle and mirrors
+ * `crates/xberg-rag/src/backends/graphqlite.rs`'s `_graph_edges` table
+ * alongside vectors (see `docs/superpowers/plans/2026-07-07-xberg-wasm-sqlite-vec-store-and-perf.md`),
+ * so callers that construct it directly (tests, lifecycle-aware hosts) get
+ * these as extras.
  */
-export type NodeVectorStore = VectorStoreInterface & { close(): Promise<void> };
+export type NodeVectorStore = VectorStoreInterface & {
+	close(): Promise<void>;
+	createEdge(edge: GraphEdge): Promise<void>;
+	traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): Promise<string[]>;
+};
 
 const HYBRID_CANDIDATE_MULTIPLIER = 4;
 
@@ -463,6 +472,36 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<NodeV
 		};
 	}
 
+	async function createEdge(edge: GraphEdge): Promise<void> {
+		db.prepare(
+			`INSERT OR REPLACE INTO graph_edges (id, source, target, label, properties) VALUES (?, ?, ?, ?, ?)`,
+		).run(
+			edge.id,
+			edge.source,
+			edge.target,
+			edge.label ?? null,
+			edge.properties ? JSON.stringify(edge.properties) : null,
+		);
+	}
+
+	async function traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): Promise<string[]> {
+		if (startIds.length === 0) return [];
+		if (!Number.isInteger(depth) || depth < 0) throw new Error("depth must be a non-negative integer");
+		const labels = edgeLabels ?? [];
+		const labelFilter = labels.length ? `AND e.label IN (${labels.map(() => "?").join(",")})` : "";
+		const sql = `
+      WITH RECURSIVE traversal(node_id, depth) AS (
+        SELECT value, 0 FROM json_each(?)
+        UNION
+        SELECT e.target, traversal.depth + 1
+        FROM traversal JOIN graph_edges e ON e.source = traversal.node_id
+        WHERE traversal.depth < ? ${labelFilter}
+      )
+      SELECT DISTINCT node_id FROM traversal`;
+		const params: unknown[] = [JSON.stringify(startIds), depth, ...labels];
+		return (db.prepare(sql).all(...params) as Array<{ node_id: string }>).map((r) => r.node_id);
+	}
+
 	let closed = false;
 
 	return {
@@ -480,5 +519,7 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<NodeV
 		deleteByFilter,
 		retrieve,
 		collectionStats,
+		createEdge,
+		traverseGraph,
 	};
 }

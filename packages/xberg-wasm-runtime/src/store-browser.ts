@@ -5,6 +5,7 @@ import type {
 	DocumentRecord,
 	ChunkRecord,
 	Filter,
+	GraphEdge,
 	RetrieveQuery,
 	RetrieveOutput,
 	CacheConfig,
@@ -12,7 +13,11 @@ import type {
 import type { StoreWorkerResponse, StoreWorkerRequestBase } from "./store-worker.js";
 
 /** See `NodeVectorStore` in store-node.ts — same rationale applies here. */
-export type BrowserVectorStore = VectorStoreInterface & { close(): Promise<void> };
+export type BrowserVectorStore = VectorStoreInterface & {
+	close(): Promise<void>;
+	createEdge(edge: GraphEdge): Promise<void>;
+	traverseGraph(startIds: string[], depth: number, edgeLabels?: string[]): Promise<string[]>;
+};
 
 export async function createBrowserVectorStore(config?: CacheConfig): Promise<BrowserVectorStore> {
 	const worker = new Worker(new URL("./store-worker.ts", import.meta.url), { type: "module" });
@@ -95,5 +100,8 @@ export async function createBrowserVectorStore(config?: CacheConfig): Promise<Br
 		retrieve: (collection: string, query: RetrieveQuery) =>
 			call<RetrieveOutput>({ op: "retrieve", collection, query }),
 		collectionStats: (collection: string) => call<CollectionStats>({ op: "collectionStats", collection }),
+		createEdge: (edge: GraphEdge) => call<void>({ op: "createEdge", edge }),
+		traverseGraph: (startIds: string[], depth: number, edgeLabels?: string[]) =>
+			call<string[]>({ op: "traverseGraph", startIds, depth, edgeLabels }),
 	};
 }

@@ -23,12 +23,16 @@ describe("store-schema", () => {
 	it.each([0, -1, 1.5, Number.NaN, 65_537])("rejects unsafe vector dimensions: %s", (dimension) => {
 		expect(() => createVecTableSql("docs", dimension)).toThrow(/vector dimension/);
 	});
-	it("SCHEMA_SQL defines the collections, documents, and chunks tables", () => {
+	it("SCHEMA_SQL defines the collections, documents, chunks, and graph_edges tables", () => {
 		expect(SCHEMA_SQL).toContain("CREATE TABLE IF NOT EXISTS collections");
 		expect(SCHEMA_SQL).toContain("CREATE TABLE IF NOT EXISTS documents");
 		expect(SCHEMA_SQL).toContain("CREATE TABLE IF NOT EXISTS chunks");
 		expect(SCHEMA_SQL).toContain("embedding_dim");
 		expect(SCHEMA_SQL).toContain("full_text");
+		expect(SCHEMA_SQL).toContain("CREATE TABLE IF NOT EXISTS graph_edges");
+		expect(SCHEMA_SQL).toContain("source");
+		expect(SCHEMA_SQL).toContain("target");
+		expect(SCHEMA_SQL).toContain("label");
 	});
 	it("SCHEMA_SQL defines an FTS5 external-content table synced to chunks", () => {
 		expect(SCHEMA_SQL).toContain("CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5");

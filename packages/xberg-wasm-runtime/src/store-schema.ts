@@ -65,6 +65,16 @@ CREATE TABLE IF NOT EXISTS chunks (
 );
 CREATE INDEX IF NOT EXISTS idx_chunks_collection ON chunks(collection);
 CREATE INDEX IF NOT EXISTS idx_chunks_document ON chunks(document_id);
+CREATE TABLE IF NOT EXISTS graph_edges (
+  id TEXT PRIMARY KEY,
+  source TEXT NOT NULL,
+  target TEXT NOT NULL,
+  label TEXT,
+  properties TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_edges_source ON graph_edges(source);
+CREATE INDEX IF NOT EXISTS idx_edges_target ON graph_edges(target);
+CREATE INDEX IF NOT EXISTS idx_edges_label ON graph_edges(label);
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
   chunk_id UNINDEXED,
   collection UNINDEXED,

@@ -59,6 +59,25 @@ export interface ChunkRecord {
 }
 
 /**
+ * A directed graph edge, mirrored alongside vectors in the SQLite-backed
+ * stores. Mirrors `crates/xberg-rag/src/backends/graphqlite.rs`'s
+ * `_graph_edges(id, source, target, label, properties)` shape (fork-local —
+ * not part of `xberg_rag::types`, and not on `VectorStoreInterface`: the
+ * canonical, factory-validated interface has no graph capability, and
+ * `validateInjectionDescriptor`'s zod schema would strip these methods if
+ * they were added there. `createEdge`/`traverseGraph` are extras on the
+ * concrete `NodeVectorStore`/`BrowserVectorStore` return types instead —
+ * see `store-node.ts`.
+ */
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  properties?: Record<string, unknown>;
+}
+
+/**
  * Document summary attached to retrieval results.
  * Mirrors `xberg_rag::types::DocumentSummary`.
  */
