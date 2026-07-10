@@ -9,6 +9,7 @@
 //! [`ExtractedDocument::redaction_report`](crate::ExtractedDocument::redaction_report).
 
 pub mod engine;
+pub mod eval;
 pub mod patterns;
 #[cfg(feature = "redaction-rehydrate")]
 pub mod rehydration;
