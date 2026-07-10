@@ -371,3 +371,4 @@
 # Started: 2026-07-10
 # ==========================================================================
 Task 1: complete (commits 9556fbc815..7fb3f21b68, review clean — spec PASS, quality PASS). Implementer also found+fixed a pre-existing IBAN regex over-matching bug (bled into trailing all-caps words) with its own regression test; reviewer confirmed it's a real adjacent bug, correctly in-scope, but noted (non-blocking WARNING) it should have been a separate commit from the checksum feature per atomic-commits convention. Not fixed — cosmetic history-hygiene only, no functional issue.
+Task 2: complete (commits 79e6e50f24..3998660221, review clean — spec PASS, quality PASS, 23/23 redaction tests). Known pre-authorized gap: alef binding regen could not run (nested-worktree sibling-path resolution fails for ../crawlberg) — Rust-only change committed; bindings regeneration deferred to a fix-forward pass from a properly-rooted checkout before merge.
