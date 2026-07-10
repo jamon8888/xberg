@@ -2,11 +2,11 @@ import { afterEach, describe, it, expect, beforeEach } from "vitest";
 import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createNodeVectorStore } from "./store-node";
-import type { VectorStoreInterface, DocumentRecord, ChunkRecord } from "./types";
+import { createNodeVectorStore, type NodeVectorStore } from "./store-node.js";
+import type { DocumentRecord, ChunkRecord } from "./types.js";
 
 describe("node vector store (better-sqlite3 + sqlite-vec)", () => {
-	let store: VectorStoreInterface;
+	let store: NodeVectorStore;
 	const testCollection = "test-docs";
 	const vectorDim = 4;
 
@@ -24,234 +24,177 @@ describe("node vector store (better-sqlite3 + sqlite-vec)", () => {
 	});
 
 	it("validates collection names and dimensions", async () => {
-		await expect(store.ensureCollection(" ", vectorDim)).rejects.toThrow("collection must not be empty");
-		await expect(store.ensureCollection(testCollection, 0)).rejects.toThrow("positive integer");
-		await store.ensureCollection(testCollection, vectorDim);
-		await expect(store.ensureCollection(testCollection, vectorDim + 1)).rejects.toThrow(
-			"expects vectors of dimension",
+		expect(await store.ensureCollection({ name: " ", embedding_dim: vectorDim })).toMatch(/must not be empty/);
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		expect(await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim + 1 })).toMatch(
+			/already exists/,
 		);
 	});
 
-	it.each([0, -1, 1.5])("rejects invalid query limit %s", async (k) => {
-		await expect(store.query(testCollection, [1, 0, 0, 0], k)).rejects.toThrow("positive integer");
+	it("rejects retrieve() with out-of-range top_k", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		await expect(
+			store.retrieve(testCollection, { top_k: 0, mode: "vector", query_vector: [1, 0, 0, 0] }),
+		).rejects.toThrow("top_k");
+		await expect(
+			store.retrieve(testCollection, { top_k: 500, mode: "vector", query_vector: [1, 0, 0, 0] }),
+		).rejects.toThrow("top_k");
 	});
 
 	it("keeps sanitized-name collisions isolated", async () => {
-		await store.ensureCollection("test-docs", vectorDim);
-		await store.ensureCollection("test_docs", vectorDim);
-		const first: DocumentRecord = { documentId: "doc-1", sourceId: "same", collectionId: "test-docs" };
-		const second: DocumentRecord = { documentId: "doc-1", sourceId: "same", collectionId: "test_docs" };
+		await store.ensureCollection({ name: "test-docs", embedding_dim: vectorDim });
+		await store.ensureCollection({ name: "test_docs", embedding_dim: vectorDim });
+		const first: DocumentRecord = { full_text: "first doc" };
+		const second: DocumentRecord = { full_text: "second doc" };
 		await store.upsertDocument("test-docs", first, [
-			{
-				sourceId: "same",
-				chunkIndex: 0,
-				text: "first",
-				startOffset: 0,
-				endOffset: 5,
-				embedding: new Float32Array([1, 0, 0, 0]),
-			},
+			{ ordinal: 0, content: "first", embedding: [1, 0, 0, 0] },
 		]);
 		await store.upsertDocument("test_docs", second, [
-			{
-				sourceId: "same",
-				chunkIndex: 0,
-				text: "second",
-				startOffset: 0,
-				endOffset: 6,
-				embedding: new Float32Array([1, 0, 0, 0]),
-			},
+			{ ordinal: 0, content: "second", embedding: [1, 0, 0, 0] },
 		]);
-		expect((await store.query("test-docs", [1, 0, 0, 0], 1))[0]?.text).toBe("first");
-		expect((await store.query("test_docs", [1, 0, 0, 0], 1))[0]?.text).toBe("second");
+		const a = await store.retrieve("test-docs", { top_k: 1, mode: "vector", query_vector: [1, 0, 0, 0], include_content: true });
+		const b = await store.retrieve("test_docs", { top_k: 1, mode: "vector", query_vector: [1, 0, 0, 0], include_content: true });
+		expect(a.chunks[0]?.content).toBe("first");
+		expect(b.chunks[0]?.content).toBe("second");
 	});
 
-	it("ensures a collection and creates its vec0 table", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		const collections = await store.listCollections();
-		expect(collections).toContain(testCollection);
+	it("ensures a collection and can look it up", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		const spec = await store.getCollection(testCollection);
+		expect(spec?.embedding_dim).toBe(vectorDim);
+		expect(await store.getCollection("nonexistent")).toBeNull();
 	});
 
-	it("upserts a document with chunks and queries by real vec0 similarity", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
+	it("upserts a document with chunks and retrieves by real vec0 similarity", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		const doc: DocumentRecord = { full_text: "apple fruit apple tree" };
 		const chunks: ChunkRecord[] = [
-			{
-				sourceId: "src-1",
-				chunkIndex: 0,
-				text: "apple fruit",
-				startOffset: 0,
-				endOffset: 11,
-				embedding: new Float32Array([1, 0, 0, 0]),
-			},
-			{
-				sourceId: "src-1",
-				chunkIndex: 1,
-				text: "apple tree",
-				startOffset: 12,
-				endOffset: 22,
-				embedding: new Float32Array([0, 1, 0, 0]),
-			},
+			{ ordinal: 0, content: "apple fruit", embedding: [1, 0, 0, 0] },
+			{ ordinal: 1, content: "apple tree", embedding: [0, 1, 0, 0] },
 		];
-		const result = await store.upsertDocument(testCollection, doc, chunks);
-		expect(result.chunksCount).toBe(2);
-		const results = await store.query(testCollection, [1, 0, 0, 0], 2);
-		expect(results.length).toBe(2);
-		expect(results[0]?.text).toBe("apple fruit");
-		expect(results[0]?.score).toBeGreaterThan(results[1]?.score ?? Infinity);
+		const documentId = await store.upsertDocument(testCollection, doc, chunks);
+		expect(typeof documentId).toBe("string");
+		const out = await store.retrieve(testCollection, {
+			top_k: 2,
+			mode: "vector",
+			query_vector: [1, 0, 0, 0],
+			include_content: true,
+		});
+		expect(out.chunks.length).toBe(2);
+		expect(out.chunks[0]?.content).toBe("apple fruit");
+		expect(out.chunks[0]?.score).toBeGreaterThan(out.chunks[1]?.score ?? Infinity);
+		expect(out.chunks[0]?.primary_score).toEqual({ kind: "vector", score: out.chunks[0]?.score });
 	});
 
-	it("deletes a document and its chunks are no longer queryable", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
-		const chunk: ChunkRecord = {
-			sourceId: "src-1",
-			chunkIndex: 0,
-			text: "hello",
-			startOffset: 0,
-			endOffset: 5,
-			embedding: new Float32Array([1, 0, 0, 0]),
-		};
-		await store.upsertDocument(testCollection, doc, [chunk]);
-		await store.delete(testCollection, "doc-1");
-		const results = await store.query(testCollection, [1, 0, 0, 0], 10);
-		expect(results.some((r) => r.chunkId.startsWith("src-1"))).toBe(false);
+	it("re-upserting the same external_id replaces chunks instead of duplicating the document", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		const doc: DocumentRecord = { full_text: "v1", external_id: "ext-1" };
+		const firstId = await store.upsertDocument(testCollection, doc, [
+			{ ordinal: 0, content: "v1 chunk", embedding: [1, 0, 0, 0] },
+		]);
+		const secondId = await store.upsertDocument(testCollection, { full_text: "v2", external_id: "ext-1" }, [
+			{ ordinal: 0, content: "v2 chunk", embedding: [1, 0, 0, 0] },
+		]);
+		expect(secondId).toBe(firstId);
+		const stats = await store.collectionStats(testCollection);
+		expect(stats.documents).toBe(1);
+		expect(stats.chunks).toBe(1);
+	});
+
+	it("deletes documents by id and its chunks are no longer retrievable", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		const doc: DocumentRecord = { full_text: "hello" };
+		const documentId = await store.upsertDocument(testCollection, doc, [
+			{ ordinal: 0, content: "hello", embedding: [1, 0, 0, 0] },
+		]);
+		const removed = await store.deleteDocuments(testCollection, [documentId]);
+		expect(removed).toBe(1);
+		const out = await store.retrieve(testCollection, { top_k: 10, mode: "vector", query_vector: [1, 0, 0, 0] });
+		expect(out.chunks).toHaveLength(0);
+	});
+
+	it("deleteByFilter removes documents matching a filter", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		await store.upsertDocument(testCollection, { full_text: "keep", title: "keep-me" }, [
+			{ ordinal: 0, content: "keep", embedding: [1, 0, 0, 0] },
+		]);
+		await store.upsertDocument(testCollection, { full_text: "drop", title: "drop-me" }, [
+			{ ordinal: 0, content: "drop", embedding: [0, 1, 0, 0] },
+		]);
+		const removed = await store.deleteByFilter(testCollection, { eq: { field: "doc.title", value: "drop-me" } });
+		expect(removed).toBe(1);
+		const stats = await store.collectionStats(testCollection);
+		expect(stats.documents).toBe(1);
 	});
 
 	it("drops a collection including its vec0 table", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		await store.dropCollection(testCollection);
-		expect(await store.listCollections()).not.toContain(testCollection);
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		expect(await store.dropCollection(testCollection)).toBeUndefined();
+		expect(await store.getCollection(testCollection)).toBeNull();
 	});
 
-	it("creates a graph edge and traverses it via recursive CTE", async () => {
-		await store.createEdge({ id: "e1", source: "a", target: "b", label: "relates_to" });
-		await store.createEdge({ id: "e2", source: "b", target: "c", label: "relates_to" });
-		await store.createEdge({ id: "e3", source: "a", target: "z", label: "unrelated" });
-		const reached = await store.traverseGraph(["a"], 2, ["relates_to"]);
-		expect(reached).toContain("a");
-		expect(reached).toContain("b");
-		expect(reached).toContain("c");
-		expect(reached).not.toContain("z");
-	});
-
-	it("traverseGraph respects depth limit", async () => {
-		await store.createEdge({ id: "e1", source: "a", target: "b" });
-		await store.createEdge({ id: "e2", source: "b", target: "c" });
-		const reached = await store.traverseGraph(["a"], 1);
-		expect(reached).toContain("b");
-		expect(reached).not.toContain("c");
-	});
-
-	it("retrieve() in fulltext mode finds a chunk by exact text match", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
-		await store.upsertDocument(testCollection, doc, [
-			{
-				sourceId: "src-1",
-				chunkIndex: 0,
-				text: "the quick brown fox",
-				startOffset: 0,
-				endOffset: 19,
-				embedding: new Float32Array([1, 0, 0, 0]),
-			},
+	it("retrieve() in full_text mode finds a chunk by exact text match", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		await store.upsertDocument(testCollection, { full_text: "doc" }, [
+			{ ordinal: 0, content: "the quick brown fox", embedding: [1, 0, 0, 0] },
 		]);
-		const results = await store.retrieve(testCollection, { mode: "fulltext", queryText: "brown fox", k: 5 });
-		expect(results[0]?.text).toBe("the quick brown fox");
-	});
-
-	it("retrieve() in vector mode matches query() behavior", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
-		await store.upsertDocument(testCollection, doc, [
-			{
-				sourceId: "src-1",
-				chunkIndex: 0,
-				text: "apple",
-				startOffset: 0,
-				endOffset: 5,
-				embedding: new Float32Array([1, 0, 0, 0]),
-			},
-		]);
-		const results = await store.retrieve(testCollection, { mode: "vector", queryVector: [1, 0, 0, 0], k: 5 });
-		expect(results[0]?.text).toBe("apple");
+		const out = await store.retrieve(testCollection, {
+			top_k: 5,
+			mode: "full_text",
+			query_text: "brown fox",
+			include_content: true,
+		});
+		expect(out.chunks[0]?.content).toBe("the quick brown fox");
+		expect(out.mode).toBe("full_text");
 	});
 
 	it("retrieve() in hybrid mode ranks a chunk good on both signals above either extreme", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		const doc: DocumentRecord = { documentId: "doc-1", sourceId: "src-1", collectionId: testCollection };
-		// Fixture verified against the real better-sqlite3 + sqlite-vec + FTS5 engine (not assumed):
-		// - FTS5 MATCH ANDs bareword terms by default, so the query text is kept to terms every
-		//   textually-relevant chunk actually contains ("hybrid search"), otherwise a partial text
-		//   match is excluded from the fulltext ranking entirely rather than ranked lower.
-		// - Two vector-only filler chunks push chunk 1's vector rank down to 5th so RRF's convex
-		//   1/(k+rank) sum genuinely favors chunk 2 (moderate rank 2 + rank 2) over chunk 1
-		//   (best-possible text rank 1 offset by a much worse vector rank) instead of tying/losing.
-		await store.upsertDocument(testCollection, doc, [
-			{
-				// Exact vector match, textually irrelevant to the query text.
-				sourceId: "src-1",
-				chunkIndex: 0,
-				text: "zzz unrelated content",
-				startOffset: 0,
-				endOffset: 22,
-				embedding: new Float32Array([1, 0, 0, 0]),
-			},
-			{
-				// Textually exact, vector-distant.
-				sourceId: "src-1",
-				chunkIndex: 1,
-				text: "hybrid search",
-				startOffset: 23,
-				endOffset: 37,
-				embedding: new Float32Array([0, 0, 0, 1]),
-			},
-			{
-				// Moderately good on both.
-				sourceId: "src-1",
-				chunkIndex: 2,
-				text: "hybrid search related content",
-				startOffset: 38,
-				endOffset: 68,
-				embedding: new Float32Array([0.7, 0, 0, 0.7]),
-			},
-			{
-				// Vector-only filler, textually irrelevant: closer to the query vector than chunk 1,
-				// pushing chunk 1 further down the vector ranking.
-				sourceId: "src-1",
-				chunkIndex: 3,
-				text: "filler padding words one",
-				startOffset: 69,
-				endOffset: 94,
-				embedding: new Float32Array([0.2, 0, 0, 0.6]),
-			},
-			{
-				// Second vector-only filler, same purpose as chunk 3.
-				sourceId: "src-1",
-				chunkIndex: 4,
-				text: "filler padding words two",
-				startOffset: 95,
-				endOffset: 120,
-				embedding: new Float32Array([0.1, 0, 0, 0.8]),
-			},
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		const documentId = await store.upsertDocument(testCollection, { full_text: "doc" }, [
+			{ ordinal: 0, content: "zzz unrelated content", embedding: [1, 0, 0, 0] },
+			{ ordinal: 1, content: "hybrid search", embedding: [0, 0, 0, 1] },
+			{ ordinal: 2, content: "hybrid search related content", embedding: [0.7, 0, 0, 0.7] },
+			{ ordinal: 3, content: "filler padding words one", embedding: [0.2, 0, 0, 0.6] },
+			{ ordinal: 4, content: "filler padding words two", embedding: [0.1, 0, 0, 0.8] },
 		]);
-		const results = await store.retrieve(testCollection, {
+		const out = await store.retrieve(testCollection, {
+			top_k: 3,
 			mode: "hybrid",
-			queryVector: [1, 0, 0, 0],
-			queryText: "hybrid search",
-			k: 3,
+			query_vector: [1, 0, 0, 0],
+			query_text: "hybrid search",
 		});
-		expect(results[0]?.chunkId).toBe("src-1:2");
+		expect(out.chunks[0]?.id).toBe(`${documentId}:2`);
+		expect(out.chunks[0]?.primary_score.kind).toBe("hybrid");
 	});
 
-	it("retrieve() throws for fulltext mode without queryText", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		await expect(store.retrieve(testCollection, { mode: "fulltext", k: 5 })).rejects.toThrow(/queryText/);
+	it("retrieve() throws for full_text mode without query_text", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		await expect(store.retrieve(testCollection, { top_k: 5, mode: "full_text" })).rejects.toThrow(/query_text/);
 	});
 
 	it("retrieve() throws for hybrid mode missing either query input", async () => {
-		await store.ensureCollection(testCollection, vectorDim);
-		await expect(store.retrieve(testCollection, { mode: "hybrid", queryText: "x", k: 5 })).rejects.toThrow(
-			/queryVector/,
-		);
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		await expect(
+			store.retrieve(testCollection, { top_k: 5, mode: "hybrid", query_text: "x" }),
+		).rejects.toThrow(/query_vector/);
+	});
+
+	it("retrieve() applies a Filter to constrain results", async () => {
+		await store.ensureCollection({ name: testCollection, embedding_dim: vectorDim });
+		await store.upsertDocument(testCollection, { full_text: "doc", metadata: { tier: "gold" } }, [
+			{ ordinal: 0, content: "gold chunk", embedding: [1, 0, 0, 0] },
+		]);
+		await store.upsertDocument(testCollection, { full_text: "doc", metadata: { tier: "silver" } }, [
+			{ ordinal: 0, content: "silver chunk", embedding: [1, 0, 0, 0] },
+		]);
+		const out = await store.retrieve(testCollection, {
+			top_k: 10,
+			mode: "vector",
+			query_vector: [1, 0, 0, 0],
+			include_content: true,
+			filter: { eq: { field: "doc.metadata.tier", value: "gold" } },
+		});
+		expect(out.chunks).toHaveLength(1);
+		expect(out.chunks[0]?.content).toBe("gold chunk");
 	});
 });

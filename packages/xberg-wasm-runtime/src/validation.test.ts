@@ -7,16 +7,14 @@ describe("validateInjectionDescriptor", () => {
 		const result = validateInjectionDescriptor({
 			embedder: { embed: method },
 			store: {
-				close: method,
-				upsertDocument: method,
-				query: method,
-				retrieve: method,
-				delete: method,
-				listCollections: method,
-				dropCollection: method,
 				ensureCollection: method,
-				createEdge: method,
-				traverseGraph: method,
+				dropCollection: method,
+				getCollection: method,
+				upsertDocument: method,
+				deleteDocuments: method,
+				deleteByFilter: method,
+				retrieve: method,
+				collectionStats: method,
 			},
 		});
 

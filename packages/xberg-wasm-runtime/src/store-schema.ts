@@ -22,63 +22,68 @@ export function createVecTableSql(collection: string, vectorDim: number): string
 	const table = vecTableName(collection);
 	return `CREATE VIRTUAL TABLE IF NOT EXISTS ${table} USING vec0(chunk_id TEXT PRIMARY KEY, embedding FLOAT[${vectorDim}])`;
 }
+
+// Column layout mirrors `xberg_rag::types::{CollectionSpec, DocumentRecord,
+// ChunkRecord}` (packages/xberg-wasm-runtime/src/types.ts), not the old
+// pre-wire-alignment DocumentRecord/ChunkRecord shape. JSON-typed columns
+// (keywords/entities/labels/metadata/chunk_metadata) store `JSON.stringify`d
+// values and are parsed back out on read.
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS collections (
   name TEXT PRIMARY KEY,
   sanitized_name TEXT NOT NULL,
-  vector_dim INTEGER NOT NULL
+  embedding_dim INTEGER NOT NULL,
+  distance_metric TEXT NOT NULL DEFAULT 'cosine',
+  index_method TEXT NOT NULL DEFAULT 'flat'
 );
 CREATE TABLE IF NOT EXISTS documents (
   document_id TEXT NOT NULL,
-  source_id TEXT NOT NULL,
   collection TEXT NOT NULL,
+  external_id TEXT,
+  title TEXT,
+  mime TEXT,
+  source_uri TEXT,
+  full_text TEXT NOT NULL,
+  keywords TEXT,
+  entities TEXT,
+  labels TEXT,
   metadata TEXT,
-  text TEXT,
+  ingested_at INTEGER NOT NULL,
   PRIMARY KEY (collection, document_id)
 );
 CREATE INDEX IF NOT EXISTS idx_documents_collection ON documents(collection);
-CREATE INDEX IF NOT EXISTS idx_documents_source ON documents(source_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_external ON documents(collection, external_id) WHERE external_id IS NOT NULL;
 CREATE TABLE IF NOT EXISTS chunks (
   chunk_id TEXT NOT NULL,
   collection TEXT NOT NULL,
-  source_id TEXT NOT NULL,
-  chunk_index INTEGER NOT NULL,
-  text TEXT NOT NULL,
-  start_offset INTEGER NOT NULL,
-  end_offset INTEGER NOT NULL,
+  document_id TEXT NOT NULL,
+  ordinal INTEGER NOT NULL,
+  external_id TEXT,
+  content TEXT NOT NULL,
+  chunk_metadata TEXT,
   PRIMARY KEY (collection, chunk_id)
 );
 CREATE INDEX IF NOT EXISTS idx_chunks_collection ON chunks(collection);
-CREATE INDEX IF NOT EXISTS idx_chunks_source ON chunks(source_id);
-CREATE TABLE IF NOT EXISTS graph_edges (
-  id TEXT PRIMARY KEY,
-  source TEXT NOT NULL,
-  target TEXT NOT NULL,
-  label TEXT,
-  properties TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_edges_source ON graph_edges(source);
-CREATE INDEX IF NOT EXISTS idx_edges_target ON graph_edges(target);
-CREATE INDEX IF NOT EXISTS idx_edges_label ON graph_edges(label);
+CREATE INDEX IF NOT EXISTS idx_chunks_document ON chunks(document_id);
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
   chunk_id UNINDEXED,
   collection UNINDEXED,
-  text,
+  content,
   content='chunks',
   content_rowid='rowid'
 );
 CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
-  INSERT INTO chunks_fts(rowid, chunk_id, collection, text)
-  VALUES (new.rowid, new.chunk_id, new.collection, new.text);
+  INSERT INTO chunks_fts(rowid, chunk_id, collection, content)
+  VALUES (new.rowid, new.chunk_id, new.collection, new.content);
 END;
 CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
-  INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, collection, text)
-  VALUES ('delete', old.rowid, old.chunk_id, old.collection, old.text);
+  INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, collection, content)
+  VALUES ('delete', old.rowid, old.chunk_id, old.collection, old.content);
 END;
 CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
-  INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, collection, text)
-  VALUES ('delete', old.rowid, old.chunk_id, old.collection, old.text);
-  INSERT INTO chunks_fts(rowid, chunk_id, collection, text)
-  VALUES (new.rowid, new.chunk_id, new.collection, new.text);
+  INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, collection, content)
+  VALUES ('delete', old.rowid, old.chunk_id, old.collection, old.content);
+  INSERT INTO chunks_fts(rowid, chunk_id, collection, content)
+  VALUES (new.rowid, new.chunk_id, new.collection, new.content);
 END;
 `;

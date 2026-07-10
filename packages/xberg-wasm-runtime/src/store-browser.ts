@@ -1,14 +1,20 @@
 import type {
 	VectorStoreInterface,
+	CollectionSpec,
+	CollectionStats,
 	DocumentRecord,
 	ChunkRecord,
-	GraphEdge,
+	Filter,
+	RetrieveQuery,
+	RetrieveOutput,
 	CacheConfig,
-	RetrieveOptions,
 } from "./types.js";
 import type { StoreWorkerResponse, StoreWorkerRequestBase } from "./store-worker.js";
 
-export async function createBrowserVectorStore(config?: CacheConfig): Promise<VectorStoreInterface> {
+/** See `NodeVectorStore` in store-node.ts — same rationale applies here. */
+export type BrowserVectorStore = VectorStoreInterface & { close(): Promise<void> };
+
+export async function createBrowserVectorStore(config?: CacheConfig): Promise<BrowserVectorStore> {
 	const worker = new Worker(new URL("./store-worker.ts", import.meta.url), { type: "module" });
 	const dbPath = config?.opfsPath ?? "/xberg/default.sqlite3";
 	if (!dbPath.startsWith("/") || dbPath.includes("..")) {
@@ -78,19 +84,16 @@ export async function createBrowserVectorStore(config?: CacheConfig): Promise<Ve
 				worker.terminate();
 			}
 		},
-		ensureCollection: (collection: string, vectorDim: number) =>
-			call<void>({ op: "ensureCollection", collection, vectorDim }),
+		ensureCollection: (spec: CollectionSpec) => call<string | void>({ op: "ensureCollection", spec }),
+		dropCollection: (collection: string) => call<string | void>({ op: "dropCollection", collection }),
+		getCollection: (collection: string) => call<CollectionSpec | null>({ op: "getCollection", collection }),
 		upsertDocument: (collection: string, doc: DocumentRecord, chunks: ChunkRecord[]) =>
-			call<{ documentId: string; chunksCount: number }>({ op: "upsertDocument", collection, doc, chunks }),
-		query: (collection: string, queryVector: number[], k: number) =>
-			call<Array<{ chunkId: string; text: string; score: number }>>({ op: "query", collection, queryVector, k }),
-		retrieve: (collection: string, opts: RetrieveOptions) =>
-			call<Array<{ chunkId: string; text: string; score: number }>>({ op: "retrieve", collection, opts }),
-		delete: (collection: string, documentId: string) => call<void>({ op: "delete", collection, documentId }),
-		listCollections: () => call<string[]>({ op: "listCollections" }),
-		dropCollection: (collection: string) => call<void>({ op: "dropCollection", collection }),
-		createEdge: (edge: GraphEdge) => call<void>({ op: "createEdge", edge }),
-		traverseGraph: (startIds: string[], depth: number, edgeLabels?: string[]) =>
-			call<string[]>({ op: "traverseGraph", startIds, depth, edgeLabels }),
+			call<string>({ op: "upsertDocument", collection, doc, chunks }),
+		deleteDocuments: (collection: string, ids: string[]) => call<number>({ op: "deleteDocuments", collection, ids }),
+		deleteByFilter: (collection: string, filter: Filter) =>
+			call<number>({ op: "deleteByFilter", collection, filter }),
+		retrieve: (collection: string, query: RetrieveQuery) =>
+			call<RetrieveOutput>({ op: "retrieve", collection, query }),
+		collectionStats: (collection: string) => call<CollectionStats>({ op: "collectionStats", collection }),
 	};
 }

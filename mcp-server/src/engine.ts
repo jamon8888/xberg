@@ -15,9 +15,11 @@ let _initPromise: Promise<XbergEngine> | null = null;
  * that B's constructor consumes — we do not touch the per-capability factories
  * directly.
  *
- * `CacheConfig` exposes `nodeCachePath` (model/ORT cache) but **no** store
- * location option: the vector-store backend location is C's internal concern
- * (currently an in-memory store), so we only pass `nodeCachePath`.
+ * `CacheConfig` exposes `nodeCachePath` (model/ORT cache) but no explicit
+ * store location — the vector-store backend location is C's internal
+ * concern. C's default Node store persists to `<nodeCachePath>/store.sqlite3`
+ * (see `store-node.ts`'s `createNodeVectorStore`), so ingested documents
+ * survive process restarts; pass `nodeStorePath` explicitly to relocate it.
  */
 export function initializeEngine(): Promise<XbergEngine> {
   // Guard the async startup with a cached promise so concurrent callers share a
