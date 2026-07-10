@@ -157,16 +157,15 @@ pub enum PrimaryScore {
     /// Vector similarity.
     ///
     /// A struct variant (not a newtype-over-scalar) so it survives the
-    /// internally-tagged serde representation: `#[serde(tag = "kind")]` can
-    /// only flatten a variant's fields alongside the tag key, and a bare
-    /// `f32` has no fields to flatten. Serialized shape:
-    /// `{ "kind": "vector", "score": 0.9 }`.
+    /// internally-tagged serde representation: `#[serde(tag = "kind")]` can only
+    /// flatten a variant's fields alongside the tag key, and a bare `f32` has no
+    /// fields to flatten. Serialized shape: `{ "kind": "vector", "score": 0.9 }`.
     Vector {
         /// Vector similarity score.
         score: f32,
     },
-    /// Full-text relevance. Struct variant for the same reason as
-    /// [`Self::Vector`]. Serialized shape: `{ "kind": "full_text", "score": 0.9 }`.
+    /// Full-text relevance. Struct variant for the same reason as [`Self::Vector`].
+    /// Serialized shape: `{ "kind": "full_text", "score": 0.9 }`.
     FullText {
         /// Full-text relevance score.
         score: f32,

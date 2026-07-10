@@ -1,3 +1,4 @@
+export * from "./types.js";
 export * from "./embedder.js";
 export * from "./store.js";
 export * from "./ner.js";
