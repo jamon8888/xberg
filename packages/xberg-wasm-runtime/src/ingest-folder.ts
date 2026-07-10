@@ -50,6 +50,13 @@ export interface IngestFolderFileResult {
 	error?: string;
 }
 
+/**
+ * Files are ingested sequentially rather than concurrently. The shared wasm
+ * `XbergEngineLike` instance is not verified reentrant across concurrent
+ * `extract`/`ingest` calls (its internal NER/embedding state is mutated
+ * in-place per call), so concurrent calls risk cross-file state corruption.
+ * Revisit if the engine gains a documented concurrency contract.
+ */
 export async function ingestFolder(
 	engine: XbergEngineLike,
 	collection: string,
