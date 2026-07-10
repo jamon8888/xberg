@@ -219,22 +219,43 @@ async fn redact_request(
     // through the same NER+regex path as full_text, sharing the one counter.
     let title = match request.title {
         Some(s) => Some(
-            redact_secondary_string(&s, RedactionStrategy::TokenReplace, ner, &mut counter, &mut rehydration_map, &mut category_counts)
-                .await?,
+            redact_secondary_string(
+                &s,
+                RedactionStrategy::TokenReplace,
+                ner,
+                &mut counter,
+                &mut rehydration_map,
+                &mut category_counts,
+            )
+            .await?,
         ),
         None => None,
     };
     let source_uri = match request.source_uri {
         Some(s) => Some(
-            redact_secondary_string(&s, RedactionStrategy::TokenReplace, ner, &mut counter, &mut rehydration_map, &mut category_counts)
-                .await?,
+            redact_secondary_string(
+                &s,
+                RedactionStrategy::TokenReplace,
+                ner,
+                &mut counter,
+                &mut rehydration_map,
+                &mut category_counts,
+            )
+            .await?,
         ),
         None => None,
     };
     let external_id = match request.external_id {
         Some(s) => Some(
-            redact_secondary_string(&s, RedactionStrategy::TokenReplace, ner, &mut counter, &mut rehydration_map, &mut category_counts)
-                .await?,
+            redact_secondary_string(
+                &s,
+                RedactionStrategy::TokenReplace,
+                ner,
+                &mut counter,
+                &mut rehydration_map,
+                &mut category_counts,
+            )
+            .await?,
         ),
         None => None,
     };

@@ -250,10 +250,7 @@ mod primary_score_wire_shape_tests {
             rrf: 0.032,
         })
         .expect("serialize");
-        assert_eq!(
-            json,
-            r#"{"kind":"hybrid","vector":0.5,"full_text":0.75,"rrf":0.032}"#
-        );
+        assert_eq!(json, r#"{"kind":"hybrid","vector":0.5,"full_text":0.75,"rrf":0.032}"#);
     }
 
     #[test]
