@@ -65,4 +65,12 @@ describe("http/map-route", () => {
       expect(res.status).toBe(400);
     });
   });
+
+  it("rejects a body larger than the cap with 413", async () => {
+    await withServer(async (baseUrl) => {
+      const big = Buffer.alloc(16 * 1024 * 1024 + 1);
+      const res = await fetch(`${baseUrl}/map?document_id=doc-3`, { method: "POST", body: big });
+      expect(res.status).toBe(413);
+    });
+  });
 });

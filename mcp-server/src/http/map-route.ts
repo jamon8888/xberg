@@ -63,8 +63,7 @@ export function createMapUploadHandler(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (!res.headersSent) {
-        const status = msg === "payload too large" ? 413 : 500;
-        res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg }));
+        res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg }));
       } else {
         res.end();
       }
