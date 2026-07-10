@@ -1338,6 +1338,36 @@ zig = "packages/zig/src/"
 
 [crates.exclude]
 types = [
+  # Engine/EngineBuilder (crates/xberg/src/engine/mod.rs) are documented as not
+  # part of the binding surface, but source-level #[cfg_attr(alef, alef(skip))]
+  # on individual methods wasn't enough: alef still binds the *types*
+  # themselves as pyclasses, and several of their methods (build,
+  # with_cache_backend, with_progress_sink, with_model_provider,
+  # NoopProgressSink.emit) can't auto-delegate (`Arc<dyn Trait>` seam
+  # injection/access isn't marshalable across the FFI boundary). Exclude the
+  # types outright rather than chase every broken method individually.
+  "Engine",
+  "EngineBuilder",
+  # The seam traits/defaults themselves are independently reachable via
+  # `engine::seams`'s own `pub use` re-exports (not just through Engine), so
+  # excluding Engine/EngineBuilder above isn't sufficient on its own —
+  # NoopProgressSink.emit still can't auto-delegate (same Arc<dyn Trait>
+  # marshaling problem), and CacheBackend/ModelProvider/ProgressSink stay
+  # reachable through their private submodule paths regardless.
+  "CacheBackend",
+  "NoopCache",
+  "ModelProvider",
+  "DefaultModelProvider",
+  "ProgressSink",
+  "NoopProgressSink",
+  # ParsedDocument (crates/xberg/src/engine/parsed.rs) has only two
+  # meaningful members: from_bytes() (constructor, takes Arc<[u8]> which alef
+  # can't auto-convert from a Python bytes object) and rendered_pages()
+  # (already alef(skip)'d — returns RasterizeError which isn't marshalable
+  # here either). What's left (mime_type/page_count/source getters) is
+  # useless without a working constructor, so exclude the whole type.
+  "ParsedDocument",
+
   # Generic types — alef(skip) source annotation not picked up for generic structs
   # (alef-extract does not propagate cfg_attr through type-parameter bounds).
   "Pool",
@@ -3534,7 +3564,7 @@ path = "../../packages/zig"
 # Placeholder until v5.0.0-rc.4 ships and the tarball SHA is known.
 # Update post-release with the real Zig multihash for
 # https://github.com/xberg-io/xberg/releases/download/v{version}/xberg-zig-v{version}.tar.gz
-hash = "xberg-1.0.0-rc.1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+hash = "xberg-1.0.0-rc.5-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
 # Point WASM e2e at the wasm-pack `nodejs` target. The default `pkg/` is the
 # bundler target whose JS glue uses `import * as foo from "env"` statements

@@ -37,11 +37,21 @@ pub mod cache;
 pub(crate) mod cache_dir;
 pub mod cancellation;
 pub mod core;
-// Rust-only extraction engine. Declared as a bare `pub mod` whose files are NOT
-// listed in `alef.toml` `sources`, so the binding generator emits nothing for
-// it. Do NOT add `pub use engine::...` re-exports here — that would pull the
-// engine types into the scanned public surface.
+// Rust-only extraction engine. Most of its surface (the seam traits, `Engine`,
+// `EngineBuilder`) is excluded from bindings via `alef.toml` `[crates.exclude]
+// types` and `#[cfg_attr(alef, alef(skip))]` — do NOT add broad `pub use
+// engine::...` re-exports here for those. `ChunkerConfig`/`RasterizeError` are
+// the exception: alef already binds them (via `engine::structured::{chunk,
+// rasterize}`, reachable through `batch_pages`), but emits a root-relative
+// `xberg::TypeName` path for a couple of call sites regardless of where the
+// type actually lives — so a root re-export is needed for those two to
+// resolve.
 pub mod engine;
+#[cfg(feature = "pdf")]
+pub use engine::structured::chunk::ChunkerConfig;
+#[cfg(feature = "pdf")]
+pub use engine::structured::rasterize::RasterizeError;
+pub use engine::seams::ProgressEvent;
 pub mod error;
 /// Format-specific document extraction implementations and office metadata types.
 pub mod extraction;

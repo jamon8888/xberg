@@ -11253,7 +11253,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-rag-node"
-version = "0.1.0"
+version = "1.0.0-rc.5"
 dependencies = [
  "napi",
  "napi-build",
@@ -11296,7 +11296,7 @@ dependencies = [
 
 [[package]]
 name = "xberg-wasm"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.5"
 dependencies = [
  "async-trait",
  "crawlberg",
@@ -11309,7 +11309,6 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
- "sha2 0.10.9",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "xberg",

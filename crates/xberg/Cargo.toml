@@ -476,7 +476,7 @@ windows-target = [
 # circuits its build script before any download resolution, so pairing it with
 # `full` (whose ML features still name `ort-bundled`) is safe: dynamic wins
 # workspace-wide. Same combo CI already exercises in ci-gpu.yaml.
-macos-intel-target = ["full", "ort-dynamic"]
+macos-intel-target = ["full", "ort-dynamic", "ner-candle", "redaction-rehydrate"]
 # Mobile deployment preset — formats + analysis + Tesseract OCR + code intelligence + API types.
 # Excludes ORT-dependent features (paddle-ocr, layout-detection, embeddings, reranker,
 # auto-rotate, transcription)
