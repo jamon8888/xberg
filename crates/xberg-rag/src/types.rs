@@ -152,12 +152,25 @@ pub struct DocumentSummary {
 
 /// How a retrieved chunk was primarily scored.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "kind", content = "value", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum PrimaryScore {
     /// Vector similarity.
-    Vector(f32),
-    /// Full-text relevance.
-    FullText(f32),
+    ///
+    /// A struct variant (not a newtype-over-scalar) so it survives the
+    /// internally-tagged serde representation: `#[serde(tag = "kind")]` can
+    /// only flatten a variant's fields alongside the tag key, and a bare
+    /// `f32` has no fields to flatten. Serialized shape:
+    /// `{ "kind": "vector", "score": 0.9 }`.
+    Vector {
+        /// Vector similarity score.
+        score: f32,
+    },
+    /// Full-text relevance. Struct variant for the same reason as
+    /// [`Self::Vector`]. Serialized shape: `{ "kind": "full_text", "score": 0.9 }`.
+    FullText {
+        /// Full-text relevance score.
+        score: f32,
+    },
     /// Hybrid (vector + full-text fused via reciprocal rank fusion).
     Hybrid {
         /// Vector similarity component.
@@ -213,20 +226,21 @@ mod primary_score_wire_shape_tests {
     use super::PrimaryScore;
 
     /// Documents PrimaryScore's actual JSON wire shape for JS-side consumers
-    /// (packages/xberg-wasm-runtime's retrieve() wire-alignment work) — the
-    /// enum uses adjacent tagging (`#[serde(tag = "kind", content = "value", rename_all = "snake_case")]`),
-    /// where the variant name serializes as the `kind` field (snake_case) and the
-    /// payload as the `value` field. This test is the source of truth.
+    /// (packages/xberg-wasm-runtime) — the enum uses internal tagging
+    /// (`#[serde(tag = "kind", rename_all = "snake_case")]`) with struct
+    /// variants, so a variant's fields flatten alongside the `kind` tag at
+    /// the top level (there is no nested payload object). This test is the
+    /// source of truth.
     #[test]
     fn vector_variant_wire_shape() {
-        let json = serde_json::to_string(&PrimaryScore::Vector(0.5)).expect("serialize");
-        assert_eq!(json, r#"{"kind":"vector","value":0.5}"#);
+        let json = serde_json::to_string(&PrimaryScore::Vector { score: 0.5 }).expect("serialize");
+        assert_eq!(json, r#"{"kind":"vector","score":0.5}"#);
     }
 
     #[test]
     fn full_text_variant_wire_shape() {
-        let json = serde_json::to_string(&PrimaryScore::FullText(0.75)).expect("serialize");
-        assert_eq!(json, r#"{"kind":"full_text","value":0.75}"#);
+        let json = serde_json::to_string(&PrimaryScore::FullText { score: 0.75 }).expect("serialize");
+        assert_eq!(json, r#"{"kind":"full_text","score":0.75}"#);
     }
 
     #[test]
@@ -239,15 +253,15 @@ mod primary_score_wire_shape_tests {
         .expect("serialize");
         assert_eq!(
             json,
-            r#"{"kind":"hybrid","value":{"vector":0.5,"full_text":0.75,"rrf":0.032}}"#
+            r#"{"kind":"hybrid","vector":0.5,"full_text":0.75,"rrf":0.032}"#
         );
     }
 
     #[test]
     fn round_trips_through_deserialize() {
         for original in [
-            PrimaryScore::Vector(0.5),
-            PrimaryScore::FullText(0.75),
+            PrimaryScore::Vector { score: 0.5 },
+            PrimaryScore::FullText { score: 0.75 },
             PrimaryScore::Hybrid {
                 vector: 0.5,
                 full_text: 0.75,

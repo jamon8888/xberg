@@ -23,8 +23,9 @@ use crate::error::{RagError, RagResult};
 use crate::query::{RetrieveMode, RetrieveQuery};
 use crate::store::VectorStore;
 use crate::types::{ChunkRecord, DocumentId, DocumentRecord, RetrievedChunk};
-use serde_json::Value;
 
+#[cfg(feature = "pipeline-redaction")]
+use serde_json::Value;
 #[cfg(feature = "pipeline-redaction")]
 use xberg::text::redaction::TokenCounter;
 
@@ -153,6 +154,29 @@ pub struct IngestOutcome {
     pub pii_category_counts: std::collections::HashMap<String, usize>,
 }
 
+/// Redact one secondary narrative-string field (regex + NER), merging its
+/// findings into the request-wide `counter`/`rehydration_map`/`category_counts`
+/// accumulators. See [`redact_request`] for why secondary string fields get
+/// the same NER-aware treatment as `full_text`.
+#[cfg(feature = "pipeline-redaction")]
+async fn redact_secondary_string(
+    text: &str,
+    strategy: xberg::types::redaction::RedactionStrategy,
+    ner: &dyn xberg::text::ner::NerBackend,
+    counter: &mut TokenCounter,
+    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
+    category_counts: &mut std::collections::HashMap<String, usize>,
+) -> RagResult<String> {
+    let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(text, strategy, ner, counter)
+        .await
+        .map_err(RagError::Core)?;
+    rehydration_map.extend(outcome.rehydration_map);
+    for (category, count) in outcome.category_counts {
+        *category_counts.entry(category).or_insert(0) += count;
+    }
+    Ok(outcome.redacted_text)
+}
+
 /// Detect and redact PII (regex + NER) in ALL string fields of `request`,
 /// returning a copy with all fields redacted, plus the rehydration map and
 /// category counts. Shared by both [`ingest_document`] and the wasm32
@@ -189,27 +213,45 @@ async fn redact_request(
     let mut rehydration_map = outcome.rehydration_map;
     let mut category_counts = outcome.category_counts;
 
-    // Redact optional string fields (regex only, no NER)
-    let title = request
-        .title
-        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(s));
+    // title/source_uri/external_id are single narrative strings — exactly the
+    // shape a person's name (NER, not regex-detectable) is likely to appear
+    // in (e.g. a filename-derived title "Report for Alice Smith"). Route them
+    // through the same NER+regex path as full_text, sharing the one counter.
+    let title = match request.title {
+        Some(s) => Some(
+            redact_secondary_string(&s, RedactionStrategy::TokenReplace, ner, &mut counter, &mut rehydration_map, &mut category_counts)
+                .await?,
+        ),
+        None => None,
+    };
+    let source_uri = match request.source_uri {
+        Some(s) => Some(
+            redact_secondary_string(&s, RedactionStrategy::TokenReplace, ner, &mut counter, &mut rehydration_map, &mut category_counts)
+                .await?,
+        ),
+        None => None,
+    };
+    let external_id = match request.external_id {
+        Some(s) => Some(
+            redact_secondary_string(&s, RedactionStrategy::TokenReplace, ner, &mut counter, &mut rehydration_map, &mut category_counts)
+                .await?,
+        ),
+        None => None,
+    };
 
-    let source_uri = request
-        .source_uri
-        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(s));
-
-    let external_id = request
-        .external_id
-        .map(|s| redact_string_sync(&s, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(s));
-
-    // Redact keywords (Vec<String>)
+    // keywords/entities/labels/metadata are structured (a list of short terms,
+    // or arbitrary caller-supplied JSON) rather than narrative text — running
+    // NER per leaf would mean one inference call per array element/JSON leaf,
+    // which doesn't scale with metadata size and rarely fires (structured
+    // fields are much less likely to carry an unlabeled name than free text).
+    // Deliberately regex-only; revisit if a real workload needs NER coverage
+    // here too.
     let mut keywords = Vec::new();
     for kw in request.keywords {
         let redacted = redact_string_sync(&kw, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(kw);
         keywords.push(redacted);
     }
 
-    // Redact JSON fields recursively
     let mut entities = request.entities;
     redact_json_value(&mut entities, &mut counter, &mut rehydration_map, &mut category_counts).unwrap_or(());
 
