@@ -916,6 +916,13 @@ features = [
   "auto-rotate-types",
   "stopwords",
 ]
+exclude_types = [
+  # CandleBackend::from_local/from_bytes take &Path/Option<&Path>/&[u8] params
+  # that the frb-generated dart shim passes as raw String/Option<String>
+  # without converting to Path — same gap as the C-ABI (xberg-ffi) backend;
+  # works fine for python, which converts correctly.
+  "CandleBackend",
+]
 exclude_functions = [
   "calculate_quality_score",
   "count_tokens",

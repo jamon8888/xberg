@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
@@ -12,8285 +13,3942 @@ import 'frb_generated.dart';
 import 'lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
-    required super.handler,
-    required super.wire,
-    required super.generalizedFrbRustBinding,
-    required super.portManager,
-  });
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcDocumentExtractorPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcEmbeddingBackendPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcOcrBackendPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcPostProcessorPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcRendererPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcRerankerBackendPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcValidatorPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_DocumentExtractorDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_EmbeddingBackendDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_MetaSchemaPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_OcrBackendDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_PostProcessorDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_RegistryPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_RendererDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_RerankerBackendDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_TokenCounterPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ValidatorDartImplPtr => wire
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl;
-
-  @protected
-  AnyhowException dco_decode_AnyhowException(dynamic raw);
-
-  @protected
-  ArcDocumentExtractor
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcEmbeddingBackend
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcOcrBackend
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcPostProcessor
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcRenderer
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcRerankerBackend
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcValidator
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  DocumentExtractorDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  EmbeddingBackendDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  MetaSchema
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    dynamic raw,
-  );
-
-  @protected
-  OcrBackendDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  PostProcessorDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  Registry
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    dynamic raw,
-  );
-
-  @protected
-  RendererDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  RerankerBackendDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  TokenCounter
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    dynamic raw,
-  );
-
-  @protected
-  ValidatorDartImpl
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  DocumentExtractorDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  EmbeddingBackendDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  OcrBackendDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  PostProcessorDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  Registry
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    dynamic raw,
-  );
-
-  @protected
-  RendererDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  RerankerBackendDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  ValidatorDartImpl
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  DocumentExtractorDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  EmbeddingBackendDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  MetaSchema
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    dynamic raw,
-  );
-
-  @protected
-  OcrBackendDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  PostProcessorDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  Registry
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    dynamic raw,
-  );
-
-  @protected
-  RendererDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  RerankerBackendDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  ValidatorDartImpl
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<bool> Function(String)
-  dco_decode_DartFn_Inputs_String_Output_bool_AnyhowException(dynamic raw);
-
-  @protected
-  FutureOr<bool> Function(String, String)
-  dco_decode_DartFn_Inputs_String_String_Output_bool_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<Float64List> Function(String, List<String>)
-  dco_decode_DartFn_Inputs_String_list_String_Output_list_prim_f_64_strict_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<ExtractedDocument> Function(String, OcrConfig)
-  dco_decode_DartFn_Inputs_String_ocr_config_Output_extracted_document_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<bool> Function()
-  dco_decode_DartFn_Inputs__Output_bool_AnyhowException(dynamic raw);
-
-  @protected
-  FutureOr<PlatformInt64> Function()
-  dco_decode_DartFn_Inputs__Output_i_64_AnyhowException(dynamic raw);
-
-  @protected
-  FutureOr<List<String>> Function()
-  dco_decode_DartFn_Inputs__Output_list_String_AnyhowException(dynamic raw);
-
-  @protected
-  FutureOr<OcrBackendType> Function()
-  dco_decode_DartFn_Inputs__Output_ocr_backend_type_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<ProcessingStage> Function()
-  dco_decode_DartFn_Inputs__Output_processing_stage_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<ExtractedDocument> Function(ExtractInput, ExtractionConfig)
-  dco_decode_DartFn_Inputs_extract_input_extraction_config_Output_extracted_document_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<String> Function(ExtractedDocument)
-  dco_decode_DartFn_Inputs_extracted_document_Output_String_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<PlatformInt64> Function(ExtractedDocument)
-  dco_decode_DartFn_Inputs_extracted_document_Output_i_64_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<bool> Function(ExtractedDocument, ExtractionConfig)
-  dco_decode_DartFn_Inputs_extracted_document_extraction_config_Output_bool_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<void> Function(ExtractedDocument, ExtractionConfig)
-  dco_decode_DartFn_Inputs_extracted_document_extraction_config_Output_unit_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<List<Float64List>> Function(List<String>)
-  dco_decode_DartFn_Inputs_list_String_Output_list_list_prim_f_64_strict_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  FutureOr<ExtractedDocument> Function(Uint8List, OcrConfig)
-  dco_decode_DartFn_Inputs_list_prim_u_8_strict_ocr_config_Output_extracted_document_AnyhowException(
-    dynamic raw,
-  );
-
-  @protected
-  Object dco_decode_DartOpaque(dynamic raw);
-
-  @protected
-  Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
-
-  @protected
-  Map<String, PlatformInt64> dco_decode_Map_String_i_64_None(dynamic raw);
-
-  @protected
-  Map<String, List<String>> dco_decode_Map_String_list_String_None(dynamic raw);
-
-  @protected
-  Map<String, Uint8List> dco_decode_Map_String_list_prim_u_8_strict_None(
-    dynamic raw,
-  );
-
-  @protected
-  ArcDocumentExtractor
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcEmbeddingBackend
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcOcrBackend
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcPostProcessor
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcRenderer
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcRerankerBackend
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  ArcValidator
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    dynamic raw,
-  );
-
-  @protected
-  DocumentExtractorDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  EmbeddingBackendDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  MetaSchema
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    dynamic raw,
-  );
-
-  @protected
-  OcrBackendDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  PostProcessorDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  Registry
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    dynamic raw,
-  );
-
-  @protected
-  RendererDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  RerankerBackendDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  TokenCounter
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    dynamic raw,
-  );
-
-  @protected
-  ValidatorDartImpl
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    dynamic raw,
-  );
-
-  @protected
-  String dco_decode_String(dynamic raw);
-
-  @protected
-  AccelerationConfig dco_decode_acceleration_config(dynamic raw);
-
-  @protected
-  AnnotationKind dco_decode_annotation_kind(dynamic raw);
-
-  @protected
-  ArchiveEntry dco_decode_archive_entry(dynamic raw);
-
-  @protected
-  ArchiveMetadata dco_decode_archive_metadata(dynamic raw);
-
-  @protected
-  AssetCategory dco_decode_asset_category(dynamic raw);
-
-  @protected
-  AudioMetadata dco_decode_audio_metadata(dynamic raw);
-
-  @protected
-  AuthConfig dco_decode_auth_config(dynamic raw);
-
-  @protected
-  BBox dco_decode_b_box(dynamic raw);
-
-  @protected
-  BibtexMetadata dco_decode_bibtex_metadata(dynamic raw);
-
-  @protected
-  BlockType dco_decode_block_type(dynamic raw);
-
-  @protected
-  bool dco_decode_bool(dynamic raw);
-
-  @protected
-  BoundaryReason dco_decode_boundary_reason(dynamic raw);
-
-  @protected
-  BoundingBox dco_decode_bounding_box(dynamic raw);
-
-  @protected
-  AccelerationConfig dco_decode_box_autoadd_acceleration_config(dynamic raw);
-
-  @protected
-  ArchiveMetadata dco_decode_box_autoadd_archive_metadata(dynamic raw);
-
-  @protected
-  AudioMetadata dco_decode_box_autoadd_audio_metadata(dynamic raw);
-
-  @protected
-  AuthConfig dco_decode_box_autoadd_auth_config(dynamic raw);
-
-  @protected
-  BibtexMetadata dco_decode_box_autoadd_bibtex_metadata(dynamic raw);
-
-  @protected
-  bool dco_decode_box_autoadd_bool(dynamic raw);
-
-  @protected
-  BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
-
-  @protected
-  CaptioningConfig dco_decode_box_autoadd_captioning_config(dynamic raw);
-
-  @protected
-  ChunkingConfig dco_decode_box_autoadd_chunking_config(dynamic raw);
-
-  @protected
-  CitationMetadata dco_decode_box_autoadd_citation_metadata(dynamic raw);
-
-  @protected
-  ContentFilterConfig dco_decode_box_autoadd_content_filter_config(dynamic raw);
-
-  @protected
-  CoreProperties dco_decode_box_autoadd_core_properties(dynamic raw);
-
-  @protected
-  CsvMetadata dco_decode_box_autoadd_csv_metadata(dynamic raw);
-
-  @protected
-  DbfMetadata dco_decode_box_autoadd_dbf_metadata(dynamic raw);
-
-  @protected
-  DjotContent dco_decode_box_autoadd_djot_content(dynamic raw);
-
-  @protected
-  DocumentStructure dco_decode_box_autoadd_document_structure(dynamic raw);
-
-  @protected
-  DocumentSummary dco_decode_box_autoadd_document_summary(dynamic raw);
-
-  @protected
-  DocxAppProperties dco_decode_box_autoadd_docx_app_properties(dynamic raw);
-
-  @protected
-  DocxMetadata dco_decode_box_autoadd_docx_metadata(dynamic raw);
-
-  @protected
-  EmailConfig dco_decode_box_autoadd_email_config(dynamic raw);
-
-  @protected
-  EmailMetadata dco_decode_box_autoadd_email_metadata(dynamic raw);
-
-  @protected
-  EmbeddingConfig dco_decode_box_autoadd_embedding_config(dynamic raw);
-
-  @protected
-  EpubMetadata dco_decode_box_autoadd_epub_metadata(dynamic raw);
-
-  @protected
-  ErrorMetadata dco_decode_box_autoadd_error_metadata(dynamic raw);
-
-  @protected
-  ExcelMetadata dco_decode_box_autoadd_excel_metadata(dynamic raw);
-
-  @protected
-  ExtractInput dco_decode_box_autoadd_extract_input(dynamic raw);
-
-  @protected
-  ExtractedDocument dco_decode_box_autoadd_extracted_document(dynamic raw);
-
-  @protected
-  ExtractionConfidence dco_decode_box_autoadd_extraction_confidence(
-    dynamic raw,
-  );
-
-  @protected
-  ExtractionConfig dco_decode_box_autoadd_extraction_config(dynamic raw);
-
-  @protected
-  ExtractionMethod dco_decode_box_autoadd_extraction_method(dynamic raw);
-
-  @protected
-  double dco_decode_box_autoadd_f_64(dynamic raw);
-
-  @protected
-  FictionBookMetadata dco_decode_box_autoadd_fiction_book_metadata(dynamic raw);
-
-  @protected
-  FileExtractionConfig dco_decode_box_autoadd_file_extraction_config(
-    dynamic raw,
-  );
-
-  @protected
-  FormatMetadata dco_decode_box_autoadd_format_metadata(dynamic raw);
-
-  @protected
-  HeadingContext dco_decode_box_autoadd_heading_context(dynamic raw);
-
-  @protected
-  HierarchyConfig dco_decode_box_autoadd_hierarchy_config(dynamic raw);
-
-  @protected
-  HtmlMetadata dco_decode_box_autoadd_html_metadata(dynamic raw);
-
-  @protected
-  HtmlOutputConfig dco_decode_box_autoadd_html_output_config(dynamic raw);
-
-  @protected
-  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
-
-  @protected
-  ImageExtractionConfig dco_decode_box_autoadd_image_extraction_config(
-    dynamic raw,
-  );
-
-  @protected
-  ImageKind dco_decode_box_autoadd_image_kind(dynamic raw);
-
-  @protected
-  ImageMetadata dco_decode_box_autoadd_image_metadata(dynamic raw);
-
-  @protected
-  ImagePreprocessingConfig dco_decode_box_autoadd_image_preprocessing_config(
-    dynamic raw,
-  );
-
-  @protected
-  ImagePreprocessingMetadata
-  dco_decode_box_autoadd_image_preprocessing_metadata(dynamic raw);
-
-  @protected
-  JatsMetadata dco_decode_box_autoadd_jats_metadata(dynamic raw);
-
-  @protected
-  KeywordConfig dco_decode_box_autoadd_keyword_config(dynamic raw);
-
-  @protected
-  LanguageDetectionConfig dco_decode_box_autoadd_language_detection_config(
-    dynamic raw,
-  );
-
-  @protected
-  LayoutDetectionConfig dco_decode_box_autoadd_layout_detection_config(
-    dynamic raw,
-  );
-
-  @protected
-  LlmConfig dco_decode_box_autoadd_llm_config(dynamic raw);
-
-  @protected
-  NerConfig dco_decode_box_autoadd_ner_config(dynamic raw);
-
-  @protected
-  OcrConfig dco_decode_box_autoadd_ocr_config(dynamic raw);
-
-  @protected
-  OcrElementConfig dco_decode_box_autoadd_ocr_element_config(dynamic raw);
-
-  @protected
-  OcrMetadata dco_decode_box_autoadd_ocr_metadata(dynamic raw);
-
-  @protected
-  OcrPipelineConfig dco_decode_box_autoadd_ocr_pipeline_config(dynamic raw);
-
-  @protected
-  OcrQualityThresholds dco_decode_box_autoadd_ocr_quality_thresholds(
-    dynamic raw,
-  );
-
-  @protected
-  OcrRotation dco_decode_box_autoadd_ocr_rotation(dynamic raw);
-
-  @protected
-  OcrTableBoundingBox dco_decode_box_autoadd_ocr_table_bounding_box(
-    dynamic raw,
-  );
-
-  @protected
-  OutputFormat dco_decode_box_autoadd_output_format(dynamic raw);
-
-  @protected
-  PageClassificationConfig dco_decode_box_autoadd_page_classification_config(
-    dynamic raw,
-  );
-
-  @protected
-  PageConfig dco_decode_box_autoadd_page_config(dynamic raw);
-
-  @protected
-  PageHierarchy dco_decode_box_autoadd_page_hierarchy(dynamic raw);
-
-  @protected
-  PageStructure dco_decode_box_autoadd_page_structure(dynamic raw);
-
-  @protected
-  PdfConfig dco_decode_box_autoadd_pdf_config(dynamic raw);
-
-  @protected
-  PdfMetadata dco_decode_box_autoadd_pdf_metadata(dynamic raw);
-
-  @protected
-  PostProcessorConfig dco_decode_box_autoadd_post_processor_config(dynamic raw);
-
-  @protected
-  PptxMetadata dco_decode_box_autoadd_pptx_metadata(dynamic raw);
-
-  @protected
-  Preset dco_decode_box_autoadd_preset(dynamic raw);
-
-  @protected
-  PresetSample dco_decode_box_autoadd_preset_sample(dynamic raw);
-
-  @protected
-  ProxyConfig dco_decode_box_autoadd_proxy_config(dynamic raw);
-
-  @protected
-  PstMetadata dco_decode_box_autoadd_pst_metadata(dynamic raw);
-
-  @protected
-  QrBoundingBox dco_decode_box_autoadd_qr_bounding_box(dynamic raw);
-
-  @protected
-  RakeParams dco_decode_box_autoadd_rake_params(dynamic raw);
-
-  @protected
-  RedactionConfig dco_decode_box_autoadd_redaction_config(dynamic raw);
-
-  @protected
-  RedactionReport dco_decode_box_autoadd_redaction_report(dynamic raw);
-
-  @protected
-  ResultFormat dco_decode_box_autoadd_result_format(dynamic raw);
-
-  @protected
-  RevisionAnchor dco_decode_box_autoadd_revision_anchor(dynamic raw);
-
-  @protected
-  SecurityLimits dco_decode_box_autoadd_security_limits(dynamic raw);
-
-  @protected
-  StructuredExtractionConfig
-  dco_decode_box_autoadd_structured_extraction_config(dynamic raw);
-
-  @protected
-  SummarizationConfig dco_decode_box_autoadd_summarization_config(dynamic raw);
-
-  @protected
-  TableGrid dco_decode_box_autoadd_table_grid(dynamic raw);
-
-  @protected
-  TesseractConfig dco_decode_box_autoadd_tesseract_config(dynamic raw);
-
-  @protected
-  TextDirection dco_decode_box_autoadd_text_direction(dynamic raw);
-
-  @protected
-  TextMetadata dco_decode_box_autoadd_text_metadata(dynamic raw);
-
-  @protected
-  TokenReductionOptions dco_decode_box_autoadd_token_reduction_options(
-    dynamic raw,
-  );
-
-  @protected
-  TranscriptionConfig dco_decode_box_autoadd_transcription_config(dynamic raw);
-
-  @protected
-  Translation dco_decode_box_autoadd_translation(dynamic raw);
-
-  @protected
-  TranslationConfig dco_decode_box_autoadd_translation_config(dynamic raw);
-
-  @protected
-  TreeSitterConfig dco_decode_box_autoadd_tree_sitter_config(dynamic raw);
-
-  @protected
-  UrlExtractionConfig dco_decode_box_autoadd_url_extraction_config(dynamic raw);
 
-  @protected
-  UserChunkConfig dco_decode_box_autoadd_user_chunk_config(dynamic raw);
 
-  @protected
-  XmlMetadata dco_decode_box_autoadd_xml_metadata(dynamic raw);
 
-  @protected
-  YakeParams dco_decode_box_autoadd_yake_params(dynamic raw);
+                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+                  RustLibApiImplPlatform({
+                    required super.handler,
+                    required super.wire,
+                    required super.generalizedFrbRustBinding,
+                    required super.portManager,
+                  });
 
-  @protected
-  YearRange dco_decode_box_autoadd_year_range(dynamic raw);
+                  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcDocumentExtractorPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync;
 
-  @protected
-  BrowserBackend dco_decode_browser_backend(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcEmbeddingBackendPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync;
 
-  @protected
-  BrowserConfig dco_decode_browser_config(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcOcrBackendPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync;
 
-  @protected
-  BrowserMode dco_decode_browser_mode(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcPostProcessorPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync;
 
-  @protected
-  BrowserWait dco_decode_browser_wait(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcRendererPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync;
 
-  @protected
-  CacheStats dco_decode_cache_stats(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcRerankerBackendPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync;
 
-  @protected
-  CallMode dco_decode_call_mode(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ArcValidatorPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync;
 
-  @protected
-  CaptioningConfig dco_decode_captioning_config(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_CandleBackendPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend;
 
-  @protected
-  CellChange dco_decode_cell_change(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_DocumentExtractorDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl;
 
-  @protected
-  Chunk dco_decode_chunk(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_EmbeddingBackendDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl;
 
-  @protected
-  ChunkInfo dco_decode_chunk_info(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_MetaSchemaPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema;
 
-  @protected
-  ChunkMetadata dco_decode_chunk_metadata(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_OcrBackendDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl;
 
-  @protected
-  ChunkSizing dco_decode_chunk_sizing(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PostProcessorDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl;
 
-  @protected
-  ChunkType dco_decode_chunk_type(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RegistryPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry;
 
-  @protected
-  ChunkerType dco_decode_chunker_type(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RehydrationMapPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap;
 
-  @protected
-  ChunkingConfig dco_decode_chunking_config(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RendererDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl;
 
-  @protected
-  ChunkingReason dco_decode_chunking_reason(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RerankerBackendDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl;
 
-  @protected
-  Citation dco_decode_citation(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_TokenCounterPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter;
 
-  @protected
-  CitationMetadata dco_decode_citation_metadata(dynamic raw);
+CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ValidatorDartImplPtr => wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl;
 
-  @protected
-  ClassificationLabel dco_decode_classification_label(dynamic raw);
 
-  @protected
-  CodeContentMode dco_decode_code_content_mode(dynamic raw);
 
-  @protected
-  ContentConfig dco_decode_content_config(dynamic raw);
+                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
 
-  @protected
-  ContentFilterConfig dco_decode_content_filter_config(dynamic raw);
+@protected ArcDocumentExtractor dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(dynamic raw);
 
-  @protected
-  ContentLayer dco_decode_content_layer(dynamic raw);
+@protected ArcEmbeddingBackend dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(dynamic raw);
 
-  @protected
-  ContributorRole dco_decode_contributor_role(dynamic raw);
+@protected ArcOcrBackend dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(dynamic raw);
 
-  @protected
-  CoreProperties dco_decode_core_properties(dynamic raw);
+@protected ArcPostProcessor dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(dynamic raw);
 
-  @protected
-  CrawlConfig dco_decode_crawl_config(dynamic raw);
+@protected ArcRenderer dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(dynamic raw);
 
-  @protected
-  CsvMetadata dco_decode_csv_metadata(dynamic raw);
+@protected ArcRerankerBackend dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(dynamic raw);
 
-  @protected
-  DbfFieldInfo dco_decode_dbf_field_info(dynamic raw);
+@protected ArcValidator dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(dynamic raw);
 
-  @protected
-  DbfMetadata dco_decode_dbf_metadata(dynamic raw);
+@protected CandleBackend dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(dynamic raw);
 
-  @protected
-  DetectResponse dco_decode_detect_response(dynamic raw);
+@protected DocumentExtractorDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(dynamic raw);
 
-  @protected
-  DetectionResult dco_decode_detection_result(dynamic raw);
+@protected EmbeddingBackendDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(dynamic raw);
 
-  @protected
-  DiffHunk dco_decode_diff_hunk(dynamic raw);
+@protected MetaSchema dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(dynamic raw);
 
-  @protected
-  DiffLine dco_decode_diff_line(dynamic raw);
+@protected OcrBackendDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(dynamic raw);
 
-  @protected
-  DiffOptions dco_decode_diff_options(dynamic raw);
+@protected PostProcessorDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(dynamic raw);
 
-  @protected
-  DjotContent dco_decode_djot_content(dynamic raw);
+@protected Registry dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(dynamic raw);
 
-  @protected
-  DjotImage dco_decode_djot_image(dynamic raw);
+@protected RehydrationMap dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(dynamic raw);
 
-  @protected
-  DjotLink dco_decode_djot_link(dynamic raw);
+@protected RendererDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(dynamic raw);
 
-  @protected
-  DocumentBoundary dco_decode_document_boundary(dynamic raw);
+@protected RerankerBackendDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(dynamic raw);
 
-  @protected
-  DocumentMetadata dco_decode_document_metadata(dynamic raw);
+@protected TokenCounter dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(dynamic raw);
 
-  @protected
-  DocumentNode dco_decode_document_node(dynamic raw);
+@protected ValidatorDartImpl dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(dynamic raw);
 
-  @protected
-  DocumentRelationship dco_decode_document_relationship(dynamic raw);
+@protected DocumentExtractorDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(dynamic raw);
 
-  @protected
-  DocumentRevision dco_decode_document_revision(dynamic raw);
+@protected EmbeddingBackendDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(dynamic raw);
 
-  @protected
-  DocumentStructure dco_decode_document_structure(dynamic raw);
+@protected OcrBackendDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(dynamic raw);
 
-  @protected
-  DocumentSummary dco_decode_document_summary(dynamic raw);
+@protected PostProcessorDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(dynamic raw);
 
-  @protected
-  DocxAppProperties dco_decode_docx_app_properties(dynamic raw);
+@protected Registry dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(dynamic raw);
 
-  @protected
-  DocxMetadata dco_decode_docx_metadata(dynamic raw);
+@protected RendererDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(dynamic raw);
 
-  @protected
-  Element dco_decode_element(dynamic raw);
+@protected RerankerBackendDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(dynamic raw);
 
-  @protected
-  ElementMetadata dco_decode_element_metadata(dynamic raw);
+@protected ValidatorDartImpl dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(dynamic raw);
 
-  @protected
-  ElementType dco_decode_element_type(dynamic raw);
+@protected CandleBackend dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(dynamic raw);
 
-  @protected
-  EmailAttachment dco_decode_email_attachment(dynamic raw);
+@protected DocumentExtractorDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(dynamic raw);
 
-  @protected
-  EmailConfig dco_decode_email_config(dynamic raw);
+@protected EmbeddingBackendDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(dynamic raw);
 
-  @protected
-  EmailExtractionResult dco_decode_email_extraction_result(dynamic raw);
+@protected MetaSchema dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(dynamic raw);
 
-  @protected
-  EmailMetadata dco_decode_email_metadata(dynamic raw);
+@protected OcrBackendDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(dynamic raw);
 
-  @protected
-  EmbeddedChanges dco_decode_embedded_changes(dynamic raw);
+@protected PostProcessorDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(dynamic raw);
 
-  @protected
-  EmbeddedDiff dco_decode_embedded_diff(dynamic raw);
+@protected Registry dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(dynamic raw);
 
-  @protected
-  EmbeddedFile dco_decode_embedded_file(dynamic raw);
+@protected RendererDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(dynamic raw);
 
-  @protected
-  EmbeddingConfig dco_decode_embedding_config(dynamic raw);
+@protected RerankerBackendDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(dynamic raw);
 
-  @protected
-  EmbeddingModelType dco_decode_embedding_model_type(dynamic raw);
+@protected ValidatorDartImpl dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(dynamic raw);
 
-  @protected
-  Entity dco_decode_entity(dynamic raw);
+@protected FutureOr<bool> Function(String) dco_decode_DartFn_Inputs_String_Output_bool_AnyhowException(dynamic raw);
 
-  @protected
-  EntityCategory dco_decode_entity_category(dynamic raw);
+@protected FutureOr<bool> Function(String, String) dco_decode_DartFn_Inputs_String_String_Output_bool_AnyhowException(dynamic raw);
 
-  @protected
-  EpubMetadata dco_decode_epub_metadata(dynamic raw);
+@protected FutureOr<Float64List> Function(String, List<String>) dco_decode_DartFn_Inputs_String_list_String_Output_list_prim_f_64_strict_AnyhowException(dynamic raw);
 
-  @protected
-  ErrorMetadata dco_decode_error_metadata(dynamic raw);
+@protected FutureOr<ExtractedDocument> Function(String, OcrConfig) dco_decode_DartFn_Inputs_String_ocr_config_Output_extracted_document_AnyhowException(dynamic raw);
 
-  @protected
-  ExcelMetadata dco_decode_excel_metadata(dynamic raw);
+@protected FutureOr<bool> Function() dco_decode_DartFn_Inputs__Output_bool_AnyhowException(dynamic raw);
 
-  @protected
-  ExcelSheet dco_decode_excel_sheet(dynamic raw);
+@protected FutureOr<PlatformInt64> Function() dco_decode_DartFn_Inputs__Output_i_64_AnyhowException(dynamic raw);
 
-  @protected
-  ExcelWorkbook dco_decode_excel_workbook(dynamic raw);
+@protected FutureOr<List<String>> Function() dco_decode_DartFn_Inputs__Output_list_String_AnyhowException(dynamic raw);
 
-  @protected
-  ExecutionProviderType dco_decode_execution_provider_type(dynamic raw);
+@protected FutureOr<OcrBackendType> Function() dco_decode_DartFn_Inputs__Output_ocr_backend_type_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractInput dco_decode_extract_input(dynamic raw);
+@protected FutureOr<ProcessingStage> Function() dco_decode_DartFn_Inputs__Output_processing_stage_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractInputKind dco_decode_extract_input_kind(dynamic raw);
+@protected FutureOr<ExtractedDocument> Function(ExtractInput, ExtractionConfig) dco_decode_DartFn_Inputs_extract_input_extraction_config_Output_extracted_document_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractedDocument dco_decode_extracted_document(dynamic raw);
+@protected FutureOr<String> Function(ExtractedDocument) dco_decode_DartFn_Inputs_extracted_document_Output_String_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractedImage dco_decode_extracted_image(dynamic raw);
+@protected FutureOr<PlatformInt64> Function(ExtractedDocument) dco_decode_DartFn_Inputs_extracted_document_Output_i_64_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractedUri dco_decode_extracted_uri(dynamic raw);
+@protected FutureOr<bool> Function(ExtractedDocument, ExtractionConfig) dco_decode_DartFn_Inputs_extracted_document_extraction_config_Output_bool_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractionConfidence dco_decode_extraction_confidence(dynamic raw);
+@protected FutureOr<void> Function(ExtractedDocument, ExtractionConfig) dco_decode_DartFn_Inputs_extracted_document_extraction_config_Output_unit_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractionConfig dco_decode_extraction_config(dynamic raw);
+@protected FutureOr<List<Float64List>> Function(List<String>) dco_decode_DartFn_Inputs_list_String_Output_list_list_prim_f_64_strict_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractionDiff dco_decode_extraction_diff(dynamic raw);
+@protected FutureOr<ExtractedDocument> Function(Uint8List, OcrConfig) dco_decode_DartFn_Inputs_list_prim_u_8_strict_ocr_config_Output_extracted_document_AnyhowException(dynamic raw);
 
-  @protected
-  ExtractionErrorItem dco_decode_extraction_error_item(dynamic raw);
+@protected Object dco_decode_DartOpaque(dynamic raw);
 
-  @protected
-  ExtractionMethod dco_decode_extraction_method(dynamic raw);
+@protected Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
 
-  @protected
-  ExtractionResult dco_decode_extraction_result(dynamic raw);
+@protected Map<String, PlatformInt64> dco_decode_Map_String_i_64_None(dynamic raw);
 
-  @protected
-  ExtractionSummary dco_decode_extraction_summary(dynamic raw);
+@protected Map<String, List<String>> dco_decode_Map_String_list_String_None(dynamic raw);
 
-  @protected
-  double dco_decode_f_64(dynamic raw);
+@protected Map<String, Uint8List> dco_decode_Map_String_list_prim_u_8_strict_None(dynamic raw);
 
-  @protected
-  FictionBookMetadata dco_decode_fiction_book_metadata(dynamic raw);
+@protected ArcDocumentExtractor dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(dynamic raw);
 
-  @protected
-  FileExtractionConfig dco_decode_file_extraction_config(dynamic raw);
+@protected ArcEmbeddingBackend dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(dynamic raw);
 
-  @protected
-  Footnote dco_decode_footnote(dynamic raw);
+@protected ArcOcrBackend dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(dynamic raw);
 
-  @protected
-  FootnoteAnchor dco_decode_footnote_anchor(dynamic raw);
+@protected ArcPostProcessor dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(dynamic raw);
 
-  @protected
-  FootnoteConfig dco_decode_footnote_config(dynamic raw);
+@protected ArcRenderer dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(dynamic raw);
 
-  @protected
-  FootnoteDefinition dco_decode_footnote_definition(dynamic raw);
+@protected ArcRerankerBackend dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(dynamic raw);
 
-  @protected
-  FormFieldType dco_decode_form_field_type(dynamic raw);
+@protected ArcValidator dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(dynamic raw);
 
-  @protected
-  FormatMetadata dco_decode_format_metadata(dynamic raw);
+@protected CandleBackend dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(dynamic raw);
 
-  @protected
-  FormattedBlock dco_decode_formatted_block(dynamic raw);
+@protected DocumentExtractorDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(dynamic raw);
 
-  @protected
-  Formula dco_decode_formula(dynamic raw);
+@protected EmbeddingBackendDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(dynamic raw);
 
-  @protected
-  GridCell dco_decode_grid_cell(dynamic raw);
+@protected MetaSchema dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(dynamic raw);
 
-  @protected
-  HeaderMetadata dco_decode_header_metadata(dynamic raw);
+@protected OcrBackendDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(dynamic raw);
 
-  @protected
-  HeadingContext dco_decode_heading_context(dynamic raw);
+@protected PostProcessorDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(dynamic raw);
 
-  @protected
-  HeadingLevel dco_decode_heading_level(dynamic raw);
+@protected Registry dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(dynamic raw);
 
-  @protected
-  HeuristicsConfig dco_decode_heuristics_config(dynamic raw);
+@protected RehydrationMap dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(dynamic raw);
 
-  @protected
-  HeuristicsError dco_decode_heuristics_error(dynamic raw);
+@protected RendererDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(dynamic raw);
 
-  @protected
-  HierarchicalBlock dco_decode_hierarchical_block(dynamic raw);
+@protected RerankerBackendDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(dynamic raw);
 
-  @protected
-  HierarchyConfig dco_decode_hierarchy_config(dynamic raw);
+@protected TokenCounter dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(dynamic raw);
 
-  @protected
-  HtmlMetadata dco_decode_html_metadata(dynamic raw);
+@protected ValidatorDartImpl dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(dynamic raw);
 
-  @protected
-  HtmlOutputConfig dco_decode_html_output_config(dynamic raw);
+@protected String dco_decode_String(dynamic raw);
 
-  @protected
-  HtmlTheme dco_decode_html_theme(dynamic raw);
+@protected AccelerationConfig dco_decode_acceleration_config(dynamic raw);
 
-  @protected
-  int dco_decode_i_32(dynamic raw);
+@protected AnnotationKind dco_decode_annotation_kind(dynamic raw);
 
-  @protected
-  PlatformInt64 dco_decode_i_64(dynamic raw);
+@protected ArchiveEntry dco_decode_archive_entry(dynamic raw);
 
-  @protected
-  ImageExtractionConfig dco_decode_image_extraction_config(dynamic raw);
+@protected ArchiveMetadata dco_decode_archive_metadata(dynamic raw);
 
-  @protected
-  ImageKind dco_decode_image_kind(dynamic raw);
+@protected AssetCategory dco_decode_asset_category(dynamic raw);
 
-  @protected
-  ImageMetadata dco_decode_image_metadata(dynamic raw);
+@protected AudioMetadata dco_decode_audio_metadata(dynamic raw);
 
-  @protected
-  ImageMetadataType dco_decode_image_metadata_type(dynamic raw);
+@protected AuthConfig dco_decode_auth_config(dynamic raw);
 
-  @protected
-  ImageOutputFormat dco_decode_image_output_format(dynamic raw);
+@protected BBox dco_decode_b_box(dynamic raw);
 
-  @protected
-  ImagePreprocessingConfig dco_decode_image_preprocessing_config(dynamic raw);
+@protected BibtexMetadata dco_decode_bibtex_metadata(dynamic raw);
 
-  @protected
-  ImagePreprocessingMetadata dco_decode_image_preprocessing_metadata(
-    dynamic raw,
-  );
+@protected BlockType dco_decode_block_type(dynamic raw);
 
-  @protected
-  ImageType dco_decode_image_type(dynamic raw);
+@protected bool dco_decode_bool(dynamic raw);
 
-  @protected
-  InlineElement dco_decode_inline_element(dynamic raw);
+@protected BoundaryReason dco_decode_boundary_reason(dynamic raw);
 
-  @protected
-  InlineType dco_decode_inline_type(dynamic raw);
+@protected BoundingBox dco_decode_bounding_box(dynamic raw);
 
-  @protected
-  PlatformInt64 dco_decode_isize(dynamic raw);
+@protected AccelerationConfig dco_decode_box_autoadd_acceleration_config(dynamic raw);
 
-  @protected
-  JatsMetadata dco_decode_jats_metadata(dynamic raw);
+@protected ArchiveMetadata dco_decode_box_autoadd_archive_metadata(dynamic raw);
 
-  @protected
-  Keyword dco_decode_keyword(dynamic raw);
+@protected AudioMetadata dco_decode_box_autoadd_audio_metadata(dynamic raw);
 
-  @protected
-  KeywordAlgorithm dco_decode_keyword_algorithm(dynamic raw);
+@protected AuthConfig dco_decode_box_autoadd_auth_config(dynamic raw);
 
-  @protected
-  KeywordConfig dco_decode_keyword_config(dynamic raw);
+@protected BibtexMetadata dco_decode_box_autoadd_bibtex_metadata(dynamic raw);
 
-  @protected
-  LanguageDetectionConfig dco_decode_language_detection_config(dynamic raw);
+@protected bool dco_decode_box_autoadd_bool(dynamic raw);
 
-  @protected
-  LayoutClass dco_decode_layout_class(dynamic raw);
+@protected BoundingBox dco_decode_box_autoadd_bounding_box(dynamic raw);
 
-  @protected
-  LayoutDetection dco_decode_layout_detection(dynamic raw);
+@protected CaptioningConfig dco_decode_box_autoadd_captioning_config(dynamic raw);
 
-  @protected
-  LayoutDetectionConfig dco_decode_layout_detection_config(dynamic raw);
+@protected ChunkingConfig dco_decode_box_autoadd_chunking_config(dynamic raw);
 
-  @protected
-  LayoutRegion dco_decode_layout_region(dynamic raw);
+@protected CitationMetadata dco_decode_box_autoadd_citation_metadata(dynamic raw);
 
-  @protected
-  LinkMetadata dco_decode_link_metadata(dynamic raw);
+@protected ContentFilterConfig dco_decode_box_autoadd_content_filter_config(dynamic raw);
 
-  @protected
-  LinkType dco_decode_link_type(dynamic raw);
+@protected CoreProperties dco_decode_box_autoadd_core_properties(dynamic raw);
 
-  @protected
-  List<String> dco_decode_list_String(dynamic raw);
+@protected CsvMetadata dco_decode_box_autoadd_csv_metadata(dynamic raw);
 
-  @protected
-  List<ArchiveEntry> dco_decode_list_archive_entry(dynamic raw);
+@protected CustomGlinerSource dco_decode_box_autoadd_custom_gliner_source(dynamic raw);
 
-  @protected
-  List<AssetCategory> dco_decode_list_asset_category(dynamic raw);
+@protected DbfMetadata dco_decode_box_autoadd_dbf_metadata(dynamic raw);
 
-  @protected
-  List<CellChange> dco_decode_list_cell_change(dynamic raw);
+@protected DjotContent dco_decode_box_autoadd_djot_content(dynamic raw);
 
-  @protected
-  List<Chunk> dco_decode_list_chunk(dynamic raw);
+@protected DocumentStructure dco_decode_box_autoadd_document_structure(dynamic raw);
 
-  @protected
-  List<ClassificationLabel> dco_decode_list_classification_label(dynamic raw);
+@protected DocumentSummary dco_decode_box_autoadd_document_summary(dynamic raw);
 
-  @protected
-  List<ContributorRole> dco_decode_list_contributor_role(dynamic raw);
+@protected DocxAppProperties dco_decode_box_autoadd_docx_app_properties(dynamic raw);
 
-  @protected
-  List<DbfFieldInfo> dco_decode_list_dbf_field_info(dynamic raw);
+@protected DocxMetadata dco_decode_box_autoadd_docx_metadata(dynamic raw);
 
-  @protected
-  List<DiffHunk> dco_decode_list_diff_hunk(dynamic raw);
+@protected EmailConfig dco_decode_box_autoadd_email_config(dynamic raw);
 
-  @protected
-  List<DiffLine> dco_decode_list_diff_line(dynamic raw);
+@protected EmailMetadata dco_decode_box_autoadd_email_metadata(dynamic raw);
 
-  @protected
-  List<DjotImage> dco_decode_list_djot_image(dynamic raw);
+@protected EmbeddingConfig dco_decode_box_autoadd_embedding_config(dynamic raw);
 
-  @protected
-  List<DjotLink> dco_decode_list_djot_link(dynamic raw);
+@protected EpubMetadata dco_decode_box_autoadd_epub_metadata(dynamic raw);
 
-  @protected
-  List<DocumentNode> dco_decode_list_document_node(dynamic raw);
+@protected ErrorMetadata dco_decode_box_autoadd_error_metadata(dynamic raw);
 
-  @protected
-  List<DocumentRelationship> dco_decode_list_document_relationship(dynamic raw);
+@protected ExcelMetadata dco_decode_box_autoadd_excel_metadata(dynamic raw);
 
-  @protected
-  List<DocumentRevision> dco_decode_list_document_revision(dynamic raw);
+@protected ExtractInput dco_decode_box_autoadd_extract_input(dynamic raw);
 
-  @protected
-  List<Element> dco_decode_list_element(dynamic raw);
+@protected ExtractedDocument dco_decode_box_autoadd_extracted_document(dynamic raw);
 
-  @protected
-  List<EmailAttachment> dco_decode_list_email_attachment(dynamic raw);
+@protected ExtractionConfidence dco_decode_box_autoadd_extraction_confidence(dynamic raw);
 
-  @protected
-  List<EmbeddedDiff> dco_decode_list_embedded_diff(dynamic raw);
+@protected ExtractionConfig dco_decode_box_autoadd_extraction_config(dynamic raw);
 
-  @protected
-  List<Entity> dco_decode_list_entity(dynamic raw);
+@protected ExtractionMethod dco_decode_box_autoadd_extraction_method(dynamic raw);
 
-  @protected
-  List<EntityCategory> dco_decode_list_entity_category(dynamic raw);
+@protected double dco_decode_box_autoadd_f_64(dynamic raw);
 
-  @protected
-  List<ExcelSheet> dco_decode_list_excel_sheet(dynamic raw);
+@protected FictionBookMetadata dco_decode_box_autoadd_fiction_book_metadata(dynamic raw);
 
-  @protected
-  List<ExtractInput> dco_decode_list_extract_input(dynamic raw);
+@protected FileExtractionConfig dco_decode_box_autoadd_file_extraction_config(dynamic raw);
 
-  @protected
-  List<ExtractedDocument> dco_decode_list_extracted_document(dynamic raw);
+@protected FormatMetadata dco_decode_box_autoadd_format_metadata(dynamic raw);
 
-  @protected
-  List<ExtractedImage> dco_decode_list_extracted_image(dynamic raw);
+@protected GlinerArchitecture dco_decode_box_autoadd_gliner_architecture(dynamic raw);
 
-  @protected
-  List<ExtractedUri> dco_decode_list_extracted_uri(dynamic raw);
+@protected HeadingContext dco_decode_box_autoadd_heading_context(dynamic raw);
 
-  @protected
-  List<ExtractionErrorItem> dco_decode_list_extraction_error_item(dynamic raw);
+@protected HierarchyConfig dco_decode_box_autoadd_hierarchy_config(dynamic raw);
 
-  @protected
-  List<Footnote> dco_decode_list_footnote(dynamic raw);
+@protected HtmlMetadata dco_decode_box_autoadd_html_metadata(dynamic raw);
 
-  @protected
-  List<FormattedBlock> dco_decode_list_formatted_block(dynamic raw);
+@protected HtmlOutputConfig dco_decode_box_autoadd_html_output_config(dynamic raw);
 
-  @protected
-  List<Formula> dco_decode_list_formula(dynamic raw);
+@protected PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
 
-  @protected
-  List<GridCell> dco_decode_list_grid_cell(dynamic raw);
+@protected ImageExtractionConfig dco_decode_box_autoadd_image_extraction_config(dynamic raw);
 
-  @protected
-  List<HeaderMetadata> dco_decode_list_header_metadata(dynamic raw);
+@protected ImageKind dco_decode_box_autoadd_image_kind(dynamic raw);
 
-  @protected
-  List<HeadingLevel> dco_decode_list_heading_level(dynamic raw);
+@protected ImageMetadata dco_decode_box_autoadd_image_metadata(dynamic raw);
 
-  @protected
-  List<HierarchicalBlock> dco_decode_list_hierarchical_block(dynamic raw);
+@protected ImagePreprocessingConfig dco_decode_box_autoadd_image_preprocessing_config(dynamic raw);
 
-  @protected
-  List<ImageMetadataType> dco_decode_list_image_metadata_type(dynamic raw);
+@protected ImagePreprocessingMetadata dco_decode_box_autoadd_image_preprocessing_metadata(dynamic raw);
 
-  @protected
-  List<InlineElement> dco_decode_list_inline_element(dynamic raw);
+@protected JatsMetadata dco_decode_box_autoadd_jats_metadata(dynamic raw);
 
-  @protected
-  List<Keyword> dco_decode_list_keyword(dynamic raw);
+@protected KeywordConfig dco_decode_box_autoadd_keyword_config(dynamic raw);
 
-  @protected
-  List<LayoutDetection> dco_decode_list_layout_detection(dynamic raw);
+@protected LanguageDetectionConfig dco_decode_box_autoadd_language_detection_config(dynamic raw);
 
-  @protected
-  List<LayoutRegion> dco_decode_list_layout_region(dynamic raw);
+@protected LayoutDetectionConfig dco_decode_box_autoadd_layout_detection_config(dynamic raw);
 
-  @protected
-  List<LinkMetadata> dco_decode_list_link_metadata(dynamic raw);
+@protected LlmConfig dco_decode_box_autoadd_llm_config(dynamic raw);
 
-  @protected
-  List<List<String>> dco_decode_list_list_String(dynamic raw);
+@protected NerConfig dco_decode_box_autoadd_ner_config(dynamic raw);
 
-  @protected
-  List<Float64List> dco_decode_list_list_prim_f_64_strict(dynamic raw);
+@protected OcrConfig dco_decode_box_autoadd_ocr_config(dynamic raw);
 
-  @protected
-  List<LlmUsage> dco_decode_list_llm_usage(dynamic raw);
+@protected OcrElementConfig dco_decode_box_autoadd_ocr_element_config(dynamic raw);
 
-  @protected
-  List<OcrElement> dco_decode_list_ocr_element(dynamic raw);
+@protected OcrMetadata dco_decode_box_autoadd_ocr_metadata(dynamic raw);
 
-  @protected
-  List<OcrPipelineStage> dco_decode_list_ocr_pipeline_stage(dynamic raw);
+@protected OcrPipelineConfig dco_decode_box_autoadd_ocr_pipeline_config(dynamic raw);
 
-  @protected
-  List<OcrTable> dco_decode_list_ocr_table(dynamic raw);
+@protected OcrQualityThresholds dco_decode_box_autoadd_ocr_quality_thresholds(dynamic raw);
 
-  @protected
-  List<PageBoundary> dco_decode_list_page_boundary(dynamic raw);
+@protected OcrRotation dco_decode_box_autoadd_ocr_rotation(dynamic raw);
 
-  @protected
-  List<PageClassification> dco_decode_list_page_classification(dynamic raw);
+@protected OcrTableBoundingBox dco_decode_box_autoadd_ocr_table_bounding_box(dynamic raw);
 
-  @protected
-  List<PageContent> dco_decode_list_page_content(dynamic raw);
+@protected OutputFormat dco_decode_box_autoadd_output_format(dynamic raw);
 
-  @protected
-  List<PageInfo> dco_decode_list_page_info(dynamic raw);
+@protected PageClassificationConfig dco_decode_box_autoadd_page_classification_config(dynamic raw);
 
-  @protected
-  List<PageRange> dco_decode_list_page_range(dynamic raw);
+@protected PageConfig dco_decode_box_autoadd_page_config(dynamic raw);
 
-  @protected
-  List<PageSignals> dco_decode_list_page_signals(dynamic raw);
+@protected PageHierarchy dco_decode_box_autoadd_page_hierarchy(dynamic raw);
 
-  @protected
-  List<PdfAnnotation> dco_decode_list_pdf_annotation(dynamic raw);
+@protected PageStructure dco_decode_box_autoadd_page_structure(dynamic raw);
 
-  @protected
-  List<PdfFormField> dco_decode_list_pdf_form_field(dynamic raw);
+@protected PdfConfig dco_decode_box_autoadd_pdf_config(dynamic raw);
 
-  @protected
-  List<PiiCategory> dco_decode_list_pii_category(dynamic raw);
+@protected PdfMetadata dco_decode_box_autoadd_pdf_metadata(dynamic raw);
 
-  @protected
-  List<PresetSummary> dco_decode_list_preset_summary(dynamic raw);
+@protected PostProcessorConfig dco_decode_box_autoadd_post_processor_config(dynamic raw);
 
-  @protected
-  Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
+@protected PptxMetadata dco_decode_box_autoadd_pptx_metadata(dynamic raw);
 
-  @protected
-  Int64List dco_decode_list_prim_i_64_strict(dynamic raw);
+@protected Preset dco_decode_box_autoadd_preset(dynamic raw);
 
-  @protected
-  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
+@protected PresetSample dco_decode_box_autoadd_preset_sample(dynamic raw);
 
-  @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+@protected ProxyConfig dco_decode_box_autoadd_proxy_config(dynamic raw);
 
-  @protected
-  List<ProcessingWarning> dco_decode_list_processing_warning(dynamic raw);
+@protected PstMetadata dco_decode_box_autoadd_pst_metadata(dynamic raw);
 
-  @protected
-  List<QrCode> dco_decode_list_qr_code(dynamic raw);
+@protected QrBoundingBox dco_decode_box_autoadd_qr_bounding_box(dynamic raw);
 
-  @protected
-  List<(String, PlatformInt64)> dco_decode_list_record_string_i_64(dynamic raw);
+@protected RakeParams dco_decode_box_autoadd_rake_params(dynamic raw);
 
-  @protected
-  List<(String, Uint8List)> dco_decode_list_record_string_list_prim_u_8_strict(
-    dynamic raw,
-  );
+@protected RedactionConfig dco_decode_box_autoadd_redaction_config(dynamic raw);
 
-  @protected
-  List<(String, List<String>)> dco_decode_list_record_string_list_string(
-    dynamic raw,
-  );
+@protected RedactionReport dco_decode_box_autoadd_redaction_report(dynamic raw);
 
-  @protected
-  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+@protected ResultFormat dco_decode_box_autoadd_result_format(dynamic raw);
 
-  @protected
-  List<RedactionFinding> dco_decode_list_redaction_finding(dynamic raw);
+@protected RevisionAnchor dco_decode_box_autoadd_revision_anchor(dynamic raw);
 
-  @protected
-  List<RedactionPattern> dco_decode_list_redaction_pattern(dynamic raw);
+@protected SecurityLimits dco_decode_box_autoadd_security_limits(dynamic raw);
 
-  @protected
-  List<RedactionTerm> dco_decode_list_redaction_term(dynamic raw);
+@protected StructuredExtractionConfig dco_decode_box_autoadd_structured_extraction_config(dynamic raw);
 
-  @protected
-  List<StructuredData> dco_decode_list_structured_data(dynamic raw);
+@protected SummarizationConfig dco_decode_box_autoadd_summarization_config(dynamic raw);
 
-  @protected
-  List<SupportedFormat> dco_decode_list_supported_format(dynamic raw);
+@protected TableGrid dco_decode_box_autoadd_table_grid(dynamic raw);
 
-  @protected
-  List<Table> dco_decode_list_table(dynamic raw);
+@protected TesseractConfig dco_decode_box_autoadd_tesseract_config(dynamic raw);
 
-  @protected
-  List<TableDiff> dco_decode_list_table_diff(dynamic raw);
+@protected TextDirection dco_decode_box_autoadd_text_direction(dynamic raw);
 
-  @protected
-  List<TextAnnotation> dco_decode_list_text_annotation(dynamic raw);
+@protected TextMetadata dco_decode_box_autoadd_text_metadata(dynamic raw);
 
-  @protected
-  ListType dco_decode_list_type(dynamic raw);
+@protected TokenReductionOptions dco_decode_box_autoadd_token_reduction_options(dynamic raw);
 
-  @protected
-  LlmConfig dco_decode_llm_config(dynamic raw);
+@protected TranscriptionConfig dco_decode_box_autoadd_transcription_config(dynamic raw);
 
-  @protected
-  LlmUsage dco_decode_llm_usage(dynamic raw);
+@protected Translation dco_decode_box_autoadd_translation(dynamic raw);
 
-  @protected
-  LoadError dco_decode_load_error(dynamic raw);
+@protected TranslationConfig dco_decode_box_autoadd_translation_config(dynamic raw);
 
-  @protected
-  MergeMode dco_decode_merge_mode(dynamic raw);
+@protected TreeSitterConfig dco_decode_box_autoadd_tree_sitter_config(dynamic raw);
 
-  @protected
-  Metadata dco_decode_metadata(dynamic raw);
+@protected UrlExtractionConfig dco_decode_box_autoadd_url_extraction_config(dynamic raw);
 
-  @protected
-  ModelPaths dco_decode_model_paths(dynamic raw);
+@protected UserChunkConfig dco_decode_box_autoadd_user_chunk_config(dynamic raw);
 
-  @protected
-  MultidocInput dco_decode_multidoc_input(dynamic raw);
+@protected XmlMetadata dco_decode_box_autoadd_xml_metadata(dynamic raw);
 
-  @protected
-  MultidocThresholds dco_decode_multidoc_thresholds(dynamic raw);
+@protected YakeParams dco_decode_box_autoadd_yake_params(dynamic raw);
 
-  @protected
-  NerBackendKind dco_decode_ner_backend_kind(dynamic raw);
+@protected YearRange dco_decode_box_autoadd_year_range(dynamic raw);
 
-  @protected
-  NerConfig dco_decode_ner_config(dynamic raw);
+@protected BrowserBackend dco_decode_browser_backend(dynamic raw);
 
-  @protected
-  NoChunkingReason dco_decode_no_chunking_reason(dynamic raw);
+@protected BrowserConfig dco_decode_browser_config(dynamic raw);
 
-  @protected
-  NodeContent dco_decode_node_content(dynamic raw);
+@protected BrowserMode dco_decode_browser_mode(dynamic raw);
 
-  @protected
-  OcrBackendType dco_decode_ocr_backend_type(dynamic raw);
+@protected BrowserWait dco_decode_browser_wait(dynamic raw);
 
-  @protected
-  OcrBoundingGeometry dco_decode_ocr_bounding_geometry(dynamic raw);
+@protected CacheStats dco_decode_cache_stats(dynamic raw);
 
-  @protected
-  OcrConfidence dco_decode_ocr_confidence(dynamic raw);
+@protected CallMode dco_decode_call_mode(dynamic raw);
 
-  @protected
-  OcrConfig dco_decode_ocr_config(dynamic raw);
+@protected CaptioningConfig dco_decode_captioning_config(dynamic raw);
 
-  @protected
-  OcrElement dco_decode_ocr_element(dynamic raw);
+@protected CellChange dco_decode_cell_change(dynamic raw);
 
-  @protected
-  OcrElementConfig dco_decode_ocr_element_config(dynamic raw);
+@protected Chunk dco_decode_chunk(dynamic raw);
 
-  @protected
-  OcrElementLevel dco_decode_ocr_element_level(dynamic raw);
+@protected ChunkInfo dco_decode_chunk_info(dynamic raw);
 
-  @protected
-  OcrExtractionResult dco_decode_ocr_extraction_result(dynamic raw);
+@protected ChunkMetadata dco_decode_chunk_metadata(dynamic raw);
 
-  @protected
-  OcrMetadata dco_decode_ocr_metadata(dynamic raw);
+@protected ChunkSizing dco_decode_chunk_sizing(dynamic raw);
 
-  @protected
-  OcrPipelineConfig dco_decode_ocr_pipeline_config(dynamic raw);
+@protected ChunkType dco_decode_chunk_type(dynamic raw);
 
-  @protected
-  OcrPipelineStage dco_decode_ocr_pipeline_stage(dynamic raw);
+@protected ChunkerType dco_decode_chunker_type(dynamic raw);
 
-  @protected
-  OcrQualityThresholds dco_decode_ocr_quality_thresholds(dynamic raw);
+@protected ChunkingConfig dco_decode_chunking_config(dynamic raw);
 
-  @protected
-  OcrRotation dco_decode_ocr_rotation(dynamic raw);
+@protected ChunkingReason dco_decode_chunking_reason(dynamic raw);
 
-  @protected
-  OcrTable dco_decode_ocr_table(dynamic raw);
+@protected Citation dco_decode_citation(dynamic raw);
 
-  @protected
-  OcrTableBoundingBox dco_decode_ocr_table_bounding_box(dynamic raw);
+@protected CitationMetadata dco_decode_citation_metadata(dynamic raw);
 
-  @protected
-  Map<String, String>? dco_decode_opt_Map_String_String_None(dynamic raw);
+@protected CitationSource dco_decode_citation_source(dynamic raw);
 
-  @protected
-  Map<String, PlatformInt64>? dco_decode_opt_Map_String_i_64_None(dynamic raw);
+@protected CitedField dco_decode_cited_field(dynamic raw);
 
-  @protected
-  Map<String, List<String>>? dco_decode_opt_Map_String_list_String_None(
-    dynamic raw,
-  );
+@protected ClassificationLabel dco_decode_classification_label(dynamic raw);
 
-  @protected
-  Map<String, Uint8List>? dco_decode_opt_Map_String_list_prim_u_8_strict_None(
-    dynamic raw,
-  );
+@protected CodeContentMode dco_decode_code_content_mode(dynamic raw);
 
-  @protected
-  String? dco_decode_opt_String(dynamic raw);
+@protected ContentConfig dco_decode_content_config(dynamic raw);
 
-  @protected
-  AccelerationConfig? dco_decode_opt_box_autoadd_acceleration_config(
-    dynamic raw,
-  );
+@protected ContentFilterConfig dco_decode_content_filter_config(dynamic raw);
 
-  @protected
-  AuthConfig? dco_decode_opt_box_autoadd_auth_config(dynamic raw);
+@protected ContentLayer dco_decode_content_layer(dynamic raw);
 
-  @protected
-  bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+@protected ContributorRole dco_decode_contributor_role(dynamic raw);
 
-  @protected
-  BoundingBox? dco_decode_opt_box_autoadd_bounding_box(dynamic raw);
+@protected CoreProperties dco_decode_core_properties(dynamic raw);
 
-  @protected
-  CaptioningConfig? dco_decode_opt_box_autoadd_captioning_config(dynamic raw);
+@protected CrawlConfig dco_decode_crawl_config(dynamic raw);
 
-  @protected
-  ChunkingConfig? dco_decode_opt_box_autoadd_chunking_config(dynamic raw);
+@protected CsvMetadata dco_decode_csv_metadata(dynamic raw);
 
-  @protected
-  ContentFilterConfig? dco_decode_opt_box_autoadd_content_filter_config(
-    dynamic raw,
-  );
+@protected CustomGlinerSource dco_decode_custom_gliner_source(dynamic raw);
 
-  @protected
-  CoreProperties? dco_decode_opt_box_autoadd_core_properties(dynamic raw);
+@protected DbfFieldInfo dco_decode_dbf_field_info(dynamic raw);
 
-  @protected
-  DjotContent? dco_decode_opt_box_autoadd_djot_content(dynamic raw);
+@protected DbfMetadata dco_decode_dbf_metadata(dynamic raw);
 
-  @protected
-  DocumentStructure? dco_decode_opt_box_autoadd_document_structure(dynamic raw);
+@protected DetectResponse dco_decode_detect_response(dynamic raw);
 
-  @protected
-  DocumentSummary? dco_decode_opt_box_autoadd_document_summary(dynamic raw);
+@protected DetectionResult dco_decode_detection_result(dynamic raw);
 
-  @protected
-  DocxAppProperties? dco_decode_opt_box_autoadd_docx_app_properties(
-    dynamic raw,
-  );
+@protected DiffHunk dco_decode_diff_hunk(dynamic raw);
 
-  @protected
-  EmailConfig? dco_decode_opt_box_autoadd_email_config(dynamic raw);
+@protected DiffLine dco_decode_diff_line(dynamic raw);
 
-  @protected
-  EmbeddingConfig? dco_decode_opt_box_autoadd_embedding_config(dynamic raw);
+@protected DiffOptions dco_decode_diff_options(dynamic raw);
 
-  @protected
-  ErrorMetadata? dco_decode_opt_box_autoadd_error_metadata(dynamic raw);
+@protected DjotContent dco_decode_djot_content(dynamic raw);
 
-  @protected
-  ExtractedDocument? dco_decode_opt_box_autoadd_extracted_document(dynamic raw);
+@protected DjotImage dco_decode_djot_image(dynamic raw);
 
-  @protected
-  ExtractionConfidence? dco_decode_opt_box_autoadd_extraction_confidence(
-    dynamic raw,
-  );
+@protected DjotLink dco_decode_djot_link(dynamic raw);
 
-  @protected
-  ExtractionMethod? dco_decode_opt_box_autoadd_extraction_method(dynamic raw);
+@protected DocumentBoundary dco_decode_document_boundary(dynamic raw);
 
-  @protected
-  double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
+@protected DocumentMetadata dco_decode_document_metadata(dynamic raw);
 
-  @protected
-  FileExtractionConfig? dco_decode_opt_box_autoadd_file_extraction_config(
-    dynamic raw,
-  );
+@protected DocumentNode dco_decode_document_node(dynamic raw);
 
-  @protected
-  FormatMetadata? dco_decode_opt_box_autoadd_format_metadata(dynamic raw);
+@protected DocumentRelationship dco_decode_document_relationship(dynamic raw);
 
-  @protected
-  HeadingContext? dco_decode_opt_box_autoadd_heading_context(dynamic raw);
+@protected DocumentRevision dco_decode_document_revision(dynamic raw);
 
-  @protected
-  HierarchyConfig? dco_decode_opt_box_autoadd_hierarchy_config(dynamic raw);
+@protected DocumentStructure dco_decode_document_structure(dynamic raw);
 
-  @protected
-  HtmlOutputConfig? dco_decode_opt_box_autoadd_html_output_config(dynamic raw);
+@protected DocumentSummary dco_decode_document_summary(dynamic raw);
 
-  @protected
-  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+@protected DocxAppProperties dco_decode_docx_app_properties(dynamic raw);
 
-  @protected
-  ImageExtractionConfig? dco_decode_opt_box_autoadd_image_extraction_config(
-    dynamic raw,
-  );
+@protected DocxMetadata dco_decode_docx_metadata(dynamic raw);
 
-  @protected
-  ImageKind? dco_decode_opt_box_autoadd_image_kind(dynamic raw);
+@protected Element dco_decode_element(dynamic raw);
 
-  @protected
-  ImagePreprocessingConfig?
-  dco_decode_opt_box_autoadd_image_preprocessing_config(dynamic raw);
+@protected ElementMetadata dco_decode_element_metadata(dynamic raw);
 
-  @protected
-  ImagePreprocessingMetadata?
-  dco_decode_opt_box_autoadd_image_preprocessing_metadata(dynamic raw);
+@protected ElementType dco_decode_element_type(dynamic raw);
 
-  @protected
-  KeywordConfig? dco_decode_opt_box_autoadd_keyword_config(dynamic raw);
+@protected EmailAttachment dco_decode_email_attachment(dynamic raw);
 
-  @protected
-  LanguageDetectionConfig? dco_decode_opt_box_autoadd_language_detection_config(
-    dynamic raw,
-  );
+@protected EmailConfig dco_decode_email_config(dynamic raw);
 
-  @protected
-  LayoutDetectionConfig? dco_decode_opt_box_autoadd_layout_detection_config(
-    dynamic raw,
-  );
+@protected EmailExtractionResult dco_decode_email_extraction_result(dynamic raw);
 
-  @protected
-  LlmConfig? dco_decode_opt_box_autoadd_llm_config(dynamic raw);
+@protected EmailMetadata dco_decode_email_metadata(dynamic raw);
 
-  @protected
-  NerConfig? dco_decode_opt_box_autoadd_ner_config(dynamic raw);
+@protected EmbeddedChanges dco_decode_embedded_changes(dynamic raw);
 
-  @protected
-  OcrConfig? dco_decode_opt_box_autoadd_ocr_config(dynamic raw);
+@protected EmbeddedDiff dco_decode_embedded_diff(dynamic raw);
 
-  @protected
-  OcrElementConfig? dco_decode_opt_box_autoadd_ocr_element_config(dynamic raw);
+@protected EmbeddedFile dco_decode_embedded_file(dynamic raw);
 
-  @protected
-  OcrPipelineConfig? dco_decode_opt_box_autoadd_ocr_pipeline_config(
-    dynamic raw,
-  );
+@protected EmbeddingConfig dco_decode_embedding_config(dynamic raw);
 
-  @protected
-  OcrQualityThresholds? dco_decode_opt_box_autoadd_ocr_quality_thresholds(
-    dynamic raw,
-  );
+@protected EmbeddingModelType dco_decode_embedding_model_type(dynamic raw);
 
-  @protected
-  OcrRotation? dco_decode_opt_box_autoadd_ocr_rotation(dynamic raw);
+@protected Entity dco_decode_entity(dynamic raw);
 
-  @protected
-  OcrTableBoundingBox? dco_decode_opt_box_autoadd_ocr_table_bounding_box(
-    dynamic raw,
-  );
+@protected EntityCategory dco_decode_entity_category(dynamic raw);
 
-  @protected
-  OutputFormat? dco_decode_opt_box_autoadd_output_format(dynamic raw);
+@protected EpubMetadata dco_decode_epub_metadata(dynamic raw);
 
-  @protected
-  PageClassificationConfig?
-  dco_decode_opt_box_autoadd_page_classification_config(dynamic raw);
+@protected ErrorMetadata dco_decode_error_metadata(dynamic raw);
 
-  @protected
-  PageConfig? dco_decode_opt_box_autoadd_page_config(dynamic raw);
+@protected ExcelMetadata dco_decode_excel_metadata(dynamic raw);
 
-  @protected
-  PageHierarchy? dco_decode_opt_box_autoadd_page_hierarchy(dynamic raw);
+@protected ExcelSheet dco_decode_excel_sheet(dynamic raw);
 
-  @protected
-  PageStructure? dco_decode_opt_box_autoadd_page_structure(dynamic raw);
+@protected ExcelWorkbook dco_decode_excel_workbook(dynamic raw);
 
-  @protected
-  PdfConfig? dco_decode_opt_box_autoadd_pdf_config(dynamic raw);
+@protected ExecutionProviderType dco_decode_execution_provider_type(dynamic raw);
 
-  @protected
-  PostProcessorConfig? dco_decode_opt_box_autoadd_post_processor_config(
-    dynamic raw,
-  );
+@protected ExtractInput dco_decode_extract_input(dynamic raw);
 
-  @protected
-  Preset? dco_decode_opt_box_autoadd_preset(dynamic raw);
+@protected ExtractInputKind dco_decode_extract_input_kind(dynamic raw);
 
-  @protected
-  PresetSample? dco_decode_opt_box_autoadd_preset_sample(dynamic raw);
+@protected ExtractedDocument dco_decode_extracted_document(dynamic raw);
 
-  @protected
-  ProxyConfig? dco_decode_opt_box_autoadd_proxy_config(dynamic raw);
+@protected ExtractedImage dco_decode_extracted_image(dynamic raw);
 
-  @protected
-  QrBoundingBox? dco_decode_opt_box_autoadd_qr_bounding_box(dynamic raw);
+@protected ExtractedUri dco_decode_extracted_uri(dynamic raw);
 
-  @protected
-  RakeParams? dco_decode_opt_box_autoadd_rake_params(dynamic raw);
+@protected ExtractionConfidence dco_decode_extraction_confidence(dynamic raw);
 
-  @protected
-  RedactionConfig? dco_decode_opt_box_autoadd_redaction_config(dynamic raw);
+@protected ExtractionConfig dco_decode_extraction_config(dynamic raw);
 
-  @protected
-  RedactionReport? dco_decode_opt_box_autoadd_redaction_report(dynamic raw);
+@protected ExtractionDiff dco_decode_extraction_diff(dynamic raw);
 
-  @protected
-  ResultFormat? dco_decode_opt_box_autoadd_result_format(dynamic raw);
+@protected ExtractionErrorItem dco_decode_extraction_error_item(dynamic raw);
 
-  @protected
-  RevisionAnchor? dco_decode_opt_box_autoadd_revision_anchor(dynamic raw);
+@protected ExtractionMethod dco_decode_extraction_method(dynamic raw);
 
-  @protected
-  SecurityLimits? dco_decode_opt_box_autoadd_security_limits(dynamic raw);
+@protected ExtractionResult dco_decode_extraction_result(dynamic raw);
 
-  @protected
-  StructuredExtractionConfig?
-  dco_decode_opt_box_autoadd_structured_extraction_config(dynamic raw);
+@protected ExtractionSummary dco_decode_extraction_summary(dynamic raw);
 
-  @protected
-  SummarizationConfig? dco_decode_opt_box_autoadd_summarization_config(
-    dynamic raw,
-  );
+@protected double dco_decode_f_64(dynamic raw);
 
-  @protected
-  TesseractConfig? dco_decode_opt_box_autoadd_tesseract_config(dynamic raw);
+@protected FictionBookMetadata dco_decode_fiction_book_metadata(dynamic raw);
 
-  @protected
-  TextDirection? dco_decode_opt_box_autoadd_text_direction(dynamic raw);
+@protected FileExtractionConfig dco_decode_file_extraction_config(dynamic raw);
 
-  @protected
-  TokenReductionOptions? dco_decode_opt_box_autoadd_token_reduction_options(
-    dynamic raw,
-  );
+@protected Footnote dco_decode_footnote(dynamic raw);
 
-  @protected
-  TranscriptionConfig? dco_decode_opt_box_autoadd_transcription_config(
-    dynamic raw,
-  );
+@protected FootnoteAnchor dco_decode_footnote_anchor(dynamic raw);
 
-  @protected
-  Translation? dco_decode_opt_box_autoadd_translation(dynamic raw);
+@protected FootnoteConfig dco_decode_footnote_config(dynamic raw);
 
-  @protected
-  TranslationConfig? dco_decode_opt_box_autoadd_translation_config(dynamic raw);
+@protected FootnoteDefinition dco_decode_footnote_definition(dynamic raw);
 
-  @protected
-  TreeSitterConfig? dco_decode_opt_box_autoadd_tree_sitter_config(dynamic raw);
+@protected FormFieldType dco_decode_form_field_type(dynamic raw);
 
-  @protected
-  UrlExtractionConfig? dco_decode_opt_box_autoadd_url_extraction_config(
-    dynamic raw,
-  );
+@protected FormatMetadata dco_decode_format_metadata(dynamic raw);
 
-  @protected
-  UserChunkConfig? dco_decode_opt_box_autoadd_user_chunk_config(dynamic raw);
+@protected FormattedBlock dco_decode_formatted_block(dynamic raw);
 
-  @protected
-  YakeParams? dco_decode_opt_box_autoadd_yake_params(dynamic raw);
+@protected Formula dco_decode_formula(dynamic raw);
 
-  @protected
-  YearRange? dco_decode_opt_box_autoadd_year_range(dynamic raw);
+@protected GlinerArchitecture dco_decode_gliner_architecture(dynamic raw);
 
-  @protected
-  List<String>? dco_decode_opt_list_String(dynamic raw);
+@protected GridCell dco_decode_grid_cell(dynamic raw);
 
-  @protected
-  List<ArchiveEntry>? dco_decode_opt_list_archive_entry(dynamic raw);
+@protected HeaderMetadata dco_decode_header_metadata(dynamic raw);
 
-  @protected
-  List<Chunk>? dco_decode_opt_list_chunk(dynamic raw);
+@protected HeadingContext dco_decode_heading_context(dynamic raw);
 
-  @protected
-  List<DocumentRevision>? dco_decode_opt_list_document_revision(dynamic raw);
+@protected HeadingLevel dco_decode_heading_level(dynamic raw);
 
-  @protected
-  List<Element>? dco_decode_opt_list_element(dynamic raw);
+@protected HeuristicsConfig dco_decode_heuristics_config(dynamic raw);
 
-  @protected
-  List<Entity>? dco_decode_opt_list_entity(dynamic raw);
+@protected HeuristicsError dco_decode_heuristics_error(dynamic raw);
 
-  @protected
-  List<ExtractedImage>? dco_decode_opt_list_extracted_image(dynamic raw);
+@protected HierarchicalBlock dco_decode_hierarchical_block(dynamic raw);
 
-  @protected
-  List<ExtractedUri>? dco_decode_opt_list_extracted_uri(dynamic raw);
+@protected HierarchyConfig dco_decode_hierarchy_config(dynamic raw);
 
-  @protected
-  List<Keyword>? dco_decode_opt_list_keyword(dynamic raw);
+@protected HtmlMetadata dco_decode_html_metadata(dynamic raw);
 
-  @protected
-  List<LayoutRegion>? dco_decode_opt_list_layout_region(dynamic raw);
+@protected HtmlOutputConfig dco_decode_html_output_config(dynamic raw);
 
-  @protected
-  List<List<String>>? dco_decode_opt_list_list_String(dynamic raw);
+@protected HtmlTheme dco_decode_html_theme(dynamic raw);
 
-  @protected
-  List<LlmUsage>? dco_decode_opt_list_llm_usage(dynamic raw);
+@protected int dco_decode_i_32(dynamic raw);
 
-  @protected
-  List<OcrElement>? dco_decode_opt_list_ocr_element(dynamic raw);
+@protected PlatformInt64 dco_decode_i_64(dynamic raw);
 
-  @protected
-  List<PageBoundary>? dco_decode_opt_list_page_boundary(dynamic raw);
+@protected ImageExtractionConfig dco_decode_image_extraction_config(dynamic raw);
 
-  @protected
-  List<PageClassification>? dco_decode_opt_list_page_classification(
-    dynamic raw,
-  );
+@protected ImageKind dco_decode_image_kind(dynamic raw);
 
-  @protected
-  List<PageContent>? dco_decode_opt_list_page_content(dynamic raw);
+@protected ImageMetadata dco_decode_image_metadata(dynamic raw);
 
-  @protected
-  List<PageInfo>? dco_decode_opt_list_page_info(dynamic raw);
+@protected ImageMetadataType dco_decode_image_metadata_type(dynamic raw);
 
-  @protected
-  List<PageRange>? dco_decode_opt_list_page_range(dynamic raw);
+@protected ImageOutputFormat dco_decode_image_output_format(dynamic raw);
 
-  @protected
-  List<PdfAnnotation>? dco_decode_opt_list_pdf_annotation(dynamic raw);
+@protected ImagePreprocessingConfig dco_decode_image_preprocessing_config(dynamic raw);
 
-  @protected
-  Float64List? dco_decode_opt_list_prim_f_64_strict(dynamic raw);
+@protected ImagePreprocessingMetadata dco_decode_image_preprocessing_metadata(dynamic raw);
 
-  @protected
-  Int64List? dco_decode_opt_list_prim_i_64_strict(dynamic raw);
+@protected ImageType dco_decode_image_type(dynamic raw);
 
-  @protected
-  Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
+@protected InlineElement dco_decode_inline_element(dynamic raw);
 
-  @protected
-  List<QrCode>? dco_decode_opt_list_qr_code(dynamic raw);
+@protected InlineType dco_decode_inline_type(dynamic raw);
 
-  @protected
-  OrientationResult dco_decode_orientation_result(dynamic raw);
+@protected PlatformInt64 dco_decode_isize(dynamic raw);
 
-  @protected
-  OutputFormat dco_decode_output_format(dynamic raw);
+@protected JatsMetadata dco_decode_jats_metadata(dynamic raw);
 
-  @protected
-  PaddleLanguage dco_decode_paddle_language(dynamic raw);
+@protected Keyword dco_decode_keyword(dynamic raw);
 
-  @protected
-  PaddleOcrConfig dco_decode_paddle_ocr_config(dynamic raw);
+@protected KeywordAlgorithm dco_decode_keyword_algorithm(dynamic raw);
 
-  @protected
-  PageBoundary dco_decode_page_boundary(dynamic raw);
+@protected KeywordConfig dco_decode_keyword_config(dynamic raw);
 
-  @protected
-  PageClassification dco_decode_page_classification(dynamic raw);
+@protected LanguageDetectionConfig dco_decode_language_detection_config(dynamic raw);
 
-  @protected
-  PageClassificationConfig dco_decode_page_classification_config(dynamic raw);
+@protected LayoutClass dco_decode_layout_class(dynamic raw);
 
-  @protected
-  PageConfig dco_decode_page_config(dynamic raw);
+@protected LayoutDetection dco_decode_layout_detection(dynamic raw);
 
-  @protected
-  PageContent dco_decode_page_content(dynamic raw);
+@protected LayoutDetectionConfig dco_decode_layout_detection_config(dynamic raw);
 
-  @protected
-  PageHierarchy dco_decode_page_hierarchy(dynamic raw);
+@protected LayoutRegion dco_decode_layout_region(dynamic raw);
 
-  @protected
-  PageInfo dco_decode_page_info(dynamic raw);
+@protected LinkMetadata dco_decode_link_metadata(dynamic raw);
 
-  @protected
-  PageRange dco_decode_page_range(dynamic raw);
+@protected LinkType dco_decode_link_type(dynamic raw);
 
-  @protected
-  PageSignals dco_decode_page_signals(dynamic raw);
+@protected List<String> dco_decode_list_String(dynamic raw);
 
-  @protected
-  PageStructure dco_decode_page_structure(dynamic raw);
+@protected List<ArchiveEntry> dco_decode_list_archive_entry(dynamic raw);
 
-  @protected
-  PageUnitType dco_decode_page_unit_type(dynamic raw);
+@protected List<AssetCategory> dco_decode_list_asset_category(dynamic raw);
 
-  @protected
-  PatternMatch dco_decode_pattern_match(dynamic raw);
+@protected List<CellChange> dco_decode_list_cell_change(dynamic raw);
 
-  @protected
-  PdfAnnotation dco_decode_pdf_annotation(dynamic raw);
+@protected List<Chunk> dco_decode_list_chunk(dynamic raw);
 
-  @protected
-  PdfAnnotationType dco_decode_pdf_annotation_type(dynamic raw);
+@protected List<ClassificationLabel> dco_decode_list_classification_label(dynamic raw);
 
-  @protected
-  PdfConfig dco_decode_pdf_config(dynamic raw);
+@protected List<ContributorRole> dco_decode_list_contributor_role(dynamic raw);
 
-  @protected
-  PdfFormField dco_decode_pdf_form_field(dynamic raw);
+@protected List<DbfFieldInfo> dco_decode_list_dbf_field_info(dynamic raw);
 
-  @protected
-  PdfMetadata dco_decode_pdf_metadata(dynamic raw);
+@protected List<DiffHunk> dco_decode_list_diff_hunk(dynamic raw);
 
-  @protected
-  PiiCategory dco_decode_pii_category(dynamic raw);
+@protected List<DiffLine> dco_decode_list_diff_line(dynamic raw);
 
-  @protected
-  PostProcessorConfig dco_decode_post_processor_config(dynamic raw);
+@protected List<DjotImage> dco_decode_list_djot_image(dynamic raw);
 
-  @protected
-  PptxAppProperties dco_decode_pptx_app_properties(dynamic raw);
+@protected List<DjotLink> dco_decode_list_djot_link(dynamic raw);
 
-  @protected
-  PptxExtractionResult dco_decode_pptx_extraction_result(dynamic raw);
+@protected List<DocumentNode> dco_decode_list_document_node(dynamic raw);
 
-  @protected
-  PptxMetadata dco_decode_pptx_metadata(dynamic raw);
+@protected List<DocumentRelationship> dco_decode_list_document_relationship(dynamic raw);
 
-  @protected
-  Preset dco_decode_preset(dynamic raw);
+@protected List<DocumentRevision> dco_decode_list_document_revision(dynamic raw);
 
-  @protected
-  PresetCategory dco_decode_preset_category(dynamic raw);
+@protected List<Element> dco_decode_list_element(dynamic raw);
 
-  @protected
-  PresetSample dco_decode_preset_sample(dynamic raw);
+@protected List<EmailAttachment> dco_decode_list_email_attachment(dynamic raw);
 
-  @protected
-  PresetSummary dco_decode_preset_summary(dynamic raw);
+@protected List<EmbeddedDiff> dco_decode_list_embedded_diff(dynamic raw);
 
-  @protected
-  ProcessingStage dco_decode_processing_stage(dynamic raw);
+@protected List<Entity> dco_decode_list_entity(dynamic raw);
 
-  @protected
-  ProcessingWarning dco_decode_processing_warning(dynamic raw);
+@protected List<EntityCategory> dco_decode_list_entity_category(dynamic raw);
 
-  @protected
-  ProxyConfig dco_decode_proxy_config(dynamic raw);
+@protected List<ExcelSheet> dco_decode_list_excel_sheet(dynamic raw);
 
-  @protected
-  PSMMode dco_decode_psm_mode(dynamic raw);
+@protected List<ExtractInput> dco_decode_list_extract_input(dynamic raw);
 
-  @protected
-  PstMetadata dco_decode_pst_metadata(dynamic raw);
+@protected List<ExtractedDocument> dco_decode_list_extracted_document(dynamic raw);
 
-  @protected
-  QrBoundingBox dco_decode_qr_bounding_box(dynamic raw);
+@protected List<ExtractedImage> dco_decode_list_extracted_image(dynamic raw);
 
-  @protected
-  QrCode dco_decode_qr_code(dynamic raw);
+@protected List<ExtractedUri> dco_decode_list_extracted_uri(dynamic raw);
 
-  @protected
-  RakeParams dco_decode_rake_params(dynamic raw);
+@protected List<ExtractionErrorItem> dco_decode_list_extraction_error_item(dynamic raw);
 
-  @protected
-  RecognizedTable dco_decode_recognized_table(dynamic raw);
+@protected List<Footnote> dco_decode_list_footnote(dynamic raw);
 
-  @protected
-  (String, PlatformInt64) dco_decode_record_string_i_64(dynamic raw);
+@protected List<FormattedBlock> dco_decode_list_formatted_block(dynamic raw);
 
-  @protected
-  (String, Uint8List) dco_decode_record_string_list_prim_u_8_strict(
-    dynamic raw,
-  );
+@protected List<Formula> dco_decode_list_formula(dynamic raw);
 
-  @protected
-  (String, List<String>) dco_decode_record_string_list_string(dynamic raw);
+@protected List<GridCell> dco_decode_list_grid_cell(dynamic raw);
 
-  @protected
-  (String, String) dco_decode_record_string_string(dynamic raw);
+@protected List<HeaderMetadata> dco_decode_list_header_metadata(dynamic raw);
 
-  @protected
-  RedactionConfig dco_decode_redaction_config(dynamic raw);
+@protected List<HeadingLevel> dco_decode_list_heading_level(dynamic raw);
 
-  @protected
-  RedactionFinding dco_decode_redaction_finding(dynamic raw);
+@protected List<HierarchicalBlock> dco_decode_list_hierarchical_block(dynamic raw);
 
-  @protected
-  RedactionPattern dco_decode_redaction_pattern(dynamic raw);
+@protected List<ImageMetadataType> dco_decode_list_image_metadata_type(dynamic raw);
 
-  @protected
-  RedactionReport dco_decode_redaction_report(dynamic raw);
+@protected List<InlineElement> dco_decode_list_inline_element(dynamic raw);
 
-  @protected
-  RedactionStrategy dco_decode_redaction_strategy(dynamic raw);
+@protected List<Keyword> dco_decode_list_keyword(dynamic raw);
 
-  @protected
-  RedactionTerm dco_decode_redaction_term(dynamic raw);
+@protected List<LayoutDetection> dco_decode_list_layout_detection(dynamic raw);
 
-  @protected
-  ReductionLevel dco_decode_reduction_level(dynamic raw);
+@protected List<LayoutRegion> dco_decode_list_layout_region(dynamic raw);
 
-  @protected
-  RegionKind dco_decode_region_kind(dynamic raw);
+@protected List<LinkMetadata> dco_decode_list_link_metadata(dynamic raw);
 
-  @protected
-  RelationshipKind dco_decode_relationship_kind(dynamic raw);
+@protected List<List<String>> dco_decode_list_list_String(dynamic raw);
 
-  @protected
-  RerankedDocument dco_decode_reranked_document(dynamic raw);
+@protected List<Float64List> dco_decode_list_list_prim_f_64_strict(dynamic raw);
 
-  @protected
-  RerankerConfig dco_decode_reranker_config(dynamic raw);
+@protected List<LlmUsage> dco_decode_list_llm_usage(dynamic raw);
 
-  @protected
-  RerankerModelType dco_decode_reranker_model_type(dynamic raw);
+@protected List<OcrElement> dco_decode_list_ocr_element(dynamic raw);
 
-  @protected
-  ResolveError dco_decode_resolve_error(dynamic raw);
+@protected List<OcrPipelineStage> dco_decode_list_ocr_pipeline_stage(dynamic raw);
 
-  @protected
-  ResolvedPreset dco_decode_resolved_preset(dynamic raw);
+@protected List<OcrTable> dco_decode_list_ocr_table(dynamic raw);
 
-  @protected
-  ResultFormat dco_decode_result_format(dynamic raw);
+@protected List<PageBoundary> dco_decode_list_page_boundary(dynamic raw);
 
-  @protected
-  RevisionAnchor dco_decode_revision_anchor(dynamic raw);
+@protected List<PageClassification> dco_decode_list_page_classification(dynamic raw);
 
-  @protected
-  RevisionDelta dco_decode_revision_delta(dynamic raw);
+@protected List<PageContent> dco_decode_list_page_content(dynamic raw);
 
-  @protected
-  RevisionKind dco_decode_revision_kind(dynamic raw);
+@protected List<PageInfo> dco_decode_list_page_info(dynamic raw);
 
-  @protected
-  SchemaCompliance dco_decode_schema_compliance(dynamic raw);
+@protected List<PageRange> dco_decode_list_page_range(dynamic raw);
 
-  @protected
-  SecurityLimits dco_decode_security_limits(dynamic raw);
+@protected List<PageSignals> dco_decode_list_page_signals(dynamic raw);
 
-  @protected
-  ServerConfig dco_decode_server_config(dynamic raw);
+@protected List<PdfAnnotation> dco_decode_list_pdf_annotation(dynamic raw);
 
-  @protected
-  SsrfPolicy dco_decode_ssrf_policy(dynamic raw);
+@protected List<PdfFormField> dco_decode_list_pdf_form_field(dynamic raw);
 
-  @protected
-  StructuredData dco_decode_structured_data(dynamic raw);
+@protected List<PiiCategory> dco_decode_list_pii_category(dynamic raw);
 
-  @protected
-  StructuredDataResult dco_decode_structured_data_result(dynamic raw);
+@protected List<PresetSummary> dco_decode_list_preset_summary(dynamic raw);
 
-  @protected
-  StructuredDataType dco_decode_structured_data_type(dynamic raw);
+@protected Float64List dco_decode_list_prim_f_64_strict(dynamic raw);
 
-  @protected
-  StructuredExtractionConfig dco_decode_structured_extraction_config(
-    dynamic raw,
-  );
+@protected Int64List dco_decode_list_prim_i_64_strict(dynamic raw);
 
-  @protected
-  SummarizationConfig dco_decode_summarization_config(dynamic raw);
+@protected List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
-  @protected
-  SummaryStrategy dco_decode_summary_strategy(dynamic raw);
+@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  SupportedFormat dco_decode_supported_format(dynamic raw);
+@protected List<ProcessingWarning> dco_decode_list_processing_warning(dynamic raw);
 
-  @protected
-  SvgOptions dco_decode_svg_options(dynamic raw);
+@protected List<QrCode> dco_decode_list_qr_code(dynamic raw);
 
-  @protected
-  Table dco_decode_table(dynamic raw);
+@protected List<(String,PlatformInt64)> dco_decode_list_record_string_i_64(dynamic raw);
 
-  @protected
-  TableCell dco_decode_table_cell(dynamic raw);
+@protected List<(String,Uint8List)> dco_decode_list_record_string_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  TableChunkingMode dco_decode_table_chunking_mode(dynamic raw);
+@protected List<(String,List<String>)> dco_decode_list_record_string_list_string(dynamic raw);
 
-  @protected
-  TableDiff dco_decode_table_diff(dynamic raw);
+@protected List<(String,String)> dco_decode_list_record_string_string(dynamic raw);
 
-  @protected
-  TableGrid dco_decode_table_grid(dynamic raw);
+@protected List<RedactionFinding> dco_decode_list_redaction_finding(dynamic raw);
 
-  @protected
-  TableModel dco_decode_table_model(dynamic raw);
+@protected List<RedactionPattern> dco_decode_list_redaction_pattern(dynamic raw);
 
-  @protected
-  TableOverlapPreference dco_decode_table_overlap_preference(dynamic raw);
+@protected List<RedactionTerm> dco_decode_list_redaction_term(dynamic raw);
 
-  @protected
-  TesseractConfig dco_decode_tesseract_config(dynamic raw);
+@protected List<StructuredData> dco_decode_list_structured_data(dynamic raw);
 
-  @protected
-  TextAnnotation dco_decode_text_annotation(dynamic raw);
+@protected List<SupportedFormat> dco_decode_list_supported_format(dynamic raw);
 
-  @protected
-  TextDirection dco_decode_text_direction(dynamic raw);
+@protected List<Table> dco_decode_list_table(dynamic raw);
 
-  @protected
-  TextExtractionResult dco_decode_text_extraction_result(dynamic raw);
+@protected List<TableDiff> dco_decode_list_table_diff(dynamic raw);
 
-  @protected
-  TextMetadata dco_decode_text_metadata(dynamic raw);
+@protected List<TextAnnotation> dco_decode_list_text_annotation(dynamic raw);
 
-  @protected
-  TokenReductionConfig dco_decode_token_reduction_config(dynamic raw);
+@protected ListType dco_decode_list_type(dynamic raw);
 
-  @protected
-  TokenReductionOptions dco_decode_token_reduction_options(dynamic raw);
+@protected LlmConfig dco_decode_llm_config(dynamic raw);
 
-  @protected
-  TranscriptionConfig dco_decode_transcription_config(dynamic raw);
+@protected LlmUsage dco_decode_llm_usage(dynamic raw);
 
-  @protected
-  Translation dco_decode_translation(dynamic raw);
+@protected LoadError dco_decode_load_error(dynamic raw);
 
-  @protected
-  TranslationConfig dco_decode_translation_config(dynamic raw);
+@protected MergeMode dco_decode_merge_mode(dynamic raw);
 
-  @protected
-  TreeSitterConfig dco_decode_tree_sitter_config(dynamic raw);
+@protected Metadata dco_decode_metadata(dynamic raw);
 
-  @protected
-  TreeSitterProcessConfig dco_decode_tree_sitter_process_config(dynamic raw);
+@protected ModelPaths dco_decode_model_paths(dynamic raw);
 
-  @protected
-  int dco_decode_u_8(dynamic raw);
+@protected MultidocInput dco_decode_multidoc_input(dynamic raw);
 
-  @protected
-  void dco_decode_unit(dynamic raw);
+@protected MultidocThresholds dco_decode_multidoc_thresholds(dynamic raw);
 
-  @protected
-  UriKind dco_decode_uri_kind(dynamic raw);
+@protected NerBackendKind dco_decode_ner_backend_kind(dynamic raw);
 
-  @protected
-  UrlExtractionConfig dco_decode_url_extraction_config(dynamic raw);
+@protected NerConfig dco_decode_ner_config(dynamic raw);
 
-  @protected
-  UrlExtractionMode dco_decode_url_extraction_mode(dynamic raw);
+@protected NoChunkingReason dco_decode_no_chunking_reason(dynamic raw);
 
-  @protected
-  UserChunkConfig dco_decode_user_chunk_config(dynamic raw);
+@protected NodeContent dco_decode_node_content(dynamic raw);
 
-  @protected
-  BigInt dco_decode_usize(dynamic raw);
+@protected OcrBackendType dco_decode_ocr_backend_type(dynamic raw);
 
-  @protected
-  VlmFallbackPolicy dco_decode_vlm_fallback_policy(dynamic raw);
+@protected OcrBoundingGeometry dco_decode_ocr_bounding_geometry(dynamic raw);
 
-  @protected
-  WhisperModel dco_decode_whisper_model(dynamic raw);
+@protected OcrConfidence dco_decode_ocr_confidence(dynamic raw);
 
-  @protected
-  XbergError dco_decode_xberg_error(dynamic raw);
+@protected OcrConfig dco_decode_ocr_config(dynamic raw);
 
-  @protected
-  XlsxAppProperties dco_decode_xlsx_app_properties(dynamic raw);
+@protected OcrElement dco_decode_ocr_element(dynamic raw);
 
-  @protected
-  XmlExtractionResult dco_decode_xml_extraction_result(dynamic raw);
+@protected OcrElementConfig dco_decode_ocr_element_config(dynamic raw);
 
-  @protected
-  XmlMetadata dco_decode_xml_metadata(dynamic raw);
+@protected OcrElementLevel dco_decode_ocr_element_level(dynamic raw);
 
-  @protected
-  YakeParams dco_decode_yake_params(dynamic raw);
+@protected OcrExtractionResult dco_decode_ocr_extraction_result(dynamic raw);
 
-  @protected
-  YearRange dco_decode_year_range(dynamic raw);
+@protected OcrMetadata dco_decode_ocr_metadata(dynamic raw);
 
-  @protected
-  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+@protected OcrPipelineConfig dco_decode_ocr_pipeline_config(dynamic raw);
 
-  @protected
-  ArcDocumentExtractor
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    SseDeserializer deserializer,
-  );
+@protected OcrPipelineStage dco_decode_ocr_pipeline_stage(dynamic raw);
 
-  @protected
-  ArcEmbeddingBackend
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    SseDeserializer deserializer,
-  );
+@protected OcrQualityThresholds dco_decode_ocr_quality_thresholds(dynamic raw);
 
-  @protected
-  ArcOcrBackend
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    SseDeserializer deserializer,
-  );
+@protected OcrRotation dco_decode_ocr_rotation(dynamic raw);
 
-  @protected
-  ArcPostProcessor
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    SseDeserializer deserializer,
-  );
+@protected OcrTable dco_decode_ocr_table(dynamic raw);
 
-  @protected
-  ArcRenderer
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    SseDeserializer deserializer,
-  );
+@protected OcrTableBoundingBox dco_decode_ocr_table_bounding_box(dynamic raw);
 
-  @protected
-  ArcRerankerBackend
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    SseDeserializer deserializer,
-  );
+@protected Map<String, String>? dco_decode_opt_Map_String_String_None(dynamic raw);
 
-  @protected
-  ArcValidator
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    SseDeserializer deserializer,
-  );
+@protected Map<String, PlatformInt64>? dco_decode_opt_Map_String_i_64_None(dynamic raw);
 
-  @protected
-  DocumentExtractorDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected Map<String, List<String>>? dco_decode_opt_Map_String_list_String_None(dynamic raw);
 
-  @protected
-  EmbeddingBackendDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected Map<String, Uint8List>? dco_decode_opt_Map_String_list_prim_u_8_strict_None(dynamic raw);
 
-  @protected
-  MetaSchema
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    SseDeserializer deserializer,
-  );
+@protected String? dco_decode_opt_String(dynamic raw);
 
-  @protected
-  OcrBackendDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected AccelerationConfig? dco_decode_opt_box_autoadd_acceleration_config(dynamic raw);
 
-  @protected
-  PostProcessorDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected AuthConfig? dco_decode_opt_box_autoadd_auth_config(dynamic raw);
 
-  @protected
-  Registry
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    SseDeserializer deserializer,
-  );
+@protected bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
-  @protected
-  RendererDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected BoundingBox? dco_decode_opt_box_autoadd_bounding_box(dynamic raw);
 
-  @protected
-  RerankerBackendDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected CaptioningConfig? dco_decode_opt_box_autoadd_captioning_config(dynamic raw);
 
-  @protected
-  TokenCounter
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    SseDeserializer deserializer,
-  );
+@protected ChunkingConfig? dco_decode_opt_box_autoadd_chunking_config(dynamic raw);
 
-  @protected
-  ValidatorDartImpl
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected ContentFilterConfig? dco_decode_opt_box_autoadd_content_filter_config(dynamic raw);
 
-  @protected
-  DocumentExtractorDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected CoreProperties? dco_decode_opt_box_autoadd_core_properties(dynamic raw);
 
-  @protected
-  EmbeddingBackendDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected CustomGlinerSource? dco_decode_opt_box_autoadd_custom_gliner_source(dynamic raw);
 
-  @protected
-  OcrBackendDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected DjotContent? dco_decode_opt_box_autoadd_djot_content(dynamic raw);
 
-  @protected
-  PostProcessorDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected DocumentStructure? dco_decode_opt_box_autoadd_document_structure(dynamic raw);
 
-  @protected
-  Registry
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    SseDeserializer deserializer,
-  );
+@protected DocumentSummary? dco_decode_opt_box_autoadd_document_summary(dynamic raw);
 
-  @protected
-  RendererDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected DocxAppProperties? dco_decode_opt_box_autoadd_docx_app_properties(dynamic raw);
 
-  @protected
-  RerankerBackendDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected EmailConfig? dco_decode_opt_box_autoadd_email_config(dynamic raw);
 
-  @protected
-  ValidatorDartImpl
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected EmbeddingConfig? dco_decode_opt_box_autoadd_embedding_config(dynamic raw);
 
-  @protected
-  DocumentExtractorDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected ErrorMetadata? dco_decode_opt_box_autoadd_error_metadata(dynamic raw);
 
-  @protected
-  EmbeddingBackendDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected ExtractedDocument? dco_decode_opt_box_autoadd_extracted_document(dynamic raw);
 
-  @protected
-  MetaSchema
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionConfidence? dco_decode_opt_box_autoadd_extraction_confidence(dynamic raw);
 
-  @protected
-  OcrBackendDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionMethod? dco_decode_opt_box_autoadd_extraction_method(dynamic raw);
 
-  @protected
-  PostProcessorDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
-  @protected
-  Registry
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    SseDeserializer deserializer,
-  );
+@protected FileExtractionConfig? dco_decode_opt_box_autoadd_file_extraction_config(dynamic raw);
 
-  @protected
-  RendererDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected FormatMetadata? dco_decode_opt_box_autoadd_format_metadata(dynamic raw);
 
-  @protected
-  RerankerBackendDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected GlinerArchitecture? dco_decode_opt_box_autoadd_gliner_architecture(dynamic raw);
 
-  @protected
-  ValidatorDartImpl
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected HeadingContext? dco_decode_opt_box_autoadd_heading_context(dynamic raw);
 
-  @protected
-  Object sse_decode_DartOpaque(SseDeserializer deserializer);
+@protected HierarchyConfig? dco_decode_opt_box_autoadd_hierarchy_config(dynamic raw);
 
-  @protected
-  Map<String, String> sse_decode_Map_String_String_None(
-    SseDeserializer deserializer,
-  );
+@protected HtmlOutputConfig? dco_decode_opt_box_autoadd_html_output_config(dynamic raw);
 
-  @protected
-  Map<String, PlatformInt64> sse_decode_Map_String_i_64_None(
-    SseDeserializer deserializer,
-  );
+@protected PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
-  @protected
-  Map<String, List<String>> sse_decode_Map_String_list_String_None(
-    SseDeserializer deserializer,
-  );
+@protected ImageExtractionConfig? dco_decode_opt_box_autoadd_image_extraction_config(dynamic raw);
 
-  @protected
-  Map<String, Uint8List> sse_decode_Map_String_list_prim_u_8_strict_None(
-    SseDeserializer deserializer,
-  );
+@protected ImageKind? dco_decode_opt_box_autoadd_image_kind(dynamic raw);
 
-  @protected
-  ArcDocumentExtractor
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    SseDeserializer deserializer,
-  );
+@protected ImagePreprocessingConfig? dco_decode_opt_box_autoadd_image_preprocessing_config(dynamic raw);
 
-  @protected
-  ArcEmbeddingBackend
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    SseDeserializer deserializer,
-  );
+@protected ImagePreprocessingMetadata? dco_decode_opt_box_autoadd_image_preprocessing_metadata(dynamic raw);
 
-  @protected
-  ArcOcrBackend
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    SseDeserializer deserializer,
-  );
+@protected KeywordConfig? dco_decode_opt_box_autoadd_keyword_config(dynamic raw);
 
-  @protected
-  ArcPostProcessor
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    SseDeserializer deserializer,
-  );
+@protected LanguageDetectionConfig? dco_decode_opt_box_autoadd_language_detection_config(dynamic raw);
 
-  @protected
-  ArcRenderer
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    SseDeserializer deserializer,
-  );
+@protected LayoutDetectionConfig? dco_decode_opt_box_autoadd_layout_detection_config(dynamic raw);
 
-  @protected
-  ArcRerankerBackend
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    SseDeserializer deserializer,
-  );
+@protected LlmConfig? dco_decode_opt_box_autoadd_llm_config(dynamic raw);
 
-  @protected
-  ArcValidator
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    SseDeserializer deserializer,
-  );
+@protected NerConfig? dco_decode_opt_box_autoadd_ner_config(dynamic raw);
 
-  @protected
-  DocumentExtractorDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected OcrConfig? dco_decode_opt_box_autoadd_ocr_config(dynamic raw);
 
-  @protected
-  EmbeddingBackendDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected OcrElementConfig? dco_decode_opt_box_autoadd_ocr_element_config(dynamic raw);
 
-  @protected
-  MetaSchema
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    SseDeserializer deserializer,
-  );
+@protected OcrPipelineConfig? dco_decode_opt_box_autoadd_ocr_pipeline_config(dynamic raw);
 
-  @protected
-  OcrBackendDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected OcrQualityThresholds? dco_decode_opt_box_autoadd_ocr_quality_thresholds(dynamic raw);
 
-  @protected
-  PostProcessorDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected OcrRotation? dco_decode_opt_box_autoadd_ocr_rotation(dynamic raw);
 
-  @protected
-  Registry
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    SseDeserializer deserializer,
-  );
+@protected OcrTableBoundingBox? dco_decode_opt_box_autoadd_ocr_table_bounding_box(dynamic raw);
 
-  @protected
-  RendererDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected OutputFormat? dco_decode_opt_box_autoadd_output_format(dynamic raw);
 
-  @protected
-  RerankerBackendDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected PageClassificationConfig? dco_decode_opt_box_autoadd_page_classification_config(dynamic raw);
 
-  @protected
-  TokenCounter
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    SseDeserializer deserializer,
-  );
+@protected PageConfig? dco_decode_opt_box_autoadd_page_config(dynamic raw);
 
-  @protected
-  ValidatorDartImpl
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    SseDeserializer deserializer,
-  );
+@protected PageHierarchy? dco_decode_opt_box_autoadd_page_hierarchy(dynamic raw);
 
-  @protected
-  String sse_decode_String(SseDeserializer deserializer);
+@protected PageStructure? dco_decode_opt_box_autoadd_page_structure(dynamic raw);
 
-  @protected
-  AccelerationConfig sse_decode_acceleration_config(
-    SseDeserializer deserializer,
-  );
+@protected PdfConfig? dco_decode_opt_box_autoadd_pdf_config(dynamic raw);
 
-  @protected
-  AnnotationKind sse_decode_annotation_kind(SseDeserializer deserializer);
+@protected PostProcessorConfig? dco_decode_opt_box_autoadd_post_processor_config(dynamic raw);
 
-  @protected
-  ArchiveEntry sse_decode_archive_entry(SseDeserializer deserializer);
+@protected Preset? dco_decode_opt_box_autoadd_preset(dynamic raw);
 
-  @protected
-  ArchiveMetadata sse_decode_archive_metadata(SseDeserializer deserializer);
+@protected PresetSample? dco_decode_opt_box_autoadd_preset_sample(dynamic raw);
 
-  @protected
-  AssetCategory sse_decode_asset_category(SseDeserializer deserializer);
+@protected ProxyConfig? dco_decode_opt_box_autoadd_proxy_config(dynamic raw);
 
-  @protected
-  AudioMetadata sse_decode_audio_metadata(SseDeserializer deserializer);
+@protected QrBoundingBox? dco_decode_opt_box_autoadd_qr_bounding_box(dynamic raw);
 
-  @protected
-  AuthConfig sse_decode_auth_config(SseDeserializer deserializer);
+@protected RakeParams? dco_decode_opt_box_autoadd_rake_params(dynamic raw);
 
-  @protected
-  BBox sse_decode_b_box(SseDeserializer deserializer);
+@protected RedactionConfig? dco_decode_opt_box_autoadd_redaction_config(dynamic raw);
 
-  @protected
-  BibtexMetadata sse_decode_bibtex_metadata(SseDeserializer deserializer);
+@protected RedactionReport? dco_decode_opt_box_autoadd_redaction_report(dynamic raw);
 
-  @protected
-  BlockType sse_decode_block_type(SseDeserializer deserializer);
+@protected ResultFormat? dco_decode_opt_box_autoadd_result_format(dynamic raw);
 
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+@protected RevisionAnchor? dco_decode_opt_box_autoadd_revision_anchor(dynamic raw);
 
-  @protected
-  BoundaryReason sse_decode_boundary_reason(SseDeserializer deserializer);
+@protected SecurityLimits? dco_decode_opt_box_autoadd_security_limits(dynamic raw);
 
-  @protected
-  BoundingBox sse_decode_bounding_box(SseDeserializer deserializer);
+@protected StructuredExtractionConfig? dco_decode_opt_box_autoadd_structured_extraction_config(dynamic raw);
 
-  @protected
-  AccelerationConfig sse_decode_box_autoadd_acceleration_config(
-    SseDeserializer deserializer,
-  );
+@protected SummarizationConfig? dco_decode_opt_box_autoadd_summarization_config(dynamic raw);
 
-  @protected
-  ArchiveMetadata sse_decode_box_autoadd_archive_metadata(
-    SseDeserializer deserializer,
-  );
+@protected TesseractConfig? dco_decode_opt_box_autoadd_tesseract_config(dynamic raw);
 
-  @protected
-  AudioMetadata sse_decode_box_autoadd_audio_metadata(
-    SseDeserializer deserializer,
-  );
+@protected TextDirection? dco_decode_opt_box_autoadd_text_direction(dynamic raw);
 
-  @protected
-  AuthConfig sse_decode_box_autoadd_auth_config(SseDeserializer deserializer);
+@protected TokenReductionOptions? dco_decode_opt_box_autoadd_token_reduction_options(dynamic raw);
 
-  @protected
-  BibtexMetadata sse_decode_box_autoadd_bibtex_metadata(
-    SseDeserializer deserializer,
-  );
+@protected TranscriptionConfig? dco_decode_opt_box_autoadd_transcription_config(dynamic raw);
 
-  @protected
-  bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+@protected Translation? dco_decode_opt_box_autoadd_translation(dynamic raw);
 
-  @protected
-  BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
+@protected TranslationConfig? dco_decode_opt_box_autoadd_translation_config(dynamic raw);
 
-  @protected
-  CaptioningConfig sse_decode_box_autoadd_captioning_config(
-    SseDeserializer deserializer,
-  );
+@protected TreeSitterConfig? dco_decode_opt_box_autoadd_tree_sitter_config(dynamic raw);
 
-  @protected
-  ChunkingConfig sse_decode_box_autoadd_chunking_config(
-    SseDeserializer deserializer,
-  );
+@protected UrlExtractionConfig? dco_decode_opt_box_autoadd_url_extraction_config(dynamic raw);
 
-  @protected
-  CitationMetadata sse_decode_box_autoadd_citation_metadata(
-    SseDeserializer deserializer,
-  );
+@protected UserChunkConfig? dco_decode_opt_box_autoadd_user_chunk_config(dynamic raw);
 
-  @protected
-  ContentFilterConfig sse_decode_box_autoadd_content_filter_config(
-    SseDeserializer deserializer,
-  );
+@protected YakeParams? dco_decode_opt_box_autoadd_yake_params(dynamic raw);
 
-  @protected
-  CoreProperties sse_decode_box_autoadd_core_properties(
-    SseDeserializer deserializer,
-  );
+@protected YearRange? dco_decode_opt_box_autoadd_year_range(dynamic raw);
 
-  @protected
-  CsvMetadata sse_decode_box_autoadd_csv_metadata(SseDeserializer deserializer);
+@protected List<String>? dco_decode_opt_list_String(dynamic raw);
 
-  @protected
-  DbfMetadata sse_decode_box_autoadd_dbf_metadata(SseDeserializer deserializer);
+@protected List<ArchiveEntry>? dco_decode_opt_list_archive_entry(dynamic raw);
 
-  @protected
-  DjotContent sse_decode_box_autoadd_djot_content(SseDeserializer deserializer);
+@protected List<Chunk>? dco_decode_opt_list_chunk(dynamic raw);
 
-  @protected
-  DocumentStructure sse_decode_box_autoadd_document_structure(
-    SseDeserializer deserializer,
-  );
+@protected List<DocumentRevision>? dco_decode_opt_list_document_revision(dynamic raw);
 
-  @protected
-  DocumentSummary sse_decode_box_autoadd_document_summary(
-    SseDeserializer deserializer,
-  );
+@protected List<Element>? dco_decode_opt_list_element(dynamic raw);
 
-  @protected
-  DocxAppProperties sse_decode_box_autoadd_docx_app_properties(
-    SseDeserializer deserializer,
-  );
+@protected List<Entity>? dco_decode_opt_list_entity(dynamic raw);
 
-  @protected
-  DocxMetadata sse_decode_box_autoadd_docx_metadata(
-    SseDeserializer deserializer,
-  );
+@protected List<ExtractedImage>? dco_decode_opt_list_extracted_image(dynamic raw);
 
-  @protected
-  EmailConfig sse_decode_box_autoadd_email_config(SseDeserializer deserializer);
+@protected List<ExtractedUri>? dco_decode_opt_list_extracted_uri(dynamic raw);
 
-  @protected
-  EmailMetadata sse_decode_box_autoadd_email_metadata(
-    SseDeserializer deserializer,
-  );
+@protected List<Keyword>? dco_decode_opt_list_keyword(dynamic raw);
 
-  @protected
-  EmbeddingConfig sse_decode_box_autoadd_embedding_config(
-    SseDeserializer deserializer,
-  );
+@protected List<LayoutRegion>? dco_decode_opt_list_layout_region(dynamic raw);
 
-  @protected
-  EpubMetadata sse_decode_box_autoadd_epub_metadata(
-    SseDeserializer deserializer,
-  );
+@protected List<List<String>>? dco_decode_opt_list_list_String(dynamic raw);
 
-  @protected
-  ErrorMetadata sse_decode_box_autoadd_error_metadata(
-    SseDeserializer deserializer,
-  );
+@protected List<LlmUsage>? dco_decode_opt_list_llm_usage(dynamic raw);
 
-  @protected
-  ExcelMetadata sse_decode_box_autoadd_excel_metadata(
-    SseDeserializer deserializer,
-  );
+@protected List<OcrElement>? dco_decode_opt_list_ocr_element(dynamic raw);
 
-  @protected
-  ExtractInput sse_decode_box_autoadd_extract_input(
-    SseDeserializer deserializer,
-  );
+@protected List<PageBoundary>? dco_decode_opt_list_page_boundary(dynamic raw);
 
-  @protected
-  ExtractedDocument sse_decode_box_autoadd_extracted_document(
-    SseDeserializer deserializer,
-  );
+@protected List<PageClassification>? dco_decode_opt_list_page_classification(dynamic raw);
 
-  @protected
-  ExtractionConfidence sse_decode_box_autoadd_extraction_confidence(
-    SseDeserializer deserializer,
-  );
+@protected List<PageContent>? dco_decode_opt_list_page_content(dynamic raw);
 
-  @protected
-  ExtractionConfig sse_decode_box_autoadd_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected List<PageInfo>? dco_decode_opt_list_page_info(dynamic raw);
 
-  @protected
-  ExtractionMethod sse_decode_box_autoadd_extraction_method(
-    SseDeserializer deserializer,
-  );
+@protected List<PageRange>? dco_decode_opt_list_page_range(dynamic raw);
 
-  @protected
-  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
+@protected List<PdfAnnotation>? dco_decode_opt_list_pdf_annotation(dynamic raw);
 
-  @protected
-  FictionBookMetadata sse_decode_box_autoadd_fiction_book_metadata(
-    SseDeserializer deserializer,
-  );
+@protected Float64List? dco_decode_opt_list_prim_f_64_strict(dynamic raw);
 
-  @protected
-  FileExtractionConfig sse_decode_box_autoadd_file_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected Int64List? dco_decode_opt_list_prim_i_64_strict(dynamic raw);
 
-  @protected
-  FormatMetadata sse_decode_box_autoadd_format_metadata(
-    SseDeserializer deserializer,
-  );
+@protected Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  HeadingContext sse_decode_box_autoadd_heading_context(
-    SseDeserializer deserializer,
-  );
+@protected List<QrCode>? dco_decode_opt_list_qr_code(dynamic raw);
 
-  @protected
-  HierarchyConfig sse_decode_box_autoadd_hierarchy_config(
-    SseDeserializer deserializer,
-  );
+@protected OrientationResult dco_decode_orientation_result(dynamic raw);
 
-  @protected
-  HtmlMetadata sse_decode_box_autoadd_html_metadata(
-    SseDeserializer deserializer,
-  );
+@protected Outcome dco_decode_outcome(dynamic raw);
 
-  @protected
-  HtmlOutputConfig sse_decode_box_autoadd_html_output_config(
-    SseDeserializer deserializer,
-  );
+@protected OutputFormat dco_decode_output_format(dynamic raw);
 
-  @protected
-  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+@protected PaddleLanguage dco_decode_paddle_language(dynamic raw);
 
-  @protected
-  ImageExtractionConfig sse_decode_box_autoadd_image_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected PaddleOcrConfig dco_decode_paddle_ocr_config(dynamic raw);
 
-  @protected
-  ImageKind sse_decode_box_autoadd_image_kind(SseDeserializer deserializer);
+@protected PageBoundary dco_decode_page_boundary(dynamic raw);
 
-  @protected
-  ImageMetadata sse_decode_box_autoadd_image_metadata(
-    SseDeserializer deserializer,
-  );
+@protected PageClassification dco_decode_page_classification(dynamic raw);
 
-  @protected
-  ImagePreprocessingConfig sse_decode_box_autoadd_image_preprocessing_config(
-    SseDeserializer deserializer,
-  );
+@protected PageClassificationConfig dco_decode_page_classification_config(dynamic raw);
 
-  @protected
-  ImagePreprocessingMetadata
-  sse_decode_box_autoadd_image_preprocessing_metadata(
-    SseDeserializer deserializer,
-  );
+@protected PageConfig dco_decode_page_config(dynamic raw);
 
-  @protected
-  JatsMetadata sse_decode_box_autoadd_jats_metadata(
-    SseDeserializer deserializer,
-  );
+@protected PageContent dco_decode_page_content(dynamic raw);
 
-  @protected
-  KeywordConfig sse_decode_box_autoadd_keyword_config(
-    SseDeserializer deserializer,
-  );
+@protected PageHierarchy dco_decode_page_hierarchy(dynamic raw);
 
-  @protected
-  LanguageDetectionConfig sse_decode_box_autoadd_language_detection_config(
-    SseDeserializer deserializer,
-  );
+@protected PageImage dco_decode_page_image(dynamic raw);
 
-  @protected
-  LayoutDetectionConfig sse_decode_box_autoadd_layout_detection_config(
-    SseDeserializer deserializer,
-  );
+@protected PageInfo dco_decode_page_info(dynamic raw);
 
-  @protected
-  LlmConfig sse_decode_box_autoadd_llm_config(SseDeserializer deserializer);
+@protected PageRange dco_decode_page_range(dynamic raw);
 
-  @protected
-  NerConfig sse_decode_box_autoadd_ner_config(SseDeserializer deserializer);
+@protected PageSignals dco_decode_page_signals(dynamic raw);
 
-  @protected
-  OcrConfig sse_decode_box_autoadd_ocr_config(SseDeserializer deserializer);
+@protected PageStructure dco_decode_page_structure(dynamic raw);
 
-  @protected
-  OcrElementConfig sse_decode_box_autoadd_ocr_element_config(
-    SseDeserializer deserializer,
-  );
+@protected PageUnitType dco_decode_page_unit_type(dynamic raw);
 
-  @protected
-  OcrMetadata sse_decode_box_autoadd_ocr_metadata(SseDeserializer deserializer);
+@protected PatternMatch dco_decode_pattern_match(dynamic raw);
 
-  @protected
-  OcrPipelineConfig sse_decode_box_autoadd_ocr_pipeline_config(
-    SseDeserializer deserializer,
-  );
+@protected PdfAnnotation dco_decode_pdf_annotation(dynamic raw);
 
-  @protected
-  OcrQualityThresholds sse_decode_box_autoadd_ocr_quality_thresholds(
-    SseDeserializer deserializer,
-  );
+@protected PdfAnnotationType dco_decode_pdf_annotation_type(dynamic raw);
 
-  @protected
-  OcrRotation sse_decode_box_autoadd_ocr_rotation(SseDeserializer deserializer);
+@protected PdfConfig dco_decode_pdf_config(dynamic raw);
 
-  @protected
-  OcrTableBoundingBox sse_decode_box_autoadd_ocr_table_bounding_box(
-    SseDeserializer deserializer,
-  );
+@protected PdfFormField dco_decode_pdf_form_field(dynamic raw);
 
-  @protected
-  OutputFormat sse_decode_box_autoadd_output_format(
-    SseDeserializer deserializer,
-  );
+@protected PdfMetadata dco_decode_pdf_metadata(dynamic raw);
 
-  @protected
-  PageClassificationConfig sse_decode_box_autoadd_page_classification_config(
-    SseDeserializer deserializer,
-  );
+@protected PiiCategory dco_decode_pii_category(dynamic raw);
 
-  @protected
-  PageConfig sse_decode_box_autoadd_page_config(SseDeserializer deserializer);
+@protected PostProcessorConfig dco_decode_post_processor_config(dynamic raw);
 
-  @protected
-  PageHierarchy sse_decode_box_autoadd_page_hierarchy(
-    SseDeserializer deserializer,
-  );
+@protected PptxAppProperties dco_decode_pptx_app_properties(dynamic raw);
 
-  @protected
-  PageStructure sse_decode_box_autoadd_page_structure(
-    SseDeserializer deserializer,
-  );
+@protected PptxExtractionResult dco_decode_pptx_extraction_result(dynamic raw);
 
-  @protected
-  PdfConfig sse_decode_box_autoadd_pdf_config(SseDeserializer deserializer);
+@protected PptxMetadata dco_decode_pptx_metadata(dynamic raw);
 
-  @protected
-  PdfMetadata sse_decode_box_autoadd_pdf_metadata(SseDeserializer deserializer);
+@protected Preset dco_decode_preset(dynamic raw);
 
-  @protected
-  PostProcessorConfig sse_decode_box_autoadd_post_processor_config(
-    SseDeserializer deserializer,
-  );
+@protected PresetCategory dco_decode_preset_category(dynamic raw);
 
-  @protected
-  PptxMetadata sse_decode_box_autoadd_pptx_metadata(
-    SseDeserializer deserializer,
-  );
+@protected PresetSample dco_decode_preset_sample(dynamic raw);
 
-  @protected
-  Preset sse_decode_box_autoadd_preset(SseDeserializer deserializer);
+@protected PresetSummary dco_decode_preset_summary(dynamic raw);
 
-  @protected
-  PresetSample sse_decode_box_autoadd_preset_sample(
-    SseDeserializer deserializer,
-  );
+@protected ProcessingStage dco_decode_processing_stage(dynamic raw);
 
-  @protected
-  ProxyConfig sse_decode_box_autoadd_proxy_config(SseDeserializer deserializer);
+@protected ProcessingWarning dco_decode_processing_warning(dynamic raw);
 
-  @protected
-  PstMetadata sse_decode_box_autoadd_pst_metadata(SseDeserializer deserializer);
+@protected ProxyConfig dco_decode_proxy_config(dynamic raw);
 
-  @protected
-  QrBoundingBox sse_decode_box_autoadd_qr_bounding_box(
-    SseDeserializer deserializer,
-  );
+@protected PSMMode dco_decode_psm_mode(dynamic raw);
 
-  @protected
-  RakeParams sse_decode_box_autoadd_rake_params(SseDeserializer deserializer);
+@protected PstMetadata dco_decode_pst_metadata(dynamic raw);
 
-  @protected
-  RedactionConfig sse_decode_box_autoadd_redaction_config(
-    SseDeserializer deserializer,
-  );
+@protected QrBoundingBox dco_decode_qr_bounding_box(dynamic raw);
 
-  @protected
-  RedactionReport sse_decode_box_autoadd_redaction_report(
-    SseDeserializer deserializer,
-  );
+@protected QrCode dco_decode_qr_code(dynamic raw);
 
-  @protected
-  ResultFormat sse_decode_box_autoadd_result_format(
-    SseDeserializer deserializer,
-  );
+@protected RakeParams dco_decode_rake_params(dynamic raw);
 
-  @protected
-  RevisionAnchor sse_decode_box_autoadd_revision_anchor(
-    SseDeserializer deserializer,
-  );
+@protected RasterizeError dco_decode_rasterize_error(dynamic raw);
 
-  @protected
-  SecurityLimits sse_decode_box_autoadd_security_limits(
-    SseDeserializer deserializer,
-  );
+@protected RecognizedTable dco_decode_recognized_table(dynamic raw);
 
-  @protected
-  StructuredExtractionConfig
-  sse_decode_box_autoadd_structured_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected (String,PlatformInt64) dco_decode_record_string_i_64(dynamic raw);
 
-  @protected
-  SummarizationConfig sse_decode_box_autoadd_summarization_config(
-    SseDeserializer deserializer,
-  );
+@protected (String,Uint8List) dco_decode_record_string_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  TableGrid sse_decode_box_autoadd_table_grid(SseDeserializer deserializer);
+@protected (String,List<String>) dco_decode_record_string_list_string(dynamic raw);
 
-  @protected
-  TesseractConfig sse_decode_box_autoadd_tesseract_config(
-    SseDeserializer deserializer,
-  );
+@protected (String,String) dco_decode_record_string_string(dynamic raw);
 
-  @protected
-  TextDirection sse_decode_box_autoadd_text_direction(
-    SseDeserializer deserializer,
-  );
+@protected RedactionConfig dco_decode_redaction_config(dynamic raw);
 
-  @protected
-  TextMetadata sse_decode_box_autoadd_text_metadata(
-    SseDeserializer deserializer,
-  );
+@protected RedactionFinding dco_decode_redaction_finding(dynamic raw);
 
-  @protected
-  TokenReductionOptions sse_decode_box_autoadd_token_reduction_options(
-    SseDeserializer deserializer,
-  );
+@protected RedactionPattern dco_decode_redaction_pattern(dynamic raw);
 
-  @protected
-  TranscriptionConfig sse_decode_box_autoadd_transcription_config(
-    SseDeserializer deserializer,
-  );
+@protected RedactionReport dco_decode_redaction_report(dynamic raw);
 
-  @protected
-  Translation sse_decode_box_autoadd_translation(SseDeserializer deserializer);
+@protected RedactionStrategy dco_decode_redaction_strategy(dynamic raw);
 
-  @protected
-  TranslationConfig sse_decode_box_autoadd_translation_config(
-    SseDeserializer deserializer,
-  );
+@protected RedactionTerm dco_decode_redaction_term(dynamic raw);
 
-  @protected
-  TreeSitterConfig sse_decode_box_autoadd_tree_sitter_config(
-    SseDeserializer deserializer,
-  );
+@protected ReductionLevel dco_decode_reduction_level(dynamic raw);
 
-  @protected
-  UrlExtractionConfig sse_decode_box_autoadd_url_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected RegionKind dco_decode_region_kind(dynamic raw);
 
-  @protected
-  UserChunkConfig sse_decode_box_autoadd_user_chunk_config(
-    SseDeserializer deserializer,
-  );
+@protected RelationshipKind dco_decode_relationship_kind(dynamic raw);
 
-  @protected
-  XmlMetadata sse_decode_box_autoadd_xml_metadata(SseDeserializer deserializer);
+@protected RerankedDocument dco_decode_reranked_document(dynamic raw);
 
-  @protected
-  YakeParams sse_decode_box_autoadd_yake_params(SseDeserializer deserializer);
+@protected RerankerConfig dco_decode_reranker_config(dynamic raw);
 
-  @protected
-  YearRange sse_decode_box_autoadd_year_range(SseDeserializer deserializer);
+@protected RerankerModelType dco_decode_reranker_model_type(dynamic raw);
 
-  @protected
-  BrowserBackend sse_decode_browser_backend(SseDeserializer deserializer);
+@protected ResolveError dco_decode_resolve_error(dynamic raw);
 
-  @protected
-  BrowserConfig sse_decode_browser_config(SseDeserializer deserializer);
+@protected ResolvedPreset dco_decode_resolved_preset(dynamic raw);
 
-  @protected
-  BrowserMode sse_decode_browser_mode(SseDeserializer deserializer);
+@protected ResultFormat dco_decode_result_format(dynamic raw);
 
-  @protected
-  BrowserWait sse_decode_browser_wait(SseDeserializer deserializer);
+@protected RevisionAnchor dco_decode_revision_anchor(dynamic raw);
 
-  @protected
-  CacheStats sse_decode_cache_stats(SseDeserializer deserializer);
+@protected RevisionDelta dco_decode_revision_delta(dynamic raw);
 
-  @protected
-  CallMode sse_decode_call_mode(SseDeserializer deserializer);
+@protected RevisionKind dco_decode_revision_kind(dynamic raw);
 
-  @protected
-  CaptioningConfig sse_decode_captioning_config(SseDeserializer deserializer);
+@protected SchemaCompliance dco_decode_schema_compliance(dynamic raw);
 
-  @protected
-  CellChange sse_decode_cell_change(SseDeserializer deserializer);
+@protected SecurityLimits dco_decode_security_limits(dynamic raw);
 
-  @protected
-  Chunk sse_decode_chunk(SseDeserializer deserializer);
+@protected ServerConfig dco_decode_server_config(dynamic raw);
 
-  @protected
-  ChunkInfo sse_decode_chunk_info(SseDeserializer deserializer);
+@protected SsrfPolicy dco_decode_ssrf_policy(dynamic raw);
 
-  @protected
-  ChunkMetadata sse_decode_chunk_metadata(SseDeserializer deserializer);
+@protected StructuredData dco_decode_structured_data(dynamic raw);
 
-  @protected
-  ChunkSizing sse_decode_chunk_sizing(SseDeserializer deserializer);
+@protected StructuredDataResult dco_decode_structured_data_result(dynamic raw);
 
-  @protected
-  ChunkType sse_decode_chunk_type(SseDeserializer deserializer);
+@protected StructuredDataType dco_decode_structured_data_type(dynamic raw);
 
-  @protected
-  ChunkerType sse_decode_chunker_type(SseDeserializer deserializer);
+@protected StructuredExtractionConfig dco_decode_structured_extraction_config(dynamic raw);
 
-  @protected
-  ChunkingConfig sse_decode_chunking_config(SseDeserializer deserializer);
+@protected SummarizationConfig dco_decode_summarization_config(dynamic raw);
 
-  @protected
-  ChunkingReason sse_decode_chunking_reason(SseDeserializer deserializer);
+@protected SummaryStrategy dco_decode_summary_strategy(dynamic raw);
 
-  @protected
-  Citation sse_decode_citation(SseDeserializer deserializer);
+@protected SupportedFormat dco_decode_supported_format(dynamic raw);
 
-  @protected
-  CitationMetadata sse_decode_citation_metadata(SseDeserializer deserializer);
+@protected SvgOptions dco_decode_svg_options(dynamic raw);
 
-  @protected
-  ClassificationLabel sse_decode_classification_label(
-    SseDeserializer deserializer,
-  );
+@protected Table dco_decode_table(dynamic raw);
 
-  @protected
-  CodeContentMode sse_decode_code_content_mode(SseDeserializer deserializer);
+@protected TableCell dco_decode_table_cell(dynamic raw);
 
-  @protected
-  ContentConfig sse_decode_content_config(SseDeserializer deserializer);
+@protected TableChunkingMode dco_decode_table_chunking_mode(dynamic raw);
 
-  @protected
-  ContentFilterConfig sse_decode_content_filter_config(
-    SseDeserializer deserializer,
-  );
+@protected TableDiff dco_decode_table_diff(dynamic raw);
 
-  @protected
-  ContentLayer sse_decode_content_layer(SseDeserializer deserializer);
+@protected TableGrid dco_decode_table_grid(dynamic raw);
 
-  @protected
-  ContributorRole sse_decode_contributor_role(SseDeserializer deserializer);
+@protected TableModel dco_decode_table_model(dynamic raw);
 
-  @protected
-  CoreProperties sse_decode_core_properties(SseDeserializer deserializer);
+@protected TableOverlapPreference dco_decode_table_overlap_preference(dynamic raw);
 
-  @protected
-  CrawlConfig sse_decode_crawl_config(SseDeserializer deserializer);
+@protected TesseractConfig dco_decode_tesseract_config(dynamic raw);
 
-  @protected
-  CsvMetadata sse_decode_csv_metadata(SseDeserializer deserializer);
+@protected TextAnnotation dco_decode_text_annotation(dynamic raw);
 
-  @protected
-  DbfFieldInfo sse_decode_dbf_field_info(SseDeserializer deserializer);
+@protected TextDirection dco_decode_text_direction(dynamic raw);
 
-  @protected
-  DbfMetadata sse_decode_dbf_metadata(SseDeserializer deserializer);
+@protected TextExtractionResult dco_decode_text_extraction_result(dynamic raw);
 
-  @protected
-  DetectResponse sse_decode_detect_response(SseDeserializer deserializer);
+@protected TextMetadata dco_decode_text_metadata(dynamic raw);
 
-  @protected
-  DetectionResult sse_decode_detection_result(SseDeserializer deserializer);
+@protected TokenReductionConfig dco_decode_token_reduction_config(dynamic raw);
 
-  @protected
-  DiffHunk sse_decode_diff_hunk(SseDeserializer deserializer);
+@protected TokenReductionOptions dco_decode_token_reduction_options(dynamic raw);
 
-  @protected
-  DiffLine sse_decode_diff_line(SseDeserializer deserializer);
+@protected TranscriptionConfig dco_decode_transcription_config(dynamic raw);
 
-  @protected
-  DiffOptions sse_decode_diff_options(SseDeserializer deserializer);
+@protected Translation dco_decode_translation(dynamic raw);
 
-  @protected
-  DjotContent sse_decode_djot_content(SseDeserializer deserializer);
+@protected TranslationConfig dco_decode_translation_config(dynamic raw);
 
-  @protected
-  DjotImage sse_decode_djot_image(SseDeserializer deserializer);
+@protected TreeSitterConfig dco_decode_tree_sitter_config(dynamic raw);
 
-  @protected
-  DjotLink sse_decode_djot_link(SseDeserializer deserializer);
+@protected TreeSitterProcessConfig dco_decode_tree_sitter_process_config(dynamic raw);
 
-  @protected
-  DocumentBoundary sse_decode_document_boundary(SseDeserializer deserializer);
+@protected int dco_decode_u_8(dynamic raw);
 
-  @protected
-  DocumentMetadata sse_decode_document_metadata(SseDeserializer deserializer);
+@protected void dco_decode_unit(dynamic raw);
 
-  @protected
-  DocumentNode sse_decode_document_node(SseDeserializer deserializer);
+@protected UriKind dco_decode_uri_kind(dynamic raw);
 
-  @protected
-  DocumentRelationship sse_decode_document_relationship(
-    SseDeserializer deserializer,
-  );
+@protected UrlExtractionConfig dco_decode_url_extraction_config(dynamic raw);
 
-  @protected
-  DocumentRevision sse_decode_document_revision(SseDeserializer deserializer);
+@protected UrlExtractionMode dco_decode_url_extraction_mode(dynamic raw);
 
-  @protected
-  DocumentStructure sse_decode_document_structure(SseDeserializer deserializer);
+@protected UserChunkConfig dco_decode_user_chunk_config(dynamic raw);
 
-  @protected
-  DocumentSummary sse_decode_document_summary(SseDeserializer deserializer);
+@protected BigInt dco_decode_usize(dynamic raw);
 
-  @protected
-  DocxAppProperties sse_decode_docx_app_properties(
-    SseDeserializer deserializer,
-  );
+@protected VlmFallbackPolicy dco_decode_vlm_fallback_policy(dynamic raw);
 
-  @protected
-  DocxMetadata sse_decode_docx_metadata(SseDeserializer deserializer);
+@protected WhisperModel dco_decode_whisper_model(dynamic raw);
 
-  @protected
-  Element sse_decode_element(SseDeserializer deserializer);
+@protected XbergError dco_decode_xberg_error(dynamic raw);
 
-  @protected
-  ElementMetadata sse_decode_element_metadata(SseDeserializer deserializer);
+@protected XlsxAppProperties dco_decode_xlsx_app_properties(dynamic raw);
 
-  @protected
-  ElementType sse_decode_element_type(SseDeserializer deserializer);
+@protected XmlExtractionResult dco_decode_xml_extraction_result(dynamic raw);
 
-  @protected
-  EmailAttachment sse_decode_email_attachment(SseDeserializer deserializer);
+@protected XmlMetadata dco_decode_xml_metadata(dynamic raw);
 
-  @protected
-  EmailConfig sse_decode_email_config(SseDeserializer deserializer);
+@protected YakeParams dco_decode_yake_params(dynamic raw);
 
-  @protected
-  EmailExtractionResult sse_decode_email_extraction_result(
-    SseDeserializer deserializer,
-  );
+@protected YearRange dco_decode_year_range(dynamic raw);
 
-  @protected
-  EmailMetadata sse_decode_email_metadata(SseDeserializer deserializer);
+@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
-  @protected
-  EmbeddedChanges sse_decode_embedded_changes(SseDeserializer deserializer);
+@protected ArcDocumentExtractor sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(SseDeserializer deserializer);
 
-  @protected
-  EmbeddedDiff sse_decode_embedded_diff(SseDeserializer deserializer);
+@protected ArcEmbeddingBackend sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(SseDeserializer deserializer);
 
-  @protected
-  EmbeddedFile sse_decode_embedded_file(SseDeserializer deserializer);
+@protected ArcOcrBackend sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(SseDeserializer deserializer);
 
-  @protected
-  EmbeddingConfig sse_decode_embedding_config(SseDeserializer deserializer);
+@protected ArcPostProcessor sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(SseDeserializer deserializer);
 
-  @protected
-  EmbeddingModelType sse_decode_embedding_model_type(
-    SseDeserializer deserializer,
-  );
+@protected ArcRenderer sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(SseDeserializer deserializer);
 
-  @protected
-  Entity sse_decode_entity(SseDeserializer deserializer);
+@protected ArcRerankerBackend sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(SseDeserializer deserializer);
 
-  @protected
-  EntityCategory sse_decode_entity_category(SseDeserializer deserializer);
+@protected ArcValidator sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(SseDeserializer deserializer);
 
-  @protected
-  EpubMetadata sse_decode_epub_metadata(SseDeserializer deserializer);
+@protected CandleBackend sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(SseDeserializer deserializer);
 
-  @protected
-  ErrorMetadata sse_decode_error_metadata(SseDeserializer deserializer);
+@protected DocumentExtractorDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExcelMetadata sse_decode_excel_metadata(SseDeserializer deserializer);
+@protected EmbeddingBackendDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExcelSheet sse_decode_excel_sheet(SseDeserializer deserializer);
+@protected MetaSchema sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(SseDeserializer deserializer);
 
-  @protected
-  ExcelWorkbook sse_decode_excel_workbook(SseDeserializer deserializer);
+@protected OcrBackendDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExecutionProviderType sse_decode_execution_provider_type(
-    SseDeserializer deserializer,
-  );
+@protected PostProcessorDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractInput sse_decode_extract_input(SseDeserializer deserializer);
+@protected Registry sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(SseDeserializer deserializer);
 
-  @protected
-  ExtractInputKind sse_decode_extract_input_kind(SseDeserializer deserializer);
+@protected RehydrationMap sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(SseDeserializer deserializer);
 
-  @protected
-  ExtractedDocument sse_decode_extracted_document(SseDeserializer deserializer);
+@protected RendererDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractedImage sse_decode_extracted_image(SseDeserializer deserializer);
+@protected RerankerBackendDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractedUri sse_decode_extracted_uri(SseDeserializer deserializer);
+@protected TokenCounter sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(SseDeserializer deserializer);
 
-  @protected
-  ExtractionConfidence sse_decode_extraction_confidence(
-    SseDeserializer deserializer,
-  );
+@protected ValidatorDartImpl sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractionConfig sse_decode_extraction_config(SseDeserializer deserializer);
+@protected DocumentExtractorDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractionDiff sse_decode_extraction_diff(SseDeserializer deserializer);
+@protected EmbeddingBackendDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractionErrorItem sse_decode_extraction_error_item(
-    SseDeserializer deserializer,
-  );
+@protected OcrBackendDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractionMethod sse_decode_extraction_method(SseDeserializer deserializer);
+@protected PostProcessorDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ExtractionResult sse_decode_extraction_result(SseDeserializer deserializer);
+@protected Registry sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(SseDeserializer deserializer);
 
-  @protected
-  ExtractionSummary sse_decode_extraction_summary(SseDeserializer deserializer);
+@protected RendererDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(SseDeserializer deserializer);
 
-  @protected
-  double sse_decode_f_64(SseDeserializer deserializer);
+@protected RerankerBackendDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  FictionBookMetadata sse_decode_fiction_book_metadata(
-    SseDeserializer deserializer,
-  );
+@protected ValidatorDartImpl sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  FileExtractionConfig sse_decode_file_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected CandleBackend sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(SseDeserializer deserializer);
 
-  @protected
-  Footnote sse_decode_footnote(SseDeserializer deserializer);
+@protected DocumentExtractorDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  FootnoteAnchor sse_decode_footnote_anchor(SseDeserializer deserializer);
+@protected EmbeddingBackendDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  FootnoteConfig sse_decode_footnote_config(SseDeserializer deserializer);
+@protected MetaSchema sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(SseDeserializer deserializer);
 
-  @protected
-  FootnoteDefinition sse_decode_footnote_definition(
-    SseDeserializer deserializer,
-  );
+@protected OcrBackendDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  FormFieldType sse_decode_form_field_type(SseDeserializer deserializer);
+@protected PostProcessorDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  FormatMetadata sse_decode_format_metadata(SseDeserializer deserializer);
+@protected Registry sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(SseDeserializer deserializer);
 
-  @protected
-  FormattedBlock sse_decode_formatted_block(SseDeserializer deserializer);
+@protected RendererDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(SseDeserializer deserializer);
 
-  @protected
-  Formula sse_decode_formula(SseDeserializer deserializer);
+@protected RerankerBackendDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  GridCell sse_decode_grid_cell(SseDeserializer deserializer);
+@protected ValidatorDartImpl sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  HeaderMetadata sse_decode_header_metadata(SseDeserializer deserializer);
+@protected Object sse_decode_DartOpaque(SseDeserializer deserializer);
 
-  @protected
-  HeadingContext sse_decode_heading_context(SseDeserializer deserializer);
+@protected Map<String, String> sse_decode_Map_String_String_None(SseDeserializer deserializer);
 
-  @protected
-  HeadingLevel sse_decode_heading_level(SseDeserializer deserializer);
+@protected Map<String, PlatformInt64> sse_decode_Map_String_i_64_None(SseDeserializer deserializer);
 
-  @protected
-  HeuristicsConfig sse_decode_heuristics_config(SseDeserializer deserializer);
+@protected Map<String, List<String>> sse_decode_Map_String_list_String_None(SseDeserializer deserializer);
 
-  @protected
-  HeuristicsError sse_decode_heuristics_error(SseDeserializer deserializer);
+@protected Map<String, Uint8List> sse_decode_Map_String_list_prim_u_8_strict_None(SseDeserializer deserializer);
 
-  @protected
-  HierarchicalBlock sse_decode_hierarchical_block(SseDeserializer deserializer);
+@protected ArcDocumentExtractor sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(SseDeserializer deserializer);
 
-  @protected
-  HierarchyConfig sse_decode_hierarchy_config(SseDeserializer deserializer);
+@protected ArcEmbeddingBackend sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(SseDeserializer deserializer);
 
-  @protected
-  HtmlMetadata sse_decode_html_metadata(SseDeserializer deserializer);
+@protected ArcOcrBackend sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(SseDeserializer deserializer);
 
-  @protected
-  HtmlOutputConfig sse_decode_html_output_config(SseDeserializer deserializer);
+@protected ArcPostProcessor sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(SseDeserializer deserializer);
 
-  @protected
-  HtmlTheme sse_decode_html_theme(SseDeserializer deserializer);
+@protected ArcRenderer sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+@protected ArcRerankerBackend sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+@protected ArcValidator sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(SseDeserializer deserializer);
 
-  @protected
-  ImageExtractionConfig sse_decode_image_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected CandleBackend sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(SseDeserializer deserializer);
 
-  @protected
-  ImageKind sse_decode_image_kind(SseDeserializer deserializer);
+@protected DocumentExtractorDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ImageMetadata sse_decode_image_metadata(SseDeserializer deserializer);
+@protected EmbeddingBackendDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ImageMetadataType sse_decode_image_metadata_type(
-    SseDeserializer deserializer,
-  );
+@protected MetaSchema sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(SseDeserializer deserializer);
 
-  @protected
-  ImageOutputFormat sse_decode_image_output_format(
-    SseDeserializer deserializer,
-  );
+@protected OcrBackendDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ImagePreprocessingConfig sse_decode_image_preprocessing_config(
-    SseDeserializer deserializer,
-  );
+@protected PostProcessorDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  ImagePreprocessingMetadata sse_decode_image_preprocessing_metadata(
-    SseDeserializer deserializer,
-  );
+@protected Registry sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(SseDeserializer deserializer);
 
-  @protected
-  ImageType sse_decode_image_type(SseDeserializer deserializer);
+@protected RehydrationMap sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(SseDeserializer deserializer);
 
-  @protected
-  InlineElement sse_decode_inline_element(SseDeserializer deserializer);
+@protected RendererDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(SseDeserializer deserializer);
 
-  @protected
-  InlineType sse_decode_inline_type(SseDeserializer deserializer);
+@protected RerankerBackendDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
+@protected TokenCounter sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(SseDeserializer deserializer);
 
-  @protected
-  JatsMetadata sse_decode_jats_metadata(SseDeserializer deserializer);
+@protected ValidatorDartImpl sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(SseDeserializer deserializer);
 
-  @protected
-  Keyword sse_decode_keyword(SseDeserializer deserializer);
+@protected String sse_decode_String(SseDeserializer deserializer);
 
-  @protected
-  KeywordAlgorithm sse_decode_keyword_algorithm(SseDeserializer deserializer);
+@protected AccelerationConfig sse_decode_acceleration_config(SseDeserializer deserializer);
 
-  @protected
-  KeywordConfig sse_decode_keyword_config(SseDeserializer deserializer);
+@protected AnnotationKind sse_decode_annotation_kind(SseDeserializer deserializer);
 
-  @protected
-  LanguageDetectionConfig sse_decode_language_detection_config(
-    SseDeserializer deserializer,
-  );
+@protected ArchiveEntry sse_decode_archive_entry(SseDeserializer deserializer);
 
-  @protected
-  LayoutClass sse_decode_layout_class(SseDeserializer deserializer);
+@protected ArchiveMetadata sse_decode_archive_metadata(SseDeserializer deserializer);
 
-  @protected
-  LayoutDetection sse_decode_layout_detection(SseDeserializer deserializer);
+@protected AssetCategory sse_decode_asset_category(SseDeserializer deserializer);
 
-  @protected
-  LayoutDetectionConfig sse_decode_layout_detection_config(
-    SseDeserializer deserializer,
-  );
+@protected AudioMetadata sse_decode_audio_metadata(SseDeserializer deserializer);
 
-  @protected
-  LayoutRegion sse_decode_layout_region(SseDeserializer deserializer);
+@protected AuthConfig sse_decode_auth_config(SseDeserializer deserializer);
 
-  @protected
-  LinkMetadata sse_decode_link_metadata(SseDeserializer deserializer);
+@protected BBox sse_decode_b_box(SseDeserializer deserializer);
 
-  @protected
-  LinkType sse_decode_link_type(SseDeserializer deserializer);
+@protected BibtexMetadata sse_decode_bibtex_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<String> sse_decode_list_String(SseDeserializer deserializer);
+@protected BlockType sse_decode_block_type(SseDeserializer deserializer);
 
-  @protected
-  List<ArchiveEntry> sse_decode_list_archive_entry(
-    SseDeserializer deserializer,
-  );
+@protected bool sse_decode_bool(SseDeserializer deserializer);
 
-  @protected
-  List<AssetCategory> sse_decode_list_asset_category(
-    SseDeserializer deserializer,
-  );
+@protected BoundaryReason sse_decode_boundary_reason(SseDeserializer deserializer);
 
-  @protected
-  List<CellChange> sse_decode_list_cell_change(SseDeserializer deserializer);
+@protected BoundingBox sse_decode_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  List<Chunk> sse_decode_list_chunk(SseDeserializer deserializer);
+@protected AccelerationConfig sse_decode_box_autoadd_acceleration_config(SseDeserializer deserializer);
 
-  @protected
-  List<ClassificationLabel> sse_decode_list_classification_label(
-    SseDeserializer deserializer,
-  );
+@protected ArchiveMetadata sse_decode_box_autoadd_archive_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<ContributorRole> sse_decode_list_contributor_role(
-    SseDeserializer deserializer,
-  );
+@protected AudioMetadata sse_decode_box_autoadd_audio_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<DbfFieldInfo> sse_decode_list_dbf_field_info(
-    SseDeserializer deserializer,
-  );
+@protected AuthConfig sse_decode_box_autoadd_auth_config(SseDeserializer deserializer);
 
-  @protected
-  List<DiffHunk> sse_decode_list_diff_hunk(SseDeserializer deserializer);
+@protected BibtexMetadata sse_decode_box_autoadd_bibtex_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<DiffLine> sse_decode_list_diff_line(SseDeserializer deserializer);
+@protected bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
 
-  @protected
-  List<DjotImage> sse_decode_list_djot_image(SseDeserializer deserializer);
+@protected BoundingBox sse_decode_box_autoadd_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  List<DjotLink> sse_decode_list_djot_link(SseDeserializer deserializer);
+@protected CaptioningConfig sse_decode_box_autoadd_captioning_config(SseDeserializer deserializer);
 
-  @protected
-  List<DocumentNode> sse_decode_list_document_node(
-    SseDeserializer deserializer,
-  );
+@protected ChunkingConfig sse_decode_box_autoadd_chunking_config(SseDeserializer deserializer);
 
-  @protected
-  List<DocumentRelationship> sse_decode_list_document_relationship(
-    SseDeserializer deserializer,
-  );
+@protected CitationMetadata sse_decode_box_autoadd_citation_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<DocumentRevision> sse_decode_list_document_revision(
-    SseDeserializer deserializer,
-  );
+@protected ContentFilterConfig sse_decode_box_autoadd_content_filter_config(SseDeserializer deserializer);
 
-  @protected
-  List<Element> sse_decode_list_element(SseDeserializer deserializer);
+@protected CoreProperties sse_decode_box_autoadd_core_properties(SseDeserializer deserializer);
 
-  @protected
-  List<EmailAttachment> sse_decode_list_email_attachment(
-    SseDeserializer deserializer,
-  );
+@protected CsvMetadata sse_decode_box_autoadd_csv_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<EmbeddedDiff> sse_decode_list_embedded_diff(
-    SseDeserializer deserializer,
-  );
+@protected CustomGlinerSource sse_decode_box_autoadd_custom_gliner_source(SseDeserializer deserializer);
 
-  @protected
-  List<Entity> sse_decode_list_entity(SseDeserializer deserializer);
+@protected DbfMetadata sse_decode_box_autoadd_dbf_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<EntityCategory> sse_decode_list_entity_category(
-    SseDeserializer deserializer,
-  );
+@protected DjotContent sse_decode_box_autoadd_djot_content(SseDeserializer deserializer);
 
-  @protected
-  List<ExcelSheet> sse_decode_list_excel_sheet(SseDeserializer deserializer);
+@protected DocumentStructure sse_decode_box_autoadd_document_structure(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractInput> sse_decode_list_extract_input(
-    SseDeserializer deserializer,
-  );
+@protected DocumentSummary sse_decode_box_autoadd_document_summary(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractedDocument> sse_decode_list_extracted_document(
-    SseDeserializer deserializer,
-  );
+@protected DocxAppProperties sse_decode_box_autoadd_docx_app_properties(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractedImage> sse_decode_list_extracted_image(
-    SseDeserializer deserializer,
-  );
+@protected DocxMetadata sse_decode_box_autoadd_docx_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractedUri> sse_decode_list_extracted_uri(
-    SseDeserializer deserializer,
-  );
+@protected EmailConfig sse_decode_box_autoadd_email_config(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractionErrorItem> sse_decode_list_extraction_error_item(
-    SseDeserializer deserializer,
-  );
+@protected EmailMetadata sse_decode_box_autoadd_email_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<Footnote> sse_decode_list_footnote(SseDeserializer deserializer);
+@protected EmbeddingConfig sse_decode_box_autoadd_embedding_config(SseDeserializer deserializer);
 
-  @protected
-  List<FormattedBlock> sse_decode_list_formatted_block(
-    SseDeserializer deserializer,
-  );
+@protected EpubMetadata sse_decode_box_autoadd_epub_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<Formula> sse_decode_list_formula(SseDeserializer deserializer);
+@protected ErrorMetadata sse_decode_box_autoadd_error_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<GridCell> sse_decode_list_grid_cell(SseDeserializer deserializer);
+@protected ExcelMetadata sse_decode_box_autoadd_excel_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<HeaderMetadata> sse_decode_list_header_metadata(
-    SseDeserializer deserializer,
-  );
+@protected ExtractInput sse_decode_box_autoadd_extract_input(SseDeserializer deserializer);
 
-  @protected
-  List<HeadingLevel> sse_decode_list_heading_level(
-    SseDeserializer deserializer,
-  );
+@protected ExtractedDocument sse_decode_box_autoadd_extracted_document(SseDeserializer deserializer);
 
-  @protected
-  List<HierarchicalBlock> sse_decode_list_hierarchical_block(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionConfidence sse_decode_box_autoadd_extraction_confidence(SseDeserializer deserializer);
 
-  @protected
-  List<ImageMetadataType> sse_decode_list_image_metadata_type(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionConfig sse_decode_box_autoadd_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  List<InlineElement> sse_decode_list_inline_element(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionMethod sse_decode_box_autoadd_extraction_method(SseDeserializer deserializer);
 
-  @protected
-  List<Keyword> sse_decode_list_keyword(SseDeserializer deserializer);
+@protected double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
-  @protected
-  List<LayoutDetection> sse_decode_list_layout_detection(
-    SseDeserializer deserializer,
-  );
+@protected FictionBookMetadata sse_decode_box_autoadd_fiction_book_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<LayoutRegion> sse_decode_list_layout_region(
-    SseDeserializer deserializer,
-  );
+@protected FileExtractionConfig sse_decode_box_autoadd_file_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  List<LinkMetadata> sse_decode_list_link_metadata(
-    SseDeserializer deserializer,
-  );
+@protected FormatMetadata sse_decode_box_autoadd_format_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
+@protected GlinerArchitecture sse_decode_box_autoadd_gliner_architecture(SseDeserializer deserializer);
 
-  @protected
-  List<Float64List> sse_decode_list_list_prim_f_64_strict(
-    SseDeserializer deserializer,
-  );
+@protected HeadingContext sse_decode_box_autoadd_heading_context(SseDeserializer deserializer);
 
-  @protected
-  List<LlmUsage> sse_decode_list_llm_usage(SseDeserializer deserializer);
+@protected HierarchyConfig sse_decode_box_autoadd_hierarchy_config(SseDeserializer deserializer);
 
-  @protected
-  List<OcrElement> sse_decode_list_ocr_element(SseDeserializer deserializer);
+@protected HtmlMetadata sse_decode_box_autoadd_html_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<OcrPipelineStage> sse_decode_list_ocr_pipeline_stage(
-    SseDeserializer deserializer,
-  );
+@protected HtmlOutputConfig sse_decode_box_autoadd_html_output_config(SseDeserializer deserializer);
 
-  @protected
-  List<OcrTable> sse_decode_list_ocr_table(SseDeserializer deserializer);
+@protected PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
 
-  @protected
-  List<PageBoundary> sse_decode_list_page_boundary(
-    SseDeserializer deserializer,
-  );
+@protected ImageExtractionConfig sse_decode_box_autoadd_image_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  List<PageClassification> sse_decode_list_page_classification(
-    SseDeserializer deserializer,
-  );
+@protected ImageKind sse_decode_box_autoadd_image_kind(SseDeserializer deserializer);
 
-  @protected
-  List<PageContent> sse_decode_list_page_content(SseDeserializer deserializer);
+@protected ImageMetadata sse_decode_box_autoadd_image_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<PageInfo> sse_decode_list_page_info(SseDeserializer deserializer);
+@protected ImagePreprocessingConfig sse_decode_box_autoadd_image_preprocessing_config(SseDeserializer deserializer);
 
-  @protected
-  List<PageRange> sse_decode_list_page_range(SseDeserializer deserializer);
+@protected ImagePreprocessingMetadata sse_decode_box_autoadd_image_preprocessing_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<PageSignals> sse_decode_list_page_signals(SseDeserializer deserializer);
+@protected JatsMetadata sse_decode_box_autoadd_jats_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<PdfAnnotation> sse_decode_list_pdf_annotation(
-    SseDeserializer deserializer,
-  );
+@protected KeywordConfig sse_decode_box_autoadd_keyword_config(SseDeserializer deserializer);
 
-  @protected
-  List<PdfFormField> sse_decode_list_pdf_form_field(
-    SseDeserializer deserializer,
-  );
+@protected LanguageDetectionConfig sse_decode_box_autoadd_language_detection_config(SseDeserializer deserializer);
 
-  @protected
-  List<PiiCategory> sse_decode_list_pii_category(SseDeserializer deserializer);
+@protected LayoutDetectionConfig sse_decode_box_autoadd_layout_detection_config(SseDeserializer deserializer);
 
-  @protected
-  List<PresetSummary> sse_decode_list_preset_summary(
-    SseDeserializer deserializer,
-  );
+@protected LlmConfig sse_decode_box_autoadd_llm_config(SseDeserializer deserializer);
 
-  @protected
-  Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
+@protected NerConfig sse_decode_box_autoadd_ner_config(SseDeserializer deserializer);
 
-  @protected
-  Int64List sse_decode_list_prim_i_64_strict(SseDeserializer deserializer);
+@protected OcrConfig sse_decode_box_autoadd_ocr_config(SseDeserializer deserializer);
 
-  @protected
-  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
+@protected OcrElementConfig sse_decode_box_autoadd_ocr_element_config(SseDeserializer deserializer);
 
-  @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+@protected OcrMetadata sse_decode_box_autoadd_ocr_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<ProcessingWarning> sse_decode_list_processing_warning(
-    SseDeserializer deserializer,
-  );
+@protected OcrPipelineConfig sse_decode_box_autoadd_ocr_pipeline_config(SseDeserializer deserializer);
 
-  @protected
-  List<QrCode> sse_decode_list_qr_code(SseDeserializer deserializer);
+@protected OcrQualityThresholds sse_decode_box_autoadd_ocr_quality_thresholds(SseDeserializer deserializer);
 
-  @protected
-  List<(String, PlatformInt64)> sse_decode_list_record_string_i_64(
-    SseDeserializer deserializer,
-  );
+@protected OcrRotation sse_decode_box_autoadd_ocr_rotation(SseDeserializer deserializer);
 
-  @protected
-  List<(String, Uint8List)> sse_decode_list_record_string_list_prim_u_8_strict(
-    SseDeserializer deserializer,
-  );
+@protected OcrTableBoundingBox sse_decode_box_autoadd_ocr_table_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  List<(String, List<String>)> sse_decode_list_record_string_list_string(
-    SseDeserializer deserializer,
-  );
+@protected OutputFormat sse_decode_box_autoadd_output_format(SseDeserializer deserializer);
 
-  @protected
-  List<(String, String)> sse_decode_list_record_string_string(
-    SseDeserializer deserializer,
-  );
+@protected PageClassificationConfig sse_decode_box_autoadd_page_classification_config(SseDeserializer deserializer);
 
-  @protected
-  List<RedactionFinding> sse_decode_list_redaction_finding(
-    SseDeserializer deserializer,
-  );
+@protected PageConfig sse_decode_box_autoadd_page_config(SseDeserializer deserializer);
 
-  @protected
-  List<RedactionPattern> sse_decode_list_redaction_pattern(
-    SseDeserializer deserializer,
-  );
+@protected PageHierarchy sse_decode_box_autoadd_page_hierarchy(SseDeserializer deserializer);
 
-  @protected
-  List<RedactionTerm> sse_decode_list_redaction_term(
-    SseDeserializer deserializer,
-  );
+@protected PageStructure sse_decode_box_autoadd_page_structure(SseDeserializer deserializer);
 
-  @protected
-  List<StructuredData> sse_decode_list_structured_data(
-    SseDeserializer deserializer,
-  );
+@protected PdfConfig sse_decode_box_autoadd_pdf_config(SseDeserializer deserializer);
 
-  @protected
-  List<SupportedFormat> sse_decode_list_supported_format(
-    SseDeserializer deserializer,
-  );
+@protected PdfMetadata sse_decode_box_autoadd_pdf_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<Table> sse_decode_list_table(SseDeserializer deserializer);
+@protected PostProcessorConfig sse_decode_box_autoadd_post_processor_config(SseDeserializer deserializer);
 
-  @protected
-  List<TableDiff> sse_decode_list_table_diff(SseDeserializer deserializer);
+@protected PptxMetadata sse_decode_box_autoadd_pptx_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<TextAnnotation> sse_decode_list_text_annotation(
-    SseDeserializer deserializer,
-  );
+@protected Preset sse_decode_box_autoadd_preset(SseDeserializer deserializer);
 
-  @protected
-  ListType sse_decode_list_type(SseDeserializer deserializer);
+@protected PresetSample sse_decode_box_autoadd_preset_sample(SseDeserializer deserializer);
 
-  @protected
-  LlmConfig sse_decode_llm_config(SseDeserializer deserializer);
+@protected ProxyConfig sse_decode_box_autoadd_proxy_config(SseDeserializer deserializer);
 
-  @protected
-  LlmUsage sse_decode_llm_usage(SseDeserializer deserializer);
+@protected PstMetadata sse_decode_box_autoadd_pst_metadata(SseDeserializer deserializer);
 
-  @protected
-  LoadError sse_decode_load_error(SseDeserializer deserializer);
+@protected QrBoundingBox sse_decode_box_autoadd_qr_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  MergeMode sse_decode_merge_mode(SseDeserializer deserializer);
+@protected RakeParams sse_decode_box_autoadd_rake_params(SseDeserializer deserializer);
 
-  @protected
-  Metadata sse_decode_metadata(SseDeserializer deserializer);
+@protected RedactionConfig sse_decode_box_autoadd_redaction_config(SseDeserializer deserializer);
 
-  @protected
-  ModelPaths sse_decode_model_paths(SseDeserializer deserializer);
+@protected RedactionReport sse_decode_box_autoadd_redaction_report(SseDeserializer deserializer);
 
-  @protected
-  MultidocInput sse_decode_multidoc_input(SseDeserializer deserializer);
+@protected ResultFormat sse_decode_box_autoadd_result_format(SseDeserializer deserializer);
 
-  @protected
-  MultidocThresholds sse_decode_multidoc_thresholds(
-    SseDeserializer deserializer,
-  );
+@protected RevisionAnchor sse_decode_box_autoadd_revision_anchor(SseDeserializer deserializer);
 
-  @protected
-  NerBackendKind sse_decode_ner_backend_kind(SseDeserializer deserializer);
+@protected SecurityLimits sse_decode_box_autoadd_security_limits(SseDeserializer deserializer);
 
-  @protected
-  NerConfig sse_decode_ner_config(SseDeserializer deserializer);
+@protected StructuredExtractionConfig sse_decode_box_autoadd_structured_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  NoChunkingReason sse_decode_no_chunking_reason(SseDeserializer deserializer);
+@protected SummarizationConfig sse_decode_box_autoadd_summarization_config(SseDeserializer deserializer);
 
-  @protected
-  NodeContent sse_decode_node_content(SseDeserializer deserializer);
+@protected TableGrid sse_decode_box_autoadd_table_grid(SseDeserializer deserializer);
 
-  @protected
-  OcrBackendType sse_decode_ocr_backend_type(SseDeserializer deserializer);
+@protected TesseractConfig sse_decode_box_autoadd_tesseract_config(SseDeserializer deserializer);
 
-  @protected
-  OcrBoundingGeometry sse_decode_ocr_bounding_geometry(
-    SseDeserializer deserializer,
-  );
+@protected TextDirection sse_decode_box_autoadd_text_direction(SseDeserializer deserializer);
 
-  @protected
-  OcrConfidence sse_decode_ocr_confidence(SseDeserializer deserializer);
+@protected TextMetadata sse_decode_box_autoadd_text_metadata(SseDeserializer deserializer);
 
-  @protected
-  OcrConfig sse_decode_ocr_config(SseDeserializer deserializer);
+@protected TokenReductionOptions sse_decode_box_autoadd_token_reduction_options(SseDeserializer deserializer);
 
-  @protected
-  OcrElement sse_decode_ocr_element(SseDeserializer deserializer);
+@protected TranscriptionConfig sse_decode_box_autoadd_transcription_config(SseDeserializer deserializer);
 
-  @protected
-  OcrElementConfig sse_decode_ocr_element_config(SseDeserializer deserializer);
+@protected Translation sse_decode_box_autoadd_translation(SseDeserializer deserializer);
 
-  @protected
-  OcrElementLevel sse_decode_ocr_element_level(SseDeserializer deserializer);
+@protected TranslationConfig sse_decode_box_autoadd_translation_config(SseDeserializer deserializer);
 
-  @protected
-  OcrExtractionResult sse_decode_ocr_extraction_result(
-    SseDeserializer deserializer,
-  );
+@protected TreeSitterConfig sse_decode_box_autoadd_tree_sitter_config(SseDeserializer deserializer);
 
-  @protected
-  OcrMetadata sse_decode_ocr_metadata(SseDeserializer deserializer);
+@protected UrlExtractionConfig sse_decode_box_autoadd_url_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  OcrPipelineConfig sse_decode_ocr_pipeline_config(
-    SseDeserializer deserializer,
-  );
+@protected UserChunkConfig sse_decode_box_autoadd_user_chunk_config(SseDeserializer deserializer);
 
-  @protected
-  OcrPipelineStage sse_decode_ocr_pipeline_stage(SseDeserializer deserializer);
+@protected XmlMetadata sse_decode_box_autoadd_xml_metadata(SseDeserializer deserializer);
 
-  @protected
-  OcrQualityThresholds sse_decode_ocr_quality_thresholds(
-    SseDeserializer deserializer,
-  );
+@protected YakeParams sse_decode_box_autoadd_yake_params(SseDeserializer deserializer);
 
-  @protected
-  OcrRotation sse_decode_ocr_rotation(SseDeserializer deserializer);
+@protected YearRange sse_decode_box_autoadd_year_range(SseDeserializer deserializer);
 
-  @protected
-  OcrTable sse_decode_ocr_table(SseDeserializer deserializer);
+@protected BrowserBackend sse_decode_browser_backend(SseDeserializer deserializer);
 
-  @protected
-  OcrTableBoundingBox sse_decode_ocr_table_bounding_box(
-    SseDeserializer deserializer,
-  );
+@protected BrowserConfig sse_decode_browser_config(SseDeserializer deserializer);
 
-  @protected
-  Map<String, String>? sse_decode_opt_Map_String_String_None(
-    SseDeserializer deserializer,
-  );
+@protected BrowserMode sse_decode_browser_mode(SseDeserializer deserializer);
 
-  @protected
-  Map<String, PlatformInt64>? sse_decode_opt_Map_String_i_64_None(
-    SseDeserializer deserializer,
-  );
+@protected BrowserWait sse_decode_browser_wait(SseDeserializer deserializer);
 
-  @protected
-  Map<String, List<String>>? sse_decode_opt_Map_String_list_String_None(
-    SseDeserializer deserializer,
-  );
+@protected CacheStats sse_decode_cache_stats(SseDeserializer deserializer);
 
-  @protected
-  Map<String, Uint8List>? sse_decode_opt_Map_String_list_prim_u_8_strict_None(
-    SseDeserializer deserializer,
-  );
+@protected CallMode sse_decode_call_mode(SseDeserializer deserializer);
 
-  @protected
-  String? sse_decode_opt_String(SseDeserializer deserializer);
+@protected CaptioningConfig sse_decode_captioning_config(SseDeserializer deserializer);
 
-  @protected
-  AccelerationConfig? sse_decode_opt_box_autoadd_acceleration_config(
-    SseDeserializer deserializer,
-  );
+@protected CellChange sse_decode_cell_change(SseDeserializer deserializer);
 
-  @protected
-  AuthConfig? sse_decode_opt_box_autoadd_auth_config(
-    SseDeserializer deserializer,
-  );
+@protected Chunk sse_decode_chunk(SseDeserializer deserializer);
 
-  @protected
-  bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+@protected ChunkInfo sse_decode_chunk_info(SseDeserializer deserializer);
 
-  @protected
-  BoundingBox? sse_decode_opt_box_autoadd_bounding_box(
-    SseDeserializer deserializer,
-  );
+@protected ChunkMetadata sse_decode_chunk_metadata(SseDeserializer deserializer);
 
-  @protected
-  CaptioningConfig? sse_decode_opt_box_autoadd_captioning_config(
-    SseDeserializer deserializer,
-  );
+@protected ChunkSizing sse_decode_chunk_sizing(SseDeserializer deserializer);
 
-  @protected
-  ChunkingConfig? sse_decode_opt_box_autoadd_chunking_config(
-    SseDeserializer deserializer,
-  );
+@protected ChunkType sse_decode_chunk_type(SseDeserializer deserializer);
 
-  @protected
-  ContentFilterConfig? sse_decode_opt_box_autoadd_content_filter_config(
-    SseDeserializer deserializer,
-  );
+@protected ChunkerType sse_decode_chunker_type(SseDeserializer deserializer);
 
-  @protected
-  CoreProperties? sse_decode_opt_box_autoadd_core_properties(
-    SseDeserializer deserializer,
-  );
+@protected ChunkingConfig sse_decode_chunking_config(SseDeserializer deserializer);
 
-  @protected
-  DjotContent? sse_decode_opt_box_autoadd_djot_content(
-    SseDeserializer deserializer,
-  );
+@protected ChunkingReason sse_decode_chunking_reason(SseDeserializer deserializer);
 
-  @protected
-  DocumentStructure? sse_decode_opt_box_autoadd_document_structure(
-    SseDeserializer deserializer,
-  );
+@protected Citation sse_decode_citation(SseDeserializer deserializer);
 
-  @protected
-  DocumentSummary? sse_decode_opt_box_autoadd_document_summary(
-    SseDeserializer deserializer,
-  );
+@protected CitationMetadata sse_decode_citation_metadata(SseDeserializer deserializer);
 
-  @protected
-  DocxAppProperties? sse_decode_opt_box_autoadd_docx_app_properties(
-    SseDeserializer deserializer,
-  );
+@protected CitationSource sse_decode_citation_source(SseDeserializer deserializer);
 
-  @protected
-  EmailConfig? sse_decode_opt_box_autoadd_email_config(
-    SseDeserializer deserializer,
-  );
+@protected CitedField sse_decode_cited_field(SseDeserializer deserializer);
 
-  @protected
-  EmbeddingConfig? sse_decode_opt_box_autoadd_embedding_config(
-    SseDeserializer deserializer,
-  );
+@protected ClassificationLabel sse_decode_classification_label(SseDeserializer deserializer);
 
-  @protected
-  ErrorMetadata? sse_decode_opt_box_autoadd_error_metadata(
-    SseDeserializer deserializer,
-  );
+@protected CodeContentMode sse_decode_code_content_mode(SseDeserializer deserializer);
 
-  @protected
-  ExtractedDocument? sse_decode_opt_box_autoadd_extracted_document(
-    SseDeserializer deserializer,
-  );
+@protected ContentConfig sse_decode_content_config(SseDeserializer deserializer);
 
-  @protected
-  ExtractionConfidence? sse_decode_opt_box_autoadd_extraction_confidence(
-    SseDeserializer deserializer,
-  );
+@protected ContentFilterConfig sse_decode_content_filter_config(SseDeserializer deserializer);
 
-  @protected
-  ExtractionMethod? sse_decode_opt_box_autoadd_extraction_method(
-    SseDeserializer deserializer,
-  );
+@protected ContentLayer sse_decode_content_layer(SseDeserializer deserializer);
 
-  @protected
-  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
+@protected ContributorRole sse_decode_contributor_role(SseDeserializer deserializer);
 
-  @protected
-  FileExtractionConfig? sse_decode_opt_box_autoadd_file_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected CoreProperties sse_decode_core_properties(SseDeserializer deserializer);
 
-  @protected
-  FormatMetadata? sse_decode_opt_box_autoadd_format_metadata(
-    SseDeserializer deserializer,
-  );
+@protected CrawlConfig sse_decode_crawl_config(SseDeserializer deserializer);
 
-  @protected
-  HeadingContext? sse_decode_opt_box_autoadd_heading_context(
-    SseDeserializer deserializer,
-  );
+@protected CsvMetadata sse_decode_csv_metadata(SseDeserializer deserializer);
 
-  @protected
-  HierarchyConfig? sse_decode_opt_box_autoadd_hierarchy_config(
-    SseDeserializer deserializer,
-  );
+@protected CustomGlinerSource sse_decode_custom_gliner_source(SseDeserializer deserializer);
 
-  @protected
-  HtmlOutputConfig? sse_decode_opt_box_autoadd_html_output_config(
-    SseDeserializer deserializer,
-  );
+@protected DbfFieldInfo sse_decode_dbf_field_info(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+@protected DbfMetadata sse_decode_dbf_metadata(SseDeserializer deserializer);
 
-  @protected
-  ImageExtractionConfig? sse_decode_opt_box_autoadd_image_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected DetectResponse sse_decode_detect_response(SseDeserializer deserializer);
 
-  @protected
-  ImageKind? sse_decode_opt_box_autoadd_image_kind(
-    SseDeserializer deserializer,
-  );
+@protected DetectionResult sse_decode_detection_result(SseDeserializer deserializer);
 
-  @protected
-  ImagePreprocessingConfig?
-  sse_decode_opt_box_autoadd_image_preprocessing_config(
-    SseDeserializer deserializer,
-  );
+@protected DiffHunk sse_decode_diff_hunk(SseDeserializer deserializer);
 
-  @protected
-  ImagePreprocessingMetadata?
-  sse_decode_opt_box_autoadd_image_preprocessing_metadata(
-    SseDeserializer deserializer,
-  );
+@protected DiffLine sse_decode_diff_line(SseDeserializer deserializer);
 
-  @protected
-  KeywordConfig? sse_decode_opt_box_autoadd_keyword_config(
-    SseDeserializer deserializer,
-  );
+@protected DiffOptions sse_decode_diff_options(SseDeserializer deserializer);
 
-  @protected
-  LanguageDetectionConfig? sse_decode_opt_box_autoadd_language_detection_config(
-    SseDeserializer deserializer,
-  );
+@protected DjotContent sse_decode_djot_content(SseDeserializer deserializer);
 
-  @protected
-  LayoutDetectionConfig? sse_decode_opt_box_autoadd_layout_detection_config(
-    SseDeserializer deserializer,
-  );
+@protected DjotImage sse_decode_djot_image(SseDeserializer deserializer);
 
-  @protected
-  LlmConfig? sse_decode_opt_box_autoadd_llm_config(
-    SseDeserializer deserializer,
-  );
+@protected DjotLink sse_decode_djot_link(SseDeserializer deserializer);
 
-  @protected
-  NerConfig? sse_decode_opt_box_autoadd_ner_config(
-    SseDeserializer deserializer,
-  );
+@protected DocumentBoundary sse_decode_document_boundary(SseDeserializer deserializer);
 
-  @protected
-  OcrConfig? sse_decode_opt_box_autoadd_ocr_config(
-    SseDeserializer deserializer,
-  );
+@protected DocumentMetadata sse_decode_document_metadata(SseDeserializer deserializer);
 
-  @protected
-  OcrElementConfig? sse_decode_opt_box_autoadd_ocr_element_config(
-    SseDeserializer deserializer,
-  );
+@protected DocumentNode sse_decode_document_node(SseDeserializer deserializer);
 
-  @protected
-  OcrPipelineConfig? sse_decode_opt_box_autoadd_ocr_pipeline_config(
-    SseDeserializer deserializer,
-  );
+@protected DocumentRelationship sse_decode_document_relationship(SseDeserializer deserializer);
 
-  @protected
-  OcrQualityThresholds? sse_decode_opt_box_autoadd_ocr_quality_thresholds(
-    SseDeserializer deserializer,
-  );
+@protected DocumentRevision sse_decode_document_revision(SseDeserializer deserializer);
 
-  @protected
-  OcrRotation? sse_decode_opt_box_autoadd_ocr_rotation(
-    SseDeserializer deserializer,
-  );
+@protected DocumentStructure sse_decode_document_structure(SseDeserializer deserializer);
 
-  @protected
-  OcrTableBoundingBox? sse_decode_opt_box_autoadd_ocr_table_bounding_box(
-    SseDeserializer deserializer,
-  );
+@protected DocumentSummary sse_decode_document_summary(SseDeserializer deserializer);
 
-  @protected
-  OutputFormat? sse_decode_opt_box_autoadd_output_format(
-    SseDeserializer deserializer,
-  );
+@protected DocxAppProperties sse_decode_docx_app_properties(SseDeserializer deserializer);
 
-  @protected
-  PageClassificationConfig?
-  sse_decode_opt_box_autoadd_page_classification_config(
-    SseDeserializer deserializer,
-  );
+@protected DocxMetadata sse_decode_docx_metadata(SseDeserializer deserializer);
 
-  @protected
-  PageConfig? sse_decode_opt_box_autoadd_page_config(
-    SseDeserializer deserializer,
-  );
+@protected Element sse_decode_element(SseDeserializer deserializer);
 
-  @protected
-  PageHierarchy? sse_decode_opt_box_autoadd_page_hierarchy(
-    SseDeserializer deserializer,
-  );
+@protected ElementMetadata sse_decode_element_metadata(SseDeserializer deserializer);
 
-  @protected
-  PageStructure? sse_decode_opt_box_autoadd_page_structure(
-    SseDeserializer deserializer,
-  );
+@protected ElementType sse_decode_element_type(SseDeserializer deserializer);
 
-  @protected
-  PdfConfig? sse_decode_opt_box_autoadd_pdf_config(
-    SseDeserializer deserializer,
-  );
+@protected EmailAttachment sse_decode_email_attachment(SseDeserializer deserializer);
 
-  @protected
-  PostProcessorConfig? sse_decode_opt_box_autoadd_post_processor_config(
-    SseDeserializer deserializer,
-  );
+@protected EmailConfig sse_decode_email_config(SseDeserializer deserializer);
 
-  @protected
-  Preset? sse_decode_opt_box_autoadd_preset(SseDeserializer deserializer);
+@protected EmailExtractionResult sse_decode_email_extraction_result(SseDeserializer deserializer);
 
-  @protected
-  PresetSample? sse_decode_opt_box_autoadd_preset_sample(
-    SseDeserializer deserializer,
-  );
+@protected EmailMetadata sse_decode_email_metadata(SseDeserializer deserializer);
 
-  @protected
-  ProxyConfig? sse_decode_opt_box_autoadd_proxy_config(
-    SseDeserializer deserializer,
-  );
+@protected EmbeddedChanges sse_decode_embedded_changes(SseDeserializer deserializer);
 
-  @protected
-  QrBoundingBox? sse_decode_opt_box_autoadd_qr_bounding_box(
-    SseDeserializer deserializer,
-  );
+@protected EmbeddedDiff sse_decode_embedded_diff(SseDeserializer deserializer);
 
-  @protected
-  RakeParams? sse_decode_opt_box_autoadd_rake_params(
-    SseDeserializer deserializer,
-  );
+@protected EmbeddedFile sse_decode_embedded_file(SseDeserializer deserializer);
 
-  @protected
-  RedactionConfig? sse_decode_opt_box_autoadd_redaction_config(
-    SseDeserializer deserializer,
-  );
+@protected EmbeddingConfig sse_decode_embedding_config(SseDeserializer deserializer);
 
-  @protected
-  RedactionReport? sse_decode_opt_box_autoadd_redaction_report(
-    SseDeserializer deserializer,
-  );
+@protected EmbeddingModelType sse_decode_embedding_model_type(SseDeserializer deserializer);
 
-  @protected
-  ResultFormat? sse_decode_opt_box_autoadd_result_format(
-    SseDeserializer deserializer,
-  );
+@protected Entity sse_decode_entity(SseDeserializer deserializer);
 
-  @protected
-  RevisionAnchor? sse_decode_opt_box_autoadd_revision_anchor(
-    SseDeserializer deserializer,
-  );
+@protected EntityCategory sse_decode_entity_category(SseDeserializer deserializer);
 
-  @protected
-  SecurityLimits? sse_decode_opt_box_autoadd_security_limits(
-    SseDeserializer deserializer,
-  );
+@protected EpubMetadata sse_decode_epub_metadata(SseDeserializer deserializer);
 
-  @protected
-  StructuredExtractionConfig?
-  sse_decode_opt_box_autoadd_structured_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected ErrorMetadata sse_decode_error_metadata(SseDeserializer deserializer);
 
-  @protected
-  SummarizationConfig? sse_decode_opt_box_autoadd_summarization_config(
-    SseDeserializer deserializer,
-  );
+@protected ExcelMetadata sse_decode_excel_metadata(SseDeserializer deserializer);
 
-  @protected
-  TesseractConfig? sse_decode_opt_box_autoadd_tesseract_config(
-    SseDeserializer deserializer,
-  );
+@protected ExcelSheet sse_decode_excel_sheet(SseDeserializer deserializer);
 
-  @protected
-  TextDirection? sse_decode_opt_box_autoadd_text_direction(
-    SseDeserializer deserializer,
-  );
+@protected ExcelWorkbook sse_decode_excel_workbook(SseDeserializer deserializer);
 
-  @protected
-  TokenReductionOptions? sse_decode_opt_box_autoadd_token_reduction_options(
-    SseDeserializer deserializer,
-  );
+@protected ExecutionProviderType sse_decode_execution_provider_type(SseDeserializer deserializer);
 
-  @protected
-  TranscriptionConfig? sse_decode_opt_box_autoadd_transcription_config(
-    SseDeserializer deserializer,
-  );
+@protected ExtractInput sse_decode_extract_input(SseDeserializer deserializer);
 
-  @protected
-  Translation? sse_decode_opt_box_autoadd_translation(
-    SseDeserializer deserializer,
-  );
+@protected ExtractInputKind sse_decode_extract_input_kind(SseDeserializer deserializer);
 
-  @protected
-  TranslationConfig? sse_decode_opt_box_autoadd_translation_config(
-    SseDeserializer deserializer,
-  );
+@protected ExtractedDocument sse_decode_extracted_document(SseDeserializer deserializer);
 
-  @protected
-  TreeSitterConfig? sse_decode_opt_box_autoadd_tree_sitter_config(
-    SseDeserializer deserializer,
-  );
+@protected ExtractedImage sse_decode_extracted_image(SseDeserializer deserializer);
 
-  @protected
-  UrlExtractionConfig? sse_decode_opt_box_autoadd_url_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected ExtractedUri sse_decode_extracted_uri(SseDeserializer deserializer);
 
-  @protected
-  UserChunkConfig? sse_decode_opt_box_autoadd_user_chunk_config(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionConfidence sse_decode_extraction_confidence(SseDeserializer deserializer);
 
-  @protected
-  YakeParams? sse_decode_opt_box_autoadd_yake_params(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionConfig sse_decode_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  YearRange? sse_decode_opt_box_autoadd_year_range(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionDiff sse_decode_extraction_diff(SseDeserializer deserializer);
 
-  @protected
-  List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
+@protected ExtractionErrorItem sse_decode_extraction_error_item(SseDeserializer deserializer);
 
-  @protected
-  List<ArchiveEntry>? sse_decode_opt_list_archive_entry(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionMethod sse_decode_extraction_method(SseDeserializer deserializer);
 
-  @protected
-  List<Chunk>? sse_decode_opt_list_chunk(SseDeserializer deserializer);
+@protected ExtractionResult sse_decode_extraction_result(SseDeserializer deserializer);
 
-  @protected
-  List<DocumentRevision>? sse_decode_opt_list_document_revision(
-    SseDeserializer deserializer,
-  );
+@protected ExtractionSummary sse_decode_extraction_summary(SseDeserializer deserializer);
 
-  @protected
-  List<Element>? sse_decode_opt_list_element(SseDeserializer deserializer);
+@protected double sse_decode_f_64(SseDeserializer deserializer);
 
-  @protected
-  List<Entity>? sse_decode_opt_list_entity(SseDeserializer deserializer);
+@protected FictionBookMetadata sse_decode_fiction_book_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractedImage>? sse_decode_opt_list_extracted_image(
-    SseDeserializer deserializer,
-  );
+@protected FileExtractionConfig sse_decode_file_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  List<ExtractedUri>? sse_decode_opt_list_extracted_uri(
-    SseDeserializer deserializer,
-  );
+@protected Footnote sse_decode_footnote(SseDeserializer deserializer);
 
-  @protected
-  List<Keyword>? sse_decode_opt_list_keyword(SseDeserializer deserializer);
+@protected FootnoteAnchor sse_decode_footnote_anchor(SseDeserializer deserializer);
 
-  @protected
-  List<LayoutRegion>? sse_decode_opt_list_layout_region(
-    SseDeserializer deserializer,
-  );
+@protected FootnoteConfig sse_decode_footnote_config(SseDeserializer deserializer);
 
-  @protected
-  List<List<String>>? sse_decode_opt_list_list_String(
-    SseDeserializer deserializer,
-  );
+@protected FootnoteDefinition sse_decode_footnote_definition(SseDeserializer deserializer);
 
-  @protected
-  List<LlmUsage>? sse_decode_opt_list_llm_usage(SseDeserializer deserializer);
+@protected FormFieldType sse_decode_form_field_type(SseDeserializer deserializer);
 
-  @protected
-  List<OcrElement>? sse_decode_opt_list_ocr_element(
-    SseDeserializer deserializer,
-  );
+@protected FormatMetadata sse_decode_format_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<PageBoundary>? sse_decode_opt_list_page_boundary(
-    SseDeserializer deserializer,
-  );
+@protected FormattedBlock sse_decode_formatted_block(SseDeserializer deserializer);
 
-  @protected
-  List<PageClassification>? sse_decode_opt_list_page_classification(
-    SseDeserializer deserializer,
-  );
+@protected Formula sse_decode_formula(SseDeserializer deserializer);
 
-  @protected
-  List<PageContent>? sse_decode_opt_list_page_content(
-    SseDeserializer deserializer,
-  );
+@protected GlinerArchitecture sse_decode_gliner_architecture(SseDeserializer deserializer);
 
-  @protected
-  List<PageInfo>? sse_decode_opt_list_page_info(SseDeserializer deserializer);
+@protected GridCell sse_decode_grid_cell(SseDeserializer deserializer);
 
-  @protected
-  List<PageRange>? sse_decode_opt_list_page_range(SseDeserializer deserializer);
+@protected HeaderMetadata sse_decode_header_metadata(SseDeserializer deserializer);
 
-  @protected
-  List<PdfAnnotation>? sse_decode_opt_list_pdf_annotation(
-    SseDeserializer deserializer,
-  );
+@protected HeadingContext sse_decode_heading_context(SseDeserializer deserializer);
 
-  @protected
-  Float64List? sse_decode_opt_list_prim_f_64_strict(
-    SseDeserializer deserializer,
-  );
+@protected HeadingLevel sse_decode_heading_level(SseDeserializer deserializer);
 
-  @protected
-  Int64List? sse_decode_opt_list_prim_i_64_strict(SseDeserializer deserializer);
+@protected HeuristicsConfig sse_decode_heuristics_config(SseDeserializer deserializer);
 
-  @protected
-  Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+@protected HeuristicsError sse_decode_heuristics_error(SseDeserializer deserializer);
 
-  @protected
-  List<QrCode>? sse_decode_opt_list_qr_code(SseDeserializer deserializer);
+@protected HierarchicalBlock sse_decode_hierarchical_block(SseDeserializer deserializer);
 
-  @protected
-  OrientationResult sse_decode_orientation_result(SseDeserializer deserializer);
+@protected HierarchyConfig sse_decode_hierarchy_config(SseDeserializer deserializer);
 
-  @protected
-  OutputFormat sse_decode_output_format(SseDeserializer deserializer);
+@protected HtmlMetadata sse_decode_html_metadata(SseDeserializer deserializer);
 
-  @protected
-  PaddleLanguage sse_decode_paddle_language(SseDeserializer deserializer);
+@protected HtmlOutputConfig sse_decode_html_output_config(SseDeserializer deserializer);
 
-  @protected
-  PaddleOcrConfig sse_decode_paddle_ocr_config(SseDeserializer deserializer);
+@protected HtmlTheme sse_decode_html_theme(SseDeserializer deserializer);
 
-  @protected
-  PageBoundary sse_decode_page_boundary(SseDeserializer deserializer);
+@protected int sse_decode_i_32(SseDeserializer deserializer);
 
-  @protected
-  PageClassification sse_decode_page_classification(
-    SseDeserializer deserializer,
-  );
+@protected PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
-  @protected
-  PageClassificationConfig sse_decode_page_classification_config(
-    SseDeserializer deserializer,
-  );
+@protected ImageExtractionConfig sse_decode_image_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  PageConfig sse_decode_page_config(SseDeserializer deserializer);
+@protected ImageKind sse_decode_image_kind(SseDeserializer deserializer);
 
-  @protected
-  PageContent sse_decode_page_content(SseDeserializer deserializer);
+@protected ImageMetadata sse_decode_image_metadata(SseDeserializer deserializer);
 
-  @protected
-  PageHierarchy sse_decode_page_hierarchy(SseDeserializer deserializer);
+@protected ImageMetadataType sse_decode_image_metadata_type(SseDeserializer deserializer);
 
-  @protected
-  PageInfo sse_decode_page_info(SseDeserializer deserializer);
+@protected ImageOutputFormat sse_decode_image_output_format(SseDeserializer deserializer);
 
-  @protected
-  PageRange sse_decode_page_range(SseDeserializer deserializer);
+@protected ImagePreprocessingConfig sse_decode_image_preprocessing_config(SseDeserializer deserializer);
 
-  @protected
-  PageSignals sse_decode_page_signals(SseDeserializer deserializer);
+@protected ImagePreprocessingMetadata sse_decode_image_preprocessing_metadata(SseDeserializer deserializer);
 
-  @protected
-  PageStructure sse_decode_page_structure(SseDeserializer deserializer);
+@protected ImageType sse_decode_image_type(SseDeserializer deserializer);
 
-  @protected
-  PageUnitType sse_decode_page_unit_type(SseDeserializer deserializer);
+@protected InlineElement sse_decode_inline_element(SseDeserializer deserializer);
 
-  @protected
-  PatternMatch sse_decode_pattern_match(SseDeserializer deserializer);
+@protected InlineType sse_decode_inline_type(SseDeserializer deserializer);
 
-  @protected
-  PdfAnnotation sse_decode_pdf_annotation(SseDeserializer deserializer);
+@protected PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
 
-  @protected
-  PdfAnnotationType sse_decode_pdf_annotation_type(
-    SseDeserializer deserializer,
-  );
+@protected JatsMetadata sse_decode_jats_metadata(SseDeserializer deserializer);
 
-  @protected
-  PdfConfig sse_decode_pdf_config(SseDeserializer deserializer);
+@protected Keyword sse_decode_keyword(SseDeserializer deserializer);
 
-  @protected
-  PdfFormField sse_decode_pdf_form_field(SseDeserializer deserializer);
+@protected KeywordAlgorithm sse_decode_keyword_algorithm(SseDeserializer deserializer);
 
-  @protected
-  PdfMetadata sse_decode_pdf_metadata(SseDeserializer deserializer);
+@protected KeywordConfig sse_decode_keyword_config(SseDeserializer deserializer);
 
-  @protected
-  PiiCategory sse_decode_pii_category(SseDeserializer deserializer);
+@protected LanguageDetectionConfig sse_decode_language_detection_config(SseDeserializer deserializer);
 
-  @protected
-  PostProcessorConfig sse_decode_post_processor_config(
-    SseDeserializer deserializer,
-  );
+@protected LayoutClass sse_decode_layout_class(SseDeserializer deserializer);
 
-  @protected
-  PptxAppProperties sse_decode_pptx_app_properties(
-    SseDeserializer deserializer,
-  );
+@protected LayoutDetection sse_decode_layout_detection(SseDeserializer deserializer);
 
-  @protected
-  PptxExtractionResult sse_decode_pptx_extraction_result(
-    SseDeserializer deserializer,
-  );
+@protected LayoutDetectionConfig sse_decode_layout_detection_config(SseDeserializer deserializer);
 
-  @protected
-  PptxMetadata sse_decode_pptx_metadata(SseDeserializer deserializer);
+@protected LayoutRegion sse_decode_layout_region(SseDeserializer deserializer);
 
-  @protected
-  Preset sse_decode_preset(SseDeserializer deserializer);
+@protected LinkMetadata sse_decode_link_metadata(SseDeserializer deserializer);
 
-  @protected
-  PresetCategory sse_decode_preset_category(SseDeserializer deserializer);
+@protected LinkType sse_decode_link_type(SseDeserializer deserializer);
 
-  @protected
-  PresetSample sse_decode_preset_sample(SseDeserializer deserializer);
+@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-  @protected
-  PresetSummary sse_decode_preset_summary(SseDeserializer deserializer);
+@protected List<ArchiveEntry> sse_decode_list_archive_entry(SseDeserializer deserializer);
 
-  @protected
-  ProcessingStage sse_decode_processing_stage(SseDeserializer deserializer);
+@protected List<AssetCategory> sse_decode_list_asset_category(SseDeserializer deserializer);
 
-  @protected
-  ProcessingWarning sse_decode_processing_warning(SseDeserializer deserializer);
+@protected List<CellChange> sse_decode_list_cell_change(SseDeserializer deserializer);
 
-  @protected
-  ProxyConfig sse_decode_proxy_config(SseDeserializer deserializer);
+@protected List<Chunk> sse_decode_list_chunk(SseDeserializer deserializer);
 
-  @protected
-  PSMMode sse_decode_psm_mode(SseDeserializer deserializer);
+@protected List<ClassificationLabel> sse_decode_list_classification_label(SseDeserializer deserializer);
 
-  @protected
-  PstMetadata sse_decode_pst_metadata(SseDeserializer deserializer);
+@protected List<ContributorRole> sse_decode_list_contributor_role(SseDeserializer deserializer);
 
-  @protected
-  QrBoundingBox sse_decode_qr_bounding_box(SseDeserializer deserializer);
+@protected List<DbfFieldInfo> sse_decode_list_dbf_field_info(SseDeserializer deserializer);
 
-  @protected
-  QrCode sse_decode_qr_code(SseDeserializer deserializer);
+@protected List<DiffHunk> sse_decode_list_diff_hunk(SseDeserializer deserializer);
 
-  @protected
-  RakeParams sse_decode_rake_params(SseDeserializer deserializer);
+@protected List<DiffLine> sse_decode_list_diff_line(SseDeserializer deserializer);
 
-  @protected
-  RecognizedTable sse_decode_recognized_table(SseDeserializer deserializer);
+@protected List<DjotImage> sse_decode_list_djot_image(SseDeserializer deserializer);
 
-  @protected
-  (String, PlatformInt64) sse_decode_record_string_i_64(
-    SseDeserializer deserializer,
-  );
+@protected List<DjotLink> sse_decode_list_djot_link(SseDeserializer deserializer);
 
-  @protected
-  (String, Uint8List) sse_decode_record_string_list_prim_u_8_strict(
-    SseDeserializer deserializer,
-  );
+@protected List<DocumentNode> sse_decode_list_document_node(SseDeserializer deserializer);
 
-  @protected
-  (String, List<String>) sse_decode_record_string_list_string(
-    SseDeserializer deserializer,
-  );
+@protected List<DocumentRelationship> sse_decode_list_document_relationship(SseDeserializer deserializer);
 
-  @protected
-  (String, String) sse_decode_record_string_string(
-    SseDeserializer deserializer,
-  );
+@protected List<DocumentRevision> sse_decode_list_document_revision(SseDeserializer deserializer);
 
-  @protected
-  RedactionConfig sse_decode_redaction_config(SseDeserializer deserializer);
+@protected List<Element> sse_decode_list_element(SseDeserializer deserializer);
 
-  @protected
-  RedactionFinding sse_decode_redaction_finding(SseDeserializer deserializer);
+@protected List<EmailAttachment> sse_decode_list_email_attachment(SseDeserializer deserializer);
 
-  @protected
-  RedactionPattern sse_decode_redaction_pattern(SseDeserializer deserializer);
+@protected List<EmbeddedDiff> sse_decode_list_embedded_diff(SseDeserializer deserializer);
 
-  @protected
-  RedactionReport sse_decode_redaction_report(SseDeserializer deserializer);
+@protected List<Entity> sse_decode_list_entity(SseDeserializer deserializer);
 
-  @protected
-  RedactionStrategy sse_decode_redaction_strategy(SseDeserializer deserializer);
+@protected List<EntityCategory> sse_decode_list_entity_category(SseDeserializer deserializer);
 
-  @protected
-  RedactionTerm sse_decode_redaction_term(SseDeserializer deserializer);
+@protected List<ExcelSheet> sse_decode_list_excel_sheet(SseDeserializer deserializer);
 
-  @protected
-  ReductionLevel sse_decode_reduction_level(SseDeserializer deserializer);
+@protected List<ExtractInput> sse_decode_list_extract_input(SseDeserializer deserializer);
 
-  @protected
-  RegionKind sse_decode_region_kind(SseDeserializer deserializer);
+@protected List<ExtractedDocument> sse_decode_list_extracted_document(SseDeserializer deserializer);
 
-  @protected
-  RelationshipKind sse_decode_relationship_kind(SseDeserializer deserializer);
+@protected List<ExtractedImage> sse_decode_list_extracted_image(SseDeserializer deserializer);
 
-  @protected
-  RerankedDocument sse_decode_reranked_document(SseDeserializer deserializer);
+@protected List<ExtractedUri> sse_decode_list_extracted_uri(SseDeserializer deserializer);
 
-  @protected
-  RerankerConfig sse_decode_reranker_config(SseDeserializer deserializer);
+@protected List<ExtractionErrorItem> sse_decode_list_extraction_error_item(SseDeserializer deserializer);
 
-  @protected
-  RerankerModelType sse_decode_reranker_model_type(
-    SseDeserializer deserializer,
-  );
+@protected List<Footnote> sse_decode_list_footnote(SseDeserializer deserializer);
 
-  @protected
-  ResolveError sse_decode_resolve_error(SseDeserializer deserializer);
+@protected List<FormattedBlock> sse_decode_list_formatted_block(SseDeserializer deserializer);
 
-  @protected
-  ResolvedPreset sse_decode_resolved_preset(SseDeserializer deserializer);
+@protected List<Formula> sse_decode_list_formula(SseDeserializer deserializer);
 
-  @protected
-  ResultFormat sse_decode_result_format(SseDeserializer deserializer);
+@protected List<GridCell> sse_decode_list_grid_cell(SseDeserializer deserializer);
 
-  @protected
-  RevisionAnchor sse_decode_revision_anchor(SseDeserializer deserializer);
+@protected List<HeaderMetadata> sse_decode_list_header_metadata(SseDeserializer deserializer);
 
-  @protected
-  RevisionDelta sse_decode_revision_delta(SseDeserializer deserializer);
+@protected List<HeadingLevel> sse_decode_list_heading_level(SseDeserializer deserializer);
 
-  @protected
-  RevisionKind sse_decode_revision_kind(SseDeserializer deserializer);
+@protected List<HierarchicalBlock> sse_decode_list_hierarchical_block(SseDeserializer deserializer);
 
-  @protected
-  SchemaCompliance sse_decode_schema_compliance(SseDeserializer deserializer);
+@protected List<ImageMetadataType> sse_decode_list_image_metadata_type(SseDeserializer deserializer);
 
-  @protected
-  SecurityLimits sse_decode_security_limits(SseDeserializer deserializer);
+@protected List<InlineElement> sse_decode_list_inline_element(SseDeserializer deserializer);
 
-  @protected
-  ServerConfig sse_decode_server_config(SseDeserializer deserializer);
+@protected List<Keyword> sse_decode_list_keyword(SseDeserializer deserializer);
 
-  @protected
-  SsrfPolicy sse_decode_ssrf_policy(SseDeserializer deserializer);
+@protected List<LayoutDetection> sse_decode_list_layout_detection(SseDeserializer deserializer);
 
-  @protected
-  StructuredData sse_decode_structured_data(SseDeserializer deserializer);
+@protected List<LayoutRegion> sse_decode_list_layout_region(SseDeserializer deserializer);
 
-  @protected
-  StructuredDataResult sse_decode_structured_data_result(
-    SseDeserializer deserializer,
-  );
+@protected List<LinkMetadata> sse_decode_list_link_metadata(SseDeserializer deserializer);
 
-  @protected
-  StructuredDataType sse_decode_structured_data_type(
-    SseDeserializer deserializer,
-  );
+@protected List<List<String>> sse_decode_list_list_String(SseDeserializer deserializer);
 
-  @protected
-  StructuredExtractionConfig sse_decode_structured_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected List<Float64List> sse_decode_list_list_prim_f_64_strict(SseDeserializer deserializer);
 
-  @protected
-  SummarizationConfig sse_decode_summarization_config(
-    SseDeserializer deserializer,
-  );
+@protected List<LlmUsage> sse_decode_list_llm_usage(SseDeserializer deserializer);
 
-  @protected
-  SummaryStrategy sse_decode_summary_strategy(SseDeserializer deserializer);
+@protected List<OcrElement> sse_decode_list_ocr_element(SseDeserializer deserializer);
 
-  @protected
-  SupportedFormat sse_decode_supported_format(SseDeserializer deserializer);
+@protected List<OcrPipelineStage> sse_decode_list_ocr_pipeline_stage(SseDeserializer deserializer);
 
-  @protected
-  SvgOptions sse_decode_svg_options(SseDeserializer deserializer);
+@protected List<OcrTable> sse_decode_list_ocr_table(SseDeserializer deserializer);
 
-  @protected
-  Table sse_decode_table(SseDeserializer deserializer);
+@protected List<PageBoundary> sse_decode_list_page_boundary(SseDeserializer deserializer);
 
-  @protected
-  TableCell sse_decode_table_cell(SseDeserializer deserializer);
+@protected List<PageClassification> sse_decode_list_page_classification(SseDeserializer deserializer);
 
-  @protected
-  TableChunkingMode sse_decode_table_chunking_mode(
-    SseDeserializer deserializer,
-  );
+@protected List<PageContent> sse_decode_list_page_content(SseDeserializer deserializer);
 
-  @protected
-  TableDiff sse_decode_table_diff(SseDeserializer deserializer);
+@protected List<PageInfo> sse_decode_list_page_info(SseDeserializer deserializer);
 
-  @protected
-  TableGrid sse_decode_table_grid(SseDeserializer deserializer);
+@protected List<PageRange> sse_decode_list_page_range(SseDeserializer deserializer);
 
-  @protected
-  TableModel sse_decode_table_model(SseDeserializer deserializer);
+@protected List<PageSignals> sse_decode_list_page_signals(SseDeserializer deserializer);
 
-  @protected
-  TableOverlapPreference sse_decode_table_overlap_preference(
-    SseDeserializer deserializer,
-  );
+@protected List<PdfAnnotation> sse_decode_list_pdf_annotation(SseDeserializer deserializer);
 
-  @protected
-  TesseractConfig sse_decode_tesseract_config(SseDeserializer deserializer);
+@protected List<PdfFormField> sse_decode_list_pdf_form_field(SseDeserializer deserializer);
 
-  @protected
-  TextAnnotation sse_decode_text_annotation(SseDeserializer deserializer);
+@protected List<PiiCategory> sse_decode_list_pii_category(SseDeserializer deserializer);
 
-  @protected
-  TextDirection sse_decode_text_direction(SseDeserializer deserializer);
+@protected List<PresetSummary> sse_decode_list_preset_summary(SseDeserializer deserializer);
 
-  @protected
-  TextExtractionResult sse_decode_text_extraction_result(
-    SseDeserializer deserializer,
-  );
+@protected Float64List sse_decode_list_prim_f_64_strict(SseDeserializer deserializer);
 
-  @protected
-  TextMetadata sse_decode_text_metadata(SseDeserializer deserializer);
+@protected Int64List sse_decode_list_prim_i_64_strict(SseDeserializer deserializer);
 
-  @protected
-  TokenReductionConfig sse_decode_token_reduction_config(
-    SseDeserializer deserializer,
-  );
+@protected List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
-  @protected
-  TokenReductionOptions sse_decode_token_reduction_options(
-    SseDeserializer deserializer,
-  );
+@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-  @protected
-  TranscriptionConfig sse_decode_transcription_config(
-    SseDeserializer deserializer,
-  );
+@protected List<ProcessingWarning> sse_decode_list_processing_warning(SseDeserializer deserializer);
 
-  @protected
-  Translation sse_decode_translation(SseDeserializer deserializer);
+@protected List<QrCode> sse_decode_list_qr_code(SseDeserializer deserializer);
 
-  @protected
-  TranslationConfig sse_decode_translation_config(SseDeserializer deserializer);
+@protected List<(String,PlatformInt64)> sse_decode_list_record_string_i_64(SseDeserializer deserializer);
 
-  @protected
-  TreeSitterConfig sse_decode_tree_sitter_config(SseDeserializer deserializer);
+@protected List<(String,Uint8List)> sse_decode_list_record_string_list_prim_u_8_strict(SseDeserializer deserializer);
 
-  @protected
-  TreeSitterProcessConfig sse_decode_tree_sitter_process_config(
-    SseDeserializer deserializer,
-  );
+@protected List<(String,List<String>)> sse_decode_list_record_string_list_string(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_u_8(SseDeserializer deserializer);
+@protected List<(String,String)> sse_decode_list_record_string_string(SseDeserializer deserializer);
 
-  @protected
-  void sse_decode_unit(SseDeserializer deserializer);
+@protected List<RedactionFinding> sse_decode_list_redaction_finding(SseDeserializer deserializer);
 
-  @protected
-  UriKind sse_decode_uri_kind(SseDeserializer deserializer);
+@protected List<RedactionPattern> sse_decode_list_redaction_pattern(SseDeserializer deserializer);
 
-  @protected
-  UrlExtractionConfig sse_decode_url_extraction_config(
-    SseDeserializer deserializer,
-  );
+@protected List<RedactionTerm> sse_decode_list_redaction_term(SseDeserializer deserializer);
 
-  @protected
-  UrlExtractionMode sse_decode_url_extraction_mode(
-    SseDeserializer deserializer,
-  );
+@protected List<StructuredData> sse_decode_list_structured_data(SseDeserializer deserializer);
 
-  @protected
-  UserChunkConfig sse_decode_user_chunk_config(SseDeserializer deserializer);
+@protected List<SupportedFormat> sse_decode_list_supported_format(SseDeserializer deserializer);
 
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer);
+@protected List<Table> sse_decode_list_table(SseDeserializer deserializer);
 
-  @protected
-  VlmFallbackPolicy sse_decode_vlm_fallback_policy(
-    SseDeserializer deserializer,
-  );
+@protected List<TableDiff> sse_decode_list_table_diff(SseDeserializer deserializer);
 
-  @protected
-  WhisperModel sse_decode_whisper_model(SseDeserializer deserializer);
+@protected List<TextAnnotation> sse_decode_list_text_annotation(SseDeserializer deserializer);
 
-  @protected
-  XbergError sse_decode_xberg_error(SseDeserializer deserializer);
+@protected ListType sse_decode_list_type(SseDeserializer deserializer);
 
-  @protected
-  XlsxAppProperties sse_decode_xlsx_app_properties(
-    SseDeserializer deserializer,
-  );
+@protected LlmConfig sse_decode_llm_config(SseDeserializer deserializer);
 
-  @protected
-  XmlExtractionResult sse_decode_xml_extraction_result(
-    SseDeserializer deserializer,
-  );
+@protected LlmUsage sse_decode_llm_usage(SseDeserializer deserializer);
 
-  @protected
-  XmlMetadata sse_decode_xml_metadata(SseDeserializer deserializer);
+@protected LoadError sse_decode_load_error(SseDeserializer deserializer);
 
-  @protected
-  YakeParams sse_decode_yake_params(SseDeserializer deserializer);
+@protected MergeMode sse_decode_merge_mode(SseDeserializer deserializer);
 
-  @protected
-  YearRange sse_decode_year_range(SseDeserializer deserializer);
+@protected Metadata sse_decode_metadata(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  );
+@protected ModelPaths sse_decode_model_paths(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    ArcDocumentExtractor self,
-    SseSerializer serializer,
-  );
+@protected MultidocInput sse_decode_multidoc_input(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    ArcEmbeddingBackend self,
-    SseSerializer serializer,
-  );
+@protected MultidocThresholds sse_decode_multidoc_thresholds(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    ArcOcrBackend self,
-    SseSerializer serializer,
-  );
+@protected NerBackendKind sse_decode_ner_backend_kind(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    ArcPostProcessor self,
-    SseSerializer serializer,
-  );
+@protected NerConfig sse_decode_ner_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    ArcRenderer self,
-    SseSerializer serializer,
-  );
+@protected NoChunkingReason sse_decode_no_chunking_reason(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    ArcRerankerBackend self,
-    SseSerializer serializer,
-  );
+@protected NodeContent sse_decode_node_content(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    ArcValidator self,
-    SseSerializer serializer,
-  );
+@protected OcrBackendType sse_decode_ocr_backend_type(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    DocumentExtractorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrBoundingGeometry sse_decode_ocr_bounding_geometry(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    EmbeddingBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrConfidence sse_decode_ocr_confidence(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    MetaSchema self,
-    SseSerializer serializer,
-  );
+@protected OcrConfig sse_decode_ocr_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    OcrBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrElement sse_decode_ocr_element(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    PostProcessorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrElementConfig sse_decode_ocr_element_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    Registry self,
-    SseSerializer serializer,
-  );
+@protected OcrElementLevel sse_decode_ocr_element_level(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    RendererDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrExtractionResult sse_decode_ocr_extraction_result(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    RerankerBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrMetadata sse_decode_ocr_metadata(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    TokenCounter self,
-    SseSerializer serializer,
-  );
+@protected OcrPipelineConfig sse_decode_ocr_pipeline_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    ValidatorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrPipelineStage sse_decode_ocr_pipeline_stage(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    DocumentExtractorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrQualityThresholds sse_decode_ocr_quality_thresholds(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    EmbeddingBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrRotation sse_decode_ocr_rotation(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    OcrBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrTable sse_decode_ocr_table(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    PostProcessorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrTableBoundingBox sse_decode_ocr_table_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    Registry self,
-    SseSerializer serializer,
-  );
+@protected Map<String, String>? sse_decode_opt_Map_String_String_None(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    RendererDartImpl self,
-    SseSerializer serializer,
-  );
+@protected Map<String, PlatformInt64>? sse_decode_opt_Map_String_i_64_None(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    RerankerBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected Map<String, List<String>>? sse_decode_opt_Map_String_list_String_None(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    ValidatorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected Map<String, Uint8List>? sse_decode_opt_Map_String_list_prim_u_8_strict_None(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    DocumentExtractorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected String? sse_decode_opt_String(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    EmbeddingBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected AccelerationConfig? sse_decode_opt_box_autoadd_acceleration_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    MetaSchema self,
-    SseSerializer serializer,
-  );
+@protected AuthConfig? sse_decode_opt_box_autoadd_auth_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    OcrBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    PostProcessorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected BoundingBox? sse_decode_opt_box_autoadd_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    Registry self,
-    SseSerializer serializer,
-  );
+@protected CaptioningConfig? sse_decode_opt_box_autoadd_captioning_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    RendererDartImpl self,
-    SseSerializer serializer,
-  );
+@protected ChunkingConfig? sse_decode_opt_box_autoadd_chunking_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    RerankerBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected ContentFilterConfig? sse_decode_opt_box_autoadd_content_filter_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    ValidatorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected CoreProperties? sse_decode_opt_box_autoadd_core_properties(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(
-    FutureOr<bool> Function(String) self,
-    SseSerializer serializer,
-  );
+@protected CustomGlinerSource? sse_decode_opt_box_autoadd_custom_gliner_source(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs_String_String_Output_bool_AnyhowException(
-    FutureOr<bool> Function(String, String) self,
-    SseSerializer serializer,
-  );
+@protected DjotContent? sse_decode_opt_box_autoadd_djot_content(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_String_list_String_Output_list_prim_f_64_strict_AnyhowException(
-    FutureOr<Float64List> Function(String, List<String>) self,
-    SseSerializer serializer,
-  );
+@protected DocumentStructure? sse_decode_opt_box_autoadd_document_structure(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_String_ocr_config_Output_extracted_document_AnyhowException(
-    FutureOr<ExtractedDocument> Function(String, OcrConfig) self,
-    SseSerializer serializer,
-  );
+@protected DocumentSummary? sse_decode_opt_box_autoadd_document_summary(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs__Output_bool_AnyhowException(
-    FutureOr<bool> Function() self,
-    SseSerializer serializer,
-  );
+@protected DocxAppProperties? sse_decode_opt_box_autoadd_docx_app_properties(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs__Output_i_64_AnyhowException(
-    FutureOr<PlatformInt64> Function() self,
-    SseSerializer serializer,
-  );
+@protected EmailConfig? sse_decode_opt_box_autoadd_email_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs__Output_list_String_AnyhowException(
-    FutureOr<List<String>> Function() self,
-    SseSerializer serializer,
-  );
+@protected EmbeddingConfig? sse_decode_opt_box_autoadd_embedding_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs__Output_ocr_backend_type_AnyhowException(
-    FutureOr<OcrBackendType> Function() self,
-    SseSerializer serializer,
-  );
+@protected ErrorMetadata? sse_decode_opt_box_autoadd_error_metadata(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs__Output_processing_stage_AnyhowException(
-    FutureOr<ProcessingStage> Function() self,
-    SseSerializer serializer,
-  );
+@protected ExtractedDocument? sse_decode_opt_box_autoadd_extracted_document(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_extract_input_extraction_config_Output_extracted_document_AnyhowException(
-    FutureOr<ExtractedDocument> Function(ExtractInput, ExtractionConfig) self,
-    SseSerializer serializer,
-  );
+@protected ExtractionConfidence? sse_decode_opt_box_autoadd_extraction_confidence(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_extracted_document_Output_String_AnyhowException(
-    FutureOr<String> Function(ExtractedDocument) self,
-    SseSerializer serializer,
-  );
+@protected ExtractionMethod? sse_decode_opt_box_autoadd_extraction_method(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartFn_Inputs_extracted_document_Output_i_64_AnyhowException(
-    FutureOr<PlatformInt64> Function(ExtractedDocument) self,
-    SseSerializer serializer,
-  );
+@protected double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_extracted_document_extraction_config_Output_bool_AnyhowException(
-    FutureOr<bool> Function(ExtractedDocument, ExtractionConfig) self,
-    SseSerializer serializer,
-  );
+@protected FileExtractionConfig? sse_decode_opt_box_autoadd_file_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_extracted_document_extraction_config_Output_unit_AnyhowException(
-    FutureOr<void> Function(ExtractedDocument, ExtractionConfig) self,
-    SseSerializer serializer,
-  );
+@protected FormatMetadata? sse_decode_opt_box_autoadd_format_metadata(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_list_String_Output_list_list_prim_f_64_strict_AnyhowException(
-    FutureOr<List<Float64List>> Function(List<String>) self,
-    SseSerializer serializer,
-  );
+@protected GlinerArchitecture? sse_decode_opt_box_autoadd_gliner_architecture(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_DartFn_Inputs_list_prim_u_8_strict_ocr_config_Output_extracted_document_AnyhowException(
-    FutureOr<ExtractedDocument> Function(Uint8List, OcrConfig) self,
-    SseSerializer serializer,
-  );
+@protected HeadingContext? sse_decode_opt_box_autoadd_heading_context(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_DartOpaque(Object self, SseSerializer serializer);
+@protected HierarchyConfig? sse_decode_opt_box_autoadd_hierarchy_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_Map_String_String_None(
-    Map<String, String> self,
-    SseSerializer serializer,
-  );
+@protected HtmlOutputConfig? sse_decode_opt_box_autoadd_html_output_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_Map_String_i_64_None(
-    Map<String, PlatformInt64> self,
-    SseSerializer serializer,
-  );
+@protected PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_Map_String_list_String_None(
-    Map<String, List<String>> self,
-    SseSerializer serializer,
-  );
+@protected ImageExtractionConfig? sse_decode_opt_box_autoadd_image_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_Map_String_list_prim_u_8_strict_None(
-    Map<String, Uint8List> self,
-    SseSerializer serializer,
-  );
+@protected ImageKind? sse_decode_opt_box_autoadd_image_kind(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    ArcDocumentExtractor self,
-    SseSerializer serializer,
-  );
+@protected ImagePreprocessingConfig? sse_decode_opt_box_autoadd_image_preprocessing_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    ArcEmbeddingBackend self,
-    SseSerializer serializer,
-  );
+@protected ImagePreprocessingMetadata? sse_decode_opt_box_autoadd_image_preprocessing_metadata(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    ArcOcrBackend self,
-    SseSerializer serializer,
-  );
+@protected KeywordConfig? sse_decode_opt_box_autoadd_keyword_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    ArcPostProcessor self,
-    SseSerializer serializer,
-  );
+@protected LanguageDetectionConfig? sse_decode_opt_box_autoadd_language_detection_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    ArcRenderer self,
-    SseSerializer serializer,
-  );
+@protected LayoutDetectionConfig? sse_decode_opt_box_autoadd_layout_detection_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    ArcRerankerBackend self,
-    SseSerializer serializer,
-  );
+@protected LlmConfig? sse_decode_opt_box_autoadd_llm_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    ArcValidator self,
-    SseSerializer serializer,
-  );
+@protected NerConfig? sse_decode_opt_box_autoadd_ner_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    DocumentExtractorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrConfig? sse_decode_opt_box_autoadd_ocr_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    EmbeddingBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrElementConfig? sse_decode_opt_box_autoadd_ocr_element_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    MetaSchema self,
-    SseSerializer serializer,
-  );
+@protected OcrPipelineConfig? sse_decode_opt_box_autoadd_ocr_pipeline_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    OcrBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrQualityThresholds? sse_decode_opt_box_autoadd_ocr_quality_thresholds(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    PostProcessorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OcrRotation? sse_decode_opt_box_autoadd_ocr_rotation(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    Registry self,
-    SseSerializer serializer,
-  );
+@protected OcrTableBoundingBox? sse_decode_opt_box_autoadd_ocr_table_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    RendererDartImpl self,
-    SseSerializer serializer,
-  );
+@protected OutputFormat? sse_decode_opt_box_autoadd_output_format(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    RerankerBackendDartImpl self,
-    SseSerializer serializer,
-  );
+@protected PageClassificationConfig? sse_decode_opt_box_autoadd_page_classification_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    TokenCounter self,
-    SseSerializer serializer,
-  );
+@protected PageConfig? sse_decode_opt_box_autoadd_page_config(SseDeserializer deserializer);
 
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    ValidatorDartImpl self,
-    SseSerializer serializer,
-  );
+@protected PageHierarchy? sse_decode_opt_box_autoadd_page_hierarchy(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_String(String self, SseSerializer serializer);
+@protected PageStructure? sse_decode_opt_box_autoadd_page_structure(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_acceleration_config(
-    AccelerationConfig self,
-    SseSerializer serializer,
-  );
+@protected PdfConfig? sse_decode_opt_box_autoadd_pdf_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_annotation_kind(
-    AnnotationKind self,
-    SseSerializer serializer,
-  );
+@protected PostProcessorConfig? sse_decode_opt_box_autoadd_post_processor_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_archive_entry(ArchiveEntry self, SseSerializer serializer);
+@protected Preset? sse_decode_opt_box_autoadd_preset(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_archive_metadata(
-    ArchiveMetadata self,
-    SseSerializer serializer,
-  );
+@protected PresetSample? sse_decode_opt_box_autoadd_preset_sample(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_asset_category(AssetCategory self, SseSerializer serializer);
+@protected ProxyConfig? sse_decode_opt_box_autoadd_proxy_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_audio_metadata(AudioMetadata self, SseSerializer serializer);
+@protected QrBoundingBox? sse_decode_opt_box_autoadd_qr_bounding_box(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_auth_config(AuthConfig self, SseSerializer serializer);
+@protected RakeParams? sse_decode_opt_box_autoadd_rake_params(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_b_box(BBox self, SseSerializer serializer);
+@protected RedactionConfig? sse_decode_opt_box_autoadd_redaction_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_bibtex_metadata(
-    BibtexMetadata self,
-    SseSerializer serializer,
-  );
+@protected RedactionReport? sse_decode_opt_box_autoadd_redaction_report(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_block_type(BlockType self, SseSerializer serializer);
+@protected ResultFormat? sse_decode_opt_box_autoadd_result_format(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
+@protected RevisionAnchor? sse_decode_opt_box_autoadd_revision_anchor(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_boundary_reason(
-    BoundaryReason self,
-    SseSerializer serializer,
-  );
+@protected SecurityLimits? sse_decode_opt_box_autoadd_security_limits(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer);
+@protected StructuredExtractionConfig? sse_decode_opt_box_autoadd_structured_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_acceleration_config(
-    AccelerationConfig self,
-    SseSerializer serializer,
-  );
+@protected SummarizationConfig? sse_decode_opt_box_autoadd_summarization_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_archive_metadata(
-    ArchiveMetadata self,
-    SseSerializer serializer,
-  );
+@protected TesseractConfig? sse_decode_opt_box_autoadd_tesseract_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_audio_metadata(
-    AudioMetadata self,
-    SseSerializer serializer,
-  );
+@protected TextDirection? sse_decode_opt_box_autoadd_text_direction(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_auth_config(
-    AuthConfig self,
-    SseSerializer serializer,
-  );
+@protected TokenReductionOptions? sse_decode_opt_box_autoadd_token_reduction_options(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_bibtex_metadata(
-    BibtexMetadata self,
-    SseSerializer serializer,
-  );
+@protected TranscriptionConfig? sse_decode_opt_box_autoadd_transcription_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+@protected Translation? sse_decode_opt_box_autoadd_translation(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_bounding_box(
-    BoundingBox self,
-    SseSerializer serializer,
-  );
+@protected TranslationConfig? sse_decode_opt_box_autoadd_translation_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_captioning_config(
-    CaptioningConfig self,
-    SseSerializer serializer,
-  );
+@protected TreeSitterConfig? sse_decode_opt_box_autoadd_tree_sitter_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_chunking_config(
-    ChunkingConfig self,
-    SseSerializer serializer,
-  );
+@protected UrlExtractionConfig? sse_decode_opt_box_autoadd_url_extraction_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_citation_metadata(
-    CitationMetadata self,
-    SseSerializer serializer,
-  );
+@protected UserChunkConfig? sse_decode_opt_box_autoadd_user_chunk_config(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_content_filter_config(
-    ContentFilterConfig self,
-    SseSerializer serializer,
-  );
+@protected YakeParams? sse_decode_opt_box_autoadd_yake_params(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_core_properties(
-    CoreProperties self,
-    SseSerializer serializer,
-  );
+@protected YearRange? sse_decode_opt_box_autoadd_year_range(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_csv_metadata(
-    CsvMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<String>? sse_decode_opt_list_String(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_dbf_metadata(
-    DbfMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<ArchiveEntry>? sse_decode_opt_list_archive_entry(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_djot_content(
-    DjotContent self,
-    SseSerializer serializer,
-  );
+@protected List<Chunk>? sse_decode_opt_list_chunk(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_document_structure(
-    DocumentStructure self,
-    SseSerializer serializer,
-  );
+@protected List<DocumentRevision>? sse_decode_opt_list_document_revision(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_document_summary(
-    DocumentSummary self,
-    SseSerializer serializer,
-  );
+@protected List<Element>? sse_decode_opt_list_element(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_docx_app_properties(
-    DocxAppProperties self,
-    SseSerializer serializer,
-  );
+@protected List<Entity>? sse_decode_opt_list_entity(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_docx_metadata(
-    DocxMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<ExtractedImage>? sse_decode_opt_list_extracted_image(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_email_config(
-    EmailConfig self,
-    SseSerializer serializer,
-  );
+@protected List<ExtractedUri>? sse_decode_opt_list_extracted_uri(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_email_metadata(
-    EmailMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<Keyword>? sse_decode_opt_list_keyword(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_embedding_config(
-    EmbeddingConfig self,
-    SseSerializer serializer,
-  );
+@protected List<LayoutRegion>? sse_decode_opt_list_layout_region(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_epub_metadata(
-    EpubMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<List<String>>? sse_decode_opt_list_list_String(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_error_metadata(
-    ErrorMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<LlmUsage>? sse_decode_opt_list_llm_usage(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_excel_metadata(
-    ExcelMetadata self,
-    SseSerializer serializer,
-  );
+@protected List<OcrElement>? sse_decode_opt_list_ocr_element(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_extract_input(
-    ExtractInput self,
-    SseSerializer serializer,
-  );
+@protected List<PageBoundary>? sse_decode_opt_list_page_boundary(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_extracted_document(
-    ExtractedDocument self,
-    SseSerializer serializer,
-  );
+@protected List<PageClassification>? sse_decode_opt_list_page_classification(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_extraction_confidence(
-    ExtractionConfidence self,
-    SseSerializer serializer,
-  );
+@protected List<PageContent>? sse_decode_opt_list_page_content(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_extraction_config(
-    ExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_extraction_method(
-    ExtractionMethod self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_box_autoadd_fiction_book_metadata(
-    FictionBookMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_file_extraction_config(
-    FileExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_format_metadata(
-    FormatMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_heading_context(
-    HeadingContext self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_hierarchy_config(
-    HierarchyConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_html_metadata(
-    HtmlMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_html_output_config(
-    HtmlOutputConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_i_64(
-    PlatformInt64 self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_image_extraction_config(
-    ImageExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_image_kind(
-    ImageKind self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_image_metadata(
-    ImageMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_image_preprocessing_config(
-    ImagePreprocessingConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_image_preprocessing_metadata(
-    ImagePreprocessingMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_jats_metadata(
-    JatsMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_keyword_config(
-    KeywordConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_language_detection_config(
-    LanguageDetectionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_layout_detection_config(
-    LayoutDetectionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_llm_config(
-    LlmConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ner_config(
-    NerConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_config(
-    OcrConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_element_config(
-    OcrElementConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_metadata(
-    OcrMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_pipeline_config(
-    OcrPipelineConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_quality_thresholds(
-    OcrQualityThresholds self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_rotation(
-    OcrRotation self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_ocr_table_bounding_box(
-    OcrTableBoundingBox self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_output_format(
-    OutputFormat self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_page_classification_config(
-    PageClassificationConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_page_config(
-    PageConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_page_hierarchy(
-    PageHierarchy self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_page_structure(
-    PageStructure self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_pdf_config(
-    PdfConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_pdf_metadata(
-    PdfMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_post_processor_config(
-    PostProcessorConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_pptx_metadata(
-    PptxMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_preset(Preset self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_box_autoadd_preset_sample(
-    PresetSample self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_proxy_config(
-    ProxyConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_pst_metadata(
-    PstMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_qr_bounding_box(
-    QrBoundingBox self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_rake_params(
-    RakeParams self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_redaction_config(
-    RedactionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_redaction_report(
-    RedactionReport self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_result_format(
-    ResultFormat self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_revision_anchor(
-    RevisionAnchor self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_security_limits(
-    SecurityLimits self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_structured_extraction_config(
-    StructuredExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_summarization_config(
-    SummarizationConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_table_grid(
-    TableGrid self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_tesseract_config(
-    TesseractConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_text_direction(
-    TextDirection self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_text_metadata(
-    TextMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_token_reduction_options(
-    TokenReductionOptions self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_transcription_config(
-    TranscriptionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_translation(
-    Translation self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_translation_config(
-    TranslationConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_tree_sitter_config(
-    TreeSitterConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_url_extraction_config(
-    UrlExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_user_chunk_config(
-    UserChunkConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_xml_metadata(
-    XmlMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_yake_params(
-    YakeParams self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_year_range(
-    YearRange self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_browser_backend(
-    BrowserBackend self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_browser_config(BrowserConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_browser_mode(BrowserMode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_browser_wait(BrowserWait self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_cache_stats(CacheStats self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_call_mode(CallMode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_captioning_config(
-    CaptioningConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_cell_change(CellChange self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunk(Chunk self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunk_info(ChunkInfo self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunk_metadata(ChunkMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunk_sizing(ChunkSizing self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunk_type(ChunkType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunker_type(ChunkerType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_chunking_config(
-    ChunkingConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_chunking_reason(
-    ChunkingReason self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_citation(Citation self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_citation_metadata(
-    CitationMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_classification_label(
-    ClassificationLabel self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_code_content_mode(
-    CodeContentMode self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_content_config(ContentConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_content_filter_config(
-    ContentFilterConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_content_layer(ContentLayer self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_contributor_role(
-    ContributorRole self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_core_properties(
-    CoreProperties self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_crawl_config(CrawlConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_csv_metadata(CsvMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_dbf_field_info(DbfFieldInfo self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_dbf_metadata(DbfMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_detect_response(
-    DetectResponse self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_detection_result(
-    DetectionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_diff_hunk(DiffHunk self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_diff_line(DiffLine self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_diff_options(DiffOptions self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_djot_content(DjotContent self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_djot_image(DjotImage self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_djot_link(DjotLink self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_document_boundary(
-    DocumentBoundary self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_document_metadata(
-    DocumentMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_document_node(DocumentNode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_document_relationship(
-    DocumentRelationship self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_document_revision(
-    DocumentRevision self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_document_structure(
-    DocumentStructure self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_document_summary(
-    DocumentSummary self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_docx_app_properties(
-    DocxAppProperties self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_docx_metadata(DocxMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_element(Element self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_element_metadata(
-    ElementMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_element_type(ElementType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_email_attachment(
-    EmailAttachment self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_email_config(EmailConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_email_extraction_result(
-    EmailExtractionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_email_metadata(EmailMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_embedded_changes(
-    EmbeddedChanges self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_embedded_diff(EmbeddedDiff self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_embedded_file(EmbeddedFile self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_embedding_config(
-    EmbeddingConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_embedding_model_type(
-    EmbeddingModelType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_entity(Entity self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_entity_category(
-    EntityCategory self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_epub_metadata(EpubMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_error_metadata(ErrorMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_excel_metadata(ExcelMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_excel_sheet(ExcelSheet self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_excel_workbook(ExcelWorkbook self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_execution_provider_type(
-    ExecutionProviderType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extract_input(ExtractInput self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_extract_input_kind(
-    ExtractInputKind self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extracted_document(
-    ExtractedDocument self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extracted_image(
-    ExtractedImage self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extracted_uri(ExtractedUri self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_extraction_confidence(
-    ExtractionConfidence self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extraction_config(
-    ExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extraction_diff(
-    ExtractionDiff self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extraction_error_item(
-    ExtractionErrorItem self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extraction_method(
-    ExtractionMethod self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extraction_result(
-    ExtractionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_extraction_summary(
-    ExtractionSummary self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_f_64(double self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_fiction_book_metadata(
-    FictionBookMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_file_extraction_config(
-    FileExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_footnote(Footnote self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_footnote_anchor(
-    FootnoteAnchor self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_footnote_config(
-    FootnoteConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_footnote_definition(
-    FootnoteDefinition self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_form_field_type(FormFieldType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_format_metadata(
-    FormatMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_formatted_block(
-    FormattedBlock self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_formula(Formula self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_grid_cell(GridCell self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_header_metadata(
-    HeaderMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_heading_context(
-    HeadingContext self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_heading_level(HeadingLevel self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_heuristics_config(
-    HeuristicsConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_heuristics_error(
-    HeuristicsError self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_hierarchical_block(
-    HierarchicalBlock self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_hierarchy_config(
-    HierarchyConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_html_metadata(HtmlMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_html_output_config(
-    HtmlOutputConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_html_theme(HtmlTheme self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_image_extraction_config(
-    ImageExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_image_kind(ImageKind self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_image_metadata(ImageMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_image_metadata_type(
-    ImageMetadataType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_image_output_format(
-    ImageOutputFormat self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_image_preprocessing_config(
-    ImagePreprocessingConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_image_preprocessing_metadata(
-    ImagePreprocessingMetadata self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_image_type(ImageType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_inline_element(InlineElement self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_inline_type(InlineType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_jats_metadata(JatsMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_keyword(Keyword self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_keyword_algorithm(
-    KeywordAlgorithm self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_keyword_config(KeywordConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_language_detection_config(
-    LanguageDetectionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_layout_class(LayoutClass self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_layout_detection(
-    LayoutDetection self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_layout_detection_config(
-    LayoutDetectionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_layout_region(LayoutRegion self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_link_metadata(LinkMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_link_type(LinkType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_String(List<String> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_archive_entry(
-    List<ArchiveEntry> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_asset_category(
-    List<AssetCategory> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_cell_change(
-    List<CellChange> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_chunk(List<Chunk> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_classification_label(
-    List<ClassificationLabel> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_contributor_role(
-    List<ContributorRole> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_dbf_field_info(
-    List<DbfFieldInfo> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_diff_hunk(List<DiffHunk> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_diff_line(List<DiffLine> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_djot_image(
-    List<DjotImage> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_djot_link(List<DjotLink> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_document_node(
-    List<DocumentNode> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_document_relationship(
-    List<DocumentRelationship> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_document_revision(
-    List<DocumentRevision> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_element(List<Element> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_email_attachment(
-    List<EmailAttachment> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_embedded_diff(
-    List<EmbeddedDiff> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_entity(List<Entity> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_entity_category(
-    List<EntityCategory> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_excel_sheet(
-    List<ExcelSheet> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_extract_input(
-    List<ExtractInput> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_extracted_document(
-    List<ExtractedDocument> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_extracted_image(
-    List<ExtractedImage> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_extracted_uri(
-    List<ExtractedUri> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_extraction_error_item(
-    List<ExtractionErrorItem> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_footnote(List<Footnote> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_formatted_block(
-    List<FormattedBlock> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_formula(List<Formula> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_grid_cell(List<GridCell> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_header_metadata(
-    List<HeaderMetadata> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_heading_level(
-    List<HeadingLevel> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_hierarchical_block(
-    List<HierarchicalBlock> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_image_metadata_type(
-    List<ImageMetadataType> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_inline_element(
-    List<InlineElement> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_keyword(List<Keyword> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_layout_detection(
-    List<LayoutDetection> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_layout_region(
-    List<LayoutRegion> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_link_metadata(
-    List<LinkMetadata> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_list_String(
-    List<List<String>> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_list_prim_f_64_strict(
-    List<Float64List> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_llm_usage(List<LlmUsage> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_ocr_element(
-    List<OcrElement> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_ocr_pipeline_stage(
-    List<OcrPipelineStage> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_ocr_table(List<OcrTable> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_page_boundary(
-    List<PageBoundary> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_page_classification(
-    List<PageClassification> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_page_content(
-    List<PageContent> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_page_info(List<PageInfo> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_page_range(
-    List<PageRange> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_page_signals(
-    List<PageSignals> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_pdf_annotation(
-    List<PdfAnnotation> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_pdf_form_field(
-    List<PdfFormField> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_pii_category(
-    List<PiiCategory> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_preset_summary(
-    List<PresetSummary> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_prim_f_64_strict(
-    Float64List self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_prim_i_64_strict(
-    Int64List self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_processing_warning(
-    List<ProcessingWarning> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_qr_code(List<QrCode> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_record_string_i_64(
-    List<(String, PlatformInt64)> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_record_string_list_prim_u_8_strict(
-    List<(String, Uint8List)> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_record_string_list_string(
-    List<(String, List<String>)> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_record_string_string(
-    List<(String, String)> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_redaction_finding(
-    List<RedactionFinding> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_redaction_pattern(
-    List<RedactionPattern> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_redaction_term(
-    List<RedactionTerm> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_structured_data(
-    List<StructuredData> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_supported_format(
-    List<SupportedFormat> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_table(List<Table> self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_list_table_diff(
-    List<TableDiff> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_text_annotation(
-    List<TextAnnotation> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_type(ListType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_llm_config(LlmConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_llm_usage(LlmUsage self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_load_error(LoadError self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_merge_mode(MergeMode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_metadata(Metadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_model_paths(ModelPaths self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_multidoc_input(MultidocInput self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_multidoc_thresholds(
-    MultidocThresholds self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ner_backend_kind(
-    NerBackendKind self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ner_config(NerConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_no_chunking_reason(
-    NoChunkingReason self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_node_content(NodeContent self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_backend_type(
-    OcrBackendType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_bounding_geometry(
-    OcrBoundingGeometry self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_confidence(OcrConfidence self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_config(OcrConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_element(OcrElement self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_element_config(
-    OcrElementConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_element_level(
-    OcrElementLevel self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_extraction_result(
-    OcrExtractionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_metadata(OcrMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_pipeline_config(
-    OcrPipelineConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_pipeline_stage(
-    OcrPipelineStage self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_quality_thresholds(
-    OcrQualityThresholds self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_ocr_rotation(OcrRotation self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_table(OcrTable self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ocr_table_bounding_box(
-    OcrTableBoundingBox self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_Map_String_String_None(
-    Map<String, String>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_Map_String_i_64_None(
-    Map<String, PlatformInt64>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_Map_String_list_String_None(
-    Map<String, List<String>>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_Map_String_list_prim_u_8_strict_None(
-    Map<String, Uint8List>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_String(String? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_box_autoadd_acceleration_config(
-    AccelerationConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_auth_config(
-    AuthConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_box_autoadd_bounding_box(
-    BoundingBox? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_captioning_config(
-    CaptioningConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_chunking_config(
-    ChunkingConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_content_filter_config(
-    ContentFilterConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_core_properties(
-    CoreProperties? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_djot_content(
-    DjotContent? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_document_structure(
-    DocumentStructure? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_document_summary(
-    DocumentSummary? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_docx_app_properties(
-    DocxAppProperties? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_email_config(
-    EmailConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_embedding_config(
-    EmbeddingConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_error_metadata(
-    ErrorMetadata? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_extracted_document(
-    ExtractedDocument? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_extraction_confidence(
-    ExtractionConfidence? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_extraction_method(
-    ExtractionMethod? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_box_autoadd_file_extraction_config(
-    FileExtractionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_format_metadata(
-    FormatMetadata? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_heading_context(
-    HeadingContext? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_hierarchy_config(
-    HierarchyConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_html_output_config(
-    HtmlOutputConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_i_64(
-    PlatformInt64? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_image_extraction_config(
-    ImageExtractionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_image_kind(
-    ImageKind? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_image_preprocessing_config(
-    ImagePreprocessingConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_image_preprocessing_metadata(
-    ImagePreprocessingMetadata? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_keyword_config(
-    KeywordConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_language_detection_config(
-    LanguageDetectionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_layout_detection_config(
-    LayoutDetectionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_llm_config(
-    LlmConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ner_config(
-    NerConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ocr_config(
-    OcrConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ocr_element_config(
-    OcrElementConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ocr_pipeline_config(
-    OcrPipelineConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ocr_quality_thresholds(
-    OcrQualityThresholds? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ocr_rotation(
-    OcrRotation? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_ocr_table_bounding_box(
-    OcrTableBoundingBox? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_output_format(
-    OutputFormat? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_page_classification_config(
-    PageClassificationConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_page_config(
-    PageConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_page_hierarchy(
-    PageHierarchy? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_page_structure(
-    PageStructure? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_pdf_config(
-    PdfConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_post_processor_config(
-    PostProcessorConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_preset(
-    Preset? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_preset_sample(
-    PresetSample? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_proxy_config(
-    ProxyConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_qr_bounding_box(
-    QrBoundingBox? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_rake_params(
-    RakeParams? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_redaction_config(
-    RedactionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_redaction_report(
-    RedactionReport? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_result_format(
-    ResultFormat? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_revision_anchor(
-    RevisionAnchor? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_security_limits(
-    SecurityLimits? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_structured_extraction_config(
-    StructuredExtractionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_summarization_config(
-    SummarizationConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_tesseract_config(
-    TesseractConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_text_direction(
-    TextDirection? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_token_reduction_options(
-    TokenReductionOptions? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_transcription_config(
-    TranscriptionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_translation(
-    Translation? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_translation_config(
-    TranslationConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_tree_sitter_config(
-    TreeSitterConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_url_extraction_config(
-    UrlExtractionConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_user_chunk_config(
-    UserChunkConfig? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_yake_params(
-    YakeParams? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_year_range(
-    YearRange? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_list_archive_entry(
-    List<ArchiveEntry>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_chunk(List<Chunk>? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_list_document_revision(
-    List<DocumentRevision>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_element(
-    List<Element>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_entity(List<Entity>? self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_opt_list_extracted_image(
-    List<ExtractedImage>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_extracted_uri(
-    List<ExtractedUri>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_keyword(
-    List<Keyword>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_layout_region(
-    List<LayoutRegion>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_list_String(
-    List<List<String>>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_llm_usage(
-    List<LlmUsage>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_ocr_element(
-    List<OcrElement>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_page_boundary(
-    List<PageBoundary>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_page_classification(
-    List<PageClassification>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_page_content(
-    List<PageContent>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_page_info(
-    List<PageInfo>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_page_range(
-    List<PageRange>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_pdf_annotation(
-    List<PdfAnnotation>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_prim_f_64_strict(
-    Float64List? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_prim_i_64_strict(
-    Int64List? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_prim_u_8_strict(
-    Uint8List? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_list_qr_code(
-    List<QrCode>? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_orientation_result(
-    OrientationResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_output_format(OutputFormat self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_paddle_language(
-    PaddleLanguage self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_paddle_ocr_config(
-    PaddleOcrConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_page_boundary(PageBoundary self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_classification(
-    PageClassification self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_page_classification_config(
-    PageClassificationConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_page_config(PageConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_content(PageContent self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_hierarchy(PageHierarchy self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_info(PageInfo self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_range(PageRange self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_signals(PageSignals self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_structure(PageStructure self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_page_unit_type(PageUnitType self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pattern_match(PatternMatch self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pdf_annotation(PdfAnnotation self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pdf_annotation_type(
-    PdfAnnotationType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_pdf_config(PdfConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pdf_form_field(PdfFormField self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pdf_metadata(PdfMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pii_category(PiiCategory self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_post_processor_config(
-    PostProcessorConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_pptx_app_properties(
-    PptxAppProperties self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_pptx_extraction_result(
-    PptxExtractionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_pptx_metadata(PptxMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_preset(Preset self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_preset_category(
-    PresetCategory self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_preset_sample(PresetSample self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_preset_summary(PresetSummary self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_processing_stage(
-    ProcessingStage self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_processing_warning(
-    ProcessingWarning self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_proxy_config(ProxyConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_psm_mode(PSMMode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_pst_metadata(PstMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_qr_bounding_box(QrBoundingBox self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_qr_code(QrCode self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_rake_params(RakeParams self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_recognized_table(
-    RecognizedTable self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_record_string_i_64(
-    (String, PlatformInt64) self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_record_string_list_prim_u_8_strict(
-    (String, Uint8List) self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_record_string_list_string(
-    (String, List<String>) self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_record_string_string(
-    (String, String) self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_redaction_config(
-    RedactionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_redaction_finding(
-    RedactionFinding self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_redaction_pattern(
-    RedactionPattern self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_redaction_report(
-    RedactionReport self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_redaction_strategy(
-    RedactionStrategy self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_redaction_term(RedactionTerm self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_reduction_level(
-    ReductionLevel self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_region_kind(RegionKind self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_relationship_kind(
-    RelationshipKind self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_reranked_document(
-    RerankedDocument self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_reranker_config(
-    RerankerConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_reranker_model_type(
-    RerankerModelType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_resolve_error(ResolveError self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_resolved_preset(
-    ResolvedPreset self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_result_format(ResultFormat self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_revision_anchor(
-    RevisionAnchor self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_revision_delta(RevisionDelta self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_revision_kind(RevisionKind self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_schema_compliance(
-    SchemaCompliance self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_security_limits(
-    SecurityLimits self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_server_config(ServerConfig self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_ssrf_policy(SsrfPolicy self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_structured_data(
-    StructuredData self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_structured_data_result(
-    StructuredDataResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_structured_data_type(
-    StructuredDataType self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_structured_extraction_config(
-    StructuredExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_summarization_config(
-    SummarizationConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_summary_strategy(
-    SummaryStrategy self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_supported_format(
-    SupportedFormat self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_svg_options(SvgOptions self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_table(Table self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_table_cell(TableCell self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_table_chunking_mode(
-    TableChunkingMode self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_table_diff(TableDiff self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_table_grid(TableGrid self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_table_model(TableModel self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_table_overlap_preference(
-    TableOverlapPreference self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_tesseract_config(
-    TesseractConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_text_annotation(
-    TextAnnotation self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_text_direction(TextDirection self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_text_extraction_result(
-    TextExtractionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_text_metadata(TextMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_token_reduction_config(
-    TokenReductionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_token_reduction_options(
-    TokenReductionOptions self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_transcription_config(
-    TranscriptionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_translation(Translation self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_translation_config(
-    TranslationConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_tree_sitter_config(
-    TreeSitterConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_tree_sitter_process_config(
-    TreeSitterProcessConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_u_8(int self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_unit(void self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_uri_kind(UriKind self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_url_extraction_config(
-    UrlExtractionConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_url_extraction_mode(
-    UrlExtractionMode self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_user_chunk_config(
-    UserChunkConfig self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_vlm_fallback_policy(
-    VlmFallbackPolicy self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_whisper_model(WhisperModel self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_xberg_error(XbergError self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_xlsx_app_properties(
-    XlsxAppProperties self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_xml_extraction_result(
-    XmlExtractionResult self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_xml_metadata(XmlMetadata self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_yake_params(YakeParams self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_year_range(YearRange self, SseSerializer serializer);
-}
+@protected List<PageInfo>? sse_decode_opt_list_page_info(SseDeserializer deserializer);
+
+@protected List<PageRange>? sse_decode_opt_list_page_range(SseDeserializer deserializer);
+
+@protected List<PdfAnnotation>? sse_decode_opt_list_pdf_annotation(SseDeserializer deserializer);
+
+@protected Float64List? sse_decode_opt_list_prim_f_64_strict(SseDeserializer deserializer);
+
+@protected Int64List? sse_decode_opt_list_prim_i_64_strict(SseDeserializer deserializer);
+
+@protected Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer);
+
+@protected List<QrCode>? sse_decode_opt_list_qr_code(SseDeserializer deserializer);
+
+@protected OrientationResult sse_decode_orientation_result(SseDeserializer deserializer);
+
+@protected Outcome sse_decode_outcome(SseDeserializer deserializer);
+
+@protected OutputFormat sse_decode_output_format(SseDeserializer deserializer);
+
+@protected PaddleLanguage sse_decode_paddle_language(SseDeserializer deserializer);
+
+@protected PaddleOcrConfig sse_decode_paddle_ocr_config(SseDeserializer deserializer);
+
+@protected PageBoundary sse_decode_page_boundary(SseDeserializer deserializer);
+
+@protected PageClassification sse_decode_page_classification(SseDeserializer deserializer);
+
+@protected PageClassificationConfig sse_decode_page_classification_config(SseDeserializer deserializer);
+
+@protected PageConfig sse_decode_page_config(SseDeserializer deserializer);
+
+@protected PageContent sse_decode_page_content(SseDeserializer deserializer);
+
+@protected PageHierarchy sse_decode_page_hierarchy(SseDeserializer deserializer);
+
+@protected PageImage sse_decode_page_image(SseDeserializer deserializer);
+
+@protected PageInfo sse_decode_page_info(SseDeserializer deserializer);
+
+@protected PageRange sse_decode_page_range(SseDeserializer deserializer);
+
+@protected PageSignals sse_decode_page_signals(SseDeserializer deserializer);
+
+@protected PageStructure sse_decode_page_structure(SseDeserializer deserializer);
+
+@protected PageUnitType sse_decode_page_unit_type(SseDeserializer deserializer);
+
+@protected PatternMatch sse_decode_pattern_match(SseDeserializer deserializer);
+
+@protected PdfAnnotation sse_decode_pdf_annotation(SseDeserializer deserializer);
+
+@protected PdfAnnotationType sse_decode_pdf_annotation_type(SseDeserializer deserializer);
+
+@protected PdfConfig sse_decode_pdf_config(SseDeserializer deserializer);
+
+@protected PdfFormField sse_decode_pdf_form_field(SseDeserializer deserializer);
+
+@protected PdfMetadata sse_decode_pdf_metadata(SseDeserializer deserializer);
+
+@protected PiiCategory sse_decode_pii_category(SseDeserializer deserializer);
+
+@protected PostProcessorConfig sse_decode_post_processor_config(SseDeserializer deserializer);
+
+@protected PptxAppProperties sse_decode_pptx_app_properties(SseDeserializer deserializer);
+
+@protected PptxExtractionResult sse_decode_pptx_extraction_result(SseDeserializer deserializer);
+
+@protected PptxMetadata sse_decode_pptx_metadata(SseDeserializer deserializer);
+
+@protected Preset sse_decode_preset(SseDeserializer deserializer);
+
+@protected PresetCategory sse_decode_preset_category(SseDeserializer deserializer);
+
+@protected PresetSample sse_decode_preset_sample(SseDeserializer deserializer);
+
+@protected PresetSummary sse_decode_preset_summary(SseDeserializer deserializer);
+
+@protected ProcessingStage sse_decode_processing_stage(SseDeserializer deserializer);
+
+@protected ProcessingWarning sse_decode_processing_warning(SseDeserializer deserializer);
+
+@protected ProxyConfig sse_decode_proxy_config(SseDeserializer deserializer);
+
+@protected PSMMode sse_decode_psm_mode(SseDeserializer deserializer);
+
+@protected PstMetadata sse_decode_pst_metadata(SseDeserializer deserializer);
+
+@protected QrBoundingBox sse_decode_qr_bounding_box(SseDeserializer deserializer);
+
+@protected QrCode sse_decode_qr_code(SseDeserializer deserializer);
+
+@protected RakeParams sse_decode_rake_params(SseDeserializer deserializer);
+
+@protected RasterizeError sse_decode_rasterize_error(SseDeserializer deserializer);
+
+@protected RecognizedTable sse_decode_recognized_table(SseDeserializer deserializer);
+
+@protected (String,PlatformInt64) sse_decode_record_string_i_64(SseDeserializer deserializer);
+
+@protected (String,Uint8List) sse_decode_record_string_list_prim_u_8_strict(SseDeserializer deserializer);
+
+@protected (String,List<String>) sse_decode_record_string_list_string(SseDeserializer deserializer);
+
+@protected (String,String) sse_decode_record_string_string(SseDeserializer deserializer);
+
+@protected RedactionConfig sse_decode_redaction_config(SseDeserializer deserializer);
+
+@protected RedactionFinding sse_decode_redaction_finding(SseDeserializer deserializer);
+
+@protected RedactionPattern sse_decode_redaction_pattern(SseDeserializer deserializer);
+
+@protected RedactionReport sse_decode_redaction_report(SseDeserializer deserializer);
+
+@protected RedactionStrategy sse_decode_redaction_strategy(SseDeserializer deserializer);
+
+@protected RedactionTerm sse_decode_redaction_term(SseDeserializer deserializer);
+
+@protected ReductionLevel sse_decode_reduction_level(SseDeserializer deserializer);
+
+@protected RegionKind sse_decode_region_kind(SseDeserializer deserializer);
+
+@protected RelationshipKind sse_decode_relationship_kind(SseDeserializer deserializer);
+
+@protected RerankedDocument sse_decode_reranked_document(SseDeserializer deserializer);
+
+@protected RerankerConfig sse_decode_reranker_config(SseDeserializer deserializer);
+
+@protected RerankerModelType sse_decode_reranker_model_type(SseDeserializer deserializer);
+
+@protected ResolveError sse_decode_resolve_error(SseDeserializer deserializer);
+
+@protected ResolvedPreset sse_decode_resolved_preset(SseDeserializer deserializer);
+
+@protected ResultFormat sse_decode_result_format(SseDeserializer deserializer);
+
+@protected RevisionAnchor sse_decode_revision_anchor(SseDeserializer deserializer);
+
+@protected RevisionDelta sse_decode_revision_delta(SseDeserializer deserializer);
+
+@protected RevisionKind sse_decode_revision_kind(SseDeserializer deserializer);
+
+@protected SchemaCompliance sse_decode_schema_compliance(SseDeserializer deserializer);
+
+@protected SecurityLimits sse_decode_security_limits(SseDeserializer deserializer);
+
+@protected ServerConfig sse_decode_server_config(SseDeserializer deserializer);
+
+@protected SsrfPolicy sse_decode_ssrf_policy(SseDeserializer deserializer);
+
+@protected StructuredData sse_decode_structured_data(SseDeserializer deserializer);
+
+@protected StructuredDataResult sse_decode_structured_data_result(SseDeserializer deserializer);
+
+@protected StructuredDataType sse_decode_structured_data_type(SseDeserializer deserializer);
+
+@protected StructuredExtractionConfig sse_decode_structured_extraction_config(SseDeserializer deserializer);
+
+@protected SummarizationConfig sse_decode_summarization_config(SseDeserializer deserializer);
+
+@protected SummaryStrategy sse_decode_summary_strategy(SseDeserializer deserializer);
+
+@protected SupportedFormat sse_decode_supported_format(SseDeserializer deserializer);
+
+@protected SvgOptions sse_decode_svg_options(SseDeserializer deserializer);
+
+@protected Table sse_decode_table(SseDeserializer deserializer);
+
+@protected TableCell sse_decode_table_cell(SseDeserializer deserializer);
+
+@protected TableChunkingMode sse_decode_table_chunking_mode(SseDeserializer deserializer);
+
+@protected TableDiff sse_decode_table_diff(SseDeserializer deserializer);
+
+@protected TableGrid sse_decode_table_grid(SseDeserializer deserializer);
+
+@protected TableModel sse_decode_table_model(SseDeserializer deserializer);
+
+@protected TableOverlapPreference sse_decode_table_overlap_preference(SseDeserializer deserializer);
+
+@protected TesseractConfig sse_decode_tesseract_config(SseDeserializer deserializer);
+
+@protected TextAnnotation sse_decode_text_annotation(SseDeserializer deserializer);
+
+@protected TextDirection sse_decode_text_direction(SseDeserializer deserializer);
+
+@protected TextExtractionResult sse_decode_text_extraction_result(SseDeserializer deserializer);
+
+@protected TextMetadata sse_decode_text_metadata(SseDeserializer deserializer);
+
+@protected TokenReductionConfig sse_decode_token_reduction_config(SseDeserializer deserializer);
+
+@protected TokenReductionOptions sse_decode_token_reduction_options(SseDeserializer deserializer);
+
+@protected TranscriptionConfig sse_decode_transcription_config(SseDeserializer deserializer);
+
+@protected Translation sse_decode_translation(SseDeserializer deserializer);
+
+@protected TranslationConfig sse_decode_translation_config(SseDeserializer deserializer);
+
+@protected TreeSitterConfig sse_decode_tree_sitter_config(SseDeserializer deserializer);
+
+@protected TreeSitterProcessConfig sse_decode_tree_sitter_process_config(SseDeserializer deserializer);
+
+@protected int sse_decode_u_8(SseDeserializer deserializer);
+
+@protected void sse_decode_unit(SseDeserializer deserializer);
+
+@protected UriKind sse_decode_uri_kind(SseDeserializer deserializer);
+
+@protected UrlExtractionConfig sse_decode_url_extraction_config(SseDeserializer deserializer);
+
+@protected UrlExtractionMode sse_decode_url_extraction_mode(SseDeserializer deserializer);
+
+@protected UserChunkConfig sse_decode_user_chunk_config(SseDeserializer deserializer);
+
+@protected BigInt sse_decode_usize(SseDeserializer deserializer);
+
+@protected VlmFallbackPolicy sse_decode_vlm_fallback_policy(SseDeserializer deserializer);
+
+@protected WhisperModel sse_decode_whisper_model(SseDeserializer deserializer);
+
+@protected XbergError sse_decode_xberg_error(SseDeserializer deserializer);
+
+@protected XlsxAppProperties sse_decode_xlsx_app_properties(SseDeserializer deserializer);
+
+@protected XmlExtractionResult sse_decode_xml_extraction_result(SseDeserializer deserializer);
+
+@protected XmlMetadata sse_decode_xml_metadata(SseDeserializer deserializer);
+
+@protected YakeParams sse_decode_yake_params(SseDeserializer deserializer);
+
+@protected YearRange sse_decode_year_range(SseDeserializer deserializer);
+
+@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(ArcDocumentExtractor self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(ArcEmbeddingBackend self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(ArcOcrBackend self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(ArcPostProcessor self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(ArcRenderer self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(ArcRerankerBackend self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(ArcValidator self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(CandleBackend self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(DocumentExtractorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(EmbeddingBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(MetaSchema self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(OcrBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(PostProcessorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(Registry self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(RehydrationMap self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(RendererDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(RerankerBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(TokenCounter self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(ValidatorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(DocumentExtractorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(EmbeddingBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(OcrBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(PostProcessorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(Registry self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(RendererDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(RerankerBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(ValidatorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(CandleBackend self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(DocumentExtractorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(EmbeddingBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(MetaSchema self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(OcrBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(PostProcessorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(Registry self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(RendererDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(RerankerBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(ValidatorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(FutureOr<bool> Function(String) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_String_String_Output_bool_AnyhowException(FutureOr<bool> Function(String, String) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_String_list_String_Output_list_prim_f_64_strict_AnyhowException(FutureOr<Float64List> Function(String, List<String>) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_String_ocr_config_Output_extracted_document_AnyhowException(FutureOr<ExtractedDocument> Function(String, OcrConfig) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs__Output_bool_AnyhowException(FutureOr<bool> Function() self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs__Output_i_64_AnyhowException(FutureOr<PlatformInt64> Function() self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs__Output_list_String_AnyhowException(FutureOr<List<String>> Function() self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs__Output_ocr_backend_type_AnyhowException(FutureOr<OcrBackendType> Function() self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs__Output_processing_stage_AnyhowException(FutureOr<ProcessingStage> Function() self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_extract_input_extraction_config_Output_extracted_document_AnyhowException(FutureOr<ExtractedDocument> Function(ExtractInput, ExtractionConfig) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_extracted_document_Output_String_AnyhowException(FutureOr<String> Function(ExtractedDocument) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_extracted_document_Output_i_64_AnyhowException(FutureOr<PlatformInt64> Function(ExtractedDocument) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_extracted_document_extraction_config_Output_bool_AnyhowException(FutureOr<bool> Function(ExtractedDocument, ExtractionConfig) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_extracted_document_extraction_config_Output_unit_AnyhowException(FutureOr<void> Function(ExtractedDocument, ExtractionConfig) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_list_String_Output_list_list_prim_f_64_strict_AnyhowException(FutureOr<List<Float64List>> Function(List<String>) self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_list_prim_u_8_strict_ocr_config_Output_extracted_document_AnyhowException(FutureOr<ExtractedDocument> Function(Uint8List, OcrConfig) self, SseSerializer serializer);
+
+@protected void sse_encode_DartOpaque(Object self, SseSerializer serializer);
+
+@protected void sse_encode_Map_String_String_None(Map<String, String> self, SseSerializer serializer);
+
+@protected void sse_encode_Map_String_i_64_None(Map<String, PlatformInt64> self, SseSerializer serializer);
+
+@protected void sse_encode_Map_String_list_String_None(Map<String, List<String>> self, SseSerializer serializer);
+
+@protected void sse_encode_Map_String_list_prim_u_8_strict_None(Map<String, Uint8List> self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(ArcDocumentExtractor self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(ArcEmbeddingBackend self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(ArcOcrBackend self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(ArcPostProcessor self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(ArcRenderer self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(ArcRerankerBackend self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(ArcValidator self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(CandleBackend self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(DocumentExtractorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(EmbeddingBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(MetaSchema self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(OcrBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(PostProcessorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(Registry self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(RehydrationMap self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(RendererDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(RerankerBackendDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(TokenCounter self, SseSerializer serializer);
+
+@protected void sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(ValidatorDartImpl self, SseSerializer serializer);
+
+@protected void sse_encode_String(String self, SseSerializer serializer);
+
+@protected void sse_encode_acceleration_config(AccelerationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_annotation_kind(AnnotationKind self, SseSerializer serializer);
+
+@protected void sse_encode_archive_entry(ArchiveEntry self, SseSerializer serializer);
+
+@protected void sse_encode_archive_metadata(ArchiveMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_asset_category(AssetCategory self, SseSerializer serializer);
+
+@protected void sse_encode_audio_metadata(AudioMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_auth_config(AuthConfig self, SseSerializer serializer);
+
+@protected void sse_encode_b_box(BBox self, SseSerializer serializer);
+
+@protected void sse_encode_bibtex_metadata(BibtexMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_block_type(BlockType self, SseSerializer serializer);
+
+@protected void sse_encode_bool(bool self, SseSerializer serializer);
+
+@protected void sse_encode_boundary_reason(BoundaryReason self, SseSerializer serializer);
+
+@protected void sse_encode_bounding_box(BoundingBox self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_acceleration_config(AccelerationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_archive_metadata(ArchiveMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_audio_metadata(AudioMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_auth_config(AuthConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_bibtex_metadata(BibtexMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_bounding_box(BoundingBox self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_captioning_config(CaptioningConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_chunking_config(ChunkingConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_citation_metadata(CitationMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_content_filter_config(ContentFilterConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_core_properties(CoreProperties self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_csv_metadata(CsvMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_custom_gliner_source(CustomGlinerSource self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_dbf_metadata(DbfMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_djot_content(DjotContent self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_document_structure(DocumentStructure self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_document_summary(DocumentSummary self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_docx_app_properties(DocxAppProperties self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_docx_metadata(DocxMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_email_config(EmailConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_email_metadata(EmailMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_embedding_config(EmbeddingConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_epub_metadata(EpubMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_error_metadata(ErrorMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_excel_metadata(ExcelMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_extract_input(ExtractInput self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_extracted_document(ExtractedDocument self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_extraction_confidence(ExtractionConfidence self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_extraction_config(ExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_extraction_method(ExtractionMethod self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_fiction_book_metadata(FictionBookMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_file_extraction_config(FileExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_format_metadata(FormatMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_gliner_architecture(GlinerArchitecture self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_heading_context(HeadingContext self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_hierarchy_config(HierarchyConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_html_metadata(HtmlMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_html_output_config(HtmlOutputConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_i_64(PlatformInt64 self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_image_extraction_config(ImageExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_image_kind(ImageKind self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_image_metadata(ImageMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_image_preprocessing_config(ImagePreprocessingConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_image_preprocessing_metadata(ImagePreprocessingMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_jats_metadata(JatsMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_keyword_config(KeywordConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_language_detection_config(LanguageDetectionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_layout_detection_config(LayoutDetectionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_llm_config(LlmConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ner_config(NerConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_config(OcrConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_element_config(OcrElementConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_metadata(OcrMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_pipeline_config(OcrPipelineConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_quality_thresholds(OcrQualityThresholds self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_rotation(OcrRotation self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_ocr_table_bounding_box(OcrTableBoundingBox self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_output_format(OutputFormat self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_page_classification_config(PageClassificationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_page_config(PageConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_page_hierarchy(PageHierarchy self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_page_structure(PageStructure self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_pdf_config(PdfConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_pdf_metadata(PdfMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_post_processor_config(PostProcessorConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_pptx_metadata(PptxMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_preset(Preset self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_preset_sample(PresetSample self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_proxy_config(ProxyConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_pst_metadata(PstMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_qr_bounding_box(QrBoundingBox self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_rake_params(RakeParams self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_redaction_config(RedactionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_redaction_report(RedactionReport self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_result_format(ResultFormat self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_revision_anchor(RevisionAnchor self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_security_limits(SecurityLimits self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_structured_extraction_config(StructuredExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_summarization_config(SummarizationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_table_grid(TableGrid self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_tesseract_config(TesseractConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_text_direction(TextDirection self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_text_metadata(TextMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_token_reduction_options(TokenReductionOptions self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_transcription_config(TranscriptionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_translation(Translation self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_translation_config(TranslationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_tree_sitter_config(TreeSitterConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_url_extraction_config(UrlExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_user_chunk_config(UserChunkConfig self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_xml_metadata(XmlMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_yake_params(YakeParams self, SseSerializer serializer);
+
+@protected void sse_encode_box_autoadd_year_range(YearRange self, SseSerializer serializer);
+
+@protected void sse_encode_browser_backend(BrowserBackend self, SseSerializer serializer);
+
+@protected void sse_encode_browser_config(BrowserConfig self, SseSerializer serializer);
+
+@protected void sse_encode_browser_mode(BrowserMode self, SseSerializer serializer);
+
+@protected void sse_encode_browser_wait(BrowserWait self, SseSerializer serializer);
+
+@protected void sse_encode_cache_stats(CacheStats self, SseSerializer serializer);
+
+@protected void sse_encode_call_mode(CallMode self, SseSerializer serializer);
+
+@protected void sse_encode_captioning_config(CaptioningConfig self, SseSerializer serializer);
+
+@protected void sse_encode_cell_change(CellChange self, SseSerializer serializer);
+
+@protected void sse_encode_chunk(Chunk self, SseSerializer serializer);
+
+@protected void sse_encode_chunk_info(ChunkInfo self, SseSerializer serializer);
+
+@protected void sse_encode_chunk_metadata(ChunkMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_chunk_sizing(ChunkSizing self, SseSerializer serializer);
+
+@protected void sse_encode_chunk_type(ChunkType self, SseSerializer serializer);
+
+@protected void sse_encode_chunker_type(ChunkerType self, SseSerializer serializer);
+
+@protected void sse_encode_chunking_config(ChunkingConfig self, SseSerializer serializer);
+
+@protected void sse_encode_chunking_reason(ChunkingReason self, SseSerializer serializer);
+
+@protected void sse_encode_citation(Citation self, SseSerializer serializer);
+
+@protected void sse_encode_citation_metadata(CitationMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_citation_source(CitationSource self, SseSerializer serializer);
+
+@protected void sse_encode_cited_field(CitedField self, SseSerializer serializer);
+
+@protected void sse_encode_classification_label(ClassificationLabel self, SseSerializer serializer);
+
+@protected void sse_encode_code_content_mode(CodeContentMode self, SseSerializer serializer);
+
+@protected void sse_encode_content_config(ContentConfig self, SseSerializer serializer);
+
+@protected void sse_encode_content_filter_config(ContentFilterConfig self, SseSerializer serializer);
+
+@protected void sse_encode_content_layer(ContentLayer self, SseSerializer serializer);
+
+@protected void sse_encode_contributor_role(ContributorRole self, SseSerializer serializer);
+
+@protected void sse_encode_core_properties(CoreProperties self, SseSerializer serializer);
+
+@protected void sse_encode_crawl_config(CrawlConfig self, SseSerializer serializer);
+
+@protected void sse_encode_csv_metadata(CsvMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_custom_gliner_source(CustomGlinerSource self, SseSerializer serializer);
+
+@protected void sse_encode_dbf_field_info(DbfFieldInfo self, SseSerializer serializer);
+
+@protected void sse_encode_dbf_metadata(DbfMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_detect_response(DetectResponse self, SseSerializer serializer);
+
+@protected void sse_encode_detection_result(DetectionResult self, SseSerializer serializer);
+
+@protected void sse_encode_diff_hunk(DiffHunk self, SseSerializer serializer);
+
+@protected void sse_encode_diff_line(DiffLine self, SseSerializer serializer);
+
+@protected void sse_encode_diff_options(DiffOptions self, SseSerializer serializer);
+
+@protected void sse_encode_djot_content(DjotContent self, SseSerializer serializer);
+
+@protected void sse_encode_djot_image(DjotImage self, SseSerializer serializer);
+
+@protected void sse_encode_djot_link(DjotLink self, SseSerializer serializer);
+
+@protected void sse_encode_document_boundary(DocumentBoundary self, SseSerializer serializer);
+
+@protected void sse_encode_document_metadata(DocumentMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_document_node(DocumentNode self, SseSerializer serializer);
+
+@protected void sse_encode_document_relationship(DocumentRelationship self, SseSerializer serializer);
+
+@protected void sse_encode_document_revision(DocumentRevision self, SseSerializer serializer);
+
+@protected void sse_encode_document_structure(DocumentStructure self, SseSerializer serializer);
+
+@protected void sse_encode_document_summary(DocumentSummary self, SseSerializer serializer);
+
+@protected void sse_encode_docx_app_properties(DocxAppProperties self, SseSerializer serializer);
+
+@protected void sse_encode_docx_metadata(DocxMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_element(Element self, SseSerializer serializer);
+
+@protected void sse_encode_element_metadata(ElementMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_element_type(ElementType self, SseSerializer serializer);
+
+@protected void sse_encode_email_attachment(EmailAttachment self, SseSerializer serializer);
+
+@protected void sse_encode_email_config(EmailConfig self, SseSerializer serializer);
+
+@protected void sse_encode_email_extraction_result(EmailExtractionResult self, SseSerializer serializer);
+
+@protected void sse_encode_email_metadata(EmailMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_embedded_changes(EmbeddedChanges self, SseSerializer serializer);
+
+@protected void sse_encode_embedded_diff(EmbeddedDiff self, SseSerializer serializer);
+
+@protected void sse_encode_embedded_file(EmbeddedFile self, SseSerializer serializer);
+
+@protected void sse_encode_embedding_config(EmbeddingConfig self, SseSerializer serializer);
+
+@protected void sse_encode_embedding_model_type(EmbeddingModelType self, SseSerializer serializer);
+
+@protected void sse_encode_entity(Entity self, SseSerializer serializer);
+
+@protected void sse_encode_entity_category(EntityCategory self, SseSerializer serializer);
+
+@protected void sse_encode_epub_metadata(EpubMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_error_metadata(ErrorMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_excel_metadata(ExcelMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_excel_sheet(ExcelSheet self, SseSerializer serializer);
+
+@protected void sse_encode_excel_workbook(ExcelWorkbook self, SseSerializer serializer);
+
+@protected void sse_encode_execution_provider_type(ExecutionProviderType self, SseSerializer serializer);
+
+@protected void sse_encode_extract_input(ExtractInput self, SseSerializer serializer);
+
+@protected void sse_encode_extract_input_kind(ExtractInputKind self, SseSerializer serializer);
+
+@protected void sse_encode_extracted_document(ExtractedDocument self, SseSerializer serializer);
+
+@protected void sse_encode_extracted_image(ExtractedImage self, SseSerializer serializer);
+
+@protected void sse_encode_extracted_uri(ExtractedUri self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_confidence(ExtractionConfidence self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_config(ExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_diff(ExtractionDiff self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_error_item(ExtractionErrorItem self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_method(ExtractionMethod self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_result(ExtractionResult self, SseSerializer serializer);
+
+@protected void sse_encode_extraction_summary(ExtractionSummary self, SseSerializer serializer);
+
+@protected void sse_encode_f_64(double self, SseSerializer serializer);
+
+@protected void sse_encode_fiction_book_metadata(FictionBookMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_file_extraction_config(FileExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_footnote(Footnote self, SseSerializer serializer);
+
+@protected void sse_encode_footnote_anchor(FootnoteAnchor self, SseSerializer serializer);
+
+@protected void sse_encode_footnote_config(FootnoteConfig self, SseSerializer serializer);
+
+@protected void sse_encode_footnote_definition(FootnoteDefinition self, SseSerializer serializer);
+
+@protected void sse_encode_form_field_type(FormFieldType self, SseSerializer serializer);
+
+@protected void sse_encode_format_metadata(FormatMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_formatted_block(FormattedBlock self, SseSerializer serializer);
+
+@protected void sse_encode_formula(Formula self, SseSerializer serializer);
+
+@protected void sse_encode_gliner_architecture(GlinerArchitecture self, SseSerializer serializer);
+
+@protected void sse_encode_grid_cell(GridCell self, SseSerializer serializer);
+
+@protected void sse_encode_header_metadata(HeaderMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_heading_context(HeadingContext self, SseSerializer serializer);
+
+@protected void sse_encode_heading_level(HeadingLevel self, SseSerializer serializer);
+
+@protected void sse_encode_heuristics_config(HeuristicsConfig self, SseSerializer serializer);
+
+@protected void sse_encode_heuristics_error(HeuristicsError self, SseSerializer serializer);
+
+@protected void sse_encode_hierarchical_block(HierarchicalBlock self, SseSerializer serializer);
+
+@protected void sse_encode_hierarchy_config(HierarchyConfig self, SseSerializer serializer);
+
+@protected void sse_encode_html_metadata(HtmlMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_html_output_config(HtmlOutputConfig self, SseSerializer serializer);
+
+@protected void sse_encode_html_theme(HtmlTheme self, SseSerializer serializer);
+
+@protected void sse_encode_i_32(int self, SseSerializer serializer);
+
+@protected void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+@protected void sse_encode_image_extraction_config(ImageExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_image_kind(ImageKind self, SseSerializer serializer);
+
+@protected void sse_encode_image_metadata(ImageMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_image_metadata_type(ImageMetadataType self, SseSerializer serializer);
+
+@protected void sse_encode_image_output_format(ImageOutputFormat self, SseSerializer serializer);
+
+@protected void sse_encode_image_preprocessing_config(ImagePreprocessingConfig self, SseSerializer serializer);
+
+@protected void sse_encode_image_preprocessing_metadata(ImagePreprocessingMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_image_type(ImageType self, SseSerializer serializer);
+
+@protected void sse_encode_inline_element(InlineElement self, SseSerializer serializer);
+
+@protected void sse_encode_inline_type(InlineType self, SseSerializer serializer);
+
+@protected void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
+
+@protected void sse_encode_jats_metadata(JatsMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_keyword(Keyword self, SseSerializer serializer);
+
+@protected void sse_encode_keyword_algorithm(KeywordAlgorithm self, SseSerializer serializer);
+
+@protected void sse_encode_keyword_config(KeywordConfig self, SseSerializer serializer);
+
+@protected void sse_encode_language_detection_config(LanguageDetectionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_layout_class(LayoutClass self, SseSerializer serializer);
+
+@protected void sse_encode_layout_detection(LayoutDetection self, SseSerializer serializer);
+
+@protected void sse_encode_layout_detection_config(LayoutDetectionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_layout_region(LayoutRegion self, SseSerializer serializer);
+
+@protected void sse_encode_link_metadata(LinkMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_link_type(LinkType self, SseSerializer serializer);
+
+@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+@protected void sse_encode_list_archive_entry(List<ArchiveEntry> self, SseSerializer serializer);
+
+@protected void sse_encode_list_asset_category(List<AssetCategory> self, SseSerializer serializer);
+
+@protected void sse_encode_list_cell_change(List<CellChange> self, SseSerializer serializer);
+
+@protected void sse_encode_list_chunk(List<Chunk> self, SseSerializer serializer);
+
+@protected void sse_encode_list_classification_label(List<ClassificationLabel> self, SseSerializer serializer);
+
+@protected void sse_encode_list_contributor_role(List<ContributorRole> self, SseSerializer serializer);
+
+@protected void sse_encode_list_dbf_field_info(List<DbfFieldInfo> self, SseSerializer serializer);
+
+@protected void sse_encode_list_diff_hunk(List<DiffHunk> self, SseSerializer serializer);
+
+@protected void sse_encode_list_diff_line(List<DiffLine> self, SseSerializer serializer);
+
+@protected void sse_encode_list_djot_image(List<DjotImage> self, SseSerializer serializer);
+
+@protected void sse_encode_list_djot_link(List<DjotLink> self, SseSerializer serializer);
+
+@protected void sse_encode_list_document_node(List<DocumentNode> self, SseSerializer serializer);
+
+@protected void sse_encode_list_document_relationship(List<DocumentRelationship> self, SseSerializer serializer);
+
+@protected void sse_encode_list_document_revision(List<DocumentRevision> self, SseSerializer serializer);
+
+@protected void sse_encode_list_element(List<Element> self, SseSerializer serializer);
+
+@protected void sse_encode_list_email_attachment(List<EmailAttachment> self, SseSerializer serializer);
+
+@protected void sse_encode_list_embedded_diff(List<EmbeddedDiff> self, SseSerializer serializer);
+
+@protected void sse_encode_list_entity(List<Entity> self, SseSerializer serializer);
+
+@protected void sse_encode_list_entity_category(List<EntityCategory> self, SseSerializer serializer);
+
+@protected void sse_encode_list_excel_sheet(List<ExcelSheet> self, SseSerializer serializer);
+
+@protected void sse_encode_list_extract_input(List<ExtractInput> self, SseSerializer serializer);
+
+@protected void sse_encode_list_extracted_document(List<ExtractedDocument> self, SseSerializer serializer);
+
+@protected void sse_encode_list_extracted_image(List<ExtractedImage> self, SseSerializer serializer);
+
+@protected void sse_encode_list_extracted_uri(List<ExtractedUri> self, SseSerializer serializer);
+
+@protected void sse_encode_list_extraction_error_item(List<ExtractionErrorItem> self, SseSerializer serializer);
+
+@protected void sse_encode_list_footnote(List<Footnote> self, SseSerializer serializer);
+
+@protected void sse_encode_list_formatted_block(List<FormattedBlock> self, SseSerializer serializer);
+
+@protected void sse_encode_list_formula(List<Formula> self, SseSerializer serializer);
+
+@protected void sse_encode_list_grid_cell(List<GridCell> self, SseSerializer serializer);
+
+@protected void sse_encode_list_header_metadata(List<HeaderMetadata> self, SseSerializer serializer);
+
+@protected void sse_encode_list_heading_level(List<HeadingLevel> self, SseSerializer serializer);
+
+@protected void sse_encode_list_hierarchical_block(List<HierarchicalBlock> self, SseSerializer serializer);
+
+@protected void sse_encode_list_image_metadata_type(List<ImageMetadataType> self, SseSerializer serializer);
+
+@protected void sse_encode_list_inline_element(List<InlineElement> self, SseSerializer serializer);
+
+@protected void sse_encode_list_keyword(List<Keyword> self, SseSerializer serializer);
+
+@protected void sse_encode_list_layout_detection(List<LayoutDetection> self, SseSerializer serializer);
+
+@protected void sse_encode_list_layout_region(List<LayoutRegion> self, SseSerializer serializer);
+
+@protected void sse_encode_list_link_metadata(List<LinkMetadata> self, SseSerializer serializer);
+
+@protected void sse_encode_list_list_String(List<List<String>> self, SseSerializer serializer);
+
+@protected void sse_encode_list_list_prim_f_64_strict(List<Float64List> self, SseSerializer serializer);
+
+@protected void sse_encode_list_llm_usage(List<LlmUsage> self, SseSerializer serializer);
+
+@protected void sse_encode_list_ocr_element(List<OcrElement> self, SseSerializer serializer);
+
+@protected void sse_encode_list_ocr_pipeline_stage(List<OcrPipelineStage> self, SseSerializer serializer);
+
+@protected void sse_encode_list_ocr_table(List<OcrTable> self, SseSerializer serializer);
+
+@protected void sse_encode_list_page_boundary(List<PageBoundary> self, SseSerializer serializer);
+
+@protected void sse_encode_list_page_classification(List<PageClassification> self, SseSerializer serializer);
+
+@protected void sse_encode_list_page_content(List<PageContent> self, SseSerializer serializer);
+
+@protected void sse_encode_list_page_info(List<PageInfo> self, SseSerializer serializer);
+
+@protected void sse_encode_list_page_range(List<PageRange> self, SseSerializer serializer);
+
+@protected void sse_encode_list_page_signals(List<PageSignals> self, SseSerializer serializer);
+
+@protected void sse_encode_list_pdf_annotation(List<PdfAnnotation> self, SseSerializer serializer);
+
+@protected void sse_encode_list_pdf_form_field(List<PdfFormField> self, SseSerializer serializer);
+
+@protected void sse_encode_list_pii_category(List<PiiCategory> self, SseSerializer serializer);
+
+@protected void sse_encode_list_preset_summary(List<PresetSummary> self, SseSerializer serializer);
+
+@protected void sse_encode_list_prim_f_64_strict(Float64List self, SseSerializer serializer);
+
+@protected void sse_encode_list_prim_i_64_strict(Int64List self, SseSerializer serializer);
+
+@protected void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
+
+@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+
+@protected void sse_encode_list_processing_warning(List<ProcessingWarning> self, SseSerializer serializer);
+
+@protected void sse_encode_list_qr_code(List<QrCode> self, SseSerializer serializer);
+
+@protected void sse_encode_list_record_string_i_64(List<(String,PlatformInt64)> self, SseSerializer serializer);
+
+@protected void sse_encode_list_record_string_list_prim_u_8_strict(List<(String,Uint8List)> self, SseSerializer serializer);
+
+@protected void sse_encode_list_record_string_list_string(List<(String,List<String>)> self, SseSerializer serializer);
+
+@protected void sse_encode_list_record_string_string(List<(String,String)> self, SseSerializer serializer);
+
+@protected void sse_encode_list_redaction_finding(List<RedactionFinding> self, SseSerializer serializer);
+
+@protected void sse_encode_list_redaction_pattern(List<RedactionPattern> self, SseSerializer serializer);
+
+@protected void sse_encode_list_redaction_term(List<RedactionTerm> self, SseSerializer serializer);
+
+@protected void sse_encode_list_structured_data(List<StructuredData> self, SseSerializer serializer);
+
+@protected void sse_encode_list_supported_format(List<SupportedFormat> self, SseSerializer serializer);
+
+@protected void sse_encode_list_table(List<Table> self, SseSerializer serializer);
+
+@protected void sse_encode_list_table_diff(List<TableDiff> self, SseSerializer serializer);
+
+@protected void sse_encode_list_text_annotation(List<TextAnnotation> self, SseSerializer serializer);
+
+@protected void sse_encode_list_type(ListType self, SseSerializer serializer);
+
+@protected void sse_encode_llm_config(LlmConfig self, SseSerializer serializer);
+
+@protected void sse_encode_llm_usage(LlmUsage self, SseSerializer serializer);
+
+@protected void sse_encode_load_error(LoadError self, SseSerializer serializer);
+
+@protected void sse_encode_merge_mode(MergeMode self, SseSerializer serializer);
+
+@protected void sse_encode_metadata(Metadata self, SseSerializer serializer);
+
+@protected void sse_encode_model_paths(ModelPaths self, SseSerializer serializer);
+
+@protected void sse_encode_multidoc_input(MultidocInput self, SseSerializer serializer);
+
+@protected void sse_encode_multidoc_thresholds(MultidocThresholds self, SseSerializer serializer);
+
+@protected void sse_encode_ner_backend_kind(NerBackendKind self, SseSerializer serializer);
+
+@protected void sse_encode_ner_config(NerConfig self, SseSerializer serializer);
+
+@protected void sse_encode_no_chunking_reason(NoChunkingReason self, SseSerializer serializer);
+
+@protected void sse_encode_node_content(NodeContent self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_backend_type(OcrBackendType self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_bounding_geometry(OcrBoundingGeometry self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_confidence(OcrConfidence self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_config(OcrConfig self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_element(OcrElement self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_element_config(OcrElementConfig self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_element_level(OcrElementLevel self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_extraction_result(OcrExtractionResult self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_metadata(OcrMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_pipeline_config(OcrPipelineConfig self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_pipeline_stage(OcrPipelineStage self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_quality_thresholds(OcrQualityThresholds self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_rotation(OcrRotation self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_table(OcrTable self, SseSerializer serializer);
+
+@protected void sse_encode_ocr_table_bounding_box(OcrTableBoundingBox self, SseSerializer serializer);
+
+@protected void sse_encode_opt_Map_String_String_None(Map<String, String>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_Map_String_i_64_None(Map<String, PlatformInt64>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_Map_String_list_String_None(Map<String, List<String>>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_Map_String_list_prim_u_8_strict_None(Map<String, Uint8List>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_acceleration_config(AccelerationConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_auth_config(AuthConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_bounding_box(BoundingBox? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_captioning_config(CaptioningConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_chunking_config(ChunkingConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_content_filter_config(ContentFilterConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_core_properties(CoreProperties? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_custom_gliner_source(CustomGlinerSource? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_djot_content(DjotContent? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_document_structure(DocumentStructure? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_document_summary(DocumentSummary? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_docx_app_properties(DocxAppProperties? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_email_config(EmailConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_embedding_config(EmbeddingConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_error_metadata(ErrorMetadata? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_extracted_document(ExtractedDocument? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_extraction_confidence(ExtractionConfidence? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_extraction_method(ExtractionMethod? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_file_extraction_config(FileExtractionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_format_metadata(FormatMetadata? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_gliner_architecture(GlinerArchitecture? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_heading_context(HeadingContext? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_hierarchy_config(HierarchyConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_html_output_config(HtmlOutputConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_i_64(PlatformInt64? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_image_extraction_config(ImageExtractionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_image_kind(ImageKind? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_image_preprocessing_config(ImagePreprocessingConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_image_preprocessing_metadata(ImagePreprocessingMetadata? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_keyword_config(KeywordConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_language_detection_config(LanguageDetectionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_layout_detection_config(LayoutDetectionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_llm_config(LlmConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ner_config(NerConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ocr_config(OcrConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ocr_element_config(OcrElementConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ocr_pipeline_config(OcrPipelineConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ocr_quality_thresholds(OcrQualityThresholds? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ocr_rotation(OcrRotation? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_ocr_table_bounding_box(OcrTableBoundingBox? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_output_format(OutputFormat? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_page_classification_config(PageClassificationConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_page_config(PageConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_page_hierarchy(PageHierarchy? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_page_structure(PageStructure? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_pdf_config(PdfConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_post_processor_config(PostProcessorConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_preset(Preset? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_preset_sample(PresetSample? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_proxy_config(ProxyConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_qr_bounding_box(QrBoundingBox? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_rake_params(RakeParams? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_redaction_config(RedactionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_redaction_report(RedactionReport? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_result_format(ResultFormat? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_revision_anchor(RevisionAnchor? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_security_limits(SecurityLimits? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_structured_extraction_config(StructuredExtractionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_summarization_config(SummarizationConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_tesseract_config(TesseractConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_text_direction(TextDirection? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_token_reduction_options(TokenReductionOptions? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_transcription_config(TranscriptionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_translation(Translation? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_translation_config(TranslationConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_tree_sitter_config(TreeSitterConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_url_extraction_config(UrlExtractionConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_user_chunk_config(UserChunkConfig? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_yake_params(YakeParams? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_box_autoadd_year_range(YearRange? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_String(List<String>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_archive_entry(List<ArchiveEntry>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_chunk(List<Chunk>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_document_revision(List<DocumentRevision>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_element(List<Element>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_entity(List<Entity>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_extracted_image(List<ExtractedImage>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_extracted_uri(List<ExtractedUri>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_keyword(List<Keyword>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_layout_region(List<LayoutRegion>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_list_String(List<List<String>>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_llm_usage(List<LlmUsage>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_ocr_element(List<OcrElement>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_page_boundary(List<PageBoundary>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_page_classification(List<PageClassification>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_page_content(List<PageContent>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_page_info(List<PageInfo>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_page_range(List<PageRange>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_pdf_annotation(List<PdfAnnotation>? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_prim_f_64_strict(Float64List? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_prim_i_64_strict(Int64List? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_prim_u_8_strict(Uint8List? self, SseSerializer serializer);
+
+@protected void sse_encode_opt_list_qr_code(List<QrCode>? self, SseSerializer serializer);
+
+@protected void sse_encode_orientation_result(OrientationResult self, SseSerializer serializer);
+
+@protected void sse_encode_outcome(Outcome self, SseSerializer serializer);
+
+@protected void sse_encode_output_format(OutputFormat self, SseSerializer serializer);
+
+@protected void sse_encode_paddle_language(PaddleLanguage self, SseSerializer serializer);
+
+@protected void sse_encode_paddle_ocr_config(PaddleOcrConfig self, SseSerializer serializer);
+
+@protected void sse_encode_page_boundary(PageBoundary self, SseSerializer serializer);
+
+@protected void sse_encode_page_classification(PageClassification self, SseSerializer serializer);
+
+@protected void sse_encode_page_classification_config(PageClassificationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_page_config(PageConfig self, SseSerializer serializer);
+
+@protected void sse_encode_page_content(PageContent self, SseSerializer serializer);
+
+@protected void sse_encode_page_hierarchy(PageHierarchy self, SseSerializer serializer);
+
+@protected void sse_encode_page_image(PageImage self, SseSerializer serializer);
+
+@protected void sse_encode_page_info(PageInfo self, SseSerializer serializer);
+
+@protected void sse_encode_page_range(PageRange self, SseSerializer serializer);
+
+@protected void sse_encode_page_signals(PageSignals self, SseSerializer serializer);
+
+@protected void sse_encode_page_structure(PageStructure self, SseSerializer serializer);
+
+@protected void sse_encode_page_unit_type(PageUnitType self, SseSerializer serializer);
+
+@protected void sse_encode_pattern_match(PatternMatch self, SseSerializer serializer);
+
+@protected void sse_encode_pdf_annotation(PdfAnnotation self, SseSerializer serializer);
+
+@protected void sse_encode_pdf_annotation_type(PdfAnnotationType self, SseSerializer serializer);
+
+@protected void sse_encode_pdf_config(PdfConfig self, SseSerializer serializer);
+
+@protected void sse_encode_pdf_form_field(PdfFormField self, SseSerializer serializer);
+
+@protected void sse_encode_pdf_metadata(PdfMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_pii_category(PiiCategory self, SseSerializer serializer);
+
+@protected void sse_encode_post_processor_config(PostProcessorConfig self, SseSerializer serializer);
+
+@protected void sse_encode_pptx_app_properties(PptxAppProperties self, SseSerializer serializer);
+
+@protected void sse_encode_pptx_extraction_result(PptxExtractionResult self, SseSerializer serializer);
+
+@protected void sse_encode_pptx_metadata(PptxMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_preset(Preset self, SseSerializer serializer);
+
+@protected void sse_encode_preset_category(PresetCategory self, SseSerializer serializer);
+
+@protected void sse_encode_preset_sample(PresetSample self, SseSerializer serializer);
+
+@protected void sse_encode_preset_summary(PresetSummary self, SseSerializer serializer);
+
+@protected void sse_encode_processing_stage(ProcessingStage self, SseSerializer serializer);
+
+@protected void sse_encode_processing_warning(ProcessingWarning self, SseSerializer serializer);
+
+@protected void sse_encode_proxy_config(ProxyConfig self, SseSerializer serializer);
+
+@protected void sse_encode_psm_mode(PSMMode self, SseSerializer serializer);
+
+@protected void sse_encode_pst_metadata(PstMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_qr_bounding_box(QrBoundingBox self, SseSerializer serializer);
+
+@protected void sse_encode_qr_code(QrCode self, SseSerializer serializer);
+
+@protected void sse_encode_rake_params(RakeParams self, SseSerializer serializer);
+
+@protected void sse_encode_rasterize_error(RasterizeError self, SseSerializer serializer);
+
+@protected void sse_encode_recognized_table(RecognizedTable self, SseSerializer serializer);
+
+@protected void sse_encode_record_string_i_64((String,PlatformInt64) self, SseSerializer serializer);
+
+@protected void sse_encode_record_string_list_prim_u_8_strict((String,Uint8List) self, SseSerializer serializer);
+
+@protected void sse_encode_record_string_list_string((String,List<String>) self, SseSerializer serializer);
+
+@protected void sse_encode_record_string_string((String,String) self, SseSerializer serializer);
+
+@protected void sse_encode_redaction_config(RedactionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_redaction_finding(RedactionFinding self, SseSerializer serializer);
+
+@protected void sse_encode_redaction_pattern(RedactionPattern self, SseSerializer serializer);
+
+@protected void sse_encode_redaction_report(RedactionReport self, SseSerializer serializer);
+
+@protected void sse_encode_redaction_strategy(RedactionStrategy self, SseSerializer serializer);
+
+@protected void sse_encode_redaction_term(RedactionTerm self, SseSerializer serializer);
+
+@protected void sse_encode_reduction_level(ReductionLevel self, SseSerializer serializer);
+
+@protected void sse_encode_region_kind(RegionKind self, SseSerializer serializer);
+
+@protected void sse_encode_relationship_kind(RelationshipKind self, SseSerializer serializer);
+
+@protected void sse_encode_reranked_document(RerankedDocument self, SseSerializer serializer);
+
+@protected void sse_encode_reranker_config(RerankerConfig self, SseSerializer serializer);
+
+@protected void sse_encode_reranker_model_type(RerankerModelType self, SseSerializer serializer);
+
+@protected void sse_encode_resolve_error(ResolveError self, SseSerializer serializer);
+
+@protected void sse_encode_resolved_preset(ResolvedPreset self, SseSerializer serializer);
+
+@protected void sse_encode_result_format(ResultFormat self, SseSerializer serializer);
+
+@protected void sse_encode_revision_anchor(RevisionAnchor self, SseSerializer serializer);
+
+@protected void sse_encode_revision_delta(RevisionDelta self, SseSerializer serializer);
+
+@protected void sse_encode_revision_kind(RevisionKind self, SseSerializer serializer);
+
+@protected void sse_encode_schema_compliance(SchemaCompliance self, SseSerializer serializer);
+
+@protected void sse_encode_security_limits(SecurityLimits self, SseSerializer serializer);
+
+@protected void sse_encode_server_config(ServerConfig self, SseSerializer serializer);
+
+@protected void sse_encode_ssrf_policy(SsrfPolicy self, SseSerializer serializer);
+
+@protected void sse_encode_structured_data(StructuredData self, SseSerializer serializer);
+
+@protected void sse_encode_structured_data_result(StructuredDataResult self, SseSerializer serializer);
+
+@protected void sse_encode_structured_data_type(StructuredDataType self, SseSerializer serializer);
+
+@protected void sse_encode_structured_extraction_config(StructuredExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_summarization_config(SummarizationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_summary_strategy(SummaryStrategy self, SseSerializer serializer);
+
+@protected void sse_encode_supported_format(SupportedFormat self, SseSerializer serializer);
+
+@protected void sse_encode_svg_options(SvgOptions self, SseSerializer serializer);
+
+@protected void sse_encode_table(Table self, SseSerializer serializer);
+
+@protected void sse_encode_table_cell(TableCell self, SseSerializer serializer);
+
+@protected void sse_encode_table_chunking_mode(TableChunkingMode self, SseSerializer serializer);
+
+@protected void sse_encode_table_diff(TableDiff self, SseSerializer serializer);
+
+@protected void sse_encode_table_grid(TableGrid self, SseSerializer serializer);
+
+@protected void sse_encode_table_model(TableModel self, SseSerializer serializer);
+
+@protected void sse_encode_table_overlap_preference(TableOverlapPreference self, SseSerializer serializer);
+
+@protected void sse_encode_tesseract_config(TesseractConfig self, SseSerializer serializer);
+
+@protected void sse_encode_text_annotation(TextAnnotation self, SseSerializer serializer);
+
+@protected void sse_encode_text_direction(TextDirection self, SseSerializer serializer);
+
+@protected void sse_encode_text_extraction_result(TextExtractionResult self, SseSerializer serializer);
+
+@protected void sse_encode_text_metadata(TextMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_token_reduction_config(TokenReductionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_token_reduction_options(TokenReductionOptions self, SseSerializer serializer);
+
+@protected void sse_encode_transcription_config(TranscriptionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_translation(Translation self, SseSerializer serializer);
+
+@protected void sse_encode_translation_config(TranslationConfig self, SseSerializer serializer);
+
+@protected void sse_encode_tree_sitter_config(TreeSitterConfig self, SseSerializer serializer);
+
+@protected void sse_encode_tree_sitter_process_config(TreeSitterProcessConfig self, SseSerializer serializer);
+
+@protected void sse_encode_u_8(int self, SseSerializer serializer);
+
+@protected void sse_encode_unit(void self, SseSerializer serializer);
+
+@protected void sse_encode_uri_kind(UriKind self, SseSerializer serializer);
+
+@protected void sse_encode_url_extraction_config(UrlExtractionConfig self, SseSerializer serializer);
+
+@protected void sse_encode_url_extraction_mode(UrlExtractionMode self, SseSerializer serializer);
+
+@protected void sse_encode_user_chunk_config(UserChunkConfig self, SseSerializer serializer);
+
+@protected void sse_encode_usize(BigInt self, SseSerializer serializer);
+
+@protected void sse_encode_vlm_fallback_policy(VlmFallbackPolicy self, SseSerializer serializer);
+
+@protected void sse_encode_whisper_model(WhisperModel self, SseSerializer serializer);
+
+@protected void sse_encode_xberg_error(XbergError self, SseSerializer serializer);
+
+@protected void sse_encode_xlsx_app_properties(XlsxAppProperties self, SseSerializer serializer);
+
+@protected void sse_encode_xml_extraction_result(XmlExtractionResult self, SseSerializer serializer);
+
+@protected void sse_encode_xml_metadata(XmlMetadata self, SseSerializer serializer);
+
+@protected void sse_encode_yake_params(YakeParams self, SseSerializer serializer);
+
+@protected void sse_encode_year_range(YearRange self, SseSerializer serializer);
+                }
+                
+
 
 // Section: wire_class
 
 class RustLibWire implements BaseWire {
-  RustLibWire.fromExternalLibrary(ExternalLibrary lib);
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    ptr,
-  );
-
-  void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    ptr,
-  );
-
-  void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    int ptr,
-  ) => wasmModule
-  .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    ptr,
-  );
-}
-
-@JS('wasm_bindgen')
-external RustLibWasmModule get wasmModule;
-
-@JS()
-@anonymous
-extension type RustLibWasmModule._(JSObject _) implements JSObject {
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(
-    int ptr,
-  );
-
-  external void
-  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    int ptr,
-  );
-
-  external void
-  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(
-    int ptr,
-  );
-}
+            RustLibWire.fromExternalLibrary(ExternalLibrary lib);
+
+            void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(ptr);
+
+void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(int ptr) => wasmModule.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(ptr);
+
+void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(int ptr) => wasmModule.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(ptr);
+        }
+        @JS('wasm_bindgen') external RustLibWasmModule get wasmModule;
+
+        @JS() @anonymous extension type RustLibWasmModule._(JSObject _) implements JSObject {
+            external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDocumentExtractorSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynEmbeddingBackendSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynOcrBackendSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynPostProcessorSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRendererSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRerankerBackendSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynValidatorSendSync(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCandleBackend(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDocumentExtractorDartImpl(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEmbeddingBackendDartImpl(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMetaSchema(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOcrBackendDartImpl(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPostProcessorDartImpl(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRegistry(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRehydrationMap(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRendererDartImpl(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRerankerBackendDartImpl(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenCounter(int ptr);
+
+external void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(int ptr);
+
+external void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerValidatorDartImpl(int ptr);
+        }
+        
