@@ -11,13 +11,14 @@
 
 use std::io::Cursor;
 
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 // Imported from heuristics — the only call-mode source of truth.
 use crate::heuristics::StructuredCallMode;
 
 /// A rendered page ready for inline-base64 transport to the vision model.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PageImage {
     /// 1-based page number (matches the citation envelope convention).
     pub page_number: u32,

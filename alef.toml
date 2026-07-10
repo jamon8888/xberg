@@ -583,8 +583,16 @@ exclude_types = [
   "EnrichStatus",
   "ChunkPlan",
   "ChunkingDecision",
+  # CandleBackend::from_local/from_bytes take &Path/Option<&Path>/&[u8]
+  # params that the C-ABI backend doesn't marshal correctly (raw pointers
+  # passed through unconverted) — works fine for python, which handles
+  # these conversions natively. Exclude the type from FFI specifically
+  # rather than skip the methods crate-wide.
+  "CandleBackend",
 ]
 exclude_functions = [
+  # Option<GlinerArchitecture> param not Some()-wrapped by the C-ABI codegen.
+  "custom_source_from_parts",
   "calculate_quality_score",
   "count_tokens",
   "find_all",

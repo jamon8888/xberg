@@ -52,6 +52,12 @@ pub use engine::structured::chunk::ChunkerConfig;
 #[cfg(feature = "pdf")]
 pub use engine::structured::rasterize::RasterizeError;
 pub use engine::seams::ProgressEvent;
+// Same root-relative xberg::TypeName path assumption, hit by the JNI backend
+// specifically (python's codegen used the fully-qualified module path fine).
+#[cfg(feature = "redaction-rehydrate")]
+pub use text::redaction::RehydrationMap;
+#[cfg(any(feature = "ner-candle", feature = "ner-candle-wasm"))]
+pub use text::ner::candle::CandleBackend;
 pub mod error;
 /// Format-specific document extraction implementations and office metadata types.
 pub mod extraction;

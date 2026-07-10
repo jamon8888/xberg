@@ -100,7 +100,7 @@ struct GlinerModelFiles {
 /// Files downloaded from a custom repo are **not** checksum-verified — the
 /// catalog's `checksums.sha256` only covers the pinned models xberg publishes.
 /// Callers choosing a custom repo are trusting that source directly.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct CustomGlinerSource {
     /// Hugging Face repo id, e.g. `"gliner-community/gliner_small-v2.5"`.
     pub repo: String,
