@@ -80,13 +80,9 @@ async fn redact_inner(
     #[cfg(not(feature = "ner"))]
     let _ = &active_categories;
 
-    // 3. Filter to only the configured categories (if any were specified).
-    //    Custom-category hits (`custom_terms` / `custom_patterns`) are always
-    //    retained — the user added them explicitly, the category filter is for
-    //    pruning the engine's built-in detectors.
-    if !config.categories.is_empty() {
-        matches.retain(|m| matches!(m.category, PiiCategory::Custom(_)) || config.categories.contains(&m.category));
-    }
+    // 3. Filter to only the configured categories (if any were specified), and
+    //    drop any match whose text is on the `preserve_terms` allowlist.
+    apply_category_and_preserve_filters(&mut matches, config);
 
     // 4. Resolve overlaps: prefer earlier match; if equal start, prefer longer span.
     let matches = dedupe_overlaps(matches);
@@ -268,10 +264,29 @@ fn build_matches_for(
 ) -> Vec<PatternMatch> {
     let mut matches = scan_text(text, categories);
     matches.extend(scan_custom(text, custom_regexes));
+    apply_category_and_preserve_filters(&mut matches, config);
+    dedupe_overlaps(matches)
+}
+
+/// Apply the category allowlist (if any categories were configured) and the
+/// preserve-terms denylist. Shared by the main-content path and
+/// `build_matches_for` (formatted_content + chunks) so preserve semantics
+/// are identical everywhere redaction runs.
+fn apply_category_and_preserve_filters(matches: &mut Vec<PatternMatch>, config: &RedactionConfig) {
     if !config.categories.is_empty() {
         matches.retain(|m| matches!(m.category, PiiCategory::Custom(_)) || config.categories.contains(&m.category));
     }
-    dedupe_overlaps(matches)
+    if !config.preserve_terms.is_empty() {
+        matches.retain(|m| {
+            !config.preserve_terms.iter().any(|term| {
+                if term.case_sensitive {
+                    m.text == term.value
+                } else {
+                    m.text.eq_ignore_ascii_case(&term.value)
+                }
+            })
+        });
+    }
 }
 
 /// Compile every user-supplied term and pattern once. Returns `(label, regex)`
@@ -521,6 +536,9 @@ fn make_ner_backend(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::config::redaction::RedactionTerm;
+    use crate::types::{Chunk, ChunkMetadata, ChunkType};
+    use std::borrow::Cow;
 
     #[test]
     fn test_dedupe_overlaps_keeps_longer_first() {
@@ -578,5 +596,134 @@ mod tests {
         ];
         let out = apply_replacements_reverse(text, &matches, &findings);
         assert_eq!(out, "Email me at [REDACTED] or [REDACTED].");
+    }
+
+    #[test]
+    fn preserve_terms_suppresses_a_matching_ner_hit() {
+        let mut matches = vec![
+            PatternMatch {
+                start: 0,
+                end: 8,
+                category: PiiCategory::Person,
+                text: "Jane Doe".into(),
+            },
+            PatternMatch {
+                start: 20,
+                end: 29,
+                category: PiiCategory::Organization,
+                text: "Acme Corp".into(),
+            },
+        ];
+        let config = RedactionConfig {
+            preserve_terms: vec![RedactionTerm::literal("Jane Doe")],
+            ..Default::default()
+        };
+
+        apply_category_and_preserve_filters(&mut matches, &config);
+
+        let remaining: Vec<&str> = matches.iter().map(|m| m.text.as_str()).collect();
+        assert!(
+            !remaining.contains(&"Jane Doe"),
+            "preserved term must be suppressed from findings"
+        );
+        assert!(remaining.contains(&"Acme Corp"), "non-preserved hits must remain");
+    }
+
+    #[test]
+    fn preserve_terms_is_case_insensitive_by_default() {
+        let mut matches = vec![PatternMatch {
+            start: 0,
+            end: 8,
+            category: PiiCategory::Person,
+            text: "JANE DOE".into(),
+        }];
+        let config = RedactionConfig {
+            preserve_terms: vec![RedactionTerm::literal("Jane Doe")],
+            ..Default::default()
+        };
+
+        apply_category_and_preserve_filters(&mut matches, &config);
+
+        assert!(
+            matches.is_empty(),
+            "a differently-cased occurrence must still be suppressed by default"
+        );
+    }
+
+    #[test]
+    fn preserve_terms_respects_case_sensitive_flag() {
+        let mut matches = vec![PatternMatch {
+            start: 0,
+            end: 8,
+            category: PiiCategory::Person,
+            text: "JANE DOE".into(),
+        }];
+        let config = RedactionConfig {
+            preserve_terms: vec![RedactionTerm {
+                label: "person".to_string(),
+                value: "Jane Doe".to_string(),
+                case_sensitive: true,
+            }],
+            ..Default::default()
+        };
+
+        apply_category_and_preserve_filters(&mut matches, &config);
+
+        assert_eq!(
+            matches.len(),
+            1,
+            "case-sensitive preserve term must not suppress a differently-cased occurrence"
+        );
+        assert_eq!(matches[0].text, "JANE DOE");
+    }
+
+    #[tokio::test]
+    async fn preserve_terms_applies_to_chunks_and_formatted_content_too() {
+        let content = "Contact Alice at alice@example.com for details.".to_string();
+        let formatted_content = "**Contact Alice at alice@example.com for details.**".to_string();
+        let chunk = Chunk {
+            content: content.clone(),
+            chunk_type: ChunkType::default(),
+            embedding: None,
+            metadata: ChunkMetadata {
+                byte_start: 0,
+                byte_end: content.len(),
+                token_count: None,
+                chunk_index: 0,
+                total_chunks: 1,
+                first_page: None,
+                last_page: None,
+                heading_context: None,
+                heading_path: Vec::new(),
+                image_indices: Vec::new(),
+            },
+        };
+        let mut result = ExtractedDocument {
+            content: content.clone(),
+            formatted_content: Some(formatted_content),
+            chunks: Some(vec![chunk]),
+            mime_type: Cow::Borrowed("text/plain"),
+            ..Default::default()
+        };
+        let config = RedactionConfig {
+            preserve_terms: vec![RedactionTerm::literal("alice@example.com")],
+            ..Default::default()
+        };
+
+        redact(&mut result, &config).await.unwrap();
+
+        assert!(
+            result.content.contains("alice@example.com"),
+            "preserved term must survive redaction in content"
+        );
+        assert!(
+            result.formatted_content.as_ref().unwrap().contains("alice@example.com"),
+            "preserved term must survive redaction in formatted_content"
+        );
+        assert!(
+            result.chunks.as_ref().unwrap()[0].content.contains("alice@example.com"),
+            "preserved term must survive redaction in chunks"
+        );
+        assert_eq!(result.redaction_report.as_ref().unwrap().total_redacted, 0);
     }
 }
