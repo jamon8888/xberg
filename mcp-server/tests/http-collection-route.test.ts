@@ -109,7 +109,37 @@ describe("http/collection-route", () => {
         body: JSON.stringify({ name: "c1", embedding_dim: 1024 }),
       });
       expect(res.status).toBe(400);
-      expect((await res.json()).error).toContain("dimension mismatch");
+      // Error is sanitized to generic message per security policy
+      expect((await res.json()).error).toBe("invalid embedding dimension");
+    });
+  });
+
+  it("returns 413 for oversized request body", async () => {
+    const store = makeFakeStore();
+    await withServer(store, async (baseUrl) => {
+      const largeBody = "x".repeat(70 * 1024); // > 64 KiB limit
+      const res = await fetch(`${baseUrl}/collection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "c1", embedding_dim: 1024, padding: largeBody }),
+      });
+      expect(res.status).toBe(413);
+      expect((await res.json()).error).toBe("payload too large");
+    });
+  });
+
+  it("returns 404 when store error contains 'not found'", async () => {
+    const store = makeFakeStore({
+      ensureCollection: async () => "collection not found: missing",
+    });
+    await withServer(store, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}/collection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "c1", embedding_dim: 1024 }),
+      });
+      expect(res.status).toBe(404);
+      expect((await res.json()).error).toBe("collection not found");
     });
   });
 });
