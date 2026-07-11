@@ -30,6 +30,16 @@ describe("HTTP ingest/map/ui routes (Task 6)", () => {
     expect(res.status).toBe(401);
   });
 
+  it("POST /collection creates a collection ingest can then target", async () => {
+    const res = await fetch(`${baseUrl}/collection?token=${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "http_collection_route_test", embedding_dim: EMBEDDING_DIM }),
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ created: true });
+  });
+
   it("POST /ingest stores a document via the runtime store", async () => {
     const payload = {
       collection: "http_ingest_test",
