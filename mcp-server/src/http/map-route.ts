@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 // Allows plain identifiers and filename-safe punctuation only — no `/` or
@@ -55,9 +56,9 @@ export function createMapUploadHandler(
       }
 
       const dir = getRehydrationDir();
-      mkdirSync(dir, { recursive: true });
+      await mkdir(dir, { recursive: true });
       const mapPath = join(dir, `${documentId}.map`);
-      writeFileSync(mapPath, body);
+      await writeFile(mapPath, body);
 
       sendJson(res, 200, { status: "stored" });
     } catch (err) {
