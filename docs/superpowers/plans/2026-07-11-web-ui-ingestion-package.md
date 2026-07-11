@@ -924,6 +924,26 @@ describe("lib/sync-client", () => {
     ).rejects.toThrow(/invalid payload/);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("retries on a network-level fetch rejection then succeeds", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce(jsonResponse(200, { document_id: "doc-1" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await postIngest("http://x:8080", { collection: "c1", external_id: "d", full_text: "t", chunks: [] });
+    expect(result).toEqual({ document_id: "doc-1" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws a labeled error after exhausting retries on repeated network failure", async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      postIngest("http://x:8080", { collection: "c1", external_id: "d", full_text: "t", chunks: [] })
+    ).rejects.toThrow(/postIngest failed: network error/);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
 });
 ```
 
@@ -943,21 +963,31 @@ const MAX_RETRIES = 3;
 const BACKOFF_MS = 400;
 
 /**
- * POST with retry+backoff on 5xx only (mirrors Lot 3's `admin-client.ts`
- * pattern for consistency). 4xx is a client error (bad payload, unknown
+ * POST with retry+backoff on 5xx AND on a network-level `fetch` rejection
+ * (DNS failure, connection refused — realistic when the local MCP dev
+ * server isn't up yet). 4xx is a client error (bad payload, unknown
  * collection) and is never retried.
  */
-async function postWithRetry(url: string, init: RequestInit): Promise<Response> {
-  let last: Response | undefined;
+async function postWithRetry(url: string, init: RequestInit, label: string): Promise<Response> {
+  let lastResponse: Response | undefined;
+  let lastError: unknown;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const res = await fetch(url, init);
-    if (res.status < 500) return res;
-    last = res;
+    try {
+      const res = await fetch(url, init);
+      if (res.status < 500) return res;
+      lastResponse = res;
+      lastError = undefined;
+    } catch (err) {
+      lastError = err;
+      lastResponse = undefined;
+    }
     if (attempt < MAX_RETRIES) {
       await new Promise((resolve) => setTimeout(resolve, BACKOFF_MS * 2 ** attempt));
     }
   }
-  return last!;
+  if (lastResponse) return lastResponse;
+  const message = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`${label} failed: network error: ${message}`);
 }
 
 async function throwOnError(res: Response, label: string): Promise<Response> {
@@ -975,30 +1005,30 @@ async function throwOnError(res: Response, label: string): Promise<Response> {
 }
 
 export async function postCollection(baseUrl: string, payload: CollectionPayload): Promise<void> {
-  const res = await postWithRetry(authedUrl(baseUrl, "/collection"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify(payload),
-  });
+  const res = await postWithRetry(
+    authedUrl(baseUrl, "/collection"),
+    { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(payload) },
+    "postCollection"
+  );
   await throwOnError(res, "postCollection");
 }
 
 export async function postIngest(baseUrl: string, payload: IngestPayload): Promise<{ document_id: string }> {
-  const res = await postWithRetry(authedUrl(baseUrl, "/ingest"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify(payload),
-  });
+  const res = await postWithRetry(
+    authedUrl(baseUrl, "/ingest"),
+    { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(payload) },
+    "postIngest"
+  );
   await throwOnError(res, "postIngest");
   return (await res.json()) as { document_id: string };
 }
 
 export async function postMap(baseUrl: string, documentId: string, blob: Uint8Array): Promise<void> {
-  const res = await postWithRetry(authedUrl(baseUrl, `/map?document_id=${encodeURIComponent(documentId)}`), {
-    method: "POST",
-    headers: authHeaders(),
-    body: blob,
-  });
+  const res = await postWithRetry(
+    authedUrl(baseUrl, `/map?document_id=${encodeURIComponent(documentId)}`),
+    { method: "POST", headers: authHeaders(), body: blob },
+    "postMap"
+  );
   await throwOnError(res, "postMap");
 }
 ```
@@ -1006,7 +1036,7 @@ export async function postMap(baseUrl: string, documentId: string, blob: Uint8Ar
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `cd packages/xberg-web-ui && npx vitest run tests/sync-client.test.ts`
-Expected: PASS (5 tests)
+Expected: PASS (7 tests)
 
 - [ ] **Step 5: Commit**
 
