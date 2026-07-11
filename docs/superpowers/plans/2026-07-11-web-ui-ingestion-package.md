@@ -2340,6 +2340,7 @@ console.log(`copied ${outDir} -> ${targetDir}`);
 // e2e/ingest.spec.ts
 import { test, expect } from "@playwright/test";
 import { createServer } from "node:http";
+import { EMBEDDING_DIM } from "../src/lib/constants.js";
 
 test("uploading a document with PII syncs to the MCP store via /collection, /ingest, /map", async ({ page }) => {
   const received: { collection?: unknown; ingest?: unknown; mapDocumentId?: string } = {};
@@ -2378,11 +2379,13 @@ test("uploading a document with PII syncs to the MCP store via /collection, /ing
   try {
     await page.goto("http://127.0.0.1:8081/ui/?token=test");
     await page.getByText("New folder").click();
-    await page.getByLabelText("Folder name").fill("contrats");
+    // Playwright's locator method is `getByLabel`, not Testing Library's
+    // `getByLabelText` — do not confuse the two APIs.
+    await page.getByLabel("Folder name").fill("contrats");
     await page.getByText("Create").click();
     await page.getByText("contrats").click();
 
-    await page.getByLabelText(/passphrase/i).fill("correct-horse-battery");
+    await page.getByLabel(/passphrase/i).fill("correct-horse-battery");
     await page.setInputFiles("input[type=file]", {
       name: "contrat.pdf",
       mimeType: "application/pdf",
@@ -2390,6 +2393,10 @@ test("uploading a document with PII syncs to the MCP store via /collection, /ing
     });
 
     await expect.poll(() => received.ingest !== undefined, { timeout: 30_000 }).toBe(true);
+    // /collection must have received the real CollectionPayloadSchema shape
+    // (mcp-server/src/http/collection-route.ts) with the sanitized folder
+    // name and the fixed EMBEDDING_DIM — not just captured and ignored.
+    expect(received.collection).toEqual({ name: "contrats", embedding_dim: EMBEDDING_DIM });
     expect(received.mapDocumentId).toBe("contrat.pdf");
     expect((received.ingest as { external_id: string }).external_id).toBe("contrat.pdf");
     expect((received.ingest as { full_text: string }).full_text).not.toContain("alice@example.com");
