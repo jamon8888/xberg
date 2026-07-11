@@ -99,7 +99,15 @@ async function handleIngest(msg: IngestMessage): Promise<void> {
     const blob = xEngine.encrypt_map(outcome.rehydration_map, passphrase);
 
     post({ type: "progress", requestId, stage: "map" });
-    await postMap(mcpBaseUrl, outcome.document_id, blob);
+    // MUST be `externalId`, NOT `outcome.document_id`. `/map`'s `document_id`
+    // query param and `rehydrate_tokens`'s `document_id` argument are both
+    // named after the *file's* base name (see `mcp-server/src/tools/ingest.ts`:
+    // `path.join(rehydrationDir, \`${baseName}.map\`)`), not the store's
+    // generated UUID — despite the store's return value happening to also be
+    // called `document_id`. These are two different things that share a
+    // name; using the UUID here writes a map file no rehydration tool can
+    // ever find by the id a human/UI would actually have on hand.
+    await postMap(mcpBaseUrl, externalId, blob);
 
     const entry: IngestHistoryEntry = {
       collection,
