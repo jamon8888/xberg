@@ -165,7 +165,7 @@ describe("http/collection-route", () => {
     });
   });
 
-  it("maps a store error to 400", async () => {
+  it("maps a store error (thrown) to 400", async () => {
     const store = makeFakeStore({
       ensureCollection: async () => {
         throw new Error("invalid distance metric");
@@ -178,6 +178,25 @@ describe("http/collection-route", () => {
         body: JSON.stringify({ name: "c1", embedding_dim: 1024 }),
       });
       expect(res.status).toBe(400);
+    });
+  });
+
+  it("maps a store error (returned as a string, per ensureCollection's real contract) to 400", async () => {
+    // `ensureCollection` reports failure by *resolving* with an error
+    // string, not by throwing — this is the actual behavior documented on
+    // `VectorStoreInterface.ensureCollection` in `xberg-wasm-runtime`, and
+    // is a distinct failure mode from the thrown-error test above.
+    const store = makeFakeStore({
+      ensureCollection: async () => "dimension mismatch: collection exists with dim 512",
+    });
+    await withServer(store, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}/collection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "c1", embedding_dim: 1024 }),
+      });
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toContain("dimension mismatch");
     });
   });
 });
@@ -206,7 +225,10 @@ const MAX_BODY_BYTES = 64 * 1024;
 const CollectionPayloadSchema = z.object({
   name: z.string().min(1),
   embedding_dim: z.number().int().positive(),
-  distance_metric: z.enum(["cosine", "euclidean", "dot"]).optional(),
+  // Values must match `xberg-wasm-runtime`'s real `DistanceMetric`/`IndexMethod`
+  // union types verbatim (`packages/xberg-wasm-runtime/src/types.ts`) — not
+  // guessed synonyms; `ensureCollection` rejects anything else.
+  distance_metric: z.enum(["cosine", "l2", "innerproduct"]).optional(),
   index_method: z.enum(["flat", "hnsw", "diskann"]).optional(),
 });
 
@@ -252,7 +274,16 @@ export function createCollectionHandler(
         return;
       }
 
-      await getStore().ensureCollection(parsed.data);
+      // `ensureCollection` reports failure by *resolving* with an error
+      // string (never throwing) — the same convention already handled by
+      // the existing `create_collection` MCP tool
+      // (`mcp-server/src/tools/collection.ts`). A thrown error is also
+      // possible (e.g. an unexpected store fault) and is caught below.
+      const result = await getStore().ensureCollection(parsed.data);
+      if (typeof result === "string") {
+        res.writeHead(statusForError(result), { "Content-Type": "application/json" }).end(JSON.stringify({ error: result }));
+        return;
+      }
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ created: true }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -690,7 +721,7 @@ export interface IngestPayload {
 export interface CollectionPayload {
   name: string;
   embedding_dim: number;
-  distance_metric?: "cosine" | "euclidean" | "dot";
+  distance_metric?: "cosine" | "l2" | "innerproduct";
   index_method?: "flat" | "hnsw" | "diskann";
 }
 
@@ -1172,7 +1203,7 @@ git commit -m "feat(web-ui): IndexedDB-backed local ingest history registry"
 
 **Interfaces:**
 - Consumes: `createXbergRuntimeFactory` + `XbergEngine` (`xberg-wasm-runtime`, `@xberg-io/xberg-wasm`); `postCollection`/`postIngest`/`postMap` (Task 4); `putHistoryEntry` (Task 5); `sanitizeExternalId` (Task 3); `EMBEDDING_DIM` (Task 3).
-- Produces: worker message protocol `{ type: "ingest", requestId, bytes, filename, collection, passphrase }` in, `{ type: "progress"|"result"|"error", requestId, ... }` out; `class WorkerClient { ingestFile(file: File, collection: string, passphrase: string, onProgress?: (stage: string) => void): Promise<IngestHistoryEntry> }` — consumed by Task 7's `EngineProvider`.
+- Produces: worker message protocol `{ type: "ingest", requestId, bytes, filename, mime, collection, passphrase, mcpBaseUrl }` in, `{ type: "progress"|"result"|"error", requestId, ... }` out; `class WorkerClient { constructor(worker: Worker, baseUrl: string); ingestFile(file: File, collection: string, passphrase: string, onProgress?: (stage: string) => void): Promise<IngestHistoryEntry> }` — consumed by Task 7's `EngineProvider`. **`baseUrl` is threaded through the constructor and sent on every `ingest` message** — the worker has no other way to learn the MCP's origin, since it runs off the main thread and cannot read `window.location`.
 
 **Testing note:** the worker itself (`engine.worker.ts`) constructs a real `XbergEngine`, which needs the built wasm binary — it is exercised only by Task 9's e2e test, gated the same way Lot 1's wasm-dependent suite is. This task's unit test covers `worker-client.ts`'s message-passing logic in isolation using a fake `Worker`.
 
@@ -1203,14 +1234,15 @@ class FakeWorker implements Partial<Worker> {
 describe("engine/worker-client", () => {
   it("resolves ingestFile with the final result on a 'result' message", async () => {
     const fake = new FakeWorker();
-    const client = new WorkerClient(fake as unknown as Worker);
+    const client = new WorkerClient(fake as unknown as Worker, "http://x:8080");
     const file = new File([new Uint8Array([1, 2, 3])], "a.pdf", { type: "application/pdf" });
 
     const promise = client.ingestFile(file, "c1", "pass1234");
-    const sentMsg = fake.posted[0] as { type: string; requestId: string; filename: string; collection: string };
+    const sentMsg = fake.posted[0] as { type: string; requestId: string; filename: string; collection: string; mcpBaseUrl: string };
     expect(sentMsg.type).toBe("ingest");
     expect(sentMsg.filename).toBe("a.pdf");
     expect(sentMsg.collection).toBe("c1");
+    expect(sentMsg.mcpBaseUrl).toBe("http://x:8080");
 
     fake.emit({
       type: "result",
@@ -1224,7 +1256,7 @@ describe("engine/worker-client", () => {
 
   it("rejects ingestFile on an 'error' message", async () => {
     const fake = new FakeWorker();
-    const client = new WorkerClient(fake as unknown as Worker);
+    const client = new WorkerClient(fake as unknown as Worker, "http://x:8080");
     const file = new File([new Uint8Array([1])], "b.pdf", { type: "application/pdf" });
 
     const promise = client.ingestFile(file, "c1", "pass1234");
@@ -1236,7 +1268,7 @@ describe("engine/worker-client", () => {
 
   it("calls onProgress for intermediate 'progress' messages, ignoring other request ids", async () => {
     const fake = new FakeWorker();
-    const client = new WorkerClient(fake as unknown as Worker);
+    const client = new WorkerClient(fake as unknown as Worker, "http://x:8080");
     const file = new File([new Uint8Array([1])], "c.pdf", { type: "application/pdf" });
     const stages: string[] = [];
 
@@ -1286,7 +1318,10 @@ function randomRequestId(): string {
  * own `requestId` gets a `result`/`error` message.
  */
 export class WorkerClient {
-  constructor(private readonly worker: Worker) {}
+  constructor(
+    private readonly worker: Worker,
+    private readonly baseUrl: string
+  ) {}
 
   ingestFile(
     file: File,
@@ -1316,7 +1351,16 @@ export class WorkerClient {
 
       void file.arrayBuffer().then((buffer) => {
         this.worker.postMessage(
-          { type: "ingest", requestId, bytes: new Uint8Array(buffer), filename: file.name, mime: file.type, collection, passphrase },
+          {
+            type: "ingest",
+            requestId,
+            bytes: new Uint8Array(buffer),
+            filename: file.name,
+            mime: file.type,
+            collection,
+            passphrase,
+            mcpBaseUrl: this.baseUrl,
+          },
           [buffer]
         );
       });
@@ -1355,6 +1399,7 @@ interface IngestMessage {
   mime: string;
   collection: string;
   passphrase: string;
+  mcpBaseUrl: string;
 }
 
 let mcpBaseUrl = "";
@@ -1454,9 +1499,9 @@ async function handleIngest(msg: IngestMessage): Promise<void> {
 }
 
 self.addEventListener("message", (ev: MessageEvent) => {
-  const msg = ev.data as IngestMessage & { mcpBaseUrl?: string };
+  const msg = ev.data as IngestMessage;
   if (msg.type === "ingest") {
-    if (msg.mcpBaseUrl) mcpBaseUrl = msg.mcpBaseUrl;
+    mcpBaseUrl = msg.mcpBaseUrl;
     void handleIngest(msg);
   }
 });
@@ -1597,10 +1642,10 @@ export function EngineProvider({ baseUrl, children, workerClient }: EngineProvid
     captureAuthTokenFromLocation();
     if (clientRef.current) return;
     const worker = new Worker(new URL("../engine/engine.worker.ts", import.meta.url), { type: "module" });
-    clientRef.current = new WorkerClient(worker);
+    clientRef.current = new WorkerClient(worker, baseUrl);
     setReady(true);
     return () => worker.terminate();
-  }, []);
+  }, [baseUrl]);
 
   const api = useMemo<EngineApi>(
     () => ({
@@ -1626,12 +1671,6 @@ export function EngineProvider({ baseUrl, children, workerClient }: EngineProvid
     }),
     [ready, pendingCount, lastError]
   );
-
-  // `baseUrl` reaches `sync-client.ts` via module-level state set inside
-  // the worker on its first "ingest" message (see engine.worker.ts); we
-  // stash it on the context value's closure so future tasks (Lot 3) can
-  // read it without threading a prop through every screen.
-  void baseUrl;
 
   return <EngineContext.Provider value={api}>{children}</EngineContext.Provider>;
 }
