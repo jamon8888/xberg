@@ -12,7 +12,7 @@ const MAX_BODY_BYTES = 64 * 1024;
 const CollectionPayloadSchema = z.object({
   name: z.string().min(1),
   embedding_dim: z.number().int().positive(),
-  distance_metric: z.enum(["cosine", "euclidean", "dot"]).optional(),
+  distance_metric: z.enum(["cosine", "l2", "innerproduct"]).optional(),
   index_method: z.enum(["flat", "hnsw", "diskann"]).optional(),
 });
 
@@ -58,7 +58,11 @@ export function createCollectionHandler(
         return;
       }
 
-      await getStore().ensureCollection(parsed.data);
+      const result = await getStore().ensureCollection(parsed.data);
+      if (typeof result === "string") {
+        res.writeHead(statusForError(result), { "Content-Type": "application/json" }).end(JSON.stringify({ error: result }));
+        return;
+      }
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ created: true }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

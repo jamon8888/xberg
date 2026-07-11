@@ -43,7 +43,7 @@ describe("http/collection-route", () => {
     const store = makeFakeStore({
       ensureCollection: async (spec) => {
         received = spec;
-        return "ok";
+        return undefined;
       },
     });
     await withServer(store, async (baseUrl) => {
@@ -78,7 +78,7 @@ describe("http/collection-route", () => {
     });
   });
 
-  it("maps a store error to 400", async () => {
+  it("maps a store error (thrown) to 400", async () => {
     const store = makeFakeStore({
       ensureCollection: async () => {
         throw new Error("invalid distance metric");
@@ -91,6 +91,25 @@ describe("http/collection-route", () => {
         body: JSON.stringify({ name: "c1", embedding_dim: 1024 }),
       });
       expect(res.status).toBe(400);
+    });
+  });
+
+  it("maps a store error (returned as a string, per ensureCollection's real contract) to 400", async () => {
+    // `ensureCollection` reports failure by *resolving* with an error
+    // string, not by throwing — this is the actual behavior documented on
+    // `VectorStoreInterface.ensureCollection` in `xberg-wasm-runtime`, and
+    // is a distinct failure mode from the thrown-error test above.
+    const store = makeFakeStore({
+      ensureCollection: async () => "dimension mismatch: collection exists with dim 512",
+    });
+    await withServer(store, async (baseUrl) => {
+      const res = await fetch(`${baseUrl}/collection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "c1", embedding_dim: 1024 }),
+      });
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toContain("dimension mismatch");
     });
   });
 });
