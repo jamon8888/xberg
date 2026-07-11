@@ -130,6 +130,13 @@ pub struct SubjectMatch {
 /// `token` (tokens are structured like `"[EMAIL_1]"`), case-insensitive
 /// substring match on `original`.
 fn subject_matches(token: &str, original: &str, query: &str, query_lower: &str) -> bool {
+    // An empty query is a substring of every original value, so without this
+    // guard `find_subject`/`forget_subject` would treat "" as "match
+    // everything" — for `forget_subject`, that means a blank erase query
+    // wipes the whole rehydration map instead of matching nothing.
+    if query.is_empty() {
+        return false;
+    }
     token == query || original.to_ascii_lowercase().contains(query_lower)
 }
 
@@ -266,6 +273,21 @@ mod tests {
     fn find_subject_returns_empty_for_no_match() {
         let map = sample_map();
         assert!(find_subject(&map, "nonexistent subject").is_empty());
+    }
+
+    #[test]
+    fn find_subject_rejects_empty_query_instead_of_matching_everything() {
+        let map = sample_map();
+        assert!(find_subject(&map, "").is_empty());
+    }
+
+    #[test]
+    fn forget_subject_rejects_empty_query_instead_of_wiping_the_map() {
+        let mut map = sample_map();
+        let original_len = map.len();
+        let removed = forget_subject(&mut map, "");
+        assert!(removed.is_empty());
+        assert_eq!(map.len(), original_len);
     }
 
     #[test]
