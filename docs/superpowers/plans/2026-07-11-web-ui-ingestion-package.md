@@ -418,7 +418,7 @@ git commit -m "feat(mcp): add POST /collection route for folder creation"
     "@testing-library/react": "^16.0.1",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react-oxc": "^0.4.3",
     "autoprefixer": "^10.4.20",
     "jsdom": "^25.0.1",
     "oxlint": "^1.73.0",
@@ -516,7 +516,10 @@ export default {
 ```typescript
 // vitest.config.ts
 import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
+// This workspace pins `vite@8.1.3` (rolldown/oxc-based); the babel-based
+// `@vitejs/plugin-react` fails to parse JSX against it — use the oxc-native
+// equivalent instead (same API).
+import react from "@vitejs/plugin-react-oxc";
 
 export default defineConfig({
   plugins: [react()],
