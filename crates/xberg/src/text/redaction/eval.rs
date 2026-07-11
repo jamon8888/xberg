@@ -79,15 +79,19 @@ pub fn score(detected: &[PatternMatch], truth: &[TrueSpan]) -> BTreeMap<String, 
             }
         }
 
-        let precision = if tp + fp > 0 {
-            tp as f64 / (tp + fp) as f64
-        } else {
-            1.0
-        };
+        // `tp + fp == 0` only happens when this category has zero detections
+        // (it's in `categories` because it appears in `truth` only) — every
+        // truth span for it is necessarily a false negative, so reporting
+        // precision as 1.0 ("vacuously perfect") would misrepresent a
+        // category the detector never even attempted; 0.0 makes the failure
+        // visible instead of hiding it behind a perfect-looking number.
+        // Symmetric reasoning for `tp + fn_ == 0` (detected-only category,
+        // no ground truth for it — everything detected is a false positive).
+        let precision = if tp + fp > 0 { tp as f64 / (tp + fp) as f64 } else { 0.0 };
         let recall = if tp + fn_ > 0 {
             tp as f64 / (tp + fn_) as f64
         } else {
-            1.0
+            0.0
         };
         let f1 = if precision + recall > 0.0 {
             2.0 * precision * recall / (precision + recall)
@@ -154,10 +158,24 @@ pub fn load_corpus(dir: &Path) -> std::io::Result<Vec<(String, Vec<TrueSpan>)>> 
 }
 
 /// Convenience: run the regex-only detector (`scan_text` with no category
-/// filter) over `text` and score it against `truth`. Exposed for callers that
-/// don't want to wire `scan_text` themselves.
+/// filter) over `text`, apply the same post-detection validators `redact()`
+/// runs (IBAN checksum, Luhn), and score the validated output against
+/// `truth`. Exposed for callers that don't want to wire `scan_text` +
+/// `apply_validators` themselves.
+///
+/// Deliberately scores the *validated* output, not raw `scan_text` — Task 1's
+/// checksum validators exist specifically to cut credit-card/IBAN false
+/// positives, so an eval harness that skipped them couldn't detect precision
+/// regressions in the path `redact()` actually uses.
 pub fn evaluate_text(text: &str, truth: &[TrueSpan]) -> BTreeMap<String, CategoryScore> {
-    let detected = crate::text::redaction::patterns::scan_text(text, &[]);
+    use crate::text::redaction::validators::{EntityValidator, apply_validators};
+
+    let validators: Vec<Box<dyn EntityValidator>> = vec![
+        Box::new(crate::text::redaction::validators::iban::IbanChecksumValidator),
+        Box::new(crate::text::redaction::validators::luhn::LuhnValidator),
+    ];
+    let raw = crate::text::redaction::patterns::scan_text(text, &[]);
+    let (detected, _rejections) = apply_validators(raw, text, &validators);
     score(&detected, truth)
 }
 
