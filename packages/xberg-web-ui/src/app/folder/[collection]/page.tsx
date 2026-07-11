@@ -5,6 +5,15 @@ import { useEngine } from "@/providers/EngineProvider.js";
 import { DocumentTable } from "@/components/DocumentTable.js";
 import { Input } from "@/components/ui/input.js";
 
+// Required by `output: "export"` for dynamic route segments: Next.js needs
+// at least one static param set at build time to produce an HTML+JS shell.
+// Collection names are created at runtime and unknowable at build time; this
+// page is 100% client-side (useParams + useEffect), so the shell just needs
+// to exist — the client router hydrates it with the real URL's params.
+export function generateStaticParams() {
+  return [{ collection: "placeholder" }];
+}
+
 export default function FolderPage() {
   const { collection } = useParams<{ collection: string }>();
   const { ingestFile } = useEngine();

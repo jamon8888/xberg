@@ -1,7 +1,19 @@
 // e2e/ingest.spec.ts
+//
+// Requires `packages/xberg-web-ui/out/` to exist (i.e. `next build` followed
+// by `node scripts/export-to-mcp.mjs`, or the package's own `pnpm export`,
+// must have been run first). This test cannot be verified in an environment
+// where the wasm binary build fails — same "cannot verify without a
+// successful build" limitation this plan has used consistently elsewhere
+// (Task 1's `http-ui-routes.test.ts`, Task 6/9's wasm-dependent pieces).
 import { test, expect } from "@playwright/test";
 import { createServer } from "node:http";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { EMBEDDING_DIM } from "../src/lib/constants.js";
+import { serveStaticFile } from "../../../mcp-server/src/http/static-server.js";
+
+const OUT_DIR = join(fileURLToPath(new URL(".", import.meta.url)), "..", "out");
 
 test("uploading a document with PII syncs to the MCP store via /collection, /ingest, /map", async ({ page }) => {
   const received: { collection?: unknown; ingest?: unknown; mapDocumentId?: string } = {};
@@ -31,6 +43,15 @@ test("uploading a document with PII syncs to the MCP store via /collection, /ing
         // drain the body; nothing to inspect for this happy-path test
       }
       send(200, { status: "stored" });
+      return;
+    }
+    if (req.method === "GET" && (url.pathname === "/ui" || url.pathname.startsWith("/ui/"))) {
+      // Reuse the real static-serving primitive from `mcp-server/src/http/`
+      // (same one `ui-server.ts` uses) so this test actually loads the real
+      // app shell, including the COOP/COEP headers required for the
+      // Worker/OPFS/wasm path, instead of a hand-rolled fake that 404s.
+      const subPath = url.pathname === "/ui" ? "/" : url.pathname.slice("/ui".length);
+      serveStaticFile(OUT_DIR, subPath, res);
       return;
     }
     send(404, {});

@@ -23,6 +23,13 @@ interface IngestMessage {
 
 let mcpBaseUrl = "";
 let engine: XbergEngine | null = null;
+// Captures the redacted `full_text` seen by the most recent `upsertDocument`
+// call (see `createHttpStore` below), so `handleIngest` can persist the
+// redacted text instead of the raw pre-redaction extraction output. Safe
+// only because ingestion is processed sequentially in this worker (one
+// `handleIngest` in flight at a time) — same assumption as the `engine`
+// singleton above.
+let lastRedactedFullText = "";
 
 /**
  * HTTP-backed `VectorStoreInterface`. Only `upsertDocument` matters for
@@ -30,7 +37,7 @@ let engine: XbergEngine | null = null;
  * solely to redirect the WASM engine's internal store write to `POST
  * /ingest` instead of a local OPFS/SQLite write.
  */
-function createHttpStore(): VectorStoreInterface {
+function createHttpStore(onUpsert: (fullText: string) => void): VectorStoreInterface {
   const notSupported = (name: string) => async () => {
     throw new Error(`${name} is not supported by the browser HTTP-backed store`);
   };
@@ -49,6 +56,7 @@ function createHttpStore(): VectorStoreInterface {
           `embedder produced ${chunks[0].embedding.length}-dim vectors, expected ${EMBEDDING_DIM} (EMBEDDING_DIM constant is stale — update it and the /collection embedding_dim together)`
         );
       }
+      onUpsert(doc.full_text);
       const { document_id } = await postIngest(mcpBaseUrl, {
         collection,
         external_id: doc.external_id ?? "",
@@ -68,7 +76,9 @@ function createHttpStore(): VectorStoreInterface {
 async function getEngine(): Promise<XbergEngine> {
   if (engine) return engine;
   const injection = await createXbergRuntimeFactory();
-  injection.store = createHttpStore();
+  injection.store = createHttpStore((fullText) => {
+    lastRedactedFullText = fullText;
+  });
   engine = new XbergEngine({}, injection);
   return engine;
 }
@@ -114,7 +124,7 @@ async function handleIngest(msg: IngestMessage): Promise<void> {
       externalId,
       filename,
       mime: first.mimeType || mime,
-      redactedText: first.content,
+      redactedText: lastRedactedFullText,
       piiCategoryCounts: outcome.pii_category_counts,
       documentId: outcome.document_id,
       status: "synced",
