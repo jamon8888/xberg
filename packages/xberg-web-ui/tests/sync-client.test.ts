@@ -61,4 +61,24 @@ describe("lib/sync-client", () => {
     ).rejects.toThrow(/invalid payload/);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("retries on a network-level fetch rejection then succeeds", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("fetch failed"))
+      .mockResolvedValueOnce(jsonResponse(200, { document_id: "doc-1" }));
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await postIngest("http://x:8080", { collection: "c1", external_id: "d", full_text: "t", chunks: [] });
+    expect(result).toEqual({ document_id: "doc-1" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws a labeled error after exhausting retries on repeated network failure", async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      postIngest("http://x:8080", { collection: "c1", external_id: "d", full_text: "t", chunks: [] })
+    ).rejects.toThrow(/postIngest failed: network error/);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
 });
