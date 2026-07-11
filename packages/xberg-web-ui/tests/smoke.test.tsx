@@ -4,8 +4,8 @@ import { render, screen } from "@testing-library/react";
 import HomePage from "../src/app/page.js";
 
 describe("app shell smoke test", () => {
-  it("renders the placeholder home page", () => {
+  it("renders the folder list home page", () => {
     render(<HomePage />);
-    expect(screen.getByText("Xberg — folders")).toBeDefined();
+    expect(screen.getByText("Folders")).toBeDefined();
   });
 });
