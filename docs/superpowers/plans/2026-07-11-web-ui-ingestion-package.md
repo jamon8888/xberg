@@ -1236,7 +1236,7 @@ git commit -m "feat(web-ui): IndexedDB-backed local ingest history registry"
 
 **Interfaces:**
 - Consumes: `createXbergRuntimeFactory` + `XbergEngine` (`xberg-wasm-runtime`, `@xberg-io/xberg-wasm`); `postCollection`/`postIngest`/`postMap` (Task 4); `putHistoryEntry` (Task 5); `sanitizeExternalId` (Task 3); `EMBEDDING_DIM` (Task 3).
-- Produces: worker message protocol `{ type: "ingest", requestId, bytes, filename, mime, collection, passphrase, mcpBaseUrl }` in, `{ type: "progress"|"result"|"error", requestId, ... }` out; `class WorkerClient { constructor(worker: Worker, baseUrl: string); ingestFile(file: File, collection: string, passphrase: string, onProgress?: (stage: string) => void): Promise<IngestHistoryEntry> }` — consumed by Task 7's `EngineProvider`. **`baseUrl` is threaded through the constructor and sent on every `ingest` message** — the worker has no other way to learn the MCP's origin, since it runs off the main thread and cannot read `window.location`.
+- Produces: worker message protocol `{ type: "ingest", requestId, file, filename, mime, collection, passphrase, mcpBaseUrl }` in (the `File` itself, structured-cloneable, posted synchronously — the worker converts it to bytes via `arrayBuffer()` on its side), `{ type: "progress"|"result"|"error", requestId, ... }` out; `class WorkerClient { constructor(worker: Worker, baseUrl: string); ingestFile(file: File, collection: string, passphrase: string, onProgress?: (stage: string) => void): Promise<IngestHistoryEntry> }` — consumed by Task 7's `EngineProvider`. **`baseUrl` is threaded through the constructor and sent on every `ingest` message** — the worker has no other way to learn the MCP's origin, since it runs off the main thread and cannot read `window.location`.
 
 **Testing note:** the worker itself (`engine.worker.ts`) constructs a real `XbergEngine`, which needs the built wasm binary — it is exercised only by Task 9's e2e test, gated the same way Lot 1's wasm-dependent suite is. This task's unit test covers `worker-client.ts`'s message-passing logic in isolation using a fake `Worker`.
 
@@ -1382,20 +1382,20 @@ export class WorkerClient {
 
       this.worker.addEventListener("message", onMessage as EventListener);
 
-      void file.arrayBuffer().then((buffer) => {
-        this.worker.postMessage(
-          {
-            type: "ingest",
-            requestId,
-            bytes: new Uint8Array(buffer),
-            filename: file.name,
-            mime: file.type,
-            collection,
-            passphrase,
-            mcpBaseUrl: this.baseUrl,
-          },
-          [buffer]
-        );
+      // Post the `File` itself (structured-cloneable) synchronously, inside
+      // the executor — not after `await file.arrayBuffer()`, which resolves
+      // as a microtask and would post after the caller's next synchronous
+      // line already ran. The worker does the `arrayBuffer()` conversion on
+      // its side instead (see `engine.worker.ts`).
+      this.worker.postMessage({
+        type: "ingest",
+        requestId,
+        file,
+        filename: file.name,
+        mime: file.type,
+        collection,
+        passphrase,
+        mcpBaseUrl: this.baseUrl,
       });
     });
   }
@@ -1427,7 +1427,11 @@ declare const self: DedicatedWorkerGlobalScope;
 interface IngestMessage {
   type: "ingest";
   requestId: string;
-  bytes: Uint8Array;
+  // Sent as the structured-cloneable `File` itself, not pre-converted
+  // bytes — see `worker-client.ts`'s `ingestFile`, which must post
+  // synchronously (inside the Promise executor) rather than after an
+  // `await file.arrayBuffer()`, so the conversion happens here instead.
+  file: File;
   filename: string;
   mime: string;
   collection: string;
@@ -1492,10 +1496,11 @@ function post(msg: unknown, transfer: Transferable[] = []): void {
 }
 
 async function handleIngest(msg: IngestMessage): Promise<void> {
-  const { requestId, bytes, filename, mime, collection, passphrase } = msg;
+  const { requestId, file, filename, mime, collection, passphrase } = msg;
   try {
     const xEngine = await getEngine();
     const externalId = sanitizeExternalId(filename);
+    const bytes = new Uint8Array(await file.arrayBuffer());
 
     post({ type: "progress", requestId, stage: "extract" });
     const extracted = await xEngine.extract({ kind: "bytes", bytes: Array.from(bytes), filename }, undefined);
@@ -1512,6 +1517,14 @@ async function handleIngest(msg: IngestMessage): Promise<void> {
     const blob = xEngine.encrypt_map(outcome.rehydration_map, passphrase);
 
     post({ type: "progress", requestId, stage: "map" });
+    // MUST be `externalId`, NOT `outcome.document_id`. `/map`'s `document_id`
+    // query param and `rehydrate_tokens`'s `document_id` argument are both
+    // named after the *file's* base name (see `mcp-server/src/tools/ingest.ts`:
+    // `path.join(rehydrationDir, \`${baseName}.map\`)`), not the store's
+    // generated UUID — despite the store's return value happening to also be
+    // called `document_id`. These are two different things that share a
+    // name; using the UUID here writes a map file no rehydration tool can
+    // ever find by the id a human/UI would actually have on hand.
     await postMap(mcpBaseUrl, externalId, blob);
 
     const entry: IngestHistoryEntry = {
