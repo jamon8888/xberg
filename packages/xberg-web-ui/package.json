@@ -32,6 +32,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-oxc": "^0.4.3",
     "autoprefixer": "^10.4.20",
+    "fake-indexeddb": "^6.0.0",
     "jsdom": "^25.0.1",
     "oxlint": "^1.73.0",
     "postcss": "^8.4.47",
