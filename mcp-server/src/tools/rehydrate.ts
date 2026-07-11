@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { getCacheDir } from "../paths.js";
 import { getEngine } from "../engine.js";
+import { resolveMapPath } from "./rehydrate-paths.js";
 
 export function registerRehydrateTools(server: McpServer): void {
   server.tool(
@@ -79,7 +80,7 @@ export function registerRehydrateTools(server: McpServer): void {
     async ({ document_id, passphrase, rehydration_dir }) => {
       try {
         const dir = rehydration_dir ?? path.join(getCacheDir(), "rehydration");
-        const mapPath = path.join(dir, `${document_id}.map`);
+        const mapPath = resolveMapPath(dir, document_id);
 
         if (!fs.existsSync(mapPath)) {
           return {
@@ -117,13 +118,13 @@ export function registerRehydrateTools(server: McpServer): void {
     {
       document_id: z.string().describe("Document base name (without .map extension)"),
       passphrase: z.string().describe("Passphrase used when the map was encrypted"),
-      query: z.string().describe("Original value substring (case-insensitive) or exact token, e.g. \"Alice\" or \"[EMAIL_1]\""),
+      query: z.string().min(1).describe("Original value substring (case-insensitive) or exact token, e.g. \"Alice\" or \"[EMAIL_1]\""),
       rehydration_dir: z.string().optional().describe("Override the default rehydration map directory"),
     },
     async ({ document_id, passphrase, query, rehydration_dir }) => {
       try {
         const dir = rehydration_dir ?? path.join(getCacheDir(), "rehydration");
-        const mapPath = path.join(dir, `${document_id}.map`);
+        const mapPath = resolveMapPath(dir, document_id);
 
         if (!fs.existsSync(mapPath)) {
           return {
@@ -161,13 +162,13 @@ export function registerRehydrateTools(server: McpServer): void {
     {
       document_id: z.string().describe("Document base name (without .map extension)"),
       passphrase: z.string().describe("Passphrase used when the map was encrypted"),
-      query: z.string().describe("Original value substring (case-insensitive) or exact token identifying the subject to erase"),
+      query: z.string().min(1).describe("Original value substring (case-insensitive) or exact token identifying the subject to erase"),
       rehydration_dir: z.string().optional().describe("Override the default rehydration map directory"),
     },
     async ({ document_id, passphrase, query, rehydration_dir }) => {
       try {
         const dir = rehydration_dir ?? path.join(getCacheDir(), "rehydration");
-        const mapPath = path.join(dir, `${document_id}.map`);
+        const mapPath = resolveMapPath(dir, document_id);
 
         if (!fs.existsSync(mapPath)) {
           return {
