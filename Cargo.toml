@@ -1,25 +1,27 @@
 [workspace]
 members = [
+    # === upstream (xberg-io/xberg) — keep in upstream order; do not interleave ===
     "crates/xberg",
-    "crates/xberg-gliner",
-    "crates/xberg-gliner-candle",
+    "crates/xberg-candle-ocr",
     "crates/xberg-cli",
-    "crates/xberg-doc-store",
     "crates/xberg-ffi",
+    "crates/xberg-gliner",
     "crates/xberg-jni",
     "crates/xberg-libheif",
     "crates/xberg-node",
-    "crates/xberg-candle-ocr",
     "crates/xberg-paddle-ocr",
     "crates/xberg-php",
     "crates/xberg-py",
     "crates/xberg-rag",
-    "crates/xberg-rag-node",
     "crates/xberg-tesseract",
     "crates/xberg-wasm",
     "packages/dart/rust",
     "packages/swift/rust",
     "tools/benchmark-harness",
+    # === fork overlay (absent from xberg-io) — APPEND-ONLY; upstream merges never touch below ===
+    "crates/xberg-doc-store",
+    "crates/xberg-gliner-candle",
+    "crates/xberg-rag-node",
 ]
 exclude = ["e2e/rust", "packages/elixir/native/xberg_nif", "packages/ruby/ext/xberg_rb"]
 default-members = ["crates/xberg", "crates/xberg-cli"]
@@ -68,8 +70,6 @@ itertools = "0.15"
 js-sys = "0.3"
 xberg = { path = "./crates/xberg", version = "1.0.0-rc.5", default-features = false }
 xberg-gliner = { path = "./crates/xberg-gliner", version = "1.0.0-rc.5", default-features = false }
-xberg-gliner-candle = { path = "./crates/xberg-gliner-candle", version = "1.0.0-rc.5", default-features = false }
-xberg-doc-store = { path = "./crates/xberg-doc-store", version = "1.0.0-rc.5", default-features = false }
 xberg-rag = { path = "./crates/xberg-rag", version = "1.0.0-rc.5", default-features = false }
 safetensors = "0.4"
 
@@ -128,15 +128,20 @@ web-sys = { version = "0.3", features = [
     "Response",
 ] }
 
+# === fork overlay deps ===
+xberg-gliner-candle = { path = "./crates/xberg-gliner-candle", version = "1.0.0-rc.5", default-features = false }
+xberg-doc-store = { path = "./crates/xberg-doc-store", version = "1.0.0-rc.5", default-features = false }
+
 [patch.crates-io]
 xberg = { path = "crates/xberg" }
 xberg-gliner = { path = "crates/xberg-gliner" }
-xberg-gliner-candle = { path = "crates/xberg-gliner-candle" }
-xberg-doc-store = { path = "crates/xberg-doc-store" }
 xberg-rag = { path = "crates/xberg-rag" }
 xberg-tesseract = { path = "crates/xberg-tesseract" }
 xberg-paddle-ocr = { path = "crates/xberg-paddle-ocr" }
 xberg-candle-ocr = { path = "crates/xberg-candle-ocr" }
+# === fork overlay patches ===
+xberg-gliner-candle = { path = "crates/xberg-gliner-candle" }
+xberg-doc-store = { path = "crates/xberg-doc-store" }
 
 [profile.release]
 lto = "thin"
