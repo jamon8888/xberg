@@ -20,3 +20,14 @@ touches) and Tier-2 carry-patches (tracked in `carry-patches.tsv`).
 ## Not covered here
 Full `rc.24` catch-up is a separate, deliberate project. The fence makes it
 affordable; do not do it as a side effect of a routine sync.
+
+## Building the fork's process/rehydrate endpoints
+
+The `/v1/process` + rehydrate API (fenced in `crates/xberg/src/api/rag/`) is
+NOT enabled by the plain `api` feature — that stays upstream-clean by
+design. To build a server/CLI that serves these fork-only endpoints, add
+`--features process-api` alongside `api`:
+
+```sh
+cargo build -p xberg-cli --features api,process-api
+```
