@@ -5,6 +5,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 TSV="$ROOT/docs/superpowers/upstream/carry-patches.tsv"
 MB="$(git merge-base HEAD upstream/main 2>/dev/null || true)"
 if [ -z "$MB" ]; then echo "no upstream merge-base; skipping"; exit 0; fi
+if [ ! -f "$TSV" ]; then echo "no carry-patch manifest: $TSV"; exit 0; fi
 tracked="$(cut -f1 "$TSV" | tail -n +2 | sort -u)"
 missing=0
 while IFS= read -r f; do
@@ -16,4 +17,9 @@ while IFS= read -r f; do
       fi ;;
   esac
 done < <(git diff --name-only "$MB" HEAD)
-[ "$missing" -eq 0 ] && echo "carry-patch manifest OK" || { echo "add the above to carry-patches.tsv"; exit 1; }
+if [ "$missing" -eq 0 ]; then
+  echo "carry-patch manifest OK"
+else
+  echo "add the above to carry-patches.tsv"
+  exit 1
+fi

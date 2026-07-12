@@ -11,7 +11,7 @@ echo "--- carry-patch files touched upstream since merge-base ---"
 if [ ! -f "$TSV" ]; then echo "(no manifest yet: $TSV)"; exit 0; fi
 touched="$(git diff --name-only "$MB" "$REF")"
 n=0
-while IFS=$'\t' read -r path tier feature note; do
+while IFS=$'\t' read -r path _tier feature note; do
   [ "$path" = "path" ] && continue          # header
   [ -z "${path:-}" ] && continue
   if printf '%s\n' "$touched" | grep -qxF "$path"; then
