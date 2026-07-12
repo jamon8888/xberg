@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { mkdir, writeFile, rename } from "node:fs/promises";
+import { mkdir, writeFile, rename, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 
@@ -59,8 +59,13 @@ export function createMapUploadHandler(
       await mkdir(dir, { recursive: true });
       const mapPath = join(dir, `${documentId}.map`);
       const tmpPath = `${mapPath}.${randomBytes(8).toString("hex")}.tmp`;
-      await writeFile(tmpPath, body);
-      await rename(tmpPath, mapPath);
+      try {
+        await writeFile(tmpPath, body);
+        await rename(tmpPath, mapPath);
+      } catch (writeErr) {
+        await unlink(tmpPath).catch(() => {});
+        throw writeErr;
+      }
 
       sendJson(res, 200, { status: "stored" });
     } catch (err) {

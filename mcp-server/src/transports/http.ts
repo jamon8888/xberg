@@ -40,6 +40,11 @@ export async function startHttp(
       const url = new URL(req.url ?? "/", `http://${host}`);
 
       if (req.method === "GET" && url.pathname === "/sse") {
+        // Token arrives via `?token=` here (not just Authorization) because
+        // EventSource can't set custom headers. This can leak into access
+        // logs, proxy logs, or browser history — acceptable for the
+        // localhost-only default, but scrub tokens from any access logging
+        // added later if this server is ever exposed beyond 127.0.0.1.
         const candidate = extractToken(req, url);
         if (!isValidToken(candidate, uiToken)) {
           res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "unauthorized" }));
