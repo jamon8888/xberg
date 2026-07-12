@@ -65,7 +65,7 @@ pub struct ProcessRedactOperation {
 pub struct ProcessResponse {
     /// The extracted (and optionally redacted) document.
     pub document: crate::types::ExtractedDocument,
-    /// Key to pass to `POST /v1/rehydrate` to restore redacted PII.
+    /// Key to pass to `POST /v1/documents/{rehydration_key}/rehydrate`.
     /// Only present when `operations.redact.rehydrate` was `true` and
     /// the `redaction-rehydrate` feature is enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
