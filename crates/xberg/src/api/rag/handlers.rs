@@ -20,7 +20,7 @@ use crate::api::types::ApiState;
 /// decrypts it with the caller-supplied passphrase, and returns the
 /// token → original-text map. Returns 404 if the key is absent or expired,
 /// 403 if the passphrase is wrong.
-#[cfg(feature = "api")]
+#[cfg(feature = "process-api")]
 #[cfg_attr(
     feature = "otel",
     tracing::instrument(name = "api.rehydrate", skip(state, request, rehydration_key))
@@ -82,7 +82,7 @@ pub(crate) async fn rehydrate_handler(
 /// `operations.redact.rehydrate` is `true` a passphrase must also be supplied;
 /// the encrypted rehydration map is stored server-side and its key is returned
 /// in the response.
-#[cfg(feature = "api")]
+#[cfg(feature = "process-api")]
 #[cfg_attr(feature = "otel", tracing::instrument(name = "api.process", skip(state, request)))]
 pub(crate) async fn process_handler(
     State(state): State<ApiState>,
