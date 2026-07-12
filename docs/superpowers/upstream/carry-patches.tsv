@@ -2,7 +2,7 @@ path	tier	feature	note
 crates/xberg/src/api/types.rs	carry	process-api	ApiState.rehydration_store field added; rest of Process* moved to api/rag/types.rs
 crates/xberg/src/api/router.rs	carry	process-api	/v1/process + rehydrate route wiring + ApiState construction
 crates/xberg/src/api/mod.rs	carry	process-api	pub mod rag; behind process-api
-crates/xberg/src/api/handlers.rs	carry	process-api	handler bodies moved to api/rag/handlers.rs; keep upstream shape
+crates/xberg/src/api/handlers.rs	carry	process-api	process/rehydrate handler bodies re-fenced to api/rag/handlers.rs; upstream-shaped again except gated test_router() rehydration_store field
 crates/xberg/Cargo.toml	carry	multiple	fork features: ner-candle, ner-candle-wasm, redaction-rehydrate, doc-store-sqlite, process-api; deps: xberg-doc-store, xberg-gliner-candle, aes-gcm, scrypt
 crates/xberg/src/text/redaction/engine.rs	carry	redaction-rehydrate	14 interleaved hunks through redact(); highest non-RAG merge risk
 crates/xberg/src/text/ner/gline.rs	carry	ner-candle	12 interleaved hunks; GlineBackend + ensure_model changes
