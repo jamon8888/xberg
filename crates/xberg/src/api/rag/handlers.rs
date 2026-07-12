@@ -23,11 +23,7 @@ use crate::api::types::ApiState;
 #[cfg(feature = "api")]
 #[cfg_attr(
     feature = "otel",
-    tracing::instrument(
-        name = "api.rehydrate",
-        skip(state, request),
-        fields(rehydration_key = %rehydration_key)
-    )
+    tracing::instrument(name = "api.rehydrate", skip(state, request, rehydration_key))
 )]
 pub(crate) async fn rehydrate_handler(
     State(state): State<ApiState>,
@@ -71,11 +67,7 @@ pub(crate) async fn rehydrate_handler(
 
     #[cfg(feature = "redaction-rehydrate")]
     {
-        tracing::info!(
-            rehydration_key = %rehydration_key,
-            restored_count = restored.len(),
-            "PII rehydration performed"
-        );
+        tracing::info!(restored_count = restored.len(), "PII rehydration performed");
 
         Ok(Json(RehydrateResponse { restored }))
     }
@@ -146,9 +138,19 @@ pub(crate) async fn process_handler(
                     "operations.redact.passphrase is required when operations.redact.rehydrate is true",
                 ))
             })?;
+            if passphrase.trim().is_empty() {
+                return Err(ApiError::validation(crate::error::XbergError::validation(
+                    "operations.redact.passphrase must not be empty",
+                )));
+            }
 
             let mut config = (*state.default_config).clone();
             config.ner = request.operations.ner.clone();
+            // Extraction must not auto-redact here: the default_config's own
+            // redaction post-processor (if configured) would consume the
+            // original text before redact_capturing_rehydration_map below
+            // runs, leaving the rehydration map empty or incomplete.
+            config.redaction = None;
 
             let mut results = extract_unified_inputs(vec![input], config).await?;
             let mut document = results.results.pop().ok_or_else(|| {
@@ -212,6 +214,63 @@ pub(crate) mod tests {
             job_store: std::sync::Arc::new(crate::api::jobs::JobStore::new()),
             rehydration_store: std::sync::Arc::new(xberg_doc_store::backends::memory::InMemoryRehydrationStore::new()),
         }
+    }
+
+    #[cfg(feature = "process-api")]
+    #[cfg(feature = "redaction-rehydrate")]
+    #[tokio::test]
+    async fn process_handler_rehydrate_map_is_populated_when_default_config_also_redacts() {
+        // Regression test: server-side default_config.redaction must not run during
+        // extraction when rehydrate=true, or redact_capturing_rehydration_map sees
+        // already-redacted text and captures an empty/incomplete map.
+        use super::super::types::{ProcessOperations, ProcessRedactOperation, ProcessRequest};
+        let mut config = crate::ExtractionConfig::default();
+        config.redaction = Some(crate::core::config::redaction::RedactionConfig {
+            strategy: crate::types::redaction::RedactionStrategy::Mask,
+            ..Default::default()
+        });
+        let state = ApiState {
+            default_config: std::sync::Arc::new(config),
+            ..make_api_state()
+        };
+        let request = ProcessRequest {
+            text: Some("Contact Alice at alice@example.com.".to_string()),
+            url: None,
+            operations: ProcessOperations {
+                ner: None,
+                redact: Some(ProcessRedactOperation {
+                    config: crate::core::config::redaction::RedactionConfig {
+                        strategy: crate::types::redaction::RedactionStrategy::TokenReplace,
+                        ..Default::default()
+                    },
+                    rehydrate: true,
+                    passphrase: Some("test-passphrase".to_string()),
+                }),
+            },
+        };
+        let response = process_handler(axum::extract::State(state.clone()), axum::extract::Json(request))
+            .await
+            .expect("handler must succeed");
+        let rehydration_key = response.0.rehydration_key.clone().expect("rehydrate=true must return a key");
+        assert!(
+            !response.0.document.content.contains("alice@example.com"),
+            "document must be redacted"
+        );
+
+        let restored = rehydrate_handler(
+            axum::extract::State(state),
+            axum::extract::Path(rehydration_key),
+            axum::extract::Json(super::super::types::RehydrateRequest {
+                passphrase: "test-passphrase".to_string(),
+            }),
+        )
+        .await
+        .expect("rehydrate must succeed");
+        assert!(
+            restored.0.restored.values().any(|v| v == "alice@example.com"),
+            "rehydration map must contain the original email, got: {:?}",
+            restored.0.restored
+        );
     }
 
     #[cfg(feature = "process-api")]
