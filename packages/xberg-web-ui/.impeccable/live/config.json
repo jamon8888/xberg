@@ -1,0 +1,11 @@
+{
+  "injectTarget": "app/layout.tsx",
+  "injectTargetStyle": "jsx",
+  "title": "xberg-web-ui",
+  "csp": { "shape": null },
+  "cspChecked": true,
+  "frameworks": { "react": true },
+  "frameworkAutoDetected": true,
+  "createdAt": "2026-07-12T00:00:00.000Z",
+  "anchoredSummaryPath": "packages/xberg-web-ui/ANCHORED_SUMMARY.md"
+}
