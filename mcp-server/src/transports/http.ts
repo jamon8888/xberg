@@ -1,9 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createUiRoutes } from "../http/ui-server.js";
+import { extractToken, isValidToken } from "../http/auth.js";
 
 const DEFAULT_PORT = Number(process.env["XBERG_MCP_PORT"] ?? 8080);
 const DEFAULT_HOST = process.env["XBERG_MCP_HOST"] ?? "127.0.0.1";
+const MAX_MESSAGE_BODY_BYTES = 10 * 1024 * 1024; // 10 MiB
 
 export interface HttpHandle {
   port: number;
@@ -31,12 +33,18 @@ export async function startHttp(
 
   const sessions = new Map<string, InstanceType<typeof SSEServerTransport>>();
   const ui = createUiRoutes();
+  const uiToken = ui.token;
 
   const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     try {
       const url = new URL(req.url ?? "/", `http://${host}`);
 
       if (req.method === "GET" && url.pathname === "/sse") {
+        const candidate = extractToken(req, url);
+        if (!isValidToken(candidate, uiToken)) {
+          res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "unauthorized" }));
+          return;
+        }
         const transport = new SSEServerTransport("/message", res);
         sessions.set(transport.sessionId, transport);
         res.on("close", () => sessions.delete(transport.sessionId));
@@ -45,6 +53,11 @@ export async function startHttp(
       }
 
       if (req.method === "POST" && url.pathname === "/message") {
+        const candidate = extractToken(req, url);
+        if (!isValidToken(candidate, uiToken)) {
+          res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "unauthorized" }));
+          return;
+        }
         const sessionId = url.searchParams.get("sessionId") ?? "";
         const transport = sessions.get(sessionId);
         if (!transport) {
@@ -52,7 +65,17 @@ export async function startHttp(
           return;
         }
         const chunks: Buffer[] = [];
-        for await (const chunk of req) chunks.push(chunk as Buffer);
+        let totalBytes = 0;
+        for await (const chunk of req) {
+          const buf = chunk as Buffer;
+          totalBytes += buf.length;
+          if (totalBytes > MAX_MESSAGE_BODY_BYTES) {
+            res.writeHead(413, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "payload too large" }));
+            req.resume();
+            return;
+          }
+          chunks.push(buf);
+        }
         await transport.handlePostMessage(req, res, Buffer.concat(chunks));
         return;
       }

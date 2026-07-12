@@ -98,7 +98,7 @@ export function createIngestHandler(
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ document_id: documentId }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      const status = msg === "payload too large" ? 413 : statusForError(msg);
+      const status = statusForError(msg);
       if (!res.headersSent) {
         res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg }));
       } else {
