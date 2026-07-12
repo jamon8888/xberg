@@ -22,13 +22,13 @@ export function useEngine(): EngineApi {
 }
 
 interface EngineProviderProps {
-  baseUrl: string;
+  baseUrl?: string;
   children: ReactNode;
   /** Test-only escape hatch — production callers never pass this. */
   workerClient?: Pick<WorkerClient, "ingestFile">;
 }
 
-export function EngineProvider({ baseUrl, children, workerClient }: EngineProviderProps) {
+export function EngineProvider({ baseUrl: baseProp, children, workerClient }: EngineProviderProps) {
   const clientRef = useRef<Pick<WorkerClient, "ingestFile"> | null>(workerClient ?? null);
   const [ready, setReady] = useState(Boolean(workerClient));
   const [pendingCount, setPendingCount] = useState(0);
@@ -37,11 +37,16 @@ export function EngineProvider({ baseUrl, children, workerClient }: EngineProvid
   useEffect(() => {
     captureAuthTokenFromLocation();
     if (clientRef.current) return;
+    const baseUrl = baseProp ?? (typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8080");
     const worker = new Worker(new URL("../engine/engine.worker.ts", import.meta.url), { type: "module" });
     clientRef.current = new WorkerClient(worker, baseUrl);
     setReady(true);
-    return () => worker.terminate();
-  }, [baseUrl]);
+    return () => {
+      clientRef.current = null;
+      setReady(false);
+      worker.terminate();
+    };
+  }, [baseProp]);
 
   const api = useMemo<EngineApi>(
     () => ({
@@ -54,7 +59,11 @@ export function EngineProvider({ baseUrl, children, workerClient }: EngineProvid
         setLastError(null);
         try {
           const entry = await clientRef.current.ingestFile(file, collection, passphrase);
-          await putHistoryEntry(entry);
+          try {
+            await putHistoryEntry(entry);
+          } catch (persistErr) {
+            console.error("Failed to persist ingest history:", persistErr instanceof Error ? persistErr.message : String(persistErr));
+          }
           return entry;
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);

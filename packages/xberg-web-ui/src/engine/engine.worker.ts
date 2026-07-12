@@ -30,6 +30,8 @@ let engine: XbergEngine | null = null;
 // `handleIngest` in flight at a time) — same assumption as the `engine`
 // singleton above.
 let lastRedactedFullText = "";
+// Queue to enforce sequential processing of ingests
+let lastIngest: Promise<void> = Promise.resolve();
 
 /**
  * HTTP-backed `VectorStoreInterface`. Only `upsertDocument` matters for
@@ -140,6 +142,6 @@ self.addEventListener("message", (ev: MessageEvent) => {
   const msg = ev.data as IngestMessage;
   if (msg.type === "ingest") {
     mcpBaseUrl = msg.mcpBaseUrl;
-    void handleIngest(msg);
+    lastIngest = lastIngest.then(() => handleIngest(msg));
   }
 });

@@ -9,7 +9,11 @@ export default function HomePage() {
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8080";
 
   useEffect(() => {
-    void listFolders().then(setFolders);
+    void listFolders()
+      .then(setFolders)
+      .catch((err) => {
+        console.error("Failed to load folders:", err instanceof Error ? err.message : String(err));
+      });
   }, []);
 
   return (

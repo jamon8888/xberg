@@ -22,7 +22,12 @@ export default function FolderPage() {
   const onFiles = async (files: FileList | null) => {
     if (!files || !passphrase) return;
     for (const file of Array.from(files)) {
-      await ingestFile(file, collection, passphrase);
+      try {
+        await ingestFile(file, collection, passphrase);
+      } catch {
+        // Error is already tracked in EngineProvider's lastError state
+        // Continue processing remaining files
+      }
     }
   };
 
@@ -34,7 +39,7 @@ export default function FolderPage() {
           Rehydration passphrase (never sent to the server in clear)
         </label>
         <Input id="passphrase" type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
-        <input type="file" multiple disabled={!passphrase} onChange={(e) => void onFiles(e.target.files)} />
+        <input type="file" multiple disabled={!passphrase} aria-label="Upload documents" onChange={(e) => void onFiles(e.target.files)} />
       </div>
       <DocumentTable collection={collection} />
     </main>

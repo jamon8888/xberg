@@ -24,47 +24,58 @@ function openDb(): Promise<IDBDatabase> {
 
 export async function putHistoryEntry(entry: IngestHistoryEntry): Promise<void> {
   const db = await openDb();
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    tx.objectStore(STORE_NAME).put({ key: keyFor(entry.collection, entry.externalId), ...entry });
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error ?? new Error("failed to write ingest history entry"));
-  });
-  db.close();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).put({ key: keyFor(entry.collection, entry.externalId), ...entry });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? new Error("failed to write ingest history entry"));
+      tx.onabort = () => reject(new Error("transaction aborted"));
+    });
+  } finally {
+    db.close();
+  }
 }
 
 export async function getHistoryEntry(collection: string, externalId: string): Promise<IngestHistoryEntry | null> {
   const db = await openDb();
-  const result = await new Promise<IngestHistoryEntry | null>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const req = tx.objectStore(STORE_NAME).get(keyFor(collection, externalId));
-    req.onsuccess = () => {
-      if (!req.result) {
-        resolve(null);
-        return;
-      }
-      const { key, ...entry } = req.result as IngestHistoryEntry & { key: string };
-      resolve(entry);
-    };
-    req.onerror = () => reject(req.error ?? new Error("failed to read ingest history entry"));
-  });
-  db.close();
-  return result;
+  try {
+    return await new Promise<IngestHistoryEntry | null>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).get(keyFor(collection, externalId));
+      req.onsuccess = () => {
+        if (!req.result) {
+          resolve(null);
+          return;
+        }
+        const { key, ...entry } = req.result as IngestHistoryEntry & { key: string };
+        resolve(entry);
+      };
+      req.onerror = () => reject(req.error ?? new Error("failed to read ingest history entry"));
+      tx.onabort = () => reject(new Error("transaction aborted"));
+    });
+  } finally {
+    db.close();
+  }
 }
 
 export async function listHistory(collection?: string): Promise<IngestHistoryEntry[]> {
   const db = await openDb();
-  const all = await new Promise<IngestHistoryEntry[]>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const req = tx.objectStore(STORE_NAME).getAll();
-    req.onsuccess = () => {
-      const rows = (req.result as Array<IngestHistoryEntry & { key: string }>).map(({ key, ...entry }) => entry);
-      resolve(rows);
-    };
-    req.onerror = () => reject(req.error ?? new Error("failed to list ingest history"));
-  });
-  db.close();
-  return collection ? all.filter((e) => e.collection === collection) : all;
+  try {
+    const all = await new Promise<IngestHistoryEntry[]>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).getAll();
+      req.onsuccess = () => {
+        const rows = (req.result as Array<IngestHistoryEntry & { key: string }>).map(({ key, ...entry }) => entry);
+        resolve(rows);
+      };
+      req.onerror = () => reject(req.error ?? new Error("failed to list ingest history"));
+      tx.onabort = () => reject(new Error("transaction aborted"));
+    });
+    return collection ? all.filter((e) => e.collection === collection) : all;
+  } finally {
+    db.close();
+  }
 }
 
 export async function listFolders(): Promise<string[]> {

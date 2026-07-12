@@ -18,12 +18,21 @@ export function generateStaticParams() {
 export default function DocumentPage() {
   const { collection, id } = useParams<{ collection: string; id: string }>();
   const [entry, setEntry] = useState<IngestHistoryEntry | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void getHistoryEntry(collection, id).then(setEntry);
+    void getHistoryEntry(collection, id)
+      .then(setEntry)
+      .catch(() => {
+        setEntry(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [collection, id]);
 
-  if (!entry) return <main className="p-6">Loading…</main>;
+  if (loading) return <main className="p-6">Loading…</main>;
+  if (!entry) return <main className="p-6">Document not found.</main>;
   return (
     <main className="p-6">
       <DocumentViewer entry={entry} />

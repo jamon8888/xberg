@@ -74,7 +74,7 @@ test("uploading a document with PII syncs to the MCP store via /collection, /ing
 
     await expect.poll(() => received.ingest !== undefined, { timeout: 30_000 }).toBe(true);
     expect(received.collection).toEqual({ name: "contrats", embedding_dim: EMBEDDING_DIM });
-    expect(received.mapDocumentId).toBe("contrat.pdf");
+    await expect.poll(() => received.mapDocumentId, { timeout: 10_000 }).toBe("contrat.pdf");
     expect((received.ingest as { external_id: string }).external_id).toBe("contrat.pdf");
     expect((received.ingest as { full_text: string }).full_text).not.toContain("alice@example.com");
   } finally {

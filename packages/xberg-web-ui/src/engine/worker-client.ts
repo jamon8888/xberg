@@ -19,10 +19,20 @@ function randomRequestId(): string {
  * own `requestId` gets a `result`/`error` message.
  */
 export class WorkerClient {
+  private readonly pending = new Map<string, { reject: (err: Error) => void }>();
+
   constructor(
     private readonly worker: Worker,
     private readonly baseUrl: string
-  ) {}
+  ) {
+    this.worker.addEventListener("error", (ev: ErrorEvent) => {
+      const err = new Error(`Worker error: ${ev.message}`);
+      for (const { reject } of this.pending.values()) {
+        reject(err);
+      }
+      this.pending.clear();
+    });
+  }
 
   ingestFile(
     file: File,
@@ -41,6 +51,7 @@ export class WorkerClient {
           return;
         }
         this.worker.removeEventListener("message", onMessage as EventListener);
+        this.pending.delete(requestId);
         if (msg.type === "error") {
           reject(new Error(msg.message));
         } else {
@@ -48,6 +59,7 @@ export class WorkerClient {
         }
       };
 
+      this.pending.set(requestId, { reject });
       this.worker.addEventListener("message", onMessage as EventListener);
 
       // `File` is structured-cloneable, so it can be posted directly —

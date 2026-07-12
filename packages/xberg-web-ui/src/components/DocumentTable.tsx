@@ -26,13 +26,19 @@ const columns = [
 
 export function DocumentTable({ collection }: { collection: string }) {
   const [rows, setRows] = useState<IngestHistoryEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void listHistory(collection).then(setRows);
+    void listHistory(collection)
+      .then(setRows)
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : String(err));
+      });
   }, [collection]);
 
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
 
+  if (error) return <p className="text-sm text-red-600">Failed to load documents: {error}</p>;
   if (rows.length === 0) return <p className="text-sm text-slate-500">No documents yet.</p>;
 
   return (

@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils.js";
 
 const DialogCtx = createContext<{ open: boolean; setOpen: (v: boolean) => void } | null>(null);
@@ -14,10 +14,30 @@ export function DialogTrigger({ children }: { children: ReactNode; asChild?: boo
 }
 export function DialogContent({ className, children }: { className?: string; children: ReactNode }) {
   const ctx = useContext(DialogCtx)!;
+
+  useEffect(() => {
+    if (!ctx.open) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        ctx.setOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [ctx, ctx.open]);
+
   if (!ctx.open) return null;
+
   return (
-    <div role="dialog" className={cn("fixed inset-0 z-50 flex items-center justify-center bg-black/40")}>
-      <div className={cn("rounded-lg bg-white p-6 shadow-lg", className)}>{children}</div>
+    <div className={cn("fixed inset-0 z-50 flex items-center justify-center bg-black/40")} onClick={() => ctx.setOpen(false)}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={cn("rounded-lg bg-white p-6 shadow-lg", className)}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
     </div>
   );
 }
