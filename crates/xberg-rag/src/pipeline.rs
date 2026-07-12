@@ -28,35 +28,10 @@ use crate::types::{ChunkRecord, DocumentId, DocumentRecord, RetrievedChunk};
 use serde_json::Value;
 #[cfg(feature = "pipeline-redaction")]
 use xberg::text::redaction::TokenCounter;
+#[cfg(feature = "pipeline-redaction")]
+use xberg::types::redaction::RedactionStrategy;
 
 // ─── Helpers for full-field redaction ──────────────────────────────────────────
-
-#[cfg(feature = "pipeline-redaction")]
-fn redact_json_value(
-    value: &mut Value,
-    counter: &mut TokenCounter,
-    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
-    category_counts: &mut std::collections::HashMap<String, usize>,
-) -> RagResult<()> {
-    match value {
-        Value::String(s) => {
-            let redacted = redact_string_sync(s, counter, rehydration_map, category_counts)?;
-            *s = redacted;
-        }
-        Value::Array(arr) => {
-            for v in arr {
-                redact_json_value(v, counter, rehydration_map, category_counts)?;
-            }
-        }
-        Value::Object(obj) => {
-            for (_, v) in obj.iter_mut() {
-                redact_json_value(v, counter, rehydration_map, category_counts)?;
-            }
-        }
-        _ => {}
-    }
-    Ok(())
-}
 
 /// Keys whose string values are opaque identifiers rather than narrative text.
 /// NER is skipped for these leaves to bound inference cost.
@@ -79,94 +54,72 @@ fn is_free_text_leaf(key: &str, text: &str) -> bool {
     true
 }
 
-/// Redact a single string with NER when it looks like free text, else regex-only.
-#[cfg(feature = "pipeline-redaction")]
-async fn redact_string_maybe_ner(
-    text: &str,
-    ner: &dyn xberg::text::ner::NerBackend,
-    counter: &mut TokenCounter,
-    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
-    category_counts: &mut std::collections::HashMap<String, usize>,
-) -> RagResult<String> {
-    if is_free_text_leaf("", text) {
-        redact_secondary_string(
-            text,
-            RedactionStrategy::TokenReplace,
-            ner,
-            counter,
-            rehydration_map,
-            category_counts,
-        )
-        .await
-    } else {
-        redact_string_sync(text, counter, rehydration_map, category_counts)
-    }
-}
-
 /// Async JSON redactor: applies NER+regex to free-text string leaves and
 /// regex-only to opaque/short leaves, sharing the request-wide `TokenCounter`
 /// and accumulators. Mirrors the fail-closed discipline of `redact_request`.
 #[cfg(feature = "pipeline-redaction")]
-async fn redact_json_value_async(
-    value: &mut Value,
-    ner: &dyn xberg::text::ner::NerBackend,
-    counter: &mut TokenCounter,
-    rehydration_map: &mut xberg::text::redaction::RehydrationMap,
-    category_counts: &mut std::collections::HashMap<String, usize>,
-) -> RagResult<()> {
-    match value {
-        Value::String(s) => {
-            if is_free_text_leaf("", s) {
-                let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
-                    s,
-                    RedactionStrategy::TokenReplace,
-                    ner,
-                    counter,
-                )
-                .await
-                .map_err(RagError::Core)?;
-                rehydration_map.extend(outcome.rehydration_map);
-                for (category, count) in outcome.category_counts {
-                    *category_counts.entry(category).or_insert(0) += count;
-                }
-                *s = outcome.redacted_text;
-            } else {
-                *s = redact_string_sync(s, counter, rehydration_map, category_counts)?;
-            }
-        }
-        Value::Array(arr) => {
-            for v in arr {
-                redact_json_value_async(v, ner, counter, rehydration_map, category_counts).await?;
-            }
-        }
-        Value::Object(obj) => {
-            for (key, v) in obj.iter_mut() {
-                if let Value::String(s) = v {
-                    if is_free_text_leaf(key, s) {
-                        let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
-                            s,
-                            RedactionStrategy::TokenReplace,
-                            ner,
-                            counter,
-                        )
-                        .await
-                        .map_err(RagError::Core)?;
-                        rehydration_map.extend(outcome.rehydration_map);
-                        for (category, count) in outcome.category_counts {
-                            *category_counts.entry(category).or_insert(0) += count;
-                        }
-                        *s = outcome.redacted_text;
-                    } else {
-                        *s = redact_string_sync(s, counter, rehydration_map, category_counts)?;
+fn redact_json_value_async<'a>(
+    value: &'a mut Value,
+    ner: &'a dyn xberg::text::ner::NerBackend,
+    counter: &'a mut TokenCounter,
+    rehydration_map: &'a mut xberg::text::redaction::RehydrationMap,
+    category_counts: &'a mut std::collections::HashMap<String, usize>,
+) -> std::pin::Pin<Box<dyn std::future::Future<Output = RagResult<()>> + Send + 'a>> {
+    Box::pin(async move {
+        match value {
+            Value::String(s) => {
+                if is_free_text_leaf("", s) {
+                    let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
+                        s,
+                        RedactionStrategy::TokenReplace,
+                        ner,
+                        counter,
+                    )
+                    .await
+                    .map_err(RagError::Core)?;
+                    rehydration_map.extend(outcome.rehydration_map);
+                    for (category, count) in outcome.category_counts {
+                        *category_counts.entry(category).or_insert(0) += count;
                     }
+                    *s = outcome.redacted_text;
                 } else {
+                    *s = redact_string_sync(s, counter, rehydration_map, category_counts)?;
+                }
+            }
+            Value::Array(arr) => {
+                for v in arr {
                     redact_json_value_async(v, ner, counter, rehydration_map, category_counts).await?;
                 }
             }
+            Value::Object(obj) => {
+                for (key, v) in obj.iter_mut() {
+                    if let Value::String(s) = v {
+                        if is_free_text_leaf(key, s) {
+                            let outcome = xberg::text::redaction::redact_text_capturing_rehydration_map(
+                                s,
+                                RedactionStrategy::TokenReplace,
+                                ner,
+                                counter,
+                            )
+                            .await
+                            .map_err(RagError::Core)?;
+                            rehydration_map.extend(outcome.rehydration_map);
+                            for (category, count) in outcome.category_counts {
+                                *category_counts.entry(category).or_insert(0) += count;
+                            }
+                            *s = outcome.redacted_text;
+                        } else {
+                            *s = redact_string_sync(s, counter, rehydration_map, category_counts)?;
+                        }
+                    } else {
+                        redact_json_value_async(v, ner, counter, rehydration_map, category_counts).await?;
+                    }
+                }
+            }
+            _ => {}
         }
-        _ => {}
-    }
-    Ok(())
+        Ok(())
+    })
 }
 
 /// Synchronous version for JSON values (regex patterns only, no NER).
@@ -301,8 +254,6 @@ async fn redact_request(
     xberg::text::redaction::RehydrationMap,
     std::collections::HashMap<String, usize>,
 )> {
-    use xberg::types::redaction::RedactionStrategy;
-
     // One counter shared across full_text and every secondary field, so token
     // numbers stay unique request-wide. Starting a fresh counter per field
     // (the previous approach) let a category collide across fields — e.g.
@@ -366,17 +317,27 @@ async fn redact_request(
     // ingestion boundary if stricter guarantees are required.)
     let external_id = request.external_id;
 
-    // keywords/entities/labels/metadata are structured. To avoid a NER
-    // inference call per array element / JSON leaf (which does not scale with
-    // metadata size), we only apply NER to leaves that look like free text
-    // (length > 20 chars and a non-opaque key); everything else stays
-    // regex-only. This closes the gap where a person/org/location PII in a
-    // long narrative metadata value slipped past regex and persisted raw.
+    // Keywords are already curated, short terms (not arbitrary blobs), so each
+    // one always gets full NER+regex treatment regardless of length — a bare
+    // name like "Alice" must still be caught. entities/labels/metadata are
+    // unbounded JSON leaves; to avoid a NER inference call per array element /
+    // JSON leaf (which does not scale with metadata size), those only apply
+    // NER to leaves that look like free text (length > 20 chars and a
+    // non-opaque key), staying regex-only otherwise. This closes the gap
+    // where a person/org/location PII in a long narrative metadata value
+    // slipped past regex and persisted raw.
     let mut keywords = Vec::new();
     for kw in request.keywords {
         // Fail closed: a redaction error must not persist the raw keyword.
-        let redacted =
-            redact_string_maybe_ner(&kw, ner, &mut counter, &mut rehydration_map, &mut category_counts).await?;
+        let redacted = redact_secondary_string(
+            &kw,
+            RedactionStrategy::TokenReplace,
+            ner,
+            &mut counter,
+            &mut rehydration_map,
+            &mut category_counts,
+        )
+        .await?;
         keywords.push(redacted);
     }
 

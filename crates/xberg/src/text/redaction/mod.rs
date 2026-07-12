@@ -9,17 +9,20 @@
 //! [`ExtractedDocument::redaction_report`](crate::ExtractedDocument::redaction_report).
 
 pub mod engine;
+pub mod eval;
 pub mod patterns;
 #[cfg(feature = "redaction-rehydrate")]
 pub mod rehydration;
 pub mod strategy;
+pub mod validators;
 
 #[cfg(feature = "redaction-rehydrate")]
-pub use engine::redact_capturing_rehydration_map;
+pub use engine::{TextRedactionOutcome, redact_capturing_rehydration_map};
 #[cfg(all(feature = "redaction-rehydrate", feature = "ner"))]
-pub use engine::{TextRedactionOutcome, redact_text_capturing_rehydration_map};
+pub use engine::{PlainTextRedactionOutcome, redact_text_capturing_rehydration_map};
 pub use engine::{dedupe_overlaps, redact};
 pub use patterns::scan_text;
 #[cfg(feature = "redaction-rehydrate")]
-pub use rehydration::{RehydrationMap, decrypt_map, encrypt_map};
+pub use rehydration::{RehydrationMap, SubjectMatch, decrypt_map, encrypt_map, find_subject, forget_subject};
 pub use strategy::{TokenCounter, apply_strategy};
+pub use validators::{EntityValidator, RejectionCounts, ValidationResult};
