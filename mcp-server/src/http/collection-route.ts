@@ -16,8 +16,14 @@ const CollectionPayloadSchema = z.object({
   index_method: z.enum(["flat", "hnsw", "diskann"]).optional(),
 });
 
-function statusForError(message: string): number {
-  return message.includes("not found") ? 404 : 400;
+function sanitizeError(message: string): { status: number; clientMsg: string } {
+  const lower = message.toLowerCase();
+  if (lower.includes("not found")) return { status: 404, clientMsg: "collection not found" };
+  if (lower.includes("dimension")) return { status: 400, clientMsg: "invalid embedding dimension" };
+  if (lower.includes("distance metric") || lower.includes("metric")) return { status: 400, clientMsg: "invalid distance metric" };
+  if (lower.includes("index method")) return { status: 400, clientMsg: "invalid index method" };
+  if (lower.includes("already exists")) return { status: 409, clientMsg: "collection already exists" };
+  return { status: 400, clientMsg: "invalid request" };
 }
 
 /**
@@ -60,14 +66,18 @@ export function createCollectionHandler(
 
       const result = await getStore().ensureCollection(parsed.data);
       if (typeof result === "string") {
-        res.writeHead(statusForError(result), { "Content-Type": "application/json" }).end(JSON.stringify({ error: result }));
+        console.error(`[collection-route] ensureCollection failed: ${result}`);
+        const { status, clientMsg } = sanitizeError(result);
+        res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: clientMsg }));
         return;
       }
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ created: true }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[collection-route] unhandled error: ${msg}`);
       if (!res.headersSent) {
-        res.writeHead(statusForError(msg), { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg }));
+        const { status, clientMsg } = sanitizeError(msg);
+        res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: clientMsg }));
       } else {
         res.end();
       }
