@@ -32,47 +32,67 @@ export async function startHttp(
   const sessions = new Map<string, InstanceType<typeof SSEServerTransport>>();
   const ui = createUiRoutes();
 
-  const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    const url = new URL(req.url ?? "/", `http://${host}`);
+const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+    try {
+      const url = new URL(req.url ?? "/", `http://${host}`);
 
-    if (req.method === "GET" && url.pathname === "/sse") {
-      const transport = new SSEServerTransport("/message", res);
-      sessions.set(transport.sessionId, transport);
-      res.on("close", () => sessions.delete(transport.sessionId));
-      await server.connect(transport);
-      return;
-    }
-
-    if (req.method === "POST" && url.pathname === "/message") {
-      const sessionId = url.searchParams.get("sessionId") ?? "";
-      const transport = sessions.get(sessionId);
-      if (!transport) {
-        res.writeHead(404).end("Unknown session");
+      if (req.method === "GET" && url.pathname === "/sse") {
+        const transport = new SSEServerTransport("/message", res);
+        sessions.set(transport.sessionId, transport);
+        res.on("close", () => sessions.delete(transport.sessionId));
+        await server.connect(transport);
         return;
       }
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) chunks.push(chunk as Buffer);
-      await transport.handlePostMessage(req, res, Buffer.concat(chunks));
-      return;
+
+      if (req.method === "POST" && url.pathname === "/message") {
+        const sessionId = url.searchParams.get("sessionId") ?? "";
+        const transport = sessions.get(sessionId);
+        if (!transport) {
+          res.writeHead(404).end("Unknown session");
+          return;
+        }
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        await transport.handlePostMessage(req, res, Buffer.concat(chunks));
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname === "/health") {
+        res.writeHead(200, { "Content-Type": "application/json" })
+          .end(JSON.stringify({ status: "ok", server: "xberg-mcp" }));
+        return;
+      }
+
+      if (await ui.handleRequest(req, res, url)) return;
+
+      res.writeHead(404).end("Not Found");
+    } catch (err) {
+      if (!res.headersSent) {
+        const msg = err instanceof Error ? err.message : String(err);
+        res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg }));
+      } else {
+        res.end();
+      }
     }
-
-    if (req.method === "GET" && url.pathname === "/health") {
-      res.writeHead(200, { "Content-Type": "application/json" })
-        .end(JSON.stringify({ status: "ok", server: "xberg-mcp" }));
-      return;
-    }
-
-    if (await ui.handleRequest(req, res, url)) return;
-
-    res.writeHead(404).end("Not Found");
   });
 
-  await new Promise<void>((resolve) => httpServer.listen(port, host, resolve));
+  await new Promise<void>((resolve, reject) => {
+    httpServer.once("error", reject);
+    httpServer.listen(port, host, () => {
+      httpServer.off("error", reject);
+      resolve();
+    });
+  });
   const address = httpServer.address();
   const actualPort = address !== null && typeof address !== "string" ? address.port : port;
 
   process.stderr.write(`[xberg-mcp] HTTP/SSE transport started on http://${host}:${actualPort}/sse\n`);
-  process.stderr.write(`[xberg-mcp] UI available at http://${host}:${actualPort}/ui?token=${ui.token}\n`);
+  const uiUrl = `http://${host}:${actualPort}/ui`;
+  if (process.env["XBERG_MCP_LOG_UI_TOKEN"] === "1") {
+    process.stderr.write(`[xberg-mcp] UI available at ${uiUrl}?token=${ui.token}\n`);
+  } else {
+    process.stderr.write(`[xberg-mcp] UI available at ${uiUrl}?token=<redacted>\n`);
+  }
 
   return {
     port: actualPort,
