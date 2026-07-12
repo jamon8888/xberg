@@ -302,27 +302,39 @@ git commit -m "chore(workspace): fence fork crates into append-only overlay bloc
 
 - [ ] **Step 1: Write the failing route-parity + boundary test**
 
-Create `crates/xberg/tests/api_route_parity.rs`:
+Create `crates/xberg/tests/api_route_parity.rs`. The test must make a **real assertion** that proves the two fork routes are matched by the extracted module's router — not merely that a router was constructed. Preferred form: drive the router with `tower::ServiceExt::oneshot` and assert `/v1/process` is routed (status **not** `404 NOT_FOUND`; a `400`/`405`/`415` on an empty/malformed body still proves the path matched). Build the required `ApiState` by reusing whatever construction helper the existing api tests already use — grep `crates/xberg/tests` and `crates/xberg/src/api` for an existing `ApiState { .. }` test builder and reuse it.
 
 ```rust
-// Verifies the fork API extraction preserves routes and lives in the fenced module.
+// Verifies the fork API extraction preserves the /v1/process route in the fenced module.
 #![cfg(feature = "process-api")]
 
-#[test]
-fn process_routes_present_and_owned_by_rag_module() {
-    // The extracted module must expose exactly the two fork routes.
-    let router = xberg::api::rag::routes();
-    let dbg = format!("{router:?}");
-    // axum Router Debug is opaque; assert construction succeeds and is non-empty.
-    assert!(!dbg.is_empty());
-}
+use axum::body::Body;
+use axum::http::{Request, StatusCode};
+use tower::ServiceExt; // oneshot
 
-#[test]
-fn handlers_module_no_longer_defines_process_handler() {
-    // Guard against re-inlining: the moved symbols must not be re-exported from api::handlers.
-    // (Compile-time: referencing the path must fail — enforced by a doc note, checked in review.)
+// NOTE: `test_api_state()` reuses the existing api-test ApiState builder.
+// If no such helper exists, the implementer adds a minimal one in a shared
+// test-support module rather than duplicating construction.
+
+#[tokio::test]
+async fn process_route_is_matched_by_rag_module() {
+    let app = xberg::api::rag::routes().with_state(test_api_state());
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/v1/process")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    // Route exists → not a 404. (Empty body may yield 400/415/422; all prove match.)
+    assert_ne!(resp.status(), StatusCode::NOT_FOUND);
 }
 ```
+
+**Fallback (only if `ApiState` genuinely cannot be constructed in a test):** replace the route test with a serde round-trip test on a moved type — deserialize a `ProcessRequest` JSON literal and assert its fields — and report in the task report that route coverage then rests on the Step 6 feature-matrix compile gate. Do **not** submit a test that asserts nothing.
 
 - [ ] **Step 2: Add the `process-api` feature and run test to confirm it fails to compile**
 
