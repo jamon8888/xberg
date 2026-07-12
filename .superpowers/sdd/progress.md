@@ -526,3 +526,14 @@ PR #17 reconciliation (this session): merged origin/main (1 trivial clippy-fix c
 # ============================================================
 # PROJECT A: ALL 6 TASKS COMPLETE. Ready for final whole-branch review.
 # ============================================================
+# ============================================================
+# FINAL WHOLE-BRANCH REVIEW (opus): 1 Important, 3 Minor findings
+#   Important: process-api never enabled by any build -> routes silently dropped -> FIXED
+#     (3ec2f50988: xberg-cli process-api passthrough feature, api stays upstream-clean)
+#   Minor: carry-patch note incomplete (pub(crate) visibility changes) -> FIXED (fe93cb7e9c)
+#   Minor: guard script blind spots -> deferred to Project C (CI formalization)
+#   Minor: prek unavailable -> pre-existing environment gap, no action possible
+#   Both fixes independently re-verified: cargo check -p xberg-cli --features api,process-api
+#   PASS (7m55s); cargo check -p xberg-cli --features api PASS; guard OK.
+# PROJECT A: COMPLETE. Ready to merge per review ("Ready to merge: With fixes" -> fixes applied).
+# ============================================================
