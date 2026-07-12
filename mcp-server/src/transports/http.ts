@@ -32,7 +32,7 @@ export async function startHttp(
   const sessions = new Map<string, InstanceType<typeof SSEServerTransport>>();
   const ui = createUiRoutes();
 
-const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+  const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     try {
       const url = new URL(req.url ?? "/", `http://${host}`);
 

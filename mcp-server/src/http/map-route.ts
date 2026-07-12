@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { mkdirSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 

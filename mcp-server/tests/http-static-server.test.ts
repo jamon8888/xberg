@@ -81,12 +81,12 @@ describe("http/static-server", () => {
 
   (platform === "win32" ? it.skip : it)("returns 403 for a symlink pointing outside the root directory", async () => {
     const outsideDir = mkdtempSync(join(tmpdir(), "xberg-ui-test-outside-"));
-    const outsideFile = join(outsideDir, "secret.txt");
-    writeFileSync(outsideFile, "secret-data");
-    const symlinkPath = join(dir, "evil-link.txt");
-    symlinkSync(outsideFile, symlinkPath);
-
     try {
+      const outsideFile = join(outsideDir, "secret.txt");
+      writeFileSync(outsideFile, "secret-data");
+      const symlinkPath = join(dir, "evil-link.txt");
+      symlinkSync(outsideFile, symlinkPath);
+
       const res = await fetch(`${baseUrl}/evil-link.txt`);
       expect(res.status).toBe(403);
     } finally {
