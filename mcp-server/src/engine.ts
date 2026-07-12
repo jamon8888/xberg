@@ -80,7 +80,18 @@ async function initCandleNer(engine: XbergEngine, cacheDir: string): Promise<voi
     const tokenizerJson = await resolveModelFile(dir, "tokenizer.json", repo);
     const encoderConfig = await resolveModelFile(dir, "encoder_config.json", repo);
     if (safetensors && tokenizerJson && encoderConfig) {
-      engine.initCandleNer(safetensors, tokenizerJson, encoderConfig);
+      // TYPE-ONLY STOPGAP (see https://github.com/jamon8888/xberg/issues/24):
+      // the checked-in xberg_wasm.d.ts predates the Rust `initCandleNer`
+      // bridge function and doesn't declare it at all, so `XbergEngine`
+      // has no such method in its generated types. This cast just keeps
+      // `tsc` green — it does not fix the underlying gap. The real fix is
+      // a wasm crate rebuild plus calling this as the free function the
+      // Rust side actually exports, not a method on `engine`.
+      (engine as unknown as { initCandleNer: (a: Uint8Array, b: Uint8Array, c: Uint8Array) => void }).initCandleNer(
+        safetensors,
+        tokenizerJson,
+        encoderConfig,
+      );
     } else {
       console.warn(
         "[engine] Candle NER model files not found; ingest() will fail until initCandleNer is called with model bytes.",
