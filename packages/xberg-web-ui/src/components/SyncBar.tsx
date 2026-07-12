@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge.js";
 export function SyncBar() {
   const { pendingCount, lastError } = useEngine();
   return (
-    <div className="flex items-center justify-end gap-2 border-b border-slate-200 px-4 py-2 text-sm">
+    <div className="flex items-center justify-end gap-2 border-b border-slate-200 px-4 py-2 text-sm" aria-live="polite">
       {lastError && (
         <Badge className="bg-red-100 text-red-700" role="alert">
           {lastError}

@@ -25,11 +25,11 @@ interface EngineProviderProps {
   baseUrl?: string;
   children: ReactNode;
   /** Test-only escape hatch — production callers never pass this. */
-  workerClient?: Pick<WorkerClient, "ingestFile">;
+  workerClient?: Pick<WorkerClient, "ingestFile" | "dispose">;
 }
 
 export function EngineProvider({ baseUrl: baseProp, children, workerClient }: EngineProviderProps) {
-  const clientRef = useRef<Pick<WorkerClient, "ingestFile"> | null>(workerClient ?? null);
+  const clientRef = useRef<Pick<WorkerClient, "ingestFile" | "dispose"> | null>(workerClient ?? null);
   const [ready, setReady] = useState(Boolean(workerClient));
   const [pendingCount, setPendingCount] = useState(0);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -42,6 +42,7 @@ export function EngineProvider({ baseUrl: baseProp, children, workerClient }: En
     clientRef.current = new WorkerClient(worker, baseUrl);
     setReady(true);
     return () => {
+      clientRef.current?.dispose?.();
       clientRef.current = null;
       setReady(false);
       worker.terminate();
@@ -59,6 +60,7 @@ export function EngineProvider({ baseUrl: baseProp, children, workerClient }: En
         setLastError(null);
         try {
           const entry = await clientRef.current.ingestFile(file, collection, passphrase);
+          setLastError(null);
           try {
             await putHistoryEntry(entry);
           } catch (persistErr) {

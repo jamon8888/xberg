@@ -53,9 +53,10 @@ function createHttpStore(onUpsert: (fullText: string) => void): VectorStoreInter
     retrieve: notSupported("retrieve"),
     collectionStats: notSupported("collectionStats"),
     async upsertDocument(collection: string, doc: DocumentRecord, chunks: ChunkRecord[]): Promise<string> {
-      if (chunks.length > 0 && chunks[0] && chunks[0].embedding.length !== EMBEDDING_DIM) {
+      const badChunk = chunks.find((c) => c.embedding.length !== EMBEDDING_DIM);
+      if (badChunk) {
         throw new Error(
-          `embedder produced ${chunks[0].embedding.length}-dim vectors, expected ${EMBEDDING_DIM} (EMBEDDING_DIM constant is stale — update it and the /collection embedding_dim together)`
+          `embedder produced ${badChunk.embedding.length}-dim vectors at ordinal ${badChunk.ordinal}, expected ${EMBEDDING_DIM} (EMBEDDING_DIM constant is stale — update it and the /collection embedding_dim together)`
         );
       }
       onUpsert(doc.full_text);
@@ -97,7 +98,7 @@ async function handleIngest(msg: IngestMessage): Promise<void> {
     const bytes = new Uint8Array(await file.arrayBuffer());
 
     post({ type: "progress", requestId, stage: "extract" });
-    const extracted = await xEngine.extract({ kind: "bytes", bytes: Array.from(bytes), filename }, undefined);
+    const extracted = await xEngine.extract({ kind: "bytes", bytes, filename }, undefined);
     const first = (extracted as { results?: Array<{ content: string; mimeType: string }> }).results?.[0];
     if (!first) throw new Error(`extraction produced no result for ${filename}`);
 

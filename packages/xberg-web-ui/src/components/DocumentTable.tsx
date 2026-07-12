@@ -27,18 +27,37 @@ const columns = [
 export function DocumentTable({ collection }: { collection: string }) {
   const [rows, setRows] = useState<IngestHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     void listHistory(collection)
-      .then(setRows)
+      .then((data) => {
+        if (!cancelled) {
+          setRows(data);
+          setError(null);
+        }
+      })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : String(err));
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
       });
+    return () => {
+      cancelled = true;
+    };
   }, [collection]);
 
   const table = useReactTable({ data: rows, columns, getCoreRowModel: getCoreRowModel() });
 
   if (error) return <p className="text-sm text-red-600">Failed to load documents: {error}</p>;
+  if (loading) return <p className="text-sm text-slate-500">Loading…</p>;
   if (rows.length === 0) return <p className="text-sm text-slate-500">No documents yet.</p>;
 
   return (

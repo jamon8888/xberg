@@ -19,7 +19,7 @@ function randomRequestId(): string {
  * own `requestId` gets a `result`/`error` message.
  */
 export class WorkerClient {
-  private readonly pending = new Map<string, { reject: (err: Error) => void }>();
+  private readonly pending = new Map<string, { reject: (err: Error) => void; onMessage: EventListener }>();
 
   constructor(
     private readonly worker: Worker,
@@ -27,11 +27,21 @@ export class WorkerClient {
   ) {
     this.worker.addEventListener("error", (ev: ErrorEvent) => {
       const err = new Error(`Worker error: ${ev.message}`);
-      for (const { reject } of this.pending.values()) {
+      for (const { reject, onMessage } of this.pending.values()) {
+        this.worker.removeEventListener("message", onMessage);
         reject(err);
       }
       this.pending.clear();
     });
+  }
+
+  dispose(reason?: string): void {
+    const err = new Error(reason ?? "worker disposed");
+    for (const { reject, onMessage } of this.pending.values()) {
+      this.worker.removeEventListener("message", onMessage);
+      reject(err);
+    }
+    this.pending.clear();
   }
 
   ingestFile(
@@ -59,7 +69,7 @@ export class WorkerClient {
         }
       };
 
-      this.pending.set(requestId, { reject });
+      this.pending.set(requestId, { reject, onMessage: onMessage as EventListener });
       this.worker.addEventListener("message", onMessage as EventListener);
 
       // `File` is structured-cloneable, so it can be posted directly —

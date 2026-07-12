@@ -19,12 +19,14 @@ export default function DocumentPage() {
   const { collection, id } = useParams<{ collection: string; id: string }>();
   const [entry, setEntry] = useState<IngestHistoryEntry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void getHistoryEntry(collection, id)
       .then(setEntry)
-      .catch(() => {
+      .catch((err) => {
         setEntry(null);
+        setError(err instanceof Error ? err.message : "Failed to load document");
       })
       .finally(() => {
         setLoading(false);
@@ -32,6 +34,7 @@ export default function DocumentPage() {
   }, [collection, id]);
 
   if (loading) return <main className="p-6">Loading…</main>;
+  if (error) return <main className="p-6 text-red-600">Failed to load document: {error}</main>;
   if (!entry) return <main className="p-6">Document not found.</main>;
   return (
     <main className="p-6">
