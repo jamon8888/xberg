@@ -66,6 +66,7 @@ export function createCollectionHandler(
 
       const result = await getStore().ensureCollection(parsed.data);
       if (typeof result === "string") {
+        console.error(`[collection-route] ensureCollection failed: ${result}`);
         const { status, clientMsg } = sanitizeError(result);
         res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: clientMsg }));
         return;
@@ -73,6 +74,7 @@ export function createCollectionHandler(
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ created: true }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[collection-route] unhandled error: ${msg}`);
       if (!res.headersSent) {
         const { status, clientMsg } = sanitizeError(msg);
         res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify({ error: clientMsg }));
