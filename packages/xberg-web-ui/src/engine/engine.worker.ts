@@ -148,12 +148,15 @@ async function handleIngest(msg: IngestMessage): Promise<void> {
 async function handleOcr(msg: OcrMessage): Promise<void> {
   try {
     const xEngine = await getEngine();
-    // `engine.ocr` returns the recognized text as a single string (no
-    // per-line geometry from the WASM OCR bridge), so split on newlines
-    // to recover lines; confidence is unavailable and defaults to 1.
-    const text = (await xEngine.ocr(msg.bytes, undefined)) as string;
-    const lines = text.split(/\r?\n/).map((t) => ({ text: t, confidence: 1 }));
-    post({ type: "ocrResult", requestId: msg.requestId, lines });
+    const result = (await xEngine.ocr(msg.bytes, undefined)) as {
+      text: string;
+      lines: Array<{
+        text: string;
+        confidence: number;
+        bbox?: { x: number; y: number; w: number; h: number };
+      }>;
+    };
+    post({ type: "ocrResult", requestId: msg.requestId, lines: result.lines });
   } catch (err) {
     post({ type: "error", requestId: msg.requestId, message: err instanceof Error ? err.message : String(err) });
   }
