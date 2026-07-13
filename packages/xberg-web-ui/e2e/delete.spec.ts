@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EMBEDDING_DIM } from "../src/lib/constants.js";
 import { serveStaticFile } from "../../../mcp-server/src/http/static-server.js";
+import { resolveUiSubPath } from "../../../mcp-server/src/http/ui-server.js";
 
 const OUT_DIR = join(fileURLToPath(new URL(".", import.meta.url)), "..", "out");
 
@@ -78,12 +79,18 @@ test("uploading a PII doc then deleting it via the UI removes it from the MCP st
     }
     if (req.method === "GET" && (url.pathname === "/ui" || url.pathname.startsWith("/ui/"))) {
       const subPath = url.pathname === "/ui" ? "/" : url.pathname.slice("/ui".length);
-      serveStaticFile(OUT_DIR, subPath, res);
+      serveStaticFile(OUT_DIR, resolveUiSubPath(OUT_DIR, subPath), res);
       return;
     }
     send(404, {});
   });
-  await new Promise<void>((resolve) => server.listen(8082, "127.0.0.1", resolve));
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(8082, "127.0.0.1", () => {
+      server.off("error", reject);
+      resolve();
+    });
+  });
 
   try {
     await page.goto("http://127.0.0.1:8082/ui/?token=test");
@@ -120,6 +127,8 @@ test("uploading a PII doc then deleting it via the UI removes it from the MCP st
     // The row disappears from the table once the delete resolves.
     await expect(page.getByText("contrat.pdf")).toHaveCount(0);
   } finally {
-    server.close();
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve()));
+    });
   }
 });

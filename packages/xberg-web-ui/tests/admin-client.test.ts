@@ -8,13 +8,23 @@ function jsonResponse(status: number, body: unknown): Response {
 describe("lib/admin-client", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("drop_collection posts to /admin?token and returns { dropped: true }", async () => {
+  it("drop_collection posts to /admin with a bearer header, no token in the URL, and returns { dropped: true }", async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { dropped: true }));
     vi.stubGlobal("fetch", fetchMock);
     const result = await postAdmin("http://x:8080", "tok", { op: "drop_collection", collection: "c1" });
     expect(result).toEqual({ dropped: true });
-    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toContain("/admin?token=tok");
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://x:8080/admin");
+    expect((init.headers as Record<string, string>)["Authorization"]).toBe("Bearer tok");
+  });
+
+  it("does not retry a failed drop_collection (destructive mutation)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(500, { error: "boom" }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      postAdmin("http://x:8080", "tok", { op: "drop_collection", collection: "c1" })
+    ).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("delete_documents returns { deleted: 2 }", async () => {

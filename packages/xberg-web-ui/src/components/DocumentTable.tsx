@@ -69,11 +69,20 @@ export function DocumentTable({ collection }: { collection: string }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    let cancelled = false;
+    setRows([]);
+    setError(null);
+    setSelected(new Set());
     void listHistory(collection)
-      .then(setRows)
+      .then((next) => {
+        if (!cancelled) setRows(next);
+      })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : String(err));
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
       });
+    return () => {
+      cancelled = true;
+    };
   }, [collection]);
 
   const rowSelection: RowSelectionState = Object.fromEntries(

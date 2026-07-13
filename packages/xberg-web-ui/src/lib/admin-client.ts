@@ -27,17 +27,20 @@ async function postWithRetry(url: string, init: RequestInit): Promise<Response> 
   return last!;
 }
 
+const MUTATING_OPS = new Set<AdminPayload["op"]>(["drop_collection", "delete_documents"]);
+
 export async function postAdmin(
   baseUrl: string,
   token: string,
   payload: AdminPayload
 ): Promise<AdminResult> {
-  const url = `${baseUrl.replace(/\/$/, "")}/admin?token=${encodeURIComponent(token)}`;
-  const res = await postWithRetry(url, {
+  const url = `${baseUrl.replace(/\/$/, "")}/admin`;
+  const init: RequestInit = {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
-  });
+  };
+  const res = MUTATING_OPS.has(payload.op) ? await fetch(url, init) : await postWithRetry(url, init);
   if (!res.ok) throw new Error(`admin failed (${res.status})`);
   return (await res.json()) as AdminResult;
 }

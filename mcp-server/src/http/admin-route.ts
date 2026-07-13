@@ -42,7 +42,11 @@ export function createAdminHandler(
     if (!parsed.success) { res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "invalid admin payload", issues: parsed.error.issues })); return; }
     const p = parsed.data;
     try {
-      if (p.op === "drop_collection") { await getStore().dropCollection(p.collection); res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ dropped: true })); }
+      if (p.op === "drop_collection") {
+        const err = await getStore().dropCollection(p.collection);
+        if (err) { res.writeHead(statusForError(err), { "Content-Type": "application/json" }).end(JSON.stringify({ error: err })); }
+        else { res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ dropped: true })); }
+      }
       else if (p.op === "delete_documents") { const deleted = await getStore().deleteDocuments(p.collection, p.external_ids); res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ deleted })); }
       else { const stats = await getStore().collectionStats(p.collection); res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(stats)); }
     } catch (err) { const msg = err instanceof Error ? err.message : String(err); res.writeHead(statusForError(msg), { "Content-Type": "application/json" }).end(JSON.stringify({ error: msg })); }

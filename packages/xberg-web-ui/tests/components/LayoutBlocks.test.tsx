@@ -14,6 +14,6 @@ describe("LayoutBlocks", () => {
         height={120}
       />
     );
-    expect(screen.getAllByTestId("layout-block").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByTestId("layout-block")).toHaveLength(2);
   });
 });

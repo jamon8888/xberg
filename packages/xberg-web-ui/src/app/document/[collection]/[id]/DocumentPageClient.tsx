@@ -1,5 +1,6 @@
 "use client";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import { getHistoryEntry } from "@/lib/ingest-history.js";
 import { getAuthToken } from "@/lib/auth-client.js";
 import { useEngine } from "@/providers/EngineProvider.js";
@@ -12,12 +13,20 @@ import type { IngestHistoryEntry, OcrLine } from "@/lib/types.js";
 const MCP_BASE_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL;
 
 export function DocumentPageClient({
-  collection,
-  id,
+  collection: collectionParam,
+  id: idParam,
 }: {
   collection: string;
   id: string;
 }) {
+  // Static export can only ever bake the placeholder shell's params into
+  // this component's props. For a real collection/id, the server falls
+  // back to serving that same shell (see ui-server.ts), so the true
+  // segments must be re-derived from the actual browser URL on the client
+  // instead of trusted from props.
+  const params = useParams<{ collection: string; id: string }>();
+  const collection = params?.collection ?? collectionParam;
+  const id = params?.id ?? idParam;
   const { ocrLayout } = useEngine();
   const [entry, setEntry] = useState<IngestHistoryEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +34,7 @@ export function DocumentPageClient({
   const [layoutLines, setLayoutLines] = useState<OcrLine[] | undefined>(undefined);
   const [viewerBusy, setViewerBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileUrlRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     void getHistoryEntry(collection, id)
@@ -37,13 +47,22 @@ export function DocumentPageClient({
       });
   }, [collection, id]);
 
+  useEffect(() => {
+    return () => {
+      if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
+    };
+  }, []);
+
   const onLoadFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
     setViewerBusy(true);
     try {
-      setFileUrl(URL.createObjectURL(file));
+      const nextUrl = URL.createObjectURL(file);
+      if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
+      fileUrlRef.current = nextUrl;
+      setFileUrl(nextUrl);
       const bytes = new Uint8Array(await file.arrayBuffer());
       setLayoutLines(await ocrLayout(bytes));
     } catch {

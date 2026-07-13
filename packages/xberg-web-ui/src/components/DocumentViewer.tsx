@@ -48,18 +48,20 @@ export function DocumentViewer({
     <div className="flex flex-col gap-4">
       <div className="min-h-[640px] overflow-hidden rounded border bg-background">
         {mime === "application/pdf" ? (
-          <PDFViewer src={fileUrl} />
+          <PDFViewer src={fileUrl} showUpload={false} />
         ) : mime === DOCX_MIME ? (
           <DocxViewerPreview
             src={fileUrl}
             isDark={false}
             onIsDarkChange={() => {}}
+            showUpload={false}
           />
         ) : isSpreadsheetMime(mime) ? (
           <XlsxViewerPreview
             src={fileUrl}
             isDark={false}
             onIsDarkChange={() => {}}
+            showUpload={false}
           />
         ) : (
           <div className="grid h-[640px] place-items-center p-6 text-center">

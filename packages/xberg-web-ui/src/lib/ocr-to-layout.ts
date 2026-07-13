@@ -1,6 +1,10 @@
 import type { OcrLine } from "./types.js";
 import type { ParsedOcrOutput } from "@/components/ui/layout-blocks";
 
+// Every block is assigned to page 1 with the caller-supplied `width`/`height`
+// because `OcrLine` carries no real page identity or per-page dimensions
+// (see the doc comment on `OcrLine` in lib/types.ts) — there is exactly one
+// page's worth of data to place today.
 export function toParsedOcrOutput(
   lines: OcrLine[],
   width = 1000,

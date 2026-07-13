@@ -51,7 +51,13 @@ export function DeleteDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setError(null);
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="destructive" disabled={count === 0}>
           Delete{count > 1 ? ` ${count}` : ""}

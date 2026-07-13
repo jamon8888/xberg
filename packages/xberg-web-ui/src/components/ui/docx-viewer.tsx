@@ -703,10 +703,6 @@ function DocxSidebarThumbnail({
 }) {
   return (
     <FileThumbnail
-      file={{
-        name: `${displayFileName} page ${pageNumber}`,
-        type: DOCX_MIME_TYPE,
-      }}
       previewAspectRatio={previewAspectRatio}
       previewClassName="rounded-md bg-white"
       previewContent={

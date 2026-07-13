@@ -2,13 +2,7 @@
 
 import * as React from "react"
 
-export type ThumbnailFile = {
-  name: string
-  type: string
-}
-
 export type FileThumbnailProps = {
-  file: ThumbnailFile | File
   className?: string
   previewAspectRatio?: number
   previewClassName?: string
@@ -24,8 +18,19 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 // Preview URLs that have completed a reveal this session. View/tab switches
 // remount thumbnails; URLs in this set render instantly instead of replaying
-// the blur-in, so only an image's first load animates.
+// the blur-in, so only an image's first load animates. Bounded so long
+// sessions with many distinct/transient object URLs don't grow it forever.
+const MAX_REVEALED_PREVIEW_IMAGE_URLS = 500
 const revealedPreviewImageUrls = new Set<string>()
+
+function markPreviewImageRevealed(url: string) {
+  revealedPreviewImageUrls.delete(url)
+  revealedPreviewImageUrls.add(url)
+  if (revealedPreviewImageUrls.size > MAX_REVEALED_PREVIEW_IMAGE_URLS) {
+    const oldest = revealedPreviewImageUrls.values().next().value
+    if (oldest !== undefined) revealedPreviewImageUrls.delete(oldest)
+  }
+}
 
 export function FileThumbnailLoadingOverlay() {
   return (
@@ -88,7 +93,7 @@ export function FileThumbnail({
 
       setFailedPreviewImageUrl(didLoad ? null : imageUrl)
       if (didLoad) {
-        revealedPreviewImageUrls.add(imageUrl)
+        markPreviewImageRevealed(imageUrl)
         cancelImageReveal()
         revealFrameRef.current = window.requestAnimationFrame(() => {
           revealFrameRef.current = window.requestAnimationFrame(() => {

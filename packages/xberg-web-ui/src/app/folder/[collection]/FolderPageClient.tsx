@@ -1,10 +1,16 @@
 "use client";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { useEngine } from "@/providers/EngineProvider.js";
 import { DocumentTable } from "@/components/DocumentTable.js";
 import { Input } from "@/components/ui/input.js";
 
-export function FolderPageClient({ collection }: { collection: string }) {
+export function FolderPageClient({ collection: collectionParam }: { collection: string }) {
+  // See DocumentPageClient: static export only bakes the placeholder shell's
+  // param into props, so the real collection must be re-derived from the
+  // actual browser URL once the client router has hydrated.
+  const params = useParams<{ collection: string }>();
+  const collection = params?.collection ?? collectionParam;
   const { ingestFile } = useEngine();
   const [passphrase, setPassphrase] = useState("");
 

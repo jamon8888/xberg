@@ -27,6 +27,14 @@ describe("http/admin-route", () => {
       expect(res.status).toBe(200); expect((await res.json())).toEqual({ dropped: true }); expect(called).toBe("c1");
     });
   });
+  it("drop_collection returns an error response when the store reports failure", async () => {
+    const store = fakeStore({ dropCollection: async () => "collection not found" });
+    await withServer(store, async (base) => {
+      const res = await fetch(`${base}/admin`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ op: "drop_collection", collection: "c1" }) });
+      expect(res.status).not.toBe(200);
+      expect((await res.json())).toEqual({ error: "collection not found" });
+    });
+  });
   it("delete_documents by external_ids returns the deleted count", async () => {
     let got: string[] = []; const store = fakeStore({ deleteDocuments: async (_c, ids) => { got = ids; return 2; } });
     await withServer(store, async (base) => {
