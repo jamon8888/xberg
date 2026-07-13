@@ -51,6 +51,10 @@ macos-intel = ["xberg/macos-intel-target"]
 ocr = ["xberg/ocr"]
 
 api = ["xberg/api"]
+# Fork-only: enables the /v1/process + rehydrate endpoints (requires the
+# fork-only xberg-doc-store crate). Not part of `api` so a plain upstream-
+# shaped `--features api` build stays free of fork dependencies.
+process-api = ["xberg/process-api"]
 mcp = ["xberg/mcp"]
 mcp-http = ["xberg/mcp-http"]
 embeddings = ["xberg/embeddings"]
