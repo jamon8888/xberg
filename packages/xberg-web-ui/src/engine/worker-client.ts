@@ -108,7 +108,7 @@ export class WorkerClient {
           reject(new Error(msg.message));
         }
       };
-      this.pending.set(requestId, { reject });
+      this.pending.set(requestId, { reject, onMessage: onMessage as EventListener });
       this.worker.addEventListener("message", onMessage as EventListener);
       this.worker.postMessage({ type: "ocr", requestId, bytes });
     });
