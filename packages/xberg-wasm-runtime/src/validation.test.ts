@@ -7,6 +7,7 @@ describe("validateInjectionDescriptor", () => {
 		const result = validateInjectionDescriptor({
 			embedder: { embed: method },
 			store: {
+				close: method,
 				ensureCollection: method,
 				dropCollection: method,
 				getCollection: method,

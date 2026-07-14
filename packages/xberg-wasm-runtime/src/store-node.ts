@@ -112,7 +112,7 @@ export async function createNodeVectorStore(config?: CacheConfig): Promise<NodeV
 		// database is on an older layout, then record the current version.
 		// `SCHEMA_SQL` uses `IF NOT EXISTS`, so re-applying is idempotent and
 		// never drops existing data.
-		if (Number(db.pragma("user_version")) < SCHEMA_VERSION) {
+		if (Number(db.pragma("user_version", { simple: true })) < SCHEMA_VERSION) {
 			db.exec(SCHEMA_SQL);
 			db.pragma(`user_version = ${SCHEMA_VERSION}`);
 		}

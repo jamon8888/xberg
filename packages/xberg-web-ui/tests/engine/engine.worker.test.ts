@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const ocrMock = vi.fn();
 
 vi.mock("@xberg-io/xberg-wasm", () => ({
+  default: vi.fn().mockResolvedValue(undefined),
   XbergEngine: class {
     constructor(_opts: unknown, _injections: unknown) {}
     async ocr(bytes: Uint8Array, opts: unknown): Promise<unknown> {
