@@ -1,3 +1,7 @@
+import { fileURLToPath } from "node:url";
+
+const wasmEnvStubPath = fileURLToPath(new URL("./src/lib/wasm-env-stub.js", import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
@@ -34,6 +38,10 @@ const nextConfig = {
         "@napi-rs/canvas": false,
         "better-sqlite3": false,
         "sqlite-vec": false,
+        // `@xberg-io/xberg-wasm`'s pkg/nodejs glue does `require("env")` for
+        // a WASM import module of that name -- see src/lib/wasm-env-stub.js
+        // for why and what happens if the stub turns out to be load-bearing.
+        env: wasmEnvStubPath,
       };
     }
     return config;
