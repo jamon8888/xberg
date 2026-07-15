@@ -1,6 +1,6 @@
 import { pipeline, env } from "@huggingface/transformers";
 import type { CacheConfig, EmbedderInterface } from "./types.js";
-import { selectModelBackend, createPipelineWithFallback } from "./backend.js";
+import { selectModelBackend, createPipelineWithFallback, LARGE_MODEL_SESSION_OPTIONS } from "./backend.js";
 import { configureTransformersEnvironment } from "./runtime-env.js";
 
 // Suppress remote-model fetching in CI once models are already cached locally.
@@ -32,7 +32,7 @@ export async function createEmbedder(config?: CacheConfig): Promise<EmbedderInte
 	const backend = await selectModelBackend(config);
 	console.debug(`[embedder] device=${backend.device} dtype=${backend.dtype} model=${modelId}`);
 	const extractor = await createPipelineWithFallback(
-		(b) => pipeline("feature-extraction", modelId, b),
+		(b) => pipeline("feature-extraction", modelId, { ...b, session_options: LARGE_MODEL_SESSION_OPTIONS }),
 		backend,
 		"embedder",
 		modelId,

@@ -1,4 +1,4 @@
-import { env, AutoModel } from "@huggingface/transformers";
+import { AutoModel } from "@huggingface/transformers";
 
 /**
  * Runtime detection of the best available ONNX Runtime Web backend.
@@ -82,11 +82,29 @@ export async function selectModelBackend(config?: { forceWasmBackend?: boolean }
 // downloaded model files, so this costs no extra network/bandwidth -- only
 // a second (cheap, already-warm) session construction when pipeline() loads
 // the same model again internally.
+//
+// graphOptimizationLevel: ORT's default ('all') runs its full graph
+// optimization pass (constant folding, operator fusion, layout transforms)
+// during InferenceSession creation -- documented ORT guidance is to disable
+// this for large models where session-creation time matters more than the
+// runtime speedup, since the pass itself scales with graph size. For a
+// ~550MB single-file model (bge-m3) this pass alone was the suspected
+// remaining cause of multi-minute session creation in this environment
+// after WASM-env priming already eliminated the concurrent-load race.
+// `env.backends.onnx.wasm.initTimeout` (default 0 = no timeout) is
+// documented as covering WASM *environment* init specifically, not
+// per-session InferenceSession.create() -- there is no lower-level API to
+// bound the latter, so this is the actual lever available.
+export const LARGE_MODEL_SESSION_OPTIONS = { graphOptimizationLevel: "disabled" as const };
+
 let onnxRuntimeWarmPromise: Promise<void> | null = null;
 
 async function primeOnnxRuntime(modelId: string, backend: ModelBackend): Promise<void> {
 	if (backend.device !== "wasm" && backend.device !== "webgpu") return;
-	onnxRuntimeWarmPromise ??= AutoModel.from_pretrained(modelId, backend)
+	onnxRuntimeWarmPromise ??= AutoModel.from_pretrained(modelId, {
+		...backend,
+		session_options: LARGE_MODEL_SESSION_OPTIONS,
+	})
 		.then(() => undefined)
 		.catch((err: unknown) => {
 			console.warn("[backend] ORT warm-up failed (continuing anyway, real pipeline() load may still hang):", err);
@@ -94,18 +112,26 @@ async function primeOnnxRuntime(modelId: string, backend: ModelBackend): Promise
 	return onnxRuntimeWarmPromise;
 }
 
-// Belt-and-suspenders: if pipeline() somehow still hangs despite priming
-// (e.g. a genuinely different model architecture triggers a fresh issue),
-// don't hang the caller forever -- retry once forced onto onnxruntime-web's
-// single-threaded, non-proxied WASM path (no worker pool to bootstrap at
-// all), which sidesteps threading-related stalls entirely as a last resort.
-const PIPELINE_INIT_TIMEOUT_MS = 30_000;
+// NOTE: an earlier version of this function retried on timeout by mutating
+// env.backends.onnx.wasm.numThreads/proxy and calling createPipeline again.
+// That retry was a no-op -- see the comment on numThreads in runtime-env.ts:
+// onnxruntime-web caches its "wasm" backend init Promise on the FIRST call
+// and every later call just awaits that same Promise, ignoring config
+// mutated afterward. Single-threaded WASM (no pthread worker pool to
+// bootstrap, the actual stall-prone step) is now forced BEFORE the first
+// init in configureTransformersEnvironment, so there is nothing left for a
+// runtime retry to fix -- a stall past this point is a genuinely different
+// problem (e.g. WASM compile time for a very large model on constrained
+// hardware) that awaiting the same Promise for longer, not retrying it,
+// actually addresses. This timeout is diagnostic only: it logs so a slow
+// load is visible instead of silent, without abandoning the real result.
+const PIPELINE_INIT_WARN_MS = 30_000;
 
 /**
  * Create a transformers.js pipeline, priming onnxruntime-web's WASM
  * environment first to avoid pipeline()'s internal concurrent-load race
- * (see comment above), with a single-threaded-WASM retry as a last-resort
- * safety net if init still doesn't complete in time.
+ * (see comment above). Logs a warning if init is taking unusually long, but
+ * always resolves to the real pipeline result rather than abandoning it.
  */
 export async function createPipelineWithFallback<T>(
 	createPipeline: (backend: ModelBackend) => Promise<T>,
@@ -119,25 +145,18 @@ export async function createPipelineWithFallback<T>(
 
 	await primeOnnxRuntime(modelId, backend);
 
-	const timeout = new Promise<"timeout">((resolve) => {
-		setTimeout(() => resolve("timeout"), PIPELINE_INIT_TIMEOUT_MS);
-	});
+	const warnTimer = setTimeout(() => {
+		console.warn(
+			`[backend] ${label} pipeline init exceeded ${PIPELINE_INIT_WARN_MS}ms on device=${backend.device}` +
+				" despite priming and single-threaded WASM -- still waiting (large models can legitimately take a while to compile)",
+		);
+	}, PIPELINE_INIT_WARN_MS);
 
-	const result = await Promise.race([createPipeline(backend), timeout]);
-	if (result !== "timeout") {
-		return result;
+	try {
+		return await createPipeline(backend);
+	} finally {
+		clearTimeout(warnTimer);
 	}
-
-	console.warn(
-		`[backend] ${label} pipeline init exceeded ${PIPELINE_INIT_TIMEOUT_MS}ms on device=${backend.device}` +
-			" despite priming -- retrying on single-threaded WASM as a last resort",
-	);
-	const wasmConfig = env.backends?.onnx?.wasm as { numThreads?: number; proxy?: boolean } | undefined;
-	if (wasmConfig) {
-		wasmConfig.numThreads = 1;
-		wasmConfig.proxy = false;
-	}
-	return createPipeline({ device: "wasm", dtype: "q8" });
 }
 
 export function detectBackend(): OnnxBackend {
