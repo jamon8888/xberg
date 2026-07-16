@@ -7,6 +7,11 @@ on:
       - "mcp-server/**"
       - "crates/xberg-rag/**"
       - "crates/xberg-rag-node/**"
+      - "crates/xberg-node/**"
+      - "crates/xberg-wasm/**"
+      - "packages/xberg-web-ui/**"
+      - "packages/xberg-wasm-runtime/**"
+      - "docker/Dockerfile.mcp-server"
       - ".github/workflows/ci-mcp.yaml"
   pull_request:
     branches: [main, "feature/**", "fix/**"]
@@ -14,6 +19,11 @@ on:
       - "mcp-server/**"
       - "crates/xberg-rag/**"
       - "crates/xberg-rag-node/**"
+      - "crates/xberg-node/**"
+      - "crates/xberg-wasm/**"
+      - "packages/xberg-web-ui/**"
+      - "packages/xberg-wasm-runtime/**"
+      - "docker/Dockerfile.mcp-server"
       - ".github/workflows/ci-mcp.yaml"
   workflow_dispatch:
 
@@ -142,3 +152,107 @@ jobs:
 
       - name: cargo clippy
         run: cargo clippy -p xberg-rag -p xberg-rag-node -- -D warnings
+
+  mcp-docker-smoke:
+    # Functionally builds AND runs docker/Dockerfile.mcp-server end-to-end.
+    # Uses TARGET=x86_64-unknown-linux-musl (not the aarch64 default the
+    # Dockerfile deploys with) on purpose: this ubuntu-latest runner is
+    # amd64 and cannot execute an aarch64 binary, so an arm64-target image
+    # could be built here but never actually started to prove it works.
+    # x86_64 exercises the exact same COPY/npm-ci/file: dependency assembly
+    # logic — the part most likely to break — so it stands in for the real
+    # deployment target for functional verification. See mcp-docker-arm64
+    # below for the aarch64-specific check this can't cover.
+    name: MCP Docker image build + smoke test (linux/x64 musl)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jamon8888/actions/free-disk-space-linux@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile.mcp-server
+          push: false
+          load: true
+          tags: xberg-mcp-server:ci
+          build-args: TARGET=x86_64-unknown-linux-musl
+          cache-from: type=gha,scope=ci-mcp-docker-x64
+          cache-to: type=gha,mode=max,scope=ci-mcp-docker-x64
+
+      - name: Start container
+        run: |
+          # -i keeps stdin open: mcp-server/src/index.ts connects a
+          # StdioServerTransport before starting the HTTP transport, and
+          # Docker closes stdin by default without -i, which some MCP SDK
+          # transport implementations treat as an immediate disconnect.
+          docker run -d -i --name mcp-smoke \
+            -e XBERG_MCP_UI_TOKEN=ci-smoke-test-token \
+            -p 8080:8080 \
+            xberg-mcp-server:ci
+
+      - name: Wait for /health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/health; then
+              echo "healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::mcp-server did not become healthy within 60s"
+          exit 1
+
+      - name: Container logs
+        if: always()
+        run: docker logs mcp-smoke || true
+
+      - name: Clean up
+        if: always()
+        run: docker rm -f mcp-smoke || true
+
+  mcp-docker-arm64:
+    # Cross-compiles the napi-builder stage for the real deployment target
+    # (aarch64-unknown-linux-musl, e.g. Oracle Ampere A1) and checks the
+    # resulting .node artifacts are well-formed ARM64 ELF binaries. Doesn't
+    # run them — an amd64 runner can't execute aarch64 machine code without
+    # QEMU, and this repo's existing arm64 NAPI builds (see
+    # node-bindings-musl in .github/workflows/publish.yaml) don't use QEMU
+    # either, relying on cargo's native cross-compilation support instead.
+    name: MCP native addons cross-compile (linux/arm64 musl)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jamon8888/actions/free-disk-space-linux@v1
+
+      - name: Build napi-builder stage
+        run: |
+          docker build \
+            --target napi-builder \
+            -f docker/Dockerfile.mcp-server \
+            --build-arg TARGET=aarch64-unknown-linux-musl \
+            -t xberg-mcp-napi-arm64:ci \
+            .
+
+      - name: Verify artifact architecture
+        run: |
+          docker run --rm xberg-mcp-napi-arm64:ci sh -c '
+            set -e
+            for f in /build/*.node; do
+              echo "=== $f ==="
+              file "$f"
+              file "$f" | grep -q "ARM aarch64" || { echo "::error::$f is not an ARM aarch64 binary"; exit 1; }
+            done
+          '
