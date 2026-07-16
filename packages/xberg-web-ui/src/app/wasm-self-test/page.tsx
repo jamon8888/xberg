@@ -23,9 +23,13 @@ export default function WasmSelfTestPage() {
         // (public/ort/, populated by scripts/copy-ort-dist.mjs). The CDN
         // default hangs forever on crossOriginIsolated pages: ORT's threaded
         // runtime can't spawn its pthread workers from a cross-origin URL.
+        // nerBackend: "candle" activates the real in-binary Candle GLiNER2
+        // zero-shot NER backend (~1.24GB one-time download) instead of the
+        // fixed-label transformers.js bert-base-NER pipeline.
         const injection = await createXbergRuntimeFactory({
           forceWasmBackend: true,
           wasmPaths: "/ui/ort/",
+          nerBackend: "candle",
         });
         setStatus("stage:factory-done");
 
@@ -49,7 +53,18 @@ export default function WasmSelfTestPage() {
           setStatus(`ERR embedder dim=${dim} expected 1024`);
           return;
         }
-        setStatus(`OK extract_len=${content.length} embed_dim=${dim}`);
+        setStatus(`stage:embedded dim=${dim}`);
+
+        // Exercise the real in-binary Candle GLiNER2 zero-shot NER backend
+        // (injection.ner is absent when nerBackend: "candle" succeeded, so
+        // this reaches the wasm engine's own resolve_ner fallback, not the
+        // transformers.js pipeline).
+        const entities = (await engine.ner(sample, {
+          categories: ["person", "email"],
+        })) as Array<{ category: string; text: string }>;
+        const entitySummary = entities.map((e) => `${e.category}:${e.text}`).join(",");
+
+        setStatus(`OK extract_len=${content.length} embed_dim=${dim} ner=${entities.length}[${entitySummary}]`);
       } catch (e) {
         setStatus("ERR " + (e instanceof Error ? e.stack || e.message : String(e)));
       }

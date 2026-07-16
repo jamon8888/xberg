@@ -279,4 +279,16 @@ export interface CacheConfig {
     ner?: string;
     ocr?: string;
   };
+  /**
+   * NER backend selection. "transformers" (default) uses transformers.js'
+   * `bert-base-NER` (fixed PER/ORG/LOC/MISC labels, works everywhere).
+   * "candle" downloads and activates the in-binary Candle GLiNER2 backend
+   * (`crates/xberg-gliner-candle`, real zero-shot NER with arbitrary
+   * labels) via `initCandleNer` -- browser-only, and a genuinely large
+   * (~1.24GB) one-time download, so this is opt-in rather than a silent
+   * default: callers that want it must ask for it explicitly.
+   */
+  nerBackend?: "transformers" | "candle";
+  /** Override the pinned GLiNER2 PII model's base URL (candle backend only). */
+  candleNerModelUrl?: string;
 }

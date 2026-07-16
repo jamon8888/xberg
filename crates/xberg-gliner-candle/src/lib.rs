@@ -17,6 +17,7 @@ mod heads;
 mod lora;
 mod model;
 mod pipeline;
+mod streaming_load;
 
 pub use error::{GlinerCandleError, Result};
 pub use model::Gliner2Candle;

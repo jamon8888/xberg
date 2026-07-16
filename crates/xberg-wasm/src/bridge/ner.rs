@@ -167,11 +167,26 @@ impl NerBackend for JsNerBridge {
     }
 }
 
+/// Adapter that wraps the in-binary Candle GLiNER2 backend (initialized via
+/// `initCandleNer`) as a [`NerBackend`], for `resolve_ingest_ner`. Thin
+/// delegation, matching [`JsNerBridge`]'s shape — needed because
+/// `CandleBackend: NerBackend` is implemented on the bare type, not on
+/// `Arc<CandleBackend>` (what [`get_candle_ner`] returns), so `Box::new`
+/// can't coerce the `Arc` directly into a `Box<dyn NerBackend>`.
+struct CandleNerBridge(std::sync::Arc<CandleBackend>);
+
+#[async_trait(?Send)]
+impl NerBackend for CandleNerBridge {
+    async fn detect(&self, text: &str, categories: &[EntityCategory]) -> xberg::Result<Vec<Entity>> {
+        self.0.detect(text, categories).await
+    }
+}
+
 /// Resolve the best NER backend for `ingest()`, preferring the injected JS
 /// bridge when available, falling back to the in-binary Candle backend.
 ///
-/// Returns `Ok(Some(backend))` if NER is available, `Ok(None)` only if
-/// both are unavailable (caller should error), or `Err` on init failure.
+/// Returns `Some(backend)` if NER is available, `None` only if both are
+/// unavailable (caller should error).
 pub(crate) fn resolve_ingest_ner(
     injected: Option<&js_sys::Object>,
     timeout_ms: u32,
@@ -181,8 +196,15 @@ pub(crate) fn resolve_ingest_ner(
     if let Some(obj) = injected {
         return Some(Box::new(JsNerBridge::new(obj.clone(), timeout_ms)));
     }
-    // Fall back to the Candle backend if initCandleNer was called.
-    None
+    // Fall back to the Candle backend if initCandleNer was called. Previously
+    // this branch unconditionally returned None despite the doc comment
+    // promising a Candle fallback -- confirmed dead code (get_candle_ner()
+    // was never called here at all) while wiring nerBackend: "candle" into
+    // the real production ingest path (engine.worker.ts), where omitting
+    // `ner` from the injection descriptor to activate Candle would otherwise
+    // silently leave document ingestion with NO NER backend at all, breaking
+    // ingest()'s mandatory PII redaction step.
+    get_candle_ner().map(|backend| Box::new(CandleNerBridge(backend)) as Box<dyn NerBackend>)
 }
 
 /// Convert a Display error into a JsValue suitable for propagation.

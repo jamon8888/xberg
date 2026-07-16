@@ -30,8 +30,23 @@ ort-dynamic = ["xberg-gliner/ort-dynamic"]
 candle-core = { workspace = true }
 candle-nn = { workspace = true }
 candle-transformers = { workspace = true }
+# Direct F32->F16 byte-level conversion in streaming_load.rs (avoids
+# materializing an intermediate F32 candle Tensor for large tensors on
+# wasm32, see that file's module doc) needs the same `half::f16` type
+# candle-core's F16 dtype uses internally. Pinned to match candle-core
+# 0.11's transitive `half` version (see Cargo.lock) so `Tensor::from_vec`
+# accepts the Vec<half::f16> directly.
+half = "2.7"
 ndarray = "0.17"
-safetensors = { workspace = true }
+# NOT `{ workspace = true }` (the workspace-wide alias pins 0.4, an old,
+# semver-incompatible version other crates need) -- this crate's streaming
+# loader (src/streaming_load.rs) must resolve to the SAME safetensors
+# version+instance candle-core uses internally (0.8.0, patched at the
+# workspace root via [patch.crates-io] for the wasm32 overflow fix), since
+# candle_core::safetensors::Load is only implemented for THAT version's
+# TensorView type. A `{ workspace = true }` 0.4 dependency here would be a
+# distinct crate instance/type, breaking `Load::load(&view, ..)` calls.
+safetensors = "0.8"
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

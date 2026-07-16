@@ -29,7 +29,7 @@ export function CreateFolderDialog({ baseUrl, onCreated }: { baseUrl: string; on
 
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button>New folder</Button>
       </DialogTrigger>
       <DialogContent>
@@ -46,7 +46,7 @@ export function CreateFolderDialog({ baseUrl, onCreated }: { baseUrl: string; on
           </p>
         )}
         <DialogFooter>
-          <DialogClose>
+          <DialogClose asChild>
             <Button variant="outline" disabled={busy}>
               Cancel
             </Button>

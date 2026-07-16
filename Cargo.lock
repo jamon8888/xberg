@@ -1029,8 +1029,6 @@ dependencies = [
 [[package]]
 name = "candle-nn"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eaa10b6ccc365b33210ce404fbf45e60d3e0bdac1004463cf1052e6ee1c1739a"
 dependencies = [
  "accelerate-src",
  "candle-core",
@@ -1049,8 +1047,6 @@ dependencies = [
 [[package]]
 name = "candle-transformers"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bcbbf7ff00ff6fe2af22b93600195917fe90e90ff48424a140d1a926c44b1c1"
 dependencies = [
  "accelerate-src",
  "byteorder",
@@ -7392,8 +7388,6 @@ dependencies = [
 [[package]]
 name = "safetensors"
 version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79b079b829cb27a1c3c374341345ed2e8b2c0c839034522cee576c140bd7f846"
 dependencies = [
  "hashbrown 0.16.1",
  "libc",
@@ -10692,8 +10686,9 @@ dependencies = [
  "candle-core",
  "candle-nn",
  "candle-transformers",
+ "half",
  "ndarray 0.17.2",
- "safetensors 0.4.5",
+ "safetensors 0.8.0",
  "serde",
  "serde_json",
  "tempfile",

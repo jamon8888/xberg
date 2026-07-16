@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.0.0",
+    "@xberg-io/xberg-wasm": "file:../../crates/xberg-wasm",
     "better-sqlite3": "^12.11.1",
     "onnxruntime-web": "^1.18.0",
     "ppu-paddle-ocr": "^6.0.0",

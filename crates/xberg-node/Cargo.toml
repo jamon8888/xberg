@@ -1,3 +1,16 @@
+# Standalone package, not a workspace member: napi-rs's `napi build` runs
+# `cargo metadata`/`cargo build` from this directory directly, and cargo
+# otherwise walks up the directory tree looking for a `[workspace]` --
+# without this empty table it picks up whichever ancestor Cargo.toml it
+# finds first (the repo root's workspace, or in a git worktree checkout,
+# possibly the wrong repo's Cargo.toml further up), erroring that this
+# package isn't a declared member. An empty `[workspace]` here makes this
+# manifest its own workspace root. Unlike `crates/xberg-rag-node` (a real
+# workspace member, since its deps use `{ workspace = true }` aliases),
+# this crate's `xberg` dependency is a plain `path = "../xberg"` -- it was
+# never meant to share the root workspace's resolver/patch set.
+[workspace]
+
 [package]
 name = "xberg-node"
 version = "1.0.0-rc.5"

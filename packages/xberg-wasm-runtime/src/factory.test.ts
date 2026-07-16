@@ -5,6 +5,7 @@ import * as embedderModule from "./embedder";
 import * as storeModule from "./store";
 import * as nerModule from "./ner";
 import * as ocrModule from "./ocr";
+import * as candleNerModule from "./candle-ner";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -141,6 +142,45 @@ describe("factory", () => {
 			await expect(createXbergRuntimeFactory()).rejects.toThrow("[factory] vector store initialization failed");
 		} finally {
 			spy.mockRestore();
+		}
+	}, 120_000);
+
+	it("nerBackend: candle omits injected NER so the engine falls through to Candle", async () => {
+		// candle-ner.ts's real initCandleNerBackend needs a browser + the
+		// compiled wasm binary + a ~1.24GB download -- none available here.
+		// Mock it to verify factory.ts's own wiring: on success, `ner` must be
+		// absent from the descriptor (resolve_ner only falls back to Candle
+		// when it receives no injected object) and createNer must not run.
+		const candleSpy = vi.spyOn(candleNerModule, "initCandleNerBackend").mockResolvedValue(undefined);
+		const nerSpy = vi.spyOn(nerModule, "createNer");
+
+		try {
+			const injection = await createXbergRuntimeFactory({ nerBackend: "candle" });
+			expect(candleSpy).toHaveBeenCalledTimes(1);
+			expect(nerSpy).not.toHaveBeenCalled();
+			expect(injection.ner).toBeUndefined();
+			await injection.store.close();
+		} finally {
+			candleSpy.mockRestore();
+			nerSpy.mockRestore();
+		}
+	}, 120_000);
+
+	it("falls back to transformers.js NER when Candle initialization fails", async () => {
+		const candleSpy = vi
+			.spyOn(candleNerModule, "initCandleNerBackend")
+			.mockRejectedValue(new Error("candle-ner is browser-only"));
+
+		try {
+			const injection = await createXbergRuntimeFactory({
+				nerBackend: "candle",
+				models: { ner: "Xenova/bert-base-NER" },
+			});
+			expect(candleSpy).toHaveBeenCalledTimes(1);
+			expect(injection.embedder).toBeDefined();
+			await injection.store.close();
+		} finally {
+			candleSpy.mockRestore();
 		}
 	}, 120_000);
 });

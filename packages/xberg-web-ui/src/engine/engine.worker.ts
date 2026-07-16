@@ -101,7 +101,13 @@ async function getEngine(): Promise<XbergEngine> {
     // (public/ort/, populated by scripts/copy-ort-dist.mjs). The CDN default
     // hangs forever on crossOriginIsolated pages: ORT's threaded runtime
     // can't spawn its pthread workers from a cross-origin URL.
-    const injection = await createXbergRuntimeFactory({ wasmPaths: "/ui/ort/" });
+    // nerBackend: "candle" activates the real in-binary Candle GLiNER2
+    // zero-shot PII backend (crates/xberg-gliner-candle) instead of
+    // transformers.js's fixed-label bert-base-NER, so document ingestion's
+    // mandatory PII redaction step (xEngine.ingest() below) uses real PII
+    // detection. Falls back to bert-base-NER automatically if the ~1.24GB
+    // download or in-browser load fails (see factory.ts).
+    const injection = await createXbergRuntimeFactory({ wasmPaths: "/ui/ort/", nerBackend: "candle" });
     injection.store = createHttpStore((fullText) => {
       lastRedactedFullText = fullText;
     });
