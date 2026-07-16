@@ -1,0 +1,51 @@
+name: xberg-mcp
+
+services:
+  mcp-server:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.mcp-server
+      args:
+        TARGET: ${NAPI_TARGET:-aarch64-unknown-linux-musl}
+    image: xberg-mcp-server:local
+    restart: unless-stopped
+    # main() in mcp-server/src/index.ts connects a StdioServerTransport before
+    # starting the HTTP transport. Docker closes stdin by default when not run
+    # with `-i`; keep it open so that first connect() never sees an EOF.
+    stdin_open: true
+    environment:
+      XBERG_MCP_HOST: "0.0.0.0"
+      XBERG_MCP_PORT: "8080"
+      XBERG_CACHE_DIR: "/data/cache"
+      XBERG_STORE_PATH: "/data/store/store.sqlite3"
+      # Fixed on purpose: createUiRoutes() (mcp-server/src/http/ui-server.ts)
+      # generates a random token on every process start unless this is set.
+      # Pin it so /ui, /sse, /ingest, /map, /collection, /admin all keep
+      # working across container restarts without re-fetching a new token
+      # from logs each time.
+      XBERG_MCP_UI_TOKEN: "${XBERG_MCP_UI_TOKEN:?set a fixed token in .env — see README}"
+      HF_TOKEN: "${HF_TOKEN:-}"
+    volumes:
+      - xberg-data:/data
+    # Not published to the host — cloudflared reaches it over the compose
+    # network by service name. Uncomment to also expose it directly (needed
+    # only if you skip the tunnel and terminate TLS yourself instead).
+    # ports:
+    #   - "8080:8080"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?set the tunnel token in .env — see README}
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+
+volumes:
+  xberg-data:

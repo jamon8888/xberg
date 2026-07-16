@@ -49,6 +49,18 @@ docker build -f docker/Dockerfile.core -t xberg:core .
 docker build -f docker/Dockerfile.full -t xberg:full .
 ```
 
+### 3. MCP Server Image (`Dockerfile.mcp-server`)
+
+**Base:** node:22-alpine (musl)
+**Contains:** the TypeScript `mcp-server/` (extraction, RAG, PII redaction tools) plus the statically-exported `xberg-web-ui`, served together on one port.
+**When to use:** self-hosting the MCP server + web UI as a single deployable unit — see [`docker/oracle/README.md`](oracle/README.md) for a full Oracle Cloud Always Free deployment using this image.
+
+```bash
+docker build -f docker/Dockerfile.mcp-server --build-arg TARGET=aarch64-unknown-linux-musl -t xberg-mcp-server .
+```
+
+This is unrelated to the Core/Full images' built-in `mcp` CLI mode above — those wrap the Rust `xberg-cli` binary's own API/MCP server; `Dockerfile.mcp-server` builds the separate fork-local TypeScript server in `mcp-server/`.
+
 ## Size Comparison
 
 | Component            | Core           | Full           | Difference        |
