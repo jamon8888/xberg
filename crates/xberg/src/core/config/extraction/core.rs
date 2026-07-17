@@ -772,6 +772,13 @@ mod tests {
     }
 
     #[test]
+    fn test_default_extraction_timeout_is_bounded() {
+        // Untrusted input must always be bounded, regardless of the
+        // tokio-runtime feature (see CodeRabbit blocking item #3).
+        assert_eq!(default_extraction_timeout(), Some(60));
+    }
+
+    #[test]
     fn test_effective_disable_ocr_ocr_enabled_true_does_not_disable() {
         let config = ExtractionConfig {
             ocr: Some(OcrConfig {
