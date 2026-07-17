@@ -37,14 +37,23 @@ export function DocumentPageClient({
   const fileUrlRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+
     void getHistoryEntry(collection, id)
-      .then(setEntry)
+      .then((res) => {
+        if (active) setEntry(res);
+      })
       .catch(() => {
-        setEntry(null);
+        if (active) setEntry(null);
       })
       .finally(() => {
-        setLoading(false);
+        if (active) setLoading(false);
       });
+
+    return () => {
+      active = false;
+    };
   }, [collection, id]);
 
   useEffect(() => {
@@ -63,6 +72,7 @@ export function DocumentPageClient({
       if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
       fileUrlRef.current = nextUrl;
       setFileUrl(nextUrl);
+      setLayoutLines(undefined);
       const bytes = new Uint8Array(await file.arrayBuffer());
       setLayoutLines(await ocrLayout(bytes));
     } catch {
