@@ -38,7 +38,9 @@ RUN apk add --no-cache \
     apk add --no-cache \
         gcc g++ libstdc++ libstdc++-dev \
         nodejs npm libssl3 libcrypto3 \
-        onnxruntime-dev libheif-dev libde265-dev aom-dev x265-dev dav1d-dev
+        onnxruntime-dev libheif-dev libde265-dev aom-dev x265-dev dav1d-dev && \
+    apk add --no-cache \
+        cross-aarch64-linux-musl-gcc cross-aarch64-linux-musl-g++
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --default-toolchain "${RUST_TOOLCHAIN}" --component rust-src
@@ -70,10 +72,14 @@ COPY crates/xberg-rag-node/ crates/xberg-rag-node/
 # dropping them).
 RUN sed -i '/xberg-py/d; /xberg_rb/d; /xberg-cli/d; /xberg-jni/d; /xberg-php/d; /xberg_rustler/d; /xberg_nif/d; /packages\/dart\/rust/d; /packages\/swift\/rust/d; /"crates\/xberg-wasm"/d; /^\[profile\.release\.package\.xberg-wasm\]$/,$d; /benchmark-harness/d; /e2e-generator/d; /snippet-runner/d; /e2e\/rust/d' Cargo.toml
 
-ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=gcc
+# Use a real aarch64-linux-musl cross-toolchain for the ARM64 target instead of
+# the host gcc/g++, which produces glibc-linked objects that won't run on musl.
+# x86_64 keeps host gcc (the runner is amd64 glibc, and the x86_64-musl target
+# is only used in CI's smoke build, not the deployed ARM64 image).
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
 ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=gcc
-ENV CC_aarch64_unknown_linux_musl=gcc
-ENV CXX_aarch64_unknown_linux_musl=g++
+ENV CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc
+ENV CXX_aarch64_unknown_linux_musl=aarch64-linux-musl-g++
 ENV CC_x86_64_unknown_linux_musl=gcc
 ENV CXX_x86_64_unknown_linux_musl=g++
 
@@ -207,6 +213,30 @@ COPY --from=ts-builder /repo/crates/xberg-wasm/package.json crates/xberg-wasm/pa
 COPY --from=ts-builder /repo/crates/xberg-wasm/pkg crates/xberg-wasm/pkg
 COPY --from=ts-builder /repo/packages/xberg-wasm-runtime/package.json packages/xberg-wasm-runtime/package.json
 COPY --from=ts-builder /repo/packages/xberg-wasm-runtime/dist packages/xberg-wasm-runtime/dist
+
+# The xberg native addons are dynamically linked against ONNX Runtime
+# (ORT_PREFER_DYNAMIC_LINK=1 in the napi-builder stage), so the shared
+# library must be present at runtime. Carry it over from the builder stage
+# (onnxruntime-dev installs libonnxruntime.so under /usr/lib) and fail the
+# image build if it is missing or if any final .node addon can't resolve it.
+COPY --from=napi-builder /usr/lib/libonnxruntime.so /usr/lib/libonnxruntime.so
+ENV LD_LIBRARY_PATH=/usr/lib:${LD_LIBRARY_PATH}
+
+RUN if [ ! -f /usr/lib/libonnxruntime.so ]; then \
+      echo "::error::libonnxruntime.so missing from runtime image — native addons will fail to load"; \
+      exit 1; \
+    fi && \
+    for f in crates/xberg-node/*.node crates/xberg-rag-node/*.node; do \
+      [ -e "$f" ] || continue; \
+      if ! (ldd "$f" 2>/dev/null | grep -q "libonnxruntime.so" || \
+            readelf -d "$f" 2>/dev/null | grep -q "libonnxruntime.so"); then \
+        echo "::warning::$f does not reference libonnxruntime.so (may be statically linked — ignoring)"; \
+      fi; \
+      if ! ldd "$f" >/dev/null 2>&1; then \
+        echo "::error::$f has unresolved shared-library dependencies"; \
+        exit 1; \
+      fi; \
+    done
 
 RUN mkdir -p /data/cache /data/store && chown -R xberg:xberg /repo /data
 
