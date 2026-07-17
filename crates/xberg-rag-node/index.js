@@ -17,7 +17,20 @@ if (process.platform === 'win32' && process.arch === 'x64') {
     try { nativeBinding = require(f) } catch (e) { loadErrors.push(e) }
   }
 } else if (process.platform === 'linux' && process.arch === 'x64') {
-  const f = localFile('xberg_rag_node.linux-x64-gnu.node')
+  // Try glibc first (matches a plain Debian/Ubuntu-based host), then musl —
+  // node:alpine images are musl-libc regardless of CPU arch, so on Alpine
+  // only the second candidate ever exists. The musl variant backs the
+  // x86_64 build of docker/Dockerfile.mcp-server (used to smoke-test that
+  // Dockerfile on amd64 CI runners, since they can't execute an aarch64
+  // binary to actually run one).
+  for (const name of ['xberg_rag_node.linux-x64-gnu.node', 'xberg_rag_node.linux-x64-musl.node']) {
+    const f = localFile(name)
+    if (existsSync(f)) {
+      try { nativeBinding = require(f); break } catch (e) { loadErrors.push(e) }
+    }
+  }
+} else if (process.platform === 'linux' && process.arch === 'arm64') {
+  const f = localFile('xberg_rag_node.linux-arm64-musl.node')
   if (existsSync(f)) {
     try { nativeBinding = require(f) } catch (e) { loadErrors.push(e) }
   }

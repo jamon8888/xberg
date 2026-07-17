@@ -1,0 +1,258 @@
+# =============================================================================
+# xberg-mcp-server — self-contained image for the TypeScript MCP server
+# (extraction + RAG + PII redaction) plus the statically-exported web UI it
+# serves at /ui.
+#
+# Targets Linux ARM64 (musl) by default for Oracle Cloud Ampere A1 Always
+# Free instances. Override TARGET to build x86_64 instead.
+#
+# Usage (build natively on the target host — no QEMU emulation needed if the
+# build host arch matches TARGET, which it will on an Ampere A1 VM):
+#   docker build -f docker/Dockerfile.mcp-server -t xberg-mcp-server .
+#
+# Provenance: the napi-builder stage mirrors docker/Dockerfile.musl-node
+# (proven in CI for xberg-node). The xberg-rag-node build and the wasm
+# builder stage are new — xberg-rag-node previously only had Windows/macOS/
+# linux-x64-gnu loader branches wired up (see crates/xberg-rag-node/index.js,
+# extended alongside this Dockerfile to add linux-arm64-musl). Verify the
+# first build on real hardware; if it fails, the failure will be an ordinary
+# missing-crate-copy or feature-flag mismatch, not an architectural problem.
+# =============================================================================
+
+ARG RUST_TOOLCHAIN=nightly-2026-03-10
+ARG TARGET=aarch64-unknown-linux-musl
+ARG NODE_VERSION=22
+
+# -----------------------------------------------------------------------------
+# Stage: napi-builder — compiles xberg-node and xberg-rag-node NAPI addons
+# -----------------------------------------------------------------------------
+FROM alpine:3.22 AS napi-builder
+ARG RUST_TOOLCHAIN
+ARG TARGET
+WORKDIR /build
+
+# Same package set as docker/Dockerfile.musl-node: Alpine's gcc/g++ are
+# musl-native so tesseract/onnxruntime C++ compilation needs no glibc shims.
+RUN apk add --no-cache \
+        curl musl-dev cmake make pkgconf perl linux-headers git file && \
+    apk add --no-cache \
+        gcc g++ libstdc++ libstdc++-dev \
+        nodejs npm libssl3 libcrypto3 \
+        onnxruntime-dev libheif-dev libde265-dev aom-dev x265-dev dav1d-dev && \
+    apk add --no-cache \
+        cross-aarch64-linux-musl-gcc cross-aarch64-linux-musl-g++
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- -y --default-toolchain "${RUST_TOOLCHAIN}" --component rust-src
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Point ort-sys at Alpine's system ONNX Runtime instead of downloading a
+# prebuilt binary (no network egress needed for ORT during build).
+ENV ORT_LIB_LOCATION=/usr/lib
+ENV ORT_PREFER_DYNAMIC_LINK=1
+ENV ORT_SKIP_DOWNLOAD=1
+ENV ORT_STRATEGY=system
+# Allow cdylib output on musl targets (default is +crt-static, which blocks it).
+ENV RUSTFLAGS="-C target-feature=-crt-static"
+
+COPY Cargo.toml Cargo.lock ./
+COPY crates/xberg/ crates/xberg/
+COPY crates/xberg-gliner/ crates/xberg-gliner/
+COPY crates/xberg-node/ crates/xberg-node/
+COPY crates/xberg-ffi/ crates/xberg-ffi/
+COPY crates/xberg-tesseract/ crates/xberg-tesseract/
+COPY crates/xberg-paddle-ocr/ crates/xberg-paddle-ocr/
+COPY crates/xberg-candle-ocr/ crates/xberg-candle-ocr/
+COPY crates/xberg-libheif/ crates/xberg-libheif/
+COPY crates/xberg-rag/ crates/xberg-rag/
+COPY crates/xberg-rag-node/ crates/xberg-rag-node/
+
+# Trim the workspace down to the members actually needed here (mirrors
+# Dockerfile.musl-node's sed, but KEEPS xberg-rag / xberg-rag-node instead of
+# dropping them).
+RUN sed -i '/xberg-py/d; /xberg_rb/d; /xberg-cli/d; /xberg-jni/d; /xberg-php/d; /xberg_rustler/d; /xberg_nif/d; /packages\/dart\/rust/d; /packages\/swift\/rust/d; /"crates\/xberg-wasm"/d; /^\[profile\.release\.package\.xberg-wasm\]$/,$d; /benchmark-harness/d; /e2e-generator/d; /snippet-runner/d; /e2e\/rust/d' Cargo.toml
+
+# Use a real aarch64-linux-musl cross-toolchain for the ARM64 target instead of
+# the host gcc/g++, which produces glibc-linked objects that won't run on musl.
+# x86_64 keeps host gcc (the runner is amd64 glibc, and the x86_64-musl target
+# is only used in CI's smoke build, not the deployed ARM64 image).
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=gcc
+ENV CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc
+ENV CXX_aarch64_unknown_linux_musl=aarch64-linux-musl-g++
+ENV CC_x86_64_unknown_linux_musl=gcc
+ENV CXX_x86_64_unknown_linux_musl=g++
+
+RUN rustup target add "${TARGET}"
+
+# xberg-node: built via the napi CLI (its package.json declares a full
+# multi-target napi.targets matrix) — proven path, see Dockerfile.musl-node.
+RUN cd crates/xberg-node && \
+    npx --yes -p @napi-rs/cli@^3.6.2 napi build --platform --release --target "${TARGET}" && \
+    cp ./*.node /build/ && \
+    strip /build/*.node
+
+# xberg-rag-node: built via plain `cargo build`, matching the project's own
+# documented local workflow for this crate (CLAUDE.md Windows Build Notes —
+# "cargo build --release -p xberg-rag-node then copy the DLL as .node").
+# Its package.json napi config is a stale single-triple (Windows) leftover,
+# not a real multi-target matrix, so the napi CLI wrapper isn't used here.
+# Output name must match crates/xberg-rag-node/index.js's loader branches
+# (linux-{arm64,x64}-musl) — computed from TARGET, not hardcoded, since this
+# stage is also built with TARGET=x86_64-unknown-linux-musl in CI (an amd64
+# runner can't execute an aarch64 binary to smoke-test it).
+RUN case "${TARGET}" in \
+      aarch64-*) RAG_NODE_ARCH=arm64 ;; \
+      x86_64-*) RAG_NODE_ARCH=x64 ;; \
+      *) echo "unsupported TARGET for xberg-rag-node: ${TARGET}" >&2; exit 1 ;; \
+    esac && \
+    cargo build --release --target "${TARGET}" -p xberg-rag-node && \
+    cp "target/${TARGET}/release/libxberg_rag_node.so" "/build/xberg_rag_node.linux-${RAG_NODE_ARCH}-musl.node" && \
+    strip "/build/xberg_rag_node.linux-${RAG_NODE_ARCH}-musl.node"
+
+RUN file /build/*.node
+
+# -----------------------------------------------------------------------------
+# Stage: wasm-builder — builds the xberg-wasm engine used by mcp-server's
+# engine.ts (loaded into Node via xberg-wasm-runtime, not xberg-node).
+# wasm32 output is architecture-independent, so this stage doesn't need to
+# match TARGET's host arch.
+# -----------------------------------------------------------------------------
+FROM alpine:3.22 AS wasm-builder
+ARG RUST_TOOLCHAIN
+WORKDIR /build
+
+RUN apk add --no-cache curl musl-dev gcc g++ nodejs npm git perl make pkgconf
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- -y --default-toolchain "${RUST_TOOLCHAIN}" --component rust-src && \
+    /root/.cargo/bin/rustup target add wasm32-unknown-unknown
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN cargo install wasm-pack --locked
+
+COPY Cargo.toml Cargo.lock ./
+COPY crates/xberg/ crates/xberg/
+COPY crates/xberg-gliner/ crates/xberg-gliner/
+COPY crates/xberg-wasm/ crates/xberg-wasm/
+
+RUN sed -i '/xberg-py/d; /xberg_rb/d; /xberg-node/d; /xberg-cli/d; /xberg-jni/d; /xberg-php/d; /xberg-ffi/d; /xberg-tesseract/d; /xberg-paddle-ocr/d; /xberg-candle-ocr/d; /xberg-libheif/d; /xberg-rag/d; /xberg_rustler/d; /xberg_nif/d; /packages\/dart\/rust/d; /packages\/swift\/rust/d; /benchmark-harness/d; /e2e-generator/d; /snippet-runner/d; /e2e\/rust/d' Cargo.toml
+
+RUN cd crates/xberg-wasm && wasm-pack build --release --target nodejs --out-dir pkg/nodejs
+
+# -----------------------------------------------------------------------------
+# Stage: ts-builder — compiles the web UI (static export) and the mcp-server
+# TypeScript sources.
+#
+# mcp-server is NOT a pnpm workspace member (pnpm-workspace.yaml only globs
+# ".", "crates/*", "packages/*", "packages/**/*", "e2e/*") — it has its own
+# package-lock.json and is built with plain npm, per its own README. Its
+# `file:../crates/xberg-node`, `file:../crates/xberg-rag-node`,
+# `file:../crates/xberg-wasm`, and `file:../packages/xberg-wasm-runtime`
+# dependencies are resolved relative to its position in the checkout, so the
+# repo-root-relative directory layout is preserved here rather than copying
+# packages out into ad-hoc paths — and every one of those sibling targets is
+# populated with its real build output *before* `npm ci` runs, since local
+# `file:` deps are commonly integrity-checked against lockfile-recorded state.
+# -----------------------------------------------------------------------------
+FROM node:${NODE_VERSION}-alpine AS ts-builder
+RUN corepack enable
+WORKDIR /repo
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/xberg-wasm-runtime/ packages/xberg-wasm-runtime/
+COPY packages/xberg-web-ui/ packages/xberg-web-ui/
+COPY crates/xberg-wasm/package.json crates/xberg-wasm/README.md crates/xberg-wasm/LICENSE crates/xberg-wasm/
+COPY --from=wasm-builder /build/crates/xberg-wasm/pkg crates/xberg-wasm/pkg
+
+# better-sqlite3 (xberg-wasm-runtime dep) has no musl-arm64 prebuild in most
+# releases — force a from-source build via node-gyp instead of relying on a
+# prebuild that may not exist for this platform/libc combination.
+RUN apk add --no-cache python3 make g++
+ENV npm_config_build_from_source=true
+
+# Only the pnpm-workspace portion (web UI + its wasm runtime dependency) goes
+# through pnpm. mcp-server's own deps are installed separately below via npm.
+RUN pnpm install --frozen-lockfile --filter xberg-web-ui... --filter xberg-wasm-runtime...
+
+RUN pnpm --filter xberg-wasm-runtime run build
+RUN pnpm --filter xberg-web-ui run build && \
+    pnpm --filter xberg-web-ui run export
+
+# Populate the native/wasm sibling directories mcp-server's file: deps point
+# at, matching each crate's own loader-expected filename, before npm ci.
+COPY crates/xberg-node/ crates/xberg-node/
+COPY crates/xberg-rag-node/ crates/xberg-rag-node/
+COPY --from=napi-builder /build/xberg-node.*.node crates/xberg-node/
+COPY --from=napi-builder /build/xberg_rag_node.*.node crates/xberg-rag-node/
+
+COPY mcp-server/ mcp-server/
+RUN cd mcp-server && npm ci && npm run build
+
+# -----------------------------------------------------------------------------
+# Stage: runtime — minimal musl Node image.
+#
+# npm creates a symlink (not a copy) in node_modules for local `file:`
+# dependencies, so mcp-server/node_modules/@xberg-io/xberg etc. point back at
+# ../../crates/xberg-node and friends by relative path. Preserve the exact
+# same repo-root-relative directory layout here that ts-builder used, rather
+# than flattening into ./node_modules, so those symlinks resolve correctly
+# instead of dangling.
+# -----------------------------------------------------------------------------
+FROM node:${NODE_VERSION}-alpine AS runtime
+RUN apk add --no-cache tini
+RUN addgroup -S xberg && adduser -S xberg -G xberg
+
+WORKDIR /repo
+
+COPY --from=ts-builder /repo/mcp-server/package.json mcp-server/package.json
+COPY --from=ts-builder /repo/mcp-server/dist mcp-server/dist
+COPY --from=ts-builder /repo/mcp-server/ui-dist mcp-server/ui-dist
+COPY --from=ts-builder /repo/mcp-server/node_modules mcp-server/node_modules
+COPY --from=ts-builder /repo/crates/xberg-node crates/xberg-node
+COPY --from=ts-builder /repo/crates/xberg-rag-node crates/xberg-rag-node
+COPY --from=ts-builder /repo/crates/xberg-wasm/package.json crates/xberg-wasm/package.json
+COPY --from=ts-builder /repo/crates/xberg-wasm/pkg crates/xberg-wasm/pkg
+COPY --from=ts-builder /repo/packages/xberg-wasm-runtime/package.json packages/xberg-wasm-runtime/package.json
+COPY --from=ts-builder /repo/packages/xberg-wasm-runtime/dist packages/xberg-wasm-runtime/dist
+
+# The xberg native addons are dynamically linked against ONNX Runtime
+# (ORT_PREFER_DYNAMIC_LINK=1 in the napi-builder stage), so the shared
+# library must be present at runtime. Carry it over from the builder stage
+# (onnxruntime-dev installs libonnxruntime.so under /usr/lib) and fail the
+# image build if it is missing or if any final .node addon can't resolve it.
+COPY --from=napi-builder /usr/lib/libonnxruntime.so /usr/lib/libonnxruntime.so
+ENV LD_LIBRARY_PATH=/usr/lib:${LD_LIBRARY_PATH}
+
+RUN if [ ! -f /usr/lib/libonnxruntime.so ]; then \
+      echo "::error::libonnxruntime.so missing from runtime image — native addons will fail to load"; \
+      exit 1; \
+    fi && \
+    for f in crates/xberg-node/*.node crates/xberg-rag-node/*.node; do \
+      [ -e "$f" ] || continue; \
+      if ! (ldd "$f" 2>/dev/null | grep -q "libonnxruntime.so" || \
+            readelf -d "$f" 2>/dev/null | grep -q "libonnxruntime.so"); then \
+        echo "::warning::$f does not reference libonnxruntime.so (may be statically linked — ignoring)"; \
+      fi; \
+      if ! ldd "$f" >/dev/null 2>&1; then \
+        echo "::error::$f has unresolved shared-library dependencies"; \
+        exit 1; \
+      fi; \
+    done
+
+RUN mkdir -p /data/cache /data/store && chown -R xberg:xberg /repo /data
+
+VOLUME ["/data"]
+USER xberg
+WORKDIR /repo/mcp-server
+
+ENV NODE_ENV=production
+ENV XBERG_MCP_HOST=0.0.0.0
+ENV XBERG_MCP_PORT=8080
+ENV XBERG_CACHE_DIR=/data/cache
+ENV XBERG_STORE_PATH=/data/store/store.sqlite3
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD node -e "fetch('http://127.0.0.1:'+process.env.XBERG_MCP_PORT+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "dist/index.js"]
