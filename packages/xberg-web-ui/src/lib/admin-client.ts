@@ -15,16 +15,12 @@ const MAX_RETRIES = 3;
 const BACKOFF_MS = 400;
 
 async function postWithRetry(url: string, init: RequestInit): Promise<Response> {
-  let last: Response | undefined;
-  for (let i = 0; i <= MAX_RETRIES; i++) {
+  for (let i = 0; i < MAX_RETRIES; i++) {
     const res = await fetch(url, init);
-    last = res;
     if (res.status < 500) return res;
-    if (i < MAX_RETRIES) {
-      await new Promise((r) => setTimeout(r, BACKOFF_MS * 2 ** i));
-    }
+    await new Promise((r) => setTimeout(r, BACKOFF_MS * 2 ** i));
   }
-  return last!;
+  return fetch(url, init);
 }
 
 const MUTATING_OPS = new Set<AdminPayload["op"]>(["drop_collection", "delete_documents"]);
