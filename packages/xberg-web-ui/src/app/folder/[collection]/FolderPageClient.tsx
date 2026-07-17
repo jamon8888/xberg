@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { type ChangeEvent, useState } from "react";
 import { useParams } from "next/navigation";
 import { useEngine } from "@/providers/EngineProvider.js";
 import { DocumentTable } from "@/components/DocumentTable.js";
@@ -14,7 +14,9 @@ export function FolderPageClient({ collection: collectionParam }: { collection: 
   const { ingestFile } = useEngine();
   const [passphrase, setPassphrase] = useState("");
 
-  const onFiles = async (files: FileList | null) => {
+  const onFiles = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    event.target.value = "";
     if (!files || !passphrase) return;
     for (const file of Array.from(files)) {
       try {
@@ -34,7 +36,7 @@ export function FolderPageClient({ collection: collectionParam }: { collection: 
           Rehydration passphrase (never sent to the server in clear)
         </label>
         <Input id="passphrase" type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
-        <input type="file" multiple disabled={!passphrase} aria-label="Upload documents" onChange={(e) => void onFiles(e.target.files)} />
+        <input type="file" multiple disabled={!passphrase} aria-label="Upload documents" onChange={(e) => void onFiles(e)} />
       </div>
       <DocumentTable collection={collection} />
     </main>

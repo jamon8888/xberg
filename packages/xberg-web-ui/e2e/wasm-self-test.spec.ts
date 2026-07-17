@@ -30,7 +30,13 @@ function proxyUi(req: import("node:http").IncomingMessage, res: import("node:htt
       pres.pipe(res);
     }
   );
-  proxy.on("error", () => res.writeHead(502).end("proxy error"));
+  proxy.on("error", () => {
+    if (!res.headersSent) {
+      res.writeHead(502).end("proxy error");
+    } else {
+      res.end();
+    }
+  });
   req.pipe(proxy);
 }
 
@@ -63,9 +69,7 @@ test("wasm engine initializes, builds runtime injection, and embeds (web target)
       waitUntil: "domcontentloaded",
     });
     const result = page.getByTestId("result");
-    await expect
-      .poll(async () => (await result.textContent()) ?? "", { timeout: 130_000 })
-      .toMatch(/^OK /);
+    await expect(result).toHaveText(/^OK /, { timeout: 130_000 });
     expect(errors.filter((e) => /wasm|env\b|init|instantiate|makeEnv/i.test(e))).toEqual([]);
   } catch (err) {
     const txt = await page.getByTestId("result").textContent().catch(() => "(none)");

@@ -660,15 +660,21 @@ function PDFViewerPageNumberControl({
           size="sm"
           value={draftPage}
           className="mx-1 w-14 min-w-14 rounded-md [&_[data-slot=input]]:text-center"
-          onBlur={() => setIsEditing(false)}
+          onBlur={() => {
+            applyPageDraft(draftPage)
+            setIsEditing(false)
+          }}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
             const nextValue = event.target.value
 
             setDraftPage(nextValue)
-            applyPageDraft(nextValue)
           }}
           onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
-            if (event.key === "Enter" || event.key === "Escape") {
+            if (event.key === "Enter") {
+              applyPageDraft(draftPage)
+              event.currentTarget.blur()
+            } else if (event.key === "Escape") {
+              setDraftPage(String(displayPage))
               event.currentTarget.blur()
             }
           }}
@@ -1820,6 +1826,7 @@ function PDFViewerInner({
   const { plugin: thumbnailPlugin } = useThumbnailPlugin()
   const [sidebarOpen, setSidebarOpen] = React.useState(false)
   const [isPreparingDownload, setIsPreparingDownload] = React.useState(false)
+  const [downloadError, setDownloadError] = React.useState<string | null>(null)
   const [pageRotationDeltas, setPageRotationDeltas] =
     React.useState<PageRotationDeltas>(() => new Map())
   const [selectedPageIndexes, setSelectedPageIndexes] = React.useState<
@@ -2013,6 +2020,7 @@ function PDFViewerInner({
     if (!pdfFile || isPreparingDownload) return
 
     setIsPreparingDownload(true)
+    setDownloadError(null)
 
     try {
       await downloadPdfWithPageRotations({
@@ -2022,6 +2030,7 @@ function PDFViewerInner({
       })
     } catch (error) {
       console.error(error)
+      setDownloadError("Download failed. Please try again.")
     } finally {
       setIsPreparingDownload(false)
     }
@@ -2409,6 +2418,11 @@ function PDFViewerInner({
             </div>
           </TooltipProvider>
         </div>
+      ) : null}
+      {downloadError ? (
+        <p role="alert" className="px-2 py-1 text-sm text-destructive">
+          {downloadError}
+        </p>
       ) : null}
       <div
         ref={viewerShellRef}

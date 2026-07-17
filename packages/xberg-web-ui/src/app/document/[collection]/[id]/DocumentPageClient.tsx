@@ -3,14 +3,13 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getHistoryEntry } from "@/lib/ingest-history.js";
 import { getAuthToken } from "@/lib/auth-client.js";
+import { resolveMcpBaseUrl } from "@/lib/mcp-base-url.js";
 import { useEngine } from "@/providers/EngineProvider.js";
 import { DocumentViewer } from "@/components/DocumentViewer.js";
 import { DeleteDialog } from "@/components/DeleteDialog.js";
 import { ReingestButton } from "@/components/ReingestButton.js";
 import { Button } from "@/components/ui/button.js";
 import type { IngestHistoryEntry, OcrLine } from "@/lib/types.js";
-
-const MCP_BASE_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL;
 
 export function DocumentPageClient({
   collection: collectionParam,
@@ -106,12 +105,7 @@ export function DocumentPageClient({
             {viewerBusy ? "Computing layout…" : "Load document file"}
           </Button>
           <DeleteDialog
-            baseUrl={
-              MCP_BASE_URL ??
-              (typeof window !== "undefined"
-                ? window.location.origin
-                : "http://127.0.0.1:8080")
-            }
+            baseUrl={resolveMcpBaseUrl()}
             token={getAuthToken() ?? ""}
             collection={collection}
             externalIds={[id]}
