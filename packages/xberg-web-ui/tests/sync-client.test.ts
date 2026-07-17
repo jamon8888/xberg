@@ -87,10 +87,11 @@ describe("lib/sync-client", () => {
     const fetchMock = vi.fn().mockRejectedValue(new TypeError("fetch failed"));
     vi.stubGlobal("fetch", fetchMock);
     const promise = postIngest("http://x:8080", { collection: "c1", external_id: "d", full_text: "t", chunks: [] });
+    const assertion = expect(promise).rejects.toThrow(/postIngest failed: network error/);
     await vi.advanceTimersByTimeAsync(400);
     await vi.advanceTimersByTimeAsync(800);
     await vi.advanceTimersByTimeAsync(1600);
-    await expect(promise).rejects.toThrow(/postIngest failed: network error/);
+    await assertion;
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 });
