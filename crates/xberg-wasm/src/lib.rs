@@ -31,6 +31,15 @@ use xberg::engine::seams::PresetResolver;
 use xberg::text::ner::NerBackend;
 use xberg::text::redaction::EntityValidator;
 
+// Panics inside async wasm-bindgen exports otherwise vanish silently
+// (see scripts/ensure-wasm-mods.mjs). Re-inserted by that script.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
+pub fn init_panic_hook() {
+    console_error_panic_hook::set_once();
+}
+
+
 // Hand-written modules (NOT alef-generated). Declared in alef.toml
 // [crates.wasm] custom_modules so regeneration emits them; scripts/ensure-wasm-mods.mjs
 // re-inserts them as a backstop if a regen omits them. Do not remove.

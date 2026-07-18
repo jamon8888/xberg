@@ -22,7 +22,17 @@ import { fileURLToPath } from "node:url";
 const libPath = fileURLToPath(new URL("../crates/xberg-wasm/src/lib.rs", import.meta.url));
 
 const MARKER = "pub mod bridge;";
-const BLOCK = [
+// A Rust panic inside a `#[wasm_bindgen] pub async fn` has no default JS
+// visibility on wasm32 -- worse, a known wasm-bindgen limitation means
+// `future_to_promise` can leave the JS Promise permanently pending (neither
+// resolved nor rejected) if the panic unwinds through its executor, instead
+// of rejecting it (https://github.com/rustwasm/wasm-bindgen/issues/2392).
+// That reproduces as a silent, zero-CPU, zero-error hang from the caller's
+// side -- exactly the "extract()/ingest() sometimes never resolves" symptom
+// this hook exists to make debuggable. Routes every panic message (and
+// wasm-bindgen's own backtrace-ish info) to `console.error` instead.
+const PANIC_MARKER = "console_error_panic_hook::set_once();";
+const MODULES_BLOCK = [
   "",
   "// Hand-written modules (NOT alef-generated). Re-inserted by",
   "// scripts/ensure-wasm-mods.mjs after every alef regeneration — do not",
@@ -30,6 +40,17 @@ const BLOCK = [
   "pub mod bridge;",
   "pub mod engine;",
   "pub use engine::XbergEngine;",
+  "",
+].join("\n");
+const PANIC_BLOCK = [
+  "",
+  "// Panics inside async wasm-bindgen exports otherwise vanish silently",
+  "// (see scripts/ensure-wasm-mods.mjs). Re-inserted by that script.",
+  "#[cfg(target_arch = \"wasm32\")]",
+  "#[wasm_bindgen(start)]",
+  "pub fn init_panic_hook() {",
+  "    console_error_panic_hook::set_once();",
+  "}",
   "",
 ].join("\n");
 
@@ -41,7 +62,9 @@ try {
   process.exit(1);
 }
 
-if (src.includes(MARKER)) {
+const hasModules = src.includes(MARKER);
+const hasPanicHook = src.includes(PANIC_MARKER);
+if (hasModules && hasPanicHook) {
   console.log("ensure-wasm-mods: lib.rs already wired, nothing to do");
   process.exit(0);
 }
@@ -62,6 +85,7 @@ if (lastUse === -1) {
   process.exit(1);
 }
 
-lines.splice(lastUse + 1, 0, BLOCK);
+const block = (hasModules ? "" : MODULES_BLOCK) + (hasPanicHook ? "" : PANIC_BLOCK);
+lines.splice(lastUse + 1, 0, block);
 writeFileSync(libPath, lines.join("\n"));
-console.log(`ensure-wasm-mods: inserted module wiring after line ${lastUse + 1} of lib.rs`);
+console.log(`ensure-wasm-mods: inserted wiring (modules=${!hasModules} panicHook=${!hasPanicHook}) after line ${lastUse + 1} of lib.rs`);
