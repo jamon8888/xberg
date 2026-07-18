@@ -20,14 +20,15 @@ test("uploading a document with PII syncs to the MCP store via /collection, /ing
   // First-load model download + WASM init (bge-m3 embedder, Candle GLiNER2
   // NER) has taken several minutes in this environment -- the config-level
   // 60s default is nowhere near enough for the real (non-mocked) engine
-  // this test exercises. KNOWN OPEN ISSUE: past model init, `xEngine
-  // .extract()`/`.ingest()` (the native WASM call path) has been observed
-  // to stall indefinitely with flat CPU usage in this environment -- a
-  // separate, deeper bug from the one this test file's other fixes address
-  // (see FolderPageClient.tsx's onFiles for the fixed live-FileList bug).
-  // Not yet root-caused; needs a Promise.race timeout wrapper analogous to
-  // handleOcr's OCR_TIMEOUT_MS in engine.worker.ts, or investigation inside
-  // crates/xberg-wasm/src/engine.rs's extract/ingest bindings.
+  // this test exercises. KNOWN OPEN ISSUE: cold model downloads from
+  // HuggingFace's external CDN have failed to complete even within a 19min
+  // ceiling in this environment, including an outright `TypeError: Failed
+  // to fetch` -- looks like a network reliability constraint in this
+  // environment, not confirmed to be a code bug. This has repeatedly
+  // blocked reaching `xEngine.extract()`/`.ingest()` to test whether a Rust
+  // panic there leaks the wasm-bindgen promise (console_error_panic_hook is
+  // now wired up for this, see crates/xberg-wasm/src/lib.rs, commit
+  // c958f3fe2a) -- that hypothesis remains unconfirmed either way.
   test.setTimeout(300_000);
   const received: { collection?: unknown; ingest?: unknown; mapDocumentId?: string } = {};
   const server = createServer(async (req, res) => {
