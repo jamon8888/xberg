@@ -1,7 +1,7 @@
 import { pipeline, env } from "@huggingface/transformers";
 import type { CacheConfig, Entity, NerInterface } from "./types.js";
 import type { TokenClassificationSingle } from "@huggingface/transformers";
-import { selectModelBackend } from "./backend.js";
+import { selectModelBackend, createPipelineWithFallback, LARGE_MODEL_SESSION_OPTIONS } from "./backend.js";
 import { configureTransformersEnvironment } from "./runtime-env.js";
 
 // Allow reading locally-cached transformers.js models in CI environments.
@@ -36,9 +36,14 @@ export async function createNer(config?: CacheConfig): Promise<NerInterface | nu
 		const modelId = config?.models?.ner ?? DEFAULT_NER_MODEL;
 		configureTransformersEnvironment(config);
 
-		const backend = selectModelBackend();
+		const backend = await selectModelBackend(config);
 		console.debug(`[ner] device=${backend.device} dtype=${backend.dtype} model=${modelId}`);
-		const tokenClassifier = await pipeline("token-classification", modelId, backend);
+		const tokenClassifier = await createPipelineWithFallback(
+			(b) => pipeline("token-classification", modelId, { ...b, session_options: LARGE_MODEL_SESSION_OPTIONS }),
+			backend,
+			"ner",
+			modelId,
+		);
 
 		/**
 		 * Named entity recognition on the given text. Returns a list of named

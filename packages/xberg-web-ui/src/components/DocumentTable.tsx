@@ -10,13 +10,12 @@ import {
 } from "@tanstack/react-table";
 import { listHistory } from "@/lib/ingest-history.js";
 import { getAuthToken } from "@/lib/auth-client.js";
+import { resolveMcpBaseUrl } from "@/lib/mcp-base-url.js";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.js";
 import { Badge } from "@/components/ui/badge.js";
 import { DeleteDialog } from "@/components/DeleteDialog.js";
 import { ReingestButton } from "@/components/ReingestButton.js";
 import type { IngestHistoryEntry } from "@/lib/types.js";
-
-const MCP_BASE_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL;
 
 const columnHelper = createColumnHelper<IngestHistoryEntry>();
 const columns = [
@@ -67,18 +66,23 @@ export function DocumentTable({ collection }: { collection: string }) {
   const [rows, setRows] = useState<IngestHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setRows([]);
     setError(null);
     setSelected(new Set());
+    setLoading(true);
     void listHistory(collection)
       .then((next) => {
         if (!cancelled) setRows(next);
       })
       .catch((err) => {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
@@ -106,7 +110,7 @@ export function DocumentTable({ collection }: { collection: string }) {
     return (
       <p className="text-sm text-destructive">Failed to load documents: {error}</p>
     );
-  if (rows.length === 0)
+  if (!loading && rows.length === 0)
     return <p className="text-sm text-muted-foreground">No documents yet.</p>;
 
   const onDeleted = (ids: string[]) => {
@@ -147,12 +151,7 @@ export function DocumentTable({ collection }: { collection: string }) {
             {selected.size} selected
           </span>
           <DeleteDialog
-            baseUrl={
-              MCP_BASE_URL ??
-              (typeof window !== "undefined"
-                ? window.location.origin
-                : "http://127.0.0.1:8080")
-            }
+            baseUrl={resolveMcpBaseUrl()}
             token={getAuthToken() ?? ""}
             collection={collection}
             externalIds={[...selected]}

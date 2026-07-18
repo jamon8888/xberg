@@ -38,7 +38,46 @@ const ScrollArea = React.forwardRef<
       ...props
     },
     ref
-  ) => (
+  ) => {
+    const innerViewportRef = React.useRef<HTMLDivElement | null>(null)
+
+    const setViewportRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        innerViewportRef.current = node
+        if (typeof viewportRef === "function") viewportRef(node)
+        else if (viewportRef && "current" in viewportRef) {
+          // `RefObject.current` is `readonly` in current @types/react (only
+          // React itself is meant to assign it) -- casting to `RefObject`
+          // keeps that readonly modifier, so cast to a plain writable shape
+          // instead; this is the standard escape hatch for the "forward a
+          // second, non-root ref into a child's internal DOM node" pattern.
+          ;(viewportRef as unknown as { current: HTMLDivElement | null }).current = node
+        }
+      },
+      [viewportRef]
+    )
+
+    React.useEffect(() => {
+      const viewport = innerViewportRef.current
+      if (!viewport) return
+
+      const updateOverflow = () => {
+        viewport.toggleAttribute(
+          "data-has-overflow-x",
+          viewport.scrollWidth > viewport.clientWidth
+        )
+      }
+
+      updateOverflow()
+
+      const observer = new ResizeObserver(updateOverflow)
+      observer.observe(viewport)
+      if (viewport.firstElementChild) observer.observe(viewport.firstElementChild)
+
+      return () => observer.disconnect()
+    }, [children])
+
+    return (
     <ScrollAreaPrimitive.Root
       ref={ref}
       className={cn(
@@ -50,7 +89,8 @@ const ScrollArea = React.forwardRef<
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
-        ref={viewportRef}
+        ref={setViewportRef}
+        data-slot="scroll-area-viewport"
         className={cn(
           "h-full w-full rounded-[inherit]",
           scrollbarGutter && "[scrollbar-gutter:stable]",
@@ -70,7 +110,8 @@ const ScrollArea = React.forwardRef<
       )}
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
-  )
+    )
+  }
 )
 ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
 

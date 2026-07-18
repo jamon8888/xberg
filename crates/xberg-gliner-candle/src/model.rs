@@ -64,9 +64,21 @@ impl Gliner2Candle {
         let splitter = xberg_gliner::V2Splitter::new()?;
         let config: candle_transformers::models::debertav2::Config = serde_json::from_slice(encoder_config_json)
             .map_err(|e| GlinerCandleError::Backend(format!("encoder config parse: {e}")))?;
-        let encoder =
-            encoder::Encoder::from_buffered_safetensors(safetensors, &config, &device, candle_core::DType::F32)?;
-        let heads_loaded = heads::AllHeads::from_buffered_safetensors(safetensors, &device, candle_core::DType::F32)?;
+        // wasm32: F16, halving resident memory after loading -- confirmed via
+        // a live browser reproduction that F32 (previously hardcoded here)
+        // exhausts wasm32 linear memory for a DeBERTa-v2-scale encoder, even
+        // with the streaming per-tensor loader (see streaming_load.rs) that
+        // eliminates the OTHER, larger source of peak memory (materializing
+        // every tensor in the file as F32 before any conversion). Native
+        // targets keep F32 -- plenty of RAM, and F32 avoids any precision
+        // risk for callers relying on `load_adapter`'s LoRA merge (which
+        // stays F32-only, non-wasm32-gated, see model.rs's other impl block).
+        #[cfg(target_arch = "wasm32")]
+        let dtype = candle_core::DType::F16;
+        #[cfg(not(target_arch = "wasm32"))]
+        let dtype = candle_core::DType::F32;
+        let encoder = encoder::Encoder::from_buffered_safetensors(safetensors, &config, &device, dtype)?;
+        let heads_loaded = heads::AllHeads::from_buffered_safetensors(safetensors, &device, dtype)?;
 
         Ok(Self {
             tokenizer,

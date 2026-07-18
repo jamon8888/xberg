@@ -60,8 +60,7 @@ impl AllHeads {
     /// `dtype` matches the encoder's dtype (kept in sync by callers) so heads
     /// and encoder share the same in-memory representation.
     pub fn from_buffered_safetensors(bytes: &[u8], device: &Device, dtype: candle_core::DType) -> crate::Result<Self> {
-        let tensors = candle_core::safetensors::load_buffer(bytes, device)
-            .map_err(|e| crate::GlinerCandleError::Backend(format!("heads safetensors load_buffer: {e}")))?;
+        let tensors = crate::streaming_load::load_buffer_streaming(bytes, device, dtype)?;
         let vb = VarBuilder::from_tensors(tensors, dtype, device);
         Self::load(vb, device)
     }

@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.30.0"
+alef_version = "0.36.2"
 languages = [
   "python",
   "node",
@@ -336,6 +336,17 @@ exclude_functions = [
   "batch_extract_bytes_sync",
   "batch_extract_files",
   "batch_extract_files_sync",
+  # EngineBuilder.with_progress_sink/with_model_provider take Rust trait-object
+  # callback params (JsVisitorRef) that alef's node backend can't auto-delegate
+  # (`JsVisitorRef: FromNapiValue` is unsatisfied -- these need a JS-callback
+  # adapter this codegen doesn't have). with_cache_backend/build are excluded
+  # alongside them since they're only reachable through this same builder chain.
+  # mcp-server (the only node consumer) never uses EngineBuilder at all -- it
+  # constructs `new XbergEngine({}, injection)` directly -- so excluding the
+  # whole chain from node bindings has no functional impact.
+  "with_progress_sink",
+  "with_model_provider",
+  "with_cache_backend",
 ]
 
 [crates.node.extra_dependencies]
@@ -458,7 +469,11 @@ package_name = "@xberg-io/xberg-wasm"
 # `wasm-target` expanded minus `ocr-wasm`: the MCP/Node host injects OCR via the
 # `ocr` bridge, so in-binary Tesseract (which pulls Leptonica + WASI fd/path/mkstemp/
 # system imports that wasm-bindgen's nodejs target can't satisfy) is unnecessary here.
-features = ["no-ort-target", "excel-wasm", "tree-sitter-wasm", "ner-candle-wasm", "url-ingestion"]
+features = ["no-ort-target", "excel-wasm", "tree-sitter-wasm", "ner-candle-wasm", "url-ingestion", "redaction-rehydrate"]
+# Hand-written modules that alef does not generate. Declared here so regeneration
+# emits `pub mod bridge;` / `pub mod engine;` into the generated lib.rs instead of
+# relying solely on scripts/ensure-wasm-mods.mjs to re-insert them post-regen.
+custom_modules = ["bridge", "engine"]
 exclude_types = [
   # ORT/runtime-only types not available in the wasm-target feature set
   "OcrFallbackDecision",
@@ -1729,7 +1744,7 @@ precondition = "command -v wasm-pack >/dev/null 2>&1"
 # under --target nodejs. The web target leaves them as ESM `import * as foo from "env"`
 # statements that Node cannot resolve. The published bundler target (pkg/*) is built
 # separately by the publish pipeline.
-before = "wasm-pack build crates/xberg-wasm --release --target nodejs --out-dir pkg/nodejs && cd e2e/wasm && pnpm install --ignore-workspace"
+before = "node scripts/ensure-wasm-mods.mjs && wasm-pack build crates/xberg-wasm --release --target nodejs --out-dir pkg/nodejs -- --features redaction-rehydrate && cd e2e/wasm && pnpm install --ignore-workspace"
 e2e = "cd e2e/wasm && pnpm test"
 
 [crates.test.rust]
@@ -3538,7 +3553,7 @@ path = "../../packages/zig"
 # Placeholder until v5.0.0-rc.4 ships and the tarball SHA is known.
 # Update post-release with the real Zig multihash for
 # https://github.com/xberg-io/xberg/releases/download/v{version}/xberg-zig-v{version}.tar.gz
-hash = "xberg-1.0.0-rc.1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+hash = "xberg-1.0.0-rc.5-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
 # Point WASM e2e at the wasm-pack `nodejs` target. The default `pkg/` is the
 # bundler target whose JS glue uses `import * as foo from "env"` statements

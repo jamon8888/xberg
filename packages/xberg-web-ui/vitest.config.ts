@@ -11,5 +11,11 @@ export default defineConfig({
     include: ["tests/**/*.test.{ts,tsx}"],
     exclude: ["e2e/**", "node_modules/**", ".next/**", "out/**"],
   },
-  resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
+  resolve: {
+    alias: {
+      "@": new URL("./src", import.meta.url).pathname,
+      "@xberg-io/xberg-wasm": new URL("./tests/__mocks__/xberg-wasm.ts", import.meta.url).pathname,
+      "xberg-wasm-runtime": new URL("./tests/__mocks__/xberg-wasm-runtime.ts", import.meta.url).pathname,
+    },
+  },
 });

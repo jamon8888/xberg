@@ -1,16 +1,15 @@
 "use client";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { documentParamsFromPathname } from "@/lib/route-params.js";
 import { getHistoryEntry } from "@/lib/ingest-history.js";
 import { getAuthToken } from "@/lib/auth-client.js";
+import { resolveMcpBaseUrl } from "@/lib/mcp-base-url.js";
 import { useEngine } from "@/providers/EngineProvider.js";
 import { DocumentViewer } from "@/components/DocumentViewer.js";
 import { DeleteDialog } from "@/components/DeleteDialog.js";
 import { ReingestButton } from "@/components/ReingestButton.js";
 import { Button } from "@/components/ui/button.js";
 import type { IngestHistoryEntry, OcrLine } from "@/lib/types.js";
-
-const MCP_BASE_URL = process.env.NEXT_PUBLIC_MCP_BASE_URL;
 
 export function DocumentPageClient({
   collection: collectionParam,
@@ -20,13 +19,26 @@ export function DocumentPageClient({
   id: string;
 }) {
   // Static export can only ever bake the placeholder shell's params into
-  // this component's props. For a real collection/id, the server falls
-  // back to serving that same shell (see ui-server.ts), so the true
-  // segments must be re-derived from the actual browser URL on the client
-  // instead of trusted from props.
-  const params = useParams<{ collection: string; id: string }>();
-  const collection = params?.collection ?? collectionParam;
-  const id = params?.id ?? idParam;
+  // this component's props, and mcp-server's static file server falls back
+  // to serving that same shell for every real collection/id (see
+  // ui-route-resolver.ts) -- its embedded router state says the route is
+  // `/document/placeholder/placeholder`, so `useParams()` returns that
+  // fixed value regardless of the actual address bar URL (confirmed live:
+  // `window.location.pathname` reports the real path while `useParams()`
+  // does not).
+  //
+  // The first client render must still match the server-rendered HTML
+  // (baked with `collectionParam`/`idParam`), or React's hydration bails
+  // out and force-remounts the whole tree, discarding local state. So
+  // render the baked props on mount, then correct to the real values from
+  // `window.location.pathname` in an effect (client-only, post-hydration).
+  const [collection, setCollection] = useState(collectionParam);
+  const [id, setId] = useState(idParam);
+  useEffect(() => {
+    const real = documentParamsFromPathname();
+    if (real.collection && real.collection !== collectionParam) setCollection(real.collection);
+    if (real.id && real.id !== idParam) setId(real.id);
+  }, [collectionParam, idParam]);
   const { ocrLayout } = useEngine();
   const [entry, setEntry] = useState<IngestHistoryEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,14 +49,23 @@ export function DocumentPageClient({
   const fileUrlRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+
     void getHistoryEntry(collection, id)
-      .then(setEntry)
+      .then((res) => {
+        if (active) setEntry(res);
+      })
       .catch(() => {
-        setEntry(null);
+        if (active) setEntry(null);
       })
       .finally(() => {
-        setLoading(false);
+        if (active) setLoading(false);
       });
+
+    return () => {
+      active = false;
+    };
   }, [collection, id]);
 
   useEffect(() => {
@@ -63,6 +84,7 @@ export function DocumentPageClient({
       if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
       fileUrlRef.current = nextUrl;
       setFileUrl(nextUrl);
+      setLayoutLines(undefined);
       const bytes = new Uint8Array(await file.arrayBuffer());
       setLayoutLines(await ocrLayout(bytes));
     } catch {
@@ -96,12 +118,7 @@ export function DocumentPageClient({
             {viewerBusy ? "Computing layout…" : "Load document file"}
           </Button>
           <DeleteDialog
-            baseUrl={
-              MCP_BASE_URL ??
-              (typeof window !== "undefined"
-                ? window.location.origin
-                : "http://127.0.0.1:8080")
-            }
+            baseUrl={resolveMcpBaseUrl()}
             token={getAuthToken() ?? ""}
             collection={collection}
             externalIds={[id]}

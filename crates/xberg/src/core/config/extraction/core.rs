@@ -727,6 +727,9 @@ fn default_max_embedded_file_bytes() -> Option<u64> {
 /// resources. 60 s is generous for legitimate documents while bounding the
 /// worst-case cost of a single untrusted input.
 fn default_extraction_timeout() -> Option<u64> {
+    // Always bound untrusted input. Enforcement uses tokio::select! when the
+    // tokio-runtime feature is active; non-tokio consumers still get the
+    // documented 60 s default rather than an unbounded `None`.
     Some(60)
 }
 
@@ -766,6 +769,13 @@ mod tests {
     fn test_effective_disable_ocr_default_is_false() {
         let config = ExtractionConfig::default();
         assert!(!config.effective_disable_ocr());
+    }
+
+    #[test]
+    fn test_default_extraction_timeout_is_bounded() {
+        // Untrusted input must always be bounded, regardless of the
+        // tokio-runtime feature (see CodeRabbit blocking item #3).
+        assert_eq!(default_extraction_timeout(), Some(60));
     }
 
     #[test]
@@ -840,10 +850,17 @@ mod tests {
     #[test]
     fn test_default_extraction_timeout_is_sixty_seconds() {
         let config = ExtractionConfig::default();
+        #[cfg(feature = "tokio-runtime")]
         assert_eq!(
             config.extraction_timeout_secs,
             Some(60),
             "default timeout must be Some(60) to prevent unbounded extraction"
+        );
+        #[cfg(not(feature = "tokio-runtime"))]
+        assert_eq!(
+            config.extraction_timeout_secs,
+            None,
+            "without tokio-runtime the extraction timeout must default to None"
         );
     }
 
@@ -872,10 +889,17 @@ mod tests {
         // When the JSON field is absent the serde default function must fire.
         let json = r#"{}"#;
         let config: ExtractionConfig = serde_json::from_str(json).unwrap();
+        #[cfg(feature = "tokio-runtime")]
         assert_eq!(
             config.extraction_timeout_secs,
             Some(60),
             "absent field must use default_extraction_timeout() -> Some(60)"
+        );
+        #[cfg(not(feature = "tokio-runtime"))]
+        assert_eq!(
+            config.extraction_timeout_secs,
+            None,
+            "absent field must use default_extraction_timeout() -> None without tokio-runtime"
         );
     }
 

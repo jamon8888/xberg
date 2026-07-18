@@ -15,16 +15,19 @@
 use js_sys::{Function, Object, Promise, Reflect};
 use wasm_bindgen::prelude::*;
 
+use async_trait::async_trait;
 use xberg::text::ner::NerBackend;
 use xberg::text::ner::candle::CandleBackend;
 use xberg::types::entity::{Entity, EntityCategory};
 
 thread_local! {
-    // Rc, not a bare CandleBackend: fallback_ner clones the Rc out of the
+    // Arc, not a bare CandleBackend: fallback_ner clones the Arc out of the
     // cell and drops the RefCell borrow *before* awaiting detect() below —
     // holding a RefCell borrow across an .await is a footgun (a re-entrant
-    // call while the future is suspended would panic on double-borrow).
-    static CANDLE_NER: std::cell::RefCell<Option<std::rc::Rc<CandleBackend>>> = const { std::cell::RefCell::new(None) };
+    // call while the future is suspended would panic on double-borrow). Arc
+    // (not Rc) because `NerBackend: Send + Sync` — wasm32 is single-threaded
+    // so the atomic refcounting is free, but the trait bound is unconditional.
+    static CANDLE_NER: std::cell::RefCell<Option<std::sync::Arc<CandleBackend>>> = const { std::cell::RefCell::new(None) };
 }
 
 /// Initialize the in-binary Candle NER fallback from in-memory model bytes.
@@ -37,7 +40,7 @@ pub fn init_candle_ner(safetensors: &[u8], tokenizer_json: &[u8], encoder_config
     let backend = CandleBackend::from_bytes(safetensors, tokenizer_json, encoder_config_json)
         .map_err(|e| js_from_any(format!("initCandleNer: {e}")))?;
     CANDLE_NER.with(|cell| {
-        *cell.borrow_mut() = Some(std::rc::Rc::new(backend));
+        *cell.borrow_mut() = Some(std::sync::Arc::new(backend));
     });
     Ok(())
 }
@@ -45,7 +48,7 @@ pub fn init_candle_ner(safetensors: &[u8], tokenizer_json: &[u8], encoder_config
 /// Return the currently-loaded Candle NER backend, if `initCandleNer` has
 /// been called. Used by `engine.rs::ingest()` to thread the already-loaded
 /// model into `xberg-rag`'s mandatory PII+NER redaction step.
-pub(crate) fn get_candle_ner() -> Option<std::rc::Rc<CandleBackend>> {
+pub(crate) fn get_candle_ner() -> Option<std::sync::Arc<CandleBackend>> {
     CANDLE_NER.with(|cell| cell.borrow().clone())
 }
 
@@ -157,15 +160,33 @@ impl NerBackend for JsNerBridge {
     ) -> xberg::Result<Vec<Entity>> {
         call_injected_ner(self.obj.clone(), text, categories, self.timeout_ms)
             .await
-            .map_err(|e| xberg::XbergError::Plugin(format!("JS NER bridge: {e:?}")))
+            .map_err(|e| xberg::XbergError::Plugin {
+                message: format!("JS NER bridge: {e:?}"),
+                plugin_name: "js-ner-bridge".to_string(),
+            })
+    }
+}
+
+/// Adapter that wraps the in-binary Candle GLiNER2 backend (initialized via
+/// `initCandleNer`) as a [`NerBackend`], for `resolve_ingest_ner`. Thin
+/// delegation, matching [`JsNerBridge`]'s shape — needed because
+/// `CandleBackend: NerBackend` is implemented on the bare type, not on
+/// `Arc<CandleBackend>` (what [`get_candle_ner`] returns), so `Box::new`
+/// can't coerce the `Arc` directly into a `Box<dyn NerBackend>`.
+struct CandleNerBridge(std::sync::Arc<CandleBackend>);
+
+#[async_trait(?Send)]
+impl NerBackend for CandleNerBridge {
+    async fn detect(&self, text: &str, categories: &[EntityCategory]) -> xberg::Result<Vec<Entity>> {
+        self.0.detect(text, categories).await
     }
 }
 
 /// Resolve the best NER backend for `ingest()`, preferring the injected JS
 /// bridge when available, falling back to the in-binary Candle backend.
 ///
-/// Returns `Ok(Some(backend))` if NER is available, `Ok(None)` only if
-/// both are unavailable (caller should error), or `Err` on init failure.
+/// Returns `Some(backend)` if NER is available, `None` only if both are
+/// unavailable (caller should error).
 pub(crate) fn resolve_ingest_ner(
     injected: Option<&js_sys::Object>,
     timeout_ms: u32,
@@ -175,8 +196,15 @@ pub(crate) fn resolve_ingest_ner(
     if let Some(obj) = injected {
         return Some(Box::new(JsNerBridge::new(obj.clone(), timeout_ms)));
     }
-    // Fall back to the Candle backend if initCandleNer was called.
-    None
+    // Fall back to the Candle backend if initCandleNer was called. Previously
+    // this branch unconditionally returned None despite the doc comment
+    // promising a Candle fallback -- confirmed dead code (get_candle_ner()
+    // was never called here at all) while wiring nerBackend: "candle" into
+    // the real production ingest path (engine.worker.ts), where omitting
+    // `ner` from the injection descriptor to activate Candle would otherwise
+    // silently leave document ingestion with NO NER backend at all, breaking
+    // ingest()'s mandatory PII redaction step.
+    get_candle_ner().map(|backend| Box::new(CandleNerBridge(backend)) as Box<dyn NerBackend>)
 }
 
 /// Convert a Display error into a JsValue suitable for propagation.

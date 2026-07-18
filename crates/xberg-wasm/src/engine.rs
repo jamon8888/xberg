@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use js_sys::Object;
 use wasm_bindgen::prelude::*;
 
@@ -72,7 +73,7 @@ impl XbergEngine {
     ///                `XbergEngine::ner()`. It does NOT satisfy `ingest()`'s
     ///                NER requirement — `ingest()` uses the Candle backend
     ///                via `initCandleNer()`, which must be called separately.
-    /// - `ocr`      — object with `ocr(imageBytes, opts): Promise<string>`
+    /// - `ocr`      — object with `ocr(imageBytes, opts): Promise<{ text: string, lines?: Array<{ text: string, confidence: number, bbox?: { x: number, y: number, w: number, h: number } }> }>`
     #[wasm_bindgen(constructor)]
     pub fn new(config: JsValue, injection: JsValue) -> Result<XbergEngine, JsValue> {
         let bridge_timeout_ms = if config.is_undefined() || config.is_null() {
@@ -172,8 +173,9 @@ impl XbergEngine {
             crate::bridge::ner::resolve_ingest_ner(self.ner.as_ref(), self.bridge_timeout_ms);
         let candle_rc = crate::bridge::ner::get_candle_ner();
         // We need a boxed NER backend that lives long enough. Use a small
-        // owned wrapper for the Candle case so the `Box` owns it.
-        struct CandleBox(std::rc::Rc<xberg::text::ner::candle::CandleBackend>);
+        // owned wrapper for the Candle case so the `Box` owns it. Arc (not Rc)
+        // because `NerBackend: Send + Sync` is unconditional on the trait.
+        struct CandleBox(Arc<xberg::text::ner::candle::CandleBackend>);
         #[async_trait(?Send)]
         impl xberg::text::ner::NerBackend for CandleBox {
             async fn detect(
@@ -230,7 +232,8 @@ impl XbergEngine {
         serde_wasm_bindgen::to_value(&result).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
-    /// Perform OCR on image bytes, returning extracted text.
+    /// Perform OCR on image bytes, returning extracted text with per-line
+    /// confidence and bounding-box geometry (when the backend provides it).
     #[allow(clippy::missing_errors_doc)]
     pub async fn ocr(&self, bytes: Vec<u8>, opts: JsValue) -> Result<JsValue, JsValue> {
         let language = if opts.is_undefined() || opts.is_null() {
@@ -242,11 +245,11 @@ impl XbergEngine {
                 .unwrap_or_else(|| "eng".to_string())
         };
 
-        let text = resolve_ocr_with_timeout(self.ocr.clone(), &bytes, &language, self.bridge_timeout_ms)
+        let result = resolve_ocr_with_timeout(self.ocr.clone(), &bytes, &language, self.bridge_timeout_ms)
             .await
             .map_err(|e| JsValue::from_str(&format!("{e:?}")))?;
 
-        Ok(JsValue::from_str(&text))
+        serde_wasm_bindgen::to_value(&result).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     /// Decrypt a rehydration map and substitute tokens in `doc`.
